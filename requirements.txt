@@ -2,3 +2,4 @@ Flask==0.9
 requests==0.13.5
 ipython==0.13
 Flask-FlatPages==0.3
+Pygments==1.5
