@@ -8,7 +8,41 @@ import re
 
 app = Flask(__name__)
 
+try :
+    import pylibmc
+    mc = pylibmc.Client(["127.0.0.1"], binary=True,
+                    behaviors={"tcp_nodelay": True,
+                                "ketama": True})
 
+    def cachedfirstparam(function):
+        #print('applying to',function.__name__)
+
+        def wrapper(*args, **kw):
+            #print(function.__name__, args, kw)
+            if len(args)+len(kw) != 1:
+               print('wrong number of arguments !', args,kw)
+               return function(*args,**kw)
+            else :
+                key = kw.values()[0] if kw else args[0]
+                skey = str(key)+str(function.__name__)
+                mcv = mc.get(skey)
+                #mcv = None
+                if mcv :
+                    return mcv
+                else :
+                    print "===================================> cache empyt for ", skey
+                    value = function(key)
+                    mc.set(skey, value, time=600)
+                    return value
+        return wrapper
+
+except :
+    def cachedfirstparam(fun):
+        return fun
+    print 'not using memcache'
+
+
+@cachedfirstparam
 def static(strng) :
     return open('static/'+strng).read()
 
@@ -17,9 +51,10 @@ def hello():
     return static('index.html')
 
 
-@app.route('/assets/<path:path>', methods=['GET'])
+@app.route('/assets/<path:path>')
+@cachedfirstparam
 def sitemap(path):
-    return open('static/assets/'+path).read()
+    return static('/assets/'+path)
 
 
 @app.errorhandler(500)
@@ -57,44 +92,58 @@ def create(v=None):
     return static('unknown_filetype.html')
 
 #https !
+@cachedfirstparam
+def cachedget(url):
+    try :
+        r = requests.get(url)
+        if r.status_code is not 200 :
+            abort(404)
+        return r.content
+    except Exception :
+        abort(404)
+
+
+
+@cachedfirstparam
 @app.route('/urls/<path:url>')
 def render_urls(url):
-    try :
-        r = requests.get('https://'+url)
-    except Exception as e :
-        abort(404)
-    return(render_request(r))
+    content = cachedget('https://'+url)
+    return render_content(content)
 
 #http !
+@cachedfirstparam
 @app.route('/url/<path:url>')
 def render_url(url):
-    try :
-        r = requests.get('http://'+url)
-    except Exception as e :
-        abort(404)
-
-    return(render_request(r))
+    content = cachedget('http://'+url)
+    return render_content(content)
 
 
-def render_request(r):
+@cachedfirstparam
+def render_request(r=None):
     try:
         if r.status_code != 200:
             abort(404)
-        converter = nbconvert.ConverterHTML()
-        converter.nb = nbformat.reads_json(r.content)
-        result = converter.convert()
-        return result
+        return render_content(r.content)
     except  :
         abort(404)
 
+def render_content(content):
+    converter = nbconvert.ConverterHTML()
+    converter.nb = nbformat.reads_json(content)
+    return converter.convert()
 
+
+@cachedfirstparam
 @app.route('/<int:id>')
-def fetch_and_render(id):
+def fetch_and_render(id=None):
     """Fetch and render a post from the Github API"""
+    if id is None :
+        return redirect('/')
+
     r = requests.get('https://api.github.com/gists/{}'.format(id))
 
     if r.status_code != 200:
-        return None
+        abort(404)
     try :
         decoded = r.json.copy()
         jsonipynb = decoded['files'].values()[0]['content']
