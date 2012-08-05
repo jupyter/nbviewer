@@ -1,5 +1,5 @@
 import os
-from flask import Flask , request
+from flask import Flask , request, render_template
 import nbconvert.nbconvert as nbconvert
 import requests
 from nbformat import current as nbformat
@@ -8,9 +8,13 @@ import re
 
 app = Flask(__name__)
 
+
+def static(strng) :
+    return open('static/'+strng).read()
+
 @app.route('/')
 def hello():
-    return open('static/index.html').read()
+    return static('index.html')
 
 
 @app.route('/assets/<path:path>', methods=['GET'])
@@ -18,63 +22,71 @@ def sitemap(path):
     return open('static/assets/'+path).read()
 
 
+@app.errorhandler(500)
+def page_not_found(error):
+    return static('500.html'),500
+
 @app.errorhandler(404)
 def page_not_found(error):
-    return "OHNO ! it cannot be found !" 
-    #return render_template('page_not_found.html'), 404
+    return static('404.html'),404
+
+@app.route('/404')
+def four_o_foru():
+    abort(404)
+
+@app.route('/500')
+def four_o_foru():
+    abort(500)
 
 @app.route('/create/',methods=['POST'])
-def login():
+def create(v=None):
     value = request.form['gistnorurl']
+    if v and not value:
+        value = v
     if re.match('^[0-9]+$',value):
         return redirect('/'+value)
-    
     gist = re.search(r'^https?://gist.github.com/([0-9]+)$',value)
     if gist:
         return redirect('/'+gist.group(1))
-
-    if value.startswith('https://'):
+    if value.startswith('https://') and value.endswith('.ipynb'):
         return redirect('/urls/'+value[8:])
 
-    if value.startswith('http://'):
-        return redirect('/urls/'+value[7:])
+    if value.startswith('http://') and value.endswith('.ipynb'):
+        return redirect('/url/'+value[7:])
 
-    return "don't now how to access this ipynb file..."
+    return static('unknown_filetype.html')
 
 #https !
 @app.route('/urls/<path:url>')
 def render_urls(url):
-    try:
+    try :
         r = requests.get('https://'+url)
+    except Exception as e :
+        abort(404)
+    return(render_request(r))
 
-        if r.status_code != 200:
-            return None
-        print 'will init converter'
-        converter = nbconvert.ConverterHTML()
-        print 'will set json'
-        converter.nb = nbformat.reads_json(r.content)
-        print 'will convert'
-        result = converter.convert()
-        print 'will return'
-        return result
-    except ValueError :
-        abort(501)
-        
-#http ! 
+#http !
 @app.route('/url/<path:url>')
 def render_url(url):
-    try:
+    try :
         r = requests.get('http://'+url)
+    except Exception as e :
+        abort(404)
 
+    return(render_request(r))
+
+
+def render_request(r):
+    try:
         if r.status_code != 200:
-            return None
-
+            abort(404)
         converter = nbconvert.ConverterHTML()
         converter.nb = nbformat.reads_json(r.content)
         result = converter.convert()
         return result
-    except ValueError :
-        abort(501)
+    except  :
+        abort(404)
+
 
 @app.route('/<int:id>')
 def fetch_and_render(id):
