@@ -15,12 +15,9 @@ try :
                                 "ketama": True})
 
     def cachedfirstparam(function):
-        #print('applying to',function.__name__)
 
         def wrapper(*args, **kw):
-            #print(function.__name__, args, kw)
             if len(args)+len(kw) != 1:
-               print('wrong number of arguments !', args,kw)
                return function(*args,**kw)
             else :
                 key = kw.values()[0] if kw else args[0]
@@ -30,7 +27,6 @@ try :
                 if mcv :
                     return mcv
                 else :
-                    print "===================================> cache empyt for ", skey
                     value = function(key)
                     mc.set(skey, value, time=600)
                     return value
@@ -39,8 +35,6 @@ try :
 except :
     def cachedfirstparam(fun):
         return fun
-    print 'not using memcache'
-
 
 @cachedfirstparam
 def static(strng) :
