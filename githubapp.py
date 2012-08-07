@@ -7,6 +7,7 @@ from nbformat import current as nbformat
 from flask import Flask, redirect, abort
 import re
 import github as gh
+from gist import render_content
 
 app = Flask(__name__)
 github = gh.Github()
@@ -24,8 +25,9 @@ def repo(user,repo):
     return github.get_user(user).get_repo(repo).url
 
 
-@app.route('/<user>/<repo>/<path:subfile>')
-def file(user,repo, subfile):
+@app.route('/<user>/<repo>/<tree>/<branch>/<path:subfile>')
+def file(user,repo,tree,branch, subfile):
+    #we don't care about tree or branch now...
     base  = "You are trying to access the file : %(file)s, from the %(repo)s repository of %(name)s"
     user = github.get_user(user)
     repo = user.get_repo(repo)
@@ -41,7 +43,7 @@ def file(user,repo, subfile):
     e = rwt(repo, branch.commit.sha, subfile.split('/'))
     f = repo.get_git_blob(e.sha)
 
-    return base64.decodestring(f.content)
+    return render_content(base64.decodestring(f.content))
 
 #recursively walk tree....
 def rwt(repo,sha,path):
