@@ -1,8 +1,9 @@
 {% extends "layout.html" %}
 {% block body %}
     <ul>
-    {% for entry in entries %}
-        <li>{{entry}}</li>
-    {% endfor %}
+        <li><a href='../'>..</a></li>
+        {% for entry in entries %}
+            <li><a href='{{entry}}'>{{entry}}</a></li>
+        {% endfor %}
     </ul>
 {% endblock %}
