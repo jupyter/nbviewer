@@ -41,22 +41,22 @@ def file(user,repo,tree,branch, subfile):
 
     formated = base % { 'name':user.name,'repo':repo.url, 'file':subfile}
     e = rwt(repo, branch.commit.sha, subfile.strip('/').split('/'))
-    if e.type == 'blob' :
+    if type(e) == gh.GitBlob.GitBlob :
         f = repo.get_git_blob(e.sha)
         return render_content(base64.decodestring(f.content))
     else :
-        return '\n'.join([n.path for n in e.tree])
+        return 'this is a tree'
 
 
 
 #recursively walk tree....
 def rwt(repo,sha,path):
     tree = repo.get_git_tree(sha)
-    nodes = tree.tree
-    if(len(path) == 1):
+    if len(path==0):
         return tree
     subpath = path[1:]
     key = path[0]
+    nodes = tree.tree
     for n in nodes :
         if n.path == key:
             if n.type == 'tree':
