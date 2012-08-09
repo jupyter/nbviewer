@@ -26,7 +26,7 @@ def repo(user,repo):
 
 
 @app.route('/<user>/<repo>/<tree>/<branch>/')
-def dummy1(user,repo,tree,branch, subfile):
+def dummy1(user,repo,tree,branch):
     return file(user,repo,tree,branch,None)
 
 
