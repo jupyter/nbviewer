@@ -1,7 +1,8 @@
 {% extends "layout.html" %}
-
-<ul>
-{% for entry in entries %}
-    <li>{{entry}}</li>
-{% endfor %}
-</ul>
+{% block body %}
+    <ul>
+    {% for entry in entries %}
+        <li>{{entry}}</li>
+    {% endfor %}
+    </ul>
+{% endblock %}
