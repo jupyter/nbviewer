@@ -45,9 +45,13 @@ def file(user,repo,tree,branch, subfile):
         f = repo.get_git_blob(e.sha)
         return render_content(base64.decodestring(f.content))
     else :
+        entries = []
         for en in e.tree:
-            en.url = relative_url_for_tree(en)
-        return render_template('treelist.html', entries=e.tree)
+            var = {}
+            var['path'] = en.path
+            var['url'] = relative_url_for_tree(en)
+            entries.append(var)
+        return render_template('treelist.html', entries=entries)
 
 def relative_url_for_tree(obj):
     if hasattr(obj, 'type') and obj.type == 'blob' :
