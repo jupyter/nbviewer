@@ -52,7 +52,7 @@ def file(user,repo,tree,branch, subfile):
 #recursively walk tree....
 def rwt(repo,sha,path):
     tree = repo.get_git_tree(sha)
-    if len(path==0):
+    if len(path)==0:
         return tree
     subpath = path[1:]
     key = path[0]
