@@ -45,15 +45,17 @@ def file(user,repo,tree,branch, subfile):
         f = repo.get_git_blob(e.sha)
         return render_content(base64.decodestring(f.content))
     else :
-        return 'this is a tree'
+        return '\n'.join([n.path for n on e])
 
 
 
 #recursively walk tree....
 def rwt(repo,sha,path):
+    nodes = repo.get_git_tree(sha).tree
+    if(len(path) == 1):
+        return nodes
     subpath = path[1:]
     key = path[0]
-    nodes = repo.get_git_tree(sha).tree
     for n in nodes :
         if n.path == key:
             if n.type == 'tree':
