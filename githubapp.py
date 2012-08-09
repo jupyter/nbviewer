@@ -24,11 +24,11 @@ def user(user):
 def repo(user,repo):
     return redirect('/%(user)s/%(repo)s/tree/master/'%{'user':user, 'repo':repo})
 
-@app.route('/<user>/<repo>/<tree>/<branch>/')
-def dummy1(user,repo,tree,branch):
-    if user == 'static':
-        return open('static/%s/%s/%s'%(repo,tree,branch)).read()
-    return file(user,repo,tree,branch,None)
+#@app.route('/<user>/<repo>/<tree>/<branch>/')
+#def dummy1(user,repo,tree,branch):
+#    if user == 'static':
+#        return open('static/%s/%s/%s'%(repo,tree,branch)).read()
+#    return file(user,repo,tree,branch,None)
 
 
 @app.route('/<user>/<repo>/<tree>/<branch>/<path:subfile>')
