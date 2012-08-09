@@ -1,13 +1,13 @@
 {% extends "layout.html" %}
 {% block body %}
-<ul>
+<ul class='the-icons'>
         {% if atroot %}
-        <li><a href='../../../'> .. (User Repos, non fonctional yet)</a></li>
+        <li><i class=' icon-backward'></i> <a href='../'> .. (User Repos, non fonctional yet)</a></li>
         {% else %}
-        <li><a href='../'>..</a></li>
+        <li><i class=' icon-backward'></i> <a href='../'>..</a></li>
         {% endif %}
         {% for entry in entries %}
-            <li><a href='{{entry.url}}'>{{entry.path}}</a></li>
+        <li><i class='{{entry.class}}'></i> <a href='{{entry.url}}'>{{entry.path}}</a></li>
         {% endfor %}
     </ul>
 {% endblock %}

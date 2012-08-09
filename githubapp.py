@@ -12,34 +12,77 @@ from gist import render_content
 app = Flask(__name__)
 github = gh.Github()
 
+
+
+def full_url(user,repo=None, blob=None, branch=None, subpath=None):
+    if not subpath and (not branch or branch=='master') :
+        return '/%(user)s/%(repo)s/' % {'user':user,\
+         'repo':repo}
+
+    string = '/%(user)s/%(repo)s/%(blob)s/%(branch)s/%(subpath)s' % \
+        {'user':user,\
+         'repo':repo,\
+         'blob':blob,\
+         'branch':branch,\
+         'subpath':subpath}
+    sp = string.replace('//','/')
+
+    return sp
+
 @app.route('/')
 def render_url():
     return 'you are at root'
 
-@app.route('/<user>/')
-def user(user):
-    return github.get_user(user).name
+#@app.route('/<user>/')
+#def user(user):
+#    return github.get_user(user).name
 
 @app.route('/<user>/<repo>/')
 def repo(user,repo):
     return file(user, repo, 'tree','master', None )
     #return redirect('/%(user)s/%(repo)s/tree/master/'%{'user':user, 'repo':repo})
 
-#@app.route('/<user>/<repo>/<tree>/<branch>/')
-#def dummy1(user,repo,tree,branch):
-#    if user == 'static':
-#        return open('static/%s/%s/%s'%(repo,tree,branch)).read()
-#    return file(user,repo,tree,branch,None)
+@app.route('/<user>/<repo>/<tree>/<branch>/')
+def dummy1(user,repo,tree,branch):
+    if user == 'static':
+        return app.send_static_file('%s/%s/%s'%(repo,tree,branch))
+        #return open('static/%s/%s/%s'%(repo,tree,branch)).read()
+    return browse_tree_blob(user,repo,tree,branch,None)
 
 
-@app.route('/<user>/<repo>/<tree>/<branch>/<path:subfile>')
-def file(user,repo,tree,branch, subfile):
+#@app.route('/<user>/<repo>/tree/<branch>/<path:subfile>')
+def bowse_tree(user,repo,branch,subfile, parent=None):
+    pass
+
+#@app.route('/<user>/<repo>/blob/<branch>/<path:subfile>')
+def show_blob(user,repo,branch,subfile):
+    pass
+
+#@app.route('/<user>/<repo>/branches')
+def browse_branches(user,repo):
+    pass
+
+@app.route('/<usern>/<repon>/<tree>/<branchn>/<path:subfile>')
+def browse_tree_blob(usern,repon,tree,branchn, subfile):
+    if (not subfile) and (branchn == 'master'):
+        return redirect('/%s/%s/'%(usern,repon))
+    print("================")
+    print(usern,repon,tree,branchn, subfile)
+    print("================")
+    return file(usern,repon,tree,branchn, subfile)
+
+def file(usern,repon,tree,branchn, subfile):
     #we don't care about tree or branch now...
     
     #convert names to objects
-    user = github.get_user(user)
-    repo = user.get_repo(repo)
-    master = branch if branch else repo.master_branch
+    user = github.get_user(usern)
+    repo = user.get_repo(repon)
+    
+    master = branchn if branchn else repo.master_branch
+
+    #if not subfile and branchn == repo.master_branch :
+        #return redirect(full_url(usern, repon))
+
     branch = [b for b in repo.get_branches() if b.name == master][0]
 
     if subfile:
@@ -48,6 +91,7 @@ def file(user,repo,tree,branch, subfile):
     else :
         atroot = True
         e = repo.get_git_tree(branch.commit.sha);
+        subfile = ''
 
     if hasattr(e,'type') and e.type == 'blob' :
         f = repo.get_git_blob(e.sha)
@@ -57,8 +101,9 @@ def file(user,repo,tree,branch, subfile):
         for en in e.tree:
             var = {}
             var['path'] = en.path
-            var['url'] = relative_url_for_tree(en)
             var['type'] = type_for_tree(en)
+            var['class']= class_for_tree(en)
+            var['url']  = full_url(usern,repon,var['type'],branchn,subfile+'/'+relative_url_for_tree(en))
             entries.append(var)
         return render_template('treelist.html', entries=entries, atroot=atroot)
 
@@ -73,6 +118,12 @@ def type_for_tree(obj):
         return 'blob'
     else :
         return 'tree'
+
+def class_for_tree(obj):
+    if hasattr(obj, 'type') and obj.type == 'blob' :
+        return 'icon-file'
+    else :
+        return 'icon-folder-open'
 #recursively walk tree....
 def rwt(repo,sha,path):
     tree = repo.get_git_tree(sha)
