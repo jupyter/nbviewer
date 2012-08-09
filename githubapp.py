@@ -22,7 +22,8 @@ def user(user):
 
 @app.route('/<user>/<repo>/')
 def repo(user,repo):
-    return redirect('/%(user)s/%(repo)s/tree/master/'%{'user':user, 'repo':repo})
+    return file(user, repo, 'tree','master', None )
+    #return redirect('/%(user)s/%(repo)s/tree/master/'%{'user':user, 'repo':repo})
 
 #@app.route('/<user>/<repo>/<tree>/<branch>/')
 #def dummy1(user,repo,tree,branch):
