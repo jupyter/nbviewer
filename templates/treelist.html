@@ -1,7 +1,11 @@
 {% extends "layout.html" %}
 {% block body %}
-    <ul>
+<ul>
+        {% if atroot %}
+        <li><a href='../../../'> .. (User Repos, non fonctional yet)</a></li>
+        {% else %}
         <li><a href='../'>..</a></li>
+        {% endif %}
         {% for entry in entries %}
             <li><a href='{{entry.url}}'>{{entry.path}}</a></li>
         {% endfor %}

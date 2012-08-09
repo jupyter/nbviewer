@@ -34,7 +34,6 @@ def dummy1(user,repo,tree,branch):
 @app.route('/<user>/<repo>/<tree>/<branch>/<path:subfile>')
 def file(user,repo,tree,branch, subfile):
     #we don't care about tree or branch now...
-    base  = "You are trying to access the file : %(file)s, from the %(repo)s repository of %(name)s"
     
     #convert names to objects
     user = github.get_user(user)
@@ -43,8 +42,10 @@ def file(user,repo,tree,branch, subfile):
     branch = [b for b in repo.get_branches() if b.name == master][0]
 
     if subfile:
+        atroot = False
         e = rwt(repo, branch.commit.sha, subfile.strip('/').split('/'))
     else :
+        atroot = True
         e = repo.get_git_tree(branch.commit.sha);
 
     if hasattr(e,'type') and e.type == 'blob' :
@@ -56,8 +57,9 @@ def file(user,repo,tree,branch, subfile):
             var = {}
             var['path'] = en.path
             var['url'] = relative_url_for_tree(en)
+            var['type'] = type_for_tree(en)
             entries.append(var)
-        return render_template('treelist.html', entries=entries)
+        return render_template('treelist.html', entries=entries, atroot=atroot)
 
 def relative_url_for_tree(obj):
     if hasattr(obj, 'type') and obj.type == 'blob' :
@@ -65,6 +67,11 @@ def relative_url_for_tree(obj):
     else :
         return obj.path+'/'
 
+def type_for_tree(obj):
+    if hasattr(obj, 'type') and obj.type == 'blob' :
+        return 'blob'
+    else :
+        return 'tree'
 #recursively walk tree....
 def rwt(repo,sha,path):
     tree = repo.get_git_tree(sha)
