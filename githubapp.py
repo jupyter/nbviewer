@@ -41,7 +41,7 @@ def file(user,repo,tree,branch, subfile):
 
     formated = base % { 'name':user.name,'repo':repo.url, 'file':subfile}
     e = rwt(repo, branch.commit.sha, subfile.strip('/').split('/'))
-    if type(e) == gh.GitBlob.GitBlob :
+    if e.hasattr('type') and e.type == 'blob' :
         f = repo.get_git_blob(e.sha)
         return render_content(base64.decodestring(f.content))
     else :
