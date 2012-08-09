@@ -25,6 +25,11 @@ def repo(user,repo):
     return github.get_user(user).get_repo(repo).url
 
 
+@app.route('/<user>/<repo>/<tree>/<branch>/')
+def dummy1(user,repo,tree,branch, subfile):
+    return file(user,repo,tree,branch,None)
+
+
 @app.route('/<user>/<repo>/<tree>/<branch>/<path:subfile>')
 def file(user,repo,tree,branch, subfile):
     #we don't care about tree or branch now...
