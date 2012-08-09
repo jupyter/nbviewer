@@ -45,10 +45,15 @@ def file(user,repo,tree,branch, subfile):
         f = repo.get_git_blob(e.sha)
         return render_content(base64.decodestring(f.content))
     else :
-        return render_template('treelist.html', entries=[n.path for n in e.tree])
-        #return '\n'.join([n.path for n in e.tree])
+        for en in e.tree:
+            en.url = relative_url_for_tree(en)
+        return render_template('treelist.html', entries=e.tree)
 
-
+def relative_url_for_tree(obj):
+    if hasattr(obj, 'type') and obj.type == 'blob' :
+        return obj.name
+    else :
+        return obj.name+'/'
 
 #recursively walk tree....
 def rwt(repo,sha,path):

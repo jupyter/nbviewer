@@ -3,7 +3,7 @@
     <ul>
         <li><a href='../'>..</a></li>
         {% for entry in entries %}
-            <li><a href='{{entry}}'>{{entry}}</a></li>
+            <li><a href='{{entry.url}}'>{{entry.path}}</a></li>
         {% endfor %}
     </ul>
 {% endblock %}
