@@ -22,8 +22,7 @@ def user(user):
 
 @app.route('/<user>/<repo>/')
 def repo(user,repo):
-    return github.get_user(user).get_repo(repo).url
-
+    return file(user,repo,'tree',None,None)
 
 @app.route('/<user>/<repo>/<tree>/<branch>/')
 def dummy1(user,repo,tree,branch):
@@ -34,18 +33,18 @@ def dummy1(user,repo,tree,branch):
 def file(user,repo,tree,branch, subfile):
     #we don't care about tree or branch now...
     base  = "You are trying to access the file : %(file)s, from the %(repo)s repository of %(name)s"
+    
+    #convert names to objects
     user = github.get_user(user)
     repo = user.get_repo(repo)
-
-    master = repo.master_branch
+    master = branch if branch else repo.master_branch
     branch = [b for b in repo.get_branches() if b.name == master][0]
 
-    headtree = repo.get_git_tree(branch.commit.sha)
+    if subfile:
+        e = rwt(repo, branch.commit.sha, subfile.strip('/').split('/'))
+    else :
+        e = repo.get_git_tree(branch.commit.sha);
 
-
-
-    formated = base % { 'name':user.name,'repo':repo.url, 'file':subfile}
-    e = rwt(repo, branch.commit.sha, subfile.strip('/').split('/'))
     if hasattr(e,'type') and e.type == 'blob' :
         f = repo.get_git_blob(e.sha)
         return render_content(base64.decodestring(f.content))
