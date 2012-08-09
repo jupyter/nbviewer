@@ -51,9 +51,9 @@ def file(user,repo,tree,branch, subfile):
 
 def relative_url_for_tree(obj):
     if hasattr(obj, 'type') and obj.type == 'blob' :
-        return obj.name
+        return obj.path
     else :
-        return obj.name+'/'
+        return obj.path+'/'
 
 #recursively walk tree....
 def rwt(repo,sha,path):
