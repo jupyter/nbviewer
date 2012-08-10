@@ -1,6 +1,6 @@
-BOOTSTRAP = ./static/assets/css/bootstrap.css
+BOOTSTRAP = ./static/css/bootstrap.css
 BOOTSTRAP_LESS = ./less/bootstrap.less
-BOOTSTRAP_RESPONSIVE = ./static/assets/css/bootstrap-responsive.css
+BOOTSTRAP_RESPONSIVE = ./static/css/bootstrap-responsive.css
 BOOTSTRAP_RESPONSIVE_LESS = ./less/responsive.less
 DATE=$(shell date +%I:%M%p)
 CHECK=\033[32m✔\033[39m
@@ -22,15 +22,15 @@ build:
 	@recess --compile ${BOOTSTRAP_RESPONSIVE_LESS} > ${BOOTSTRAP_RESPONSIVE}
 	@echo "Compiling LESS with Recess...               ${CHECK} Done"
 	@node static/build
-	@cp img/* static/assets/img/
-	@cp js/*.js static/assets/js/
-	@cp js/tests/vendor/jquery.js static/assets/js/
+	@cp img/* static/img/
+	@cp js/*.js static/js/
+	@cp js/tests/vendor/jquery.js static/js/
 	@echo "Compiling documentation...                  ${CHECK} Done"
-	@cat js/bootstrap-transition.js js/bootstrap-alert.js js/bootstrap-button.js js/bootstrap-carousel.js js/bootstrap-collapse.js js/bootstrap-dropdown.js js/bootstrap-modal.js js/bootstrap-tooltip.js js/bootstrap-popover.js js/bootstrap-scrollspy.js js/bootstrap-tab.js js/bootstrap-typeahead.js > static/assets/js/bootstrap.js
-	@uglifyjs -nc static/assets/js/bootstrap.js > static/assets/js/bootstrap.min.tmp.js
-	@echo "/**\n* Bootstrap.js by @fat & @mdo\n* Copyright 2012 Twitter, Inc.\n* http://www.apache.org/licenses/LICENSE-2.0.txt\n*/" > static/assets/js/copyright.js
-	@cat static/assets/js/copyright.js static/assets/js/bootstrap.min.tmp.js > static/assets/js/bootstrap.min.js
-	@rm static/assets/js/copyright.js static/assets/js/bootstrap.min.tmp.js
+	@cat js/bootstrap-transition.js js/bootstrap-alert.js js/bootstrap-button.js js/bootstrap-carousel.js js/bootstrap-collapse.js js/bootstrap-dropdown.js js/bootstrap-modal.js js/bootstrap-tooltip.js js/bootstrap-popover.js js/bootstrap-scrollspy.js js/bootstrap-tab.js js/bootstrap-typeahead.js > static/js/bootstrap.js
+	@uglifyjs -nc static/js/bootstrap.js > static/js/bootstrap.min.tmp.js
+	@echo "/**\n* Bootstrap.js by @fat & @mdo\n* Copyright 2012 Twitter, Inc.\n* http://www.apache.org/licenses/LICENSE-2.0.txt\n*/" > static/js/copyright.js
+	@cat static/js/copyright.js static/js/bootstrap.min.tmp.js > static/js/bootstrap.min.js
+	@rm static/js/copyright.js static/js/bootstrap.min.tmp.js
 	@echo "Compiling and minifying javascript...       ${CHECK} Done"
 	@echo "\n${HR}"
 	@echo "Bootstrap successfully built at ${DATE}."
@@ -75,10 +75,10 @@ bootstrap:
 #
 
 gh-pages: bootstrap static
-	rm -f static/assets/bootstrap.zip
-	zip -r static/assets/bootstrap.zip bootstrap
+	rm -f static/bootstrap.zip
+	zip -r static/bootstrap.zip bootstrap
 	rm -r bootstrap
-	rm -f ../bootstrap-gh-pages/assets/bootstrap.zip
+	rm -f ../bootstrap-gh-pages/bootstrap.zip
 	node static/build production
 	cp -r static/* ../bootstrap-gh-pages
 
