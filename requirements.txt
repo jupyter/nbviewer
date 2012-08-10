@@ -1,4 +1,5 @@
 Flask==0.9
+Flask-Cache==0.4.0
 requests==0.13.5
 ipython==0.13
 Pygments==1.5
