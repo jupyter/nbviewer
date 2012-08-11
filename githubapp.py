@@ -5,15 +5,21 @@ import nbconvert.nbconvert as nbconvert
 import requests
 from nbformat import current as nbformat
 from flask import Flask, redirect, abort
+from flaskext.cache import Cache
 import re
 import github as gh
 from gist import render_content
 
 app = Flask(__name__)
+app.config['CACHE_TYPE'] = 'memcached'
+app.config['CACHE_MEMCACHED_SERVERS'] = os.environ.get('MEMCACHE_SERVERS') or ['127.0.0.1']
+    #os.environ.get('MEMCACHE_USERNAME')
+    #os.environ.get('MEMCACHE_PASSWORD')
+cache = Cache(app)
 github = gh.Github()
 
 
-
+#@cache.cached(50)
 def full_url(user,repo=None, blob=None, branch=None, subpath=None):
     if not subpath and (not branch or branch=='master') :
         return '/%(user)s/%(repo)s/' % {'user':user,\
@@ -30,6 +36,7 @@ def full_url(user,repo=None, blob=None, branch=None, subpath=None):
     return sp
 
 @app.route('/')
+#@cache.cached(50)
 def render_url():
     return 'you are at root'
 
@@ -38,11 +45,13 @@ def render_url():
 #    return github.get_user(user).name
 
 @app.route('/<user>/<repo>/')
+@cache.cached(500)
 def repo(user,repo):
     return file(user, repo, 'tree','master', None )
     #return redirect('/%(user)s/%(repo)s/tree/master/'%{'user':user, 'repo':repo})
 
 @app.route('/<user>/<repo>/<tree>/<branch>/')
+@cache.cached(500)
 def dummy1(user,repo,tree,branch):
     if user == 'static':
         return app.send_static_file('%s/%s/%s'%(repo,tree,branch))
@@ -63,6 +72,7 @@ def browse_branches(user,repo):
     pass
 
 @app.route('/<usern>/<repon>/<tree>/<branchn>/<path:subfile>')
+@cache.cached(500)
 def browse_tree_blob(usern,repon,tree,branchn, subfile):
     if (not subfile) and (branchn == 'master'):
         return redirect('/%s/%s/'%(usern,repon))
