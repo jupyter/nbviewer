@@ -11,7 +11,7 @@ import github as gh
 from gist import render_content
 
 app = Flask(__name__)
-app.config['CACHE_TYPE'] = 'memcached'
+app.config['CACHE_TYPE'] = 'null'
 app.config['CACHE_MEMCACHED_SERVERS'] = os.environ.get('MEMCACHE_SERVERS') or ['127.0.0.1']
     #os.environ.get('MEMCACHE_USERNAME')
     #os.environ.get('MEMCACHE_PASSWORD')
