@@ -31,3 +31,9 @@ so you will need some dependency like `node`,`uglify-js`.
  * any required python package should be availlable via `pip`, and should be added to `requirement.txt`.
    see `pip freeze` to know what to write in the file.
  * local debug mode is activated by creating a `.debug` file in the root directory, `.debug` is excluded in `.gitignore`and `.slugignore`
+
+
+Copying
+-------
+
+This project is under BSD liscence. Some files are copyind from Twitter Bootstrap Project and so are under Apache Licence. See `Licence-bootstrap`.
