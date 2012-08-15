@@ -38,7 +38,7 @@ def full_url(user,repo=None, blob=None, branch=None, subpath=None):
 @app.route('/')
 #@cache.cached(50)
 def render_url():
-    return 'you are at root'
+    return redirect('/ipython/')
 
 @app.route('/<user>/')
 def user(user):
