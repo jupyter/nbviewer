@@ -40,9 +40,16 @@ def full_url(user,repo=None, blob=None, branch=None, subpath=None):
 def render_url():
     return 'you are at root'
 
-#@app.route('/<user>/')
-#def user(user):
-#    return github.get_user(user).name
+@app.route('/<user>/')
+def user(user):
+    rs = github.get_user(user).get_repos();
+    l = [];
+    for r in rs :
+        var = {}
+        var['url'] = r.name+'/'
+        var['name'] = r.name
+        l.append(var)
+    return render_template('userview.html', entries=l)
 
 @app.route('/<user>/<repo>/')
 @cache.cached(500)
