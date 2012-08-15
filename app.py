@@ -95,9 +95,57 @@ def fetch_and_render(id):
 
     if r.status_code != 200:
         return None
+
+    decoded = r.json.copy()
+    files = decoded['files'].values()
+    if len(files) > 1:
+        return file_listing(id, files)    
+
+    file = files[0]
+    return render_file(file, decoded)
+
+
+@app.route('/<int:id>/<string:filename>')
+def fetch_file(id, filename):
+    """Fetch and render a post from the Github API"""
+    r = requests.get('https://api.github.com/gists/{}'.format(id))
+
+    if r.status_code != 200:
+        return None
     try :
         decoded = r.json.copy()
-        jsonipynb = decoded['files'].values()[0]['content']
+        files = decoded['files'].values()
+        for f in files:
+            if f['filename'] == filename:
+                return render_file(f, decoded)
+        abort(404)
+    except ValueError as e :
+        abort(404)
+
+    return result
+
+def file_listing(gist_id, files):
+    links = []
+    for file in files:
+        fn = file['filename']
+        link = '<a href="/{0}/{1}">{2}</a>'.format(gist_id, fn, fn)
+        links.append(link)
+
+    return '<h2>Files in Gist</h2>'+'<br />'.join(links)
+
+RECENT_FILES = []
+
+@app.route('/recent_files')
+def recent_files():
+    return str(RECENT_FILES)
+
+
+def render_file(file, decoded):
+    """Fetch and render a post from the Github API"""
+    try :
+        jsonipynb = file['content']
+        RECENT_FILES.append((file['filename'], decoded['description'], decoded['html_url']))
+        print RECENT_FILES
 
         converter = nbconvert.ConverterHTML()
         converter.nb = nbformat.reads_json(jsonipynb)
@@ -109,7 +157,7 @@ def fetch_and_render(id):
 
 if __name__ == '__main__':
     # Bind to PORT if defined, otherwise default to 5000.
-    port = int(os.environ.get('PORT', 5000))
+    port = int(os.environ.get('PORT', 5005))
     debug = os.path.exists('.debug')
     if debug :
         print 'DEBUG MODE IS ACTIVATED !!!'
