@@ -237,9 +237,15 @@ hr.soften {
   top: 5px;
 }
 
+#recent-notebooks {
+  margin-bottom:30px;
+}
 
 /* Marketing section of Overview
 -------------------------------------------------- */
+.marketing {
+  clear:both;
+}
 .marketing .row {
   margin-bottom: 9px;
 }

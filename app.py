@@ -95,9 +95,55 @@ def fetch_and_render(id):
 
     if r.status_code != 200:
         return None
+
+    decoded = r.json.copy()
+
+    # if more than on efile, throw to listing
+    files = decoded['files'].values()
+    if len(files) > 1:
+        return file_listing(id, files)    
+
+    file = files[0]
+    return render_file(file, decoded)
+
+
+@app.route('/<int:id>/<string:filename>')
+def fetch_file(id, filename):
+    """Fetch and render a post from the Github API"""
+    r = requests.get('https://api.github.com/gists/{}'.format(id))
+
+    if r.status_code != 200:
+        return None
     try :
         decoded = r.json.copy()
-        jsonipynb = decoded['files'].values()[0]['content']
+        files = decoded['files'].values()
+        for f in files:
+            if f['filename'] == filename:
+                return render_file(f, decoded)
+        abort(404)
+    except ValueError as e :
+        abort(404)
+
+    return result
+
+def file_listing(gist_id, files):
+    """
+        Output simple list of links to notebooks in gist
+    """
+    links = []
+    for file in files:
+        fn = file['filename']
+        link = '<a href="/{0}/{1}">{2}</a>'.format(gist_id, fn, fn)
+        links.append(link)
+
+    return '<h2>Files in Gist</h2>'+'<br />'.join(links)
+
+def render_file(file, decoded):
+    """
+    Render single notebook file
+    """
+    try :
+        jsonipynb = file['content']
 
         converter = nbconvert.ConverterHTML()
         converter.nb = nbformat.reads_json(jsonipynb)
