@@ -97,6 +97,8 @@ def fetch_and_render(id):
         return None
 
     decoded = r.json.copy()
+
+    # if more than on efile, throw to listing
     files = decoded['files'].values()
     if len(files) > 1:
         return file_listing(id, files)    
@@ -125,6 +127,9 @@ def fetch_file(id, filename):
     return result
 
 def file_listing(gist_id, files):
+    """
+        Output simple list of links to notebooks in gist
+    """
     links = []
     for file in files:
         fn = file['filename']
@@ -133,19 +138,12 @@ def file_listing(gist_id, files):
 
     return '<h2>Files in Gist</h2>'+'<br />'.join(links)
 
-RECENT_FILES = []
-
-@app.route('/recent_files')
-def recent_files():
-    return str(RECENT_FILES)
-
-
 def render_file(file, decoded):
-    """Fetch and render a post from the Github API"""
+    """
+    Render single notebook file
+    """
     try :
         jsonipynb = file['content']
-        RECENT_FILES.append((file['filename'], decoded['description'], decoded['html_url']))
-        print RECENT_FILES
 
         converter = nbconvert.ConverterHTML()
         converter.nb = nbformat.reads_json(jsonipynb)
@@ -157,7 +155,7 @@ def render_file(file, decoded):
 
 if __name__ == '__main__':
     # Bind to PORT if defined, otherwise default to 5000.
-    port = int(os.environ.get('PORT', 5005))
+    port = int(os.environ.get('PORT', 5000))
     debug = os.path.exists('.debug')
     if debug :
         print 'DEBUG MODE IS ACTIVATED !!!'
