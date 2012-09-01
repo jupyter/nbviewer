@@ -1,9 +1,9 @@
 {% extends "layout.html" %}
 {% block body %}
 <ul class="breadcrumb">
-  <li><a href="#">Should</a> <span class="divider">/</span></li>
-  <li><a href="#">Add</a> <span class="divider">/</span></li>
-  <li class="active">Breadcrumb</li>
+    {% for name in subnames %}
+    <li><a href="{{name.x}}">{{name.y}}</a> <span class="divider">/</span></li>
+    {% endfor %}
 </ul>
     <table class='table table-condensed table-bordered table-striped '>
             <thead>

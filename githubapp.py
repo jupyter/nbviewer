@@ -127,14 +127,25 @@ def file(usern,repon,tree,branchn, subfile):
         return render_content(base64.decodestring(f.content))
     else :
         entries = []
+        subnames = subfile.strip('/').split('/')
+        subpath =  [full_url(usern,repon,'tree',branchn, '/'.join(subnames[0:i])) for i in range(1,len(subnames)+1)]
+        print subnames
+        zero = {'y' : repon , 'x' : full_url(usern,repon,'tree',branchn, '/') }
+        parent=[zero]
+        if subfile :
+            for x,y in zip(subpath, subnames):
+                tmp = {}
+                tmp['x'] = x
+                tmp['y'] = y 
+                parent.append(tmp)
         for en in e.tree:
             var = {}
             var['path'] = en.path
             var['type'] = type_for_tree(en)
             var['class']= class_for_tree(en)
-            var['url']  = full_url(usern,repon,var['type'],branchn,subfile+'/'+relative_url_for_tree(en))
+            var['url']  = full_url(usern,repon,var['type'],branchn, subfile+'/'+relative_url_for_tree(en))
             entries.append(var)
-        return render_template('treelist.html', entries=entries, atroot=atroot)
+        return render_template('treelist.html', entries=entries, atroot=atroot, subnames=parent)
 
 def relative_url_for_tree(obj):
     if hasattr(obj, 'type') and obj.type == 'blob' :
