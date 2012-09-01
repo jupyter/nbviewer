@@ -69,27 +69,36 @@ def dummy1(user,repo,tree,branch):
 def internal_error(error):
     return render_template('500.html'),500
 
-#@app.route('/<user>/<repo>/tree/<branch>/<path:subfile>')
-def bowse_tree(user,repo,branch,subfile, parent=None):
-    pass
-
-#@app.route('/<user>/<repo>/blob/<branch>/<path:subfile>')
-def show_blob(user,repo,branch,subfile):
-    pass
+@app.errorhandler(404)
+def internal_error(error):
+    return render_template('404.html'),404
 
 #@app.route('/<user>/<repo>/branches')
 def browse_branches(user,repo):
     pass
 
-@app.route('/<usern>/<repon>/<tree>/<branchn>/<path:subfile>')
+@app.route('/<user>/<repo>/tree/<branch>/<path:subfile>')
 @cache.cached(500)
+def browse_tree(user,repo,branch,subfile, parent=None):
+    if (not subfile) and (branchn == 'master'):
+        return redirect('/%s/%s/'%(usern,repon))
+    return file( user, repo, 'tree', branch, subfile)
+
+@app.route('/<user>/<repo>/blob/<branch>/<path:subfile>')
+@cache.cached(500)
+def show_blob(user,repo,branch,subfile):
+    if (not subfile) and (branchn == 'master'):
+        return redirect('/%s/%s/'%(usern,repon))
+    return file( user, repo, 'blob', branch, subfile)
+
+#@app.route('/<usern>/<repon>/<tree>/<branchn>/<path:subfile>')
 def browse_tree_blob(usern,repon,tree,branchn, subfile):
     if (not subfile) and (branchn == 'master'):
         return redirect('/%s/%s/'%(usern,repon))
-    print("================")
-    print(usern,repon,tree,branchn, subfile)
-    print("================")
-    return file(usern,repon,tree,branchn, subfile)
+    if repon == 'tree':
+        return browse_tree(usern,repon,branchn, subfile)
+    else: 
+        return show_blob(usern,repon,branchn, subfile)
 
 def file(usern,repon,tree,branchn, subfile):
     #we don't care about tree or branch now...

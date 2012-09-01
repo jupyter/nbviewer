@@ -1,8 +1,20 @@
 {% extends "layout.html" %}
 {% block body %}
-<ul class='the-icons'>
+<ul class="breadcrumb">
+  <li><a href="#">Home</a> <span class="divider">/</span></li>
+  <li><a href="#">Library</a> <span class="divider">/</span></li>
+  <li class="active">Data</li>
+</ul>
+<table class='table table-condensed table-bordered table-striped'>
+            <thead>
+                <tr><th>Name</th></tr>
+            </thead>
+            <tbody>
+
         {% for entry in entries %}
-        <li><i class='icon-book'></i> <a href='{{entry.url}}'>{{entry.name}}</a></li>
+        <tr><td><i class='icon-book'></i> <a href='{{entry.url}}'>{{entry.name}}</a></td></tr>
         {% endfor %}
-    </ul>
+        </tbody>
+        </table>
+
 {% endblock %}

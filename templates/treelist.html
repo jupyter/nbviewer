@@ -1,13 +1,23 @@
 {% extends "layout.html" %}
 {% block body %}
-<ul class='the-icons'>
-        {% if atroot %}
-        <li><i class=' icon-backward'></i> <a href='../'> .. (list of repository)</a></li>
-        {% else %}
-        <li><i class=' icon-backward'></i> <a href='../'>..</a></li>
-        {% endif %}
-        {% for entry in entries %}
-        <li><i class='{{entry.class}}'></i> <a href='{{entry.url}}'>{{entry.path}}</a></li>
-        {% endfor %}
-    </ul>
+<ul class="breadcrumb">
+  <li><a href="#">Should</a> <span class="divider">/</span></li>
+  <li><a href="#">Add</a> <span class="divider">/</span></li>
+  <li class="active">Breadcrumb</li>
+</ul>
+    <table class='table table-condensed table-bordered table-striped '>
+            <thead>
+                <tr><th>Name</th></tr>
+            </thead>
+            <tbody>
+                {% if atroot %}
+                    <tr><td><i class=' icon-backward'></i> <a href='../'> .. (list of repository)</a></td></tr>
+                {% else %}
+                    <tr><td><i class=' icon-backward'></i> <a href='../'>..</a></td></tr>
+                {% endif %}
+                {% for entry in entries %}
+                    <tr><td><i class='{{entry.class}}'></i> <a href='{{entry.url}}'>{{entry.path}}</a></td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
 {% endblock %}
