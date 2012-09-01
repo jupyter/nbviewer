@@ -42,7 +42,7 @@ def static(strng) :
 
 @app.route('/')
 def hello():
-    return static('index.html')
+    return render_template('index.html')
 
 
 @app.route('/assets/<path:path>')
@@ -52,12 +52,12 @@ def sitemap(path):
 
 
 @app.errorhandler(500)
-def page_not_found(error):
-    return static('500.html'),500
+def internal_error(error):
+    return render_template('500.html'),500
 
 @app.errorhandler(404)
 def page_not_found(error):
-    return static('404.html'),404
+    return render_template('404.html'),404
 
 @app.route('/404')
 def four_o_foru():
@@ -83,7 +83,7 @@ def create(v=None):
     if value.startswith('http://') and value.endswith('.ipynb'):
         return redirect('/url/'+value[7:])
 
-    return static('unknown_filetype.html')
+    return render_template('unknown_filetype.html')
 
 #https !
 @cachedfirstparam

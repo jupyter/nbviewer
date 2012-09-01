@@ -10,6 +10,7 @@ HR=\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\
 #
 # BUILD DOCS
 #
+.PHONY: build
 
 build: 
 	@echo "\n${HR}"
@@ -21,7 +22,6 @@ build:
 	@recess --compile ${BOOTSTRAP_LESS} > ${BOOTSTRAP}
 	@recess --compile ${BOOTSTRAP_RESPONSIVE_LESS} > ${BOOTSTRAP_RESPONSIVE}
 	@echo "Compiling LESS with Recess...               ${CHECK} Done"
-	@node static/build
 	@cp img/* static/img/
 	@cp js/*.js static/js/
 	@cp js/tests/vendor/jquery.js static/js/

@@ -65,6 +65,9 @@ def dummy1(user,repo,tree,branch):
         #return open('static/%s/%s/%s'%(repo,tree,branch)).read()
     return browse_tree_blob(user,repo,tree,branch,None)
 
+@app.errorhandler(500)
+def internal_error(error):
+    return render_template('500.html'),500
 
 #@app.route('/<user>/<repo>/tree/<branch>/<path:subfile>')
 def bowse_tree(user,repo,branch,subfile, parent=None):
