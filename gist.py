@@ -58,7 +58,7 @@ def four_o_foru():
     abort(404)
 
 @app.route('/500')
-def four_o_foru():
+def fiveoo():
     abort(500)
 
 @app.route('/create/', methods=['POST'])
