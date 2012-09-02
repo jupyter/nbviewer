@@ -1,12 +1,7 @@
 import os
 import base64
-from flask import Flask , request, render_template
-import nbconvert.nbconvert as nbconvert
-import requests
-from nbformat import current as nbformat
-from flask import Flask, redirect, abort
+from flask import Flask, render_template, redirect
 from flaskext.cache import Cache
-import re
 import github as gh
 from gist import render_content
 
@@ -20,18 +15,18 @@ github = gh.Github()
 
 
 #@cache.cached(50)
-def full_url(user,repo=None, blob=None, branch=None, subpath=None):
+def full_url(user, repo=None, blob=None, branch=None, subpath=None):
     if not subpath and (not branch or branch=='master') :
-        return '/%(user)s/%(repo)s/' % {'user':user,\
+        return '/%(user)s/%(repo)s/' % {'user':user, \
          'repo':repo}
 
     string = '/%(user)s/%(repo)s/%(blob)s/%(branch)s/%(subpath)s' % \
-        {'user':user,\
-         'repo':repo,\
-         'blob':blob,\
-         'branch':branch,\
+        {'user':user, \
+         'repo':repo, \
+         'blob':blob, \
+         'branch':branch, \
          'subpath':subpath}
-    sp = string.replace('//','/')
+    sp = string.replace('//', '/')
 
     return sp
 
@@ -42,8 +37,8 @@ def render_url():
 
 @app.route('/<user>/')
 def user(user):
-    rs = github.get_user(user).get_repos();
-    l = [];
+    rs = github.get_user(user).get_repos()
+    l = []
     for r in rs :
         var = {}
         var['url'] = r.name+'/'
@@ -53,39 +48,38 @@ def user(user):
 
 @app.route('/<user>/<repo>/')
 @cache.cached(500)
-def repo(user,repo):
-    return file(user, repo, 'tree','master', None )
-    #return redirect('/%(user)s/%(repo)s/tree/master/'%{'user':user, 'repo':repo})
+def repository(user, repo):
+    return file(user, repo, 'tree', 'master', None )
 
 @app.route('/<user>/<repo>/<tree>/<branch>/')
 @cache.cached(500)
-def dummy1(user,repo,tree,branch):
+def dummy1(user, repo, tree, branch):
     if user == 'static':
-        return app.send_static_file('%s/%s/%s'%(repo,tree,branch))
-    return browse_tree_blob(user,repo,tree,branch,None)
+        return app.send_static_file('%s/%s/%s'%(repo, tree, branch))
+    return browse_tree_blob(user, repo, tree, branch, None)
 
 @app.errorhandler(500)
 def internal_error(error):
-    return render_template('500.html'),500
+    return render_template('500.html'), 500
 
 @app.errorhandler(404)
 def internal_error(error):
-    return render_template('404.html'),404
+    return render_template('404.html'), 404
 
 #@app.route('/<user>/<repo>/branches')
-def browse_branches(user,repo):
+def browse_branches(user, repo):
     pass
 
-@app.route('/<usern>/<repo>/tree/<branch>/<path:subfile>')
+@app.route('/<usern>/<repon>/tree/<branch>/<path:subfile>')
 @cache.cached(500)
-def browse_tree(usern,repon,branch,subfile, parent=None):
+def browse_tree(usern, repon, branch, subfile, parent=None):
     if (not subfile) and (branchn == 'master'):
-        return redirect('/%s/%s/'%(usern,repon))
+        return redirect('/%s/%s/'%(usern, repon))
     return file( usern, repon, 'tree', branch, subfile)
 
-@app.route('/<usern>/<repon>/blob/<branch>/<path:subfile>')
+@app.route('/<usern>/<repon>/blob/<branchn>/<path:subfile>')
 @cache.cached(500)
-def show_blob(usern,repon,branch,subfile):
+def show_blob(usern, repon, branchn, subfile):
     user = github.get_user(usern)
     repo = user.get_repo(repon)
     master = branchn if branchn else repo.master_branch
@@ -97,21 +91,21 @@ def show_blob(usern,repon,branch,subfile):
     return render_content(base64.decodestring(f.content))
 
 #@app.route('/<usern>/<repon>/<tree>/<branchn>/<path:subfile>')
-def browse_tree_blob(usern,repon,tree,branchn, subfile):
+def browse_tree_blob(usern, repon, tree, branchn, subfile):
     if (not subfile) and (branchn == 'master'):
-        return redirect('/%s/%s/'%(usern,repon))
+        return redirect('/%s/%s/'%(usern, repon))
     if repon == 'tree':
-        return browse_tree(usern,repon,branchn, subfile)
-    else: 
-        return show_blob(usern,repon,branchn, subfile)
+        return browse_tree(usern, repon, branchn, subfile)
+    else:
+        return show_blob(usern, repon, branchn, subfile)
 
-def file(usern,repon,tree,branchn, subfile):
+def file(usern, repon, tree, branchn, subfile):
     #we don't care about tree or branch now...
-    
+
     #convert names to objects
     user = github.get_user(usern)
     repo = user.get_repo(repon)
-    
+
     master = branchn if branchn else repo.master_branch
 
     branch = [b for b in repo.get_branches() if b.name == master][0]
@@ -121,31 +115,31 @@ def file(usern,repon,tree,branchn, subfile):
         e = rwt(repo, branch.commit.sha, subfile.strip('/').split('/'))
     else :
         atroot = True
-        e = repo.get_git_tree(branch.commit.sha);
+        e = repo.get_git_tree(branch.commit.sha)
         subfile = ''
 
-    if hasattr(e,'type') and e.type == 'blob' :
+    if hasattr(e, 'type') and e.type == 'blob' :
         f = repo.get_git_blob(e.sha)
         return render_content(base64.decodestring(f.content))
     else :
         entries = []
         subnames = subfile.strip('/').split('/')
-        subpath =  [full_url(usern,repon,'tree',branchn, '/'.join(subnames[0:i])) for i in range(1,len(subnames)+1)]
+        subpath =  [full_url(usern, repon, 'tree', branchn, '/'.join(subnames[0:i])) for i in range(1, len(subnames)+1)]
         print subnames
-        zero = {'y' : repon , 'x' : full_url(usern,repon,'tree',branchn, '/') }
-        parent=[zero]
+        zero = {'y' : repon , 'x' : full_url(usern, repon, 'tree', branchn, '/') }
+        parent = [zero]
         if subfile :
-            for x,y in zip(subpath, subnames):
+            for x, y in zip(subpath, subnames):
                 tmp = {}
                 tmp['x'] = x
-                tmp['y'] = y 
+                tmp['y'] = y
                 parent.append(tmp)
         for en in e.tree:
             var = {}
             var['path'] = en.path
             var['type'] = type_for_tree(en)
-            var['class']= class_for_tree(en)
-            var['url']  = full_url(usern,repon,var['type'],branchn, subfile+'/'+relative_url_for_tree(en))
+            var['class'] = class_for_tree(en)
+            var['url']  = full_url(usern, repon, var['type'], branchn, subfile+'/'+relative_url_for_tree(en))
             entries.append(var)
         return render_template('treelist.html', entries=entries, atroot=atroot, subnames=parent)
 
@@ -167,7 +161,7 @@ def class_for_tree(obj):
     else :
         return 'icon-folder-open'
 #recursively walk tree....
-def rwt(repo,sha,path):
+def rwt(repo, sha, path):
     tree = repo.get_git_tree(sha)
     if len(path)==0:
         return tree
