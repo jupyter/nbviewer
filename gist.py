@@ -18,7 +18,7 @@ try :
 
         def wrapper(*args, **kw):
             if len(args)+len(kw) != 1:
-               return function(*args,**kw)
+               return function(*args, **kw)
             else :
                 key = kw.values()[0] if kw else args[0]
                 skey = str(key)+str(function.__name__)
@@ -45,19 +45,13 @@ def hello():
     return render_template('index.html')
 
 
-@app.route('/assets/<path:path>')
-@cachedfirstparam
-def sitemap(path):
-    return static('/assets/'+path)
-
-
 @app.errorhandler(500)
 def internal_error(error):
-    return render_template('500.html'),500
+    return render_template('500.html'), 500
 
 @app.errorhandler(404)
 def page_not_found(error):
-    return render_template('404.html'),404
+    return render_template('404.html'), 404
 
 @app.route('/404')
 def four_o_foru():
@@ -67,14 +61,14 @@ def four_o_foru():
 def four_o_foru():
     abort(500)
 
-@app.route('/create/',methods=['POST'])
+@app.route('/create/', methods=['POST'])
 def create(v=None):
     value = request.form['gistnorurl']
     if v and not value:
         value = v
-    if re.match('^[0-9]+$',value):
+    if re.match('^[0-9]+$', value):
         return redirect('/'+value)
-    gist = re.search(r'^https?://gist.github.com/([0-9]+)$',value)
+    gist = re.search(r'^https?://gist.github.com/([0-9]+)$', value)
     if gist:
         return redirect('/'+gist.group(1))
     if value.startswith('https://') and value.endswith('.ipynb'):
