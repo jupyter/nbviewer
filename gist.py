@@ -2,6 +2,7 @@ import os
 from flask import Flask , request, render_template
 import nbconvert.nbconvert as nbconvert
 import requests
+from flask import Response
 from nbformat import current as nbformat
 from flask import Flask, redirect, abort
 import re
@@ -122,7 +123,7 @@ def render_content(content):
 
 
 @cachedfirstparam
-@app.route('/<int:id>')
+@app.route('/<int:id>/')
 def fetch_and_render(id=None):
     """Fetch and render a post from the Github API"""
     if id is None :
@@ -134,15 +135,45 @@ def fetch_and_render(id=None):
         abort(404)
     try :
         decoded = r.json.copy()
-        jsonipynb = decoded['files'].values()[0]['content']
-
-        converter = nbconvert.ConverterHTML()
-        converter.nb = nbformat.reads_json(jsonipynb)
-        result = converter.convert()
+        files = decoded['files'].values()
+        if len(files) == 1 :
+            jsonipynb = files[0]['content']
+            converter = nbconvert.ConverterHTML()
+            converter.nb = nbformat.reads_json(jsonipynb)
+            result = converter.convert()
+        else :
+            entries = []
+            for file in files :
+                entry = {}
+                entry['path'] = file['filename']
+                entry['url'] = '/%s/%s' %( id,file['filename'])
+                entries.append(entry)
+            return render_template('gistlist.html', entries=entries)
     except ValueError as e :
         abort(404)
 
     return result
+
+
+@app.route('/<int:id>/<subfile>')
+def gistsubfile(id, subfile):
+    """Fetch and render a post from the Github API"""
+
+    r = requests.get('https://api.github.com/gists/{}'.format(id))
+
+    if r.status_code != 200:
+        abort(404)
+    try :
+        decoded = r.json.copy()
+        files = decoded['files'].values()
+        thefile = [f for f in files if f['filename'] == subfile]
+        jsonipynb = thefile[0]['content']
+        if subfile.endswith('.ipynb'):
+            return render_content(jsonipynb)
+        else :
+            return Response(jsonipynb, mimetype='text/plain')
+    except ValueError as e :
+        abort(404)
 
 if __name__ == '__main__':
     # Bind to PORT if defined, otherwise default to 5000.
