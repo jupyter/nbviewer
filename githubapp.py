@@ -1,6 +1,7 @@
 import os
 import base64
 from flask import Flask, render_template, redirect
+from flask import Response
 from flaskext.cache import Cache
 import github as gh
 from gist import render_content
@@ -86,9 +87,11 @@ def show_blob(usern, repon, branchn, subfile):
     branch = [b for b in repo.get_branches() if b.name == master][0]
 
     e = rwt(repo, branch.commit.sha, subfile.strip('/').split('/'))
-
     f = repo.get_git_blob(e.sha)
-    return render_content(base64.decodestring(f.content))
+    if subfile.endswith('.ipynb'):
+        return render_content(base64.decodestring(f.content))
+    else :
+        return Response(base64.decodestring(f.content), mimetype='text/plain')
 
 #@app.route('/<usern>/<repon>/<tree>/<branchn>/<path:subfile>')
 def browse_tree_blob(usern, repon, tree, branchn, subfile):
