@@ -62,7 +62,6 @@ def repo(user,repo):
 def dummy1(user,repo,tree,branch):
     if user == 'static':
         return app.send_static_file('%s/%s/%s'%(repo,tree,branch))
-        #return open('static/%s/%s/%s'%(repo,tree,branch)).read()
     return browse_tree_blob(user,repo,tree,branch,None)
 
 @app.errorhandler(500)
@@ -77,19 +76,25 @@ def internal_error(error):
 def browse_branches(user,repo):
     pass
 
-@app.route('/<user>/<repo>/tree/<branch>/<path:subfile>')
+@app.route('/<usern>/<repo>/tree/<branch>/<path:subfile>')
 @cache.cached(500)
-def browse_tree(user,repo,branch,subfile, parent=None):
+def browse_tree(usern,repon,branch,subfile, parent=None):
     if (not subfile) and (branchn == 'master'):
         return redirect('/%s/%s/'%(usern,repon))
-    return file( user, repo, 'tree', branch, subfile)
+    return file( usern, repon, 'tree', branch, subfile)
 
-@app.route('/<user>/<repo>/blob/<branch>/<path:subfile>')
+@app.route('/<usern>/<repon>/blob/<branch>/<path:subfile>')
 @cache.cached(500)
-def show_blob(user,repo,branch,subfile):
-    if (not subfile) and (branchn == 'master'):
-        return redirect('/%s/%s/'%(usern,repon))
-    return file( user, repo, 'blob', branch, subfile)
+def show_blob(usern,repon,branch,subfile):
+    user = github.get_user(usern)
+    repo = user.get_repo(repon)
+    master = branchn if branchn else repo.master_branch
+    branch = [b for b in repo.get_branches() if b.name == master][0]
+
+    e = rwt(repo, branch.commit.sha, subfile.strip('/').split('/'))
+
+    f = repo.get_git_blob(e.sha)
+    return render_content(base64.decodestring(f.content))
 
 #@app.route('/<usern>/<repon>/<tree>/<branchn>/<path:subfile>')
 def browse_tree_blob(usern,repon,tree,branchn, subfile):
@@ -108,9 +113,6 @@ def file(usern,repon,tree,branchn, subfile):
     repo = user.get_repo(repon)
     
     master = branchn if branchn else repo.master_branch
-
-    #if not subfile and branchn == repo.master_branch :
-        #return redirect(full_url(usern, repon))
 
     branch = [b for b in repo.get_branches() if b.name == master][0]
 
