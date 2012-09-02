@@ -13,4 +13,10 @@ if __name__ == '__main__':
         print 'DEBUG MODE IS ACTIVATED !!!'
     else :
         print 'debug is not activated'
-    gist.run(host='0.0.0.0', port=port, debug=debug)
+
+    urlscheme = os.environ.get('URLSHEME', 'GIST')
+
+    if urlscheme == 'GITHUB' :
+        github.run(host='0.0.0.0', port=port, debug=debug)
+    else :
+        gist.run(host='0.0.0.0', port=port, debug=debug)
