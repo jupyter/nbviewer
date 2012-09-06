@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+{% block body %}
+
+<table class='table table-condensed table-bordered table-striped'>
+            <thead>
+                <tr><th>Name</th></tr>
+            </thead>
+            <tbody>
+
+        {% for entry in entries %}
+        <tr><td><i class='icon-book'></i> <a href='{{entry.url}}'>{{entry.name}}</a></td></tr>
+        {% endfor %}
+        </tbody>
+        </table>
+
+{% endblock %}
