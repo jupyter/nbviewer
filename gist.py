@@ -43,6 +43,8 @@ def static(strng) :
 
 @app.route('/')
 def hello():
+    nvisit = request.cookies.get('rendered_urls')
+    print('user has rendered {n} urls'.format(n=nvisit))
     return render_template('index.html')
 
 
@@ -65,20 +67,29 @@ def fiveoo():
 @app.route('/create/', methods=['POST'])
 def create(v=None):
     value = request.form['gistnorurl']
+
+    response = None
+    increasegen = False
     if v and not value:
         value = v
-    if re.match('^[0-9]+$', value):
-        return redirect('/'+value)
     gist = re.search(r'^https?://gist.github.com/([0-9]+)$', value)
-    if gist:
-        return redirect('/'+gist.group(1))
-    if value.startswith('https://') and value.endswith('.ipynb'):
-        return redirect('/urls/'+value[8:])
+    if re.match('^[0-9]+$', value):
+        response = redirect('/'+value)
+    elif gist:
+        response = redirect('/'+gist.group(1))
+        
+    elif value.startswith('https://') and value.endswith('.ipynb'):
+        response = redirect('/urls/'+value[8:])
 
-    if value.startswith('http://') and value.endswith('.ipynb'):
-        return redirect('/url/'+value[7:])
+    elif value.startswith('http://') and value.endswith('.ipynb'):
+        response = redirect('/url/'+value[7:])
+    else :
+        response = render_template('unknown_filetype.html')
 
-    return render_template('unknown_filetype.html')
+    response = app.make_response(response)
+    nvisit = int(request.cookies.get('rendered_urls',0))
+    response.set_cookie('rendered_urls',value=nvisit+1)
+    return response
 
 #https !
 @cachedfirstparam

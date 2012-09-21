@@ -1,5 +1,5 @@
 from gist import app as gist
-from githubapp import app as github
+#from githubapp import app as github
 import os
 
 if __name__ == '__main__':
@@ -16,7 +16,7 @@ if __name__ == '__main__':
 
     urlscheme = os.environ.get('URLSHEME', 'GIST')
 
-    if urlscheme == 'GITHUB' :
-        github.run(host='0.0.0.0', port=port, debug=debug)
-    else :
-        gist.run(host='0.0.0.0', port=port, debug=debug)
+    #if urlscheme == 'GITHUB' :
+    #    github.run(host='0.0.0.0', port=port, debug=debug)
+    #else :
+    gist.run(host='0.0.0.0', port=port, debug=debug)
