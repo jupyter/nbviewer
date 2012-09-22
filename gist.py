@@ -43,7 +43,7 @@ def static(strng) :
 
 @app.route('/')
 def hello():
-    nvisit = int(request.cookies.get('rendered_urls'))
+    nvisit = int(request.cookies.get('rendered_urls',0))
     betauser = (True if nvisit > 30 else False)
 
     print('user has rendered {n} urls'.format(n=nvisit))
