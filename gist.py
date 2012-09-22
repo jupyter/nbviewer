@@ -43,9 +43,11 @@ def static(strng) :
 
 @app.route('/')
 def hello():
-    nvisit = request.cookies.get('rendered_urls')
+    nvisit = int(request.cookies.get('rendered_urls'))
+    betauser = (True if nvisit > 30 else False)
+
     print('user has rendered {n} urls'.format(n=nvisit))
-    return render_template('index.html')
+    return render_template('index.html', betauser=betauser)
 
 
 @app.errorhandler(500)

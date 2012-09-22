@@ -46,6 +46,11 @@
               <li class="{{index}}">
                 <a href="/">Home</a>
               </li>
+              {% if betauser %}
+                  <li class="{{index}}">
+                    <a href="http://nbviewer-dev.herokuapp.com">Try the beta</a>
+                  </li>
+              {% endif %}
             </ul>
           </div>
         </div>
