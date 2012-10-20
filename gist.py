@@ -20,7 +20,7 @@ db = SQLAlchemy(app)
 
 #engine = create_engine('sqlite:///foo.db', echo=False)
 engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'], echo=False)
-stat = Stats(engine)
+stats = Stats(engine)
 
 try :
     import pylibmc
@@ -127,7 +127,7 @@ def cachedget(url):
 @cachedfirstparam
 @app.route('/urls/<path:url>')
 def render_urls(url):
-    stat.get(url).access()
+    stats.get(url).access()
     content = cachedget('https://'+url)
     return render_content(content)
 
@@ -135,7 +135,7 @@ def render_urls(url):
 @cachedfirstparam
 @app.route('/url/<path:url>')
 def render_url(url):
-    stat.get(url).access()
+    stats.get(url).access()
     content = cachedget('http://'+url)
     return render_content(content)
 
