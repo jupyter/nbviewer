@@ -57,8 +57,6 @@ def static(strng) :
 def hello():
     nvisit = int(request.cookies.get('rendered_urls',0))
     betauser = (True if nvisit > 30 else False)
-
-    print('user has rendered {n} urls'.format(n=nvisit))
     return render_template('index.html', betauser=betauser)
 
 
@@ -163,7 +161,10 @@ def fetch_and_render(id=None):
     """Fetch and render a post from the Github API"""
     if id is None :
         return redirect('/')
-    stats.get(id).access()
+    try :
+        stats.get(str(id)).access()
+    except :
+        print 'oups ', id, 'crashed'
     r = requests.get('https://api.github.com/gists/{}'.format(id))
 
     if r.status_code != 200:
