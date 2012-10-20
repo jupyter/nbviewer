@@ -1,4 +1,6 @@
 Flask==0.9
+Flask-SQLAlchemy==0.16
+SQLAlchemy==0.7.8
 Flask-Cache==0.4.0
 requests==0.13.5
 ipython==0.13

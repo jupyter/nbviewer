@@ -11,9 +11,15 @@ from flask import redirect, abort, Response
 from statistics import Stats
 from sqlalchemy import create_engine
 
-app = Flask(__name__)
+from flask.ext.sqlalchemy import SQLAlchemy
 
-engine = create_engine('sqlite:///foo.db', echo=False)
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
+
+db = SQLAlchemy(app)
+
+#engine = create_engine('sqlite:///foo.db', echo=False)
+engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'], echo=False)
 stat = Stats(engine)
 
 try :
