@@ -5,7 +5,7 @@
                 <tr><th>Most Popular</th></tr>
             </thead>
             {% for entry in entries %}
-            <tr><td> <a href='{{entry.url}}'>{{entry.url}}({{entry.count}})</a></td></tr>
+            <tr><td> <a href='{{entry.url}}'>({{entry.count}}) {{entry.url}}</a></td></tr>
             {% endfor %}
             </tbody>
         </table>

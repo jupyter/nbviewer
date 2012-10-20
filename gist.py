@@ -72,8 +72,8 @@ def page_not_found(error):
 
 @app.route('/popular')
 def popular():
-    entries = [{url:y.url,count:x} for x,y in stats.most_accessed(count=20)]
-    render_template('popular.html', entries=entries)
+    entries = [{'url':y.url,'count':x} for x,y in stats.most_accessed(count=20)]
+    return render_template('popular.html', entries=entries)
 
 @app.route('/404')
 def four_o_foru():
@@ -126,7 +126,7 @@ def cachedget(url):
 @cachedfirstparam
 @app.route('/urls/<path:url>')
 def render_urls(url):
-    stats.get(url).access()
+    stats.get('urls/'+url).access()
     content = cachedget('https://'+url)
     return render_content(content)
 
@@ -134,7 +134,7 @@ def render_urls(url):
 @cachedfirstparam
 @app.route('/url/<path:url>')
 def render_url(url):
-    stats.get(url).access()
+    stats.get('url/'+url).access()
     content = cachedget('http://'+url)
     return render_content(content)
 
@@ -160,7 +160,7 @@ def fetch_and_render(id=None):
     """Fetch and render a post from the Github API"""
     if id is None :
         return redirect('/')
-
+    stats.get(id).access()
     r = requests.get('https://api.github.com/gists/{}'.format(id))
 
     if r.status_code != 200:
