@@ -126,7 +126,10 @@ def cachedget(url):
 @cachedfirstparam
 @app.route('/urls/<path:url>')
 def render_urls(url):
-    stats.get('urls/'+url).access()
+    try : 
+        stats.get('urls/'+url).access()
+    except :
+        print 'oups crashed'
     content = cachedget('https://'+url)
     return render_content(content)
 
