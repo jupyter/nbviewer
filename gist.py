@@ -72,7 +72,7 @@ def page_not_found(error):
 
 @app.route('/popular')
 def popular():
-    entries = [{url:x.url,count:y} for x,y in stats.most_accessed(count=20)]
+    entries = [{url:y.url,count:x} for x,y in stats.most_accessed(count=20)]
     render_template('popular.html', entries=entries)
 
 @app.route('/404')
