@@ -7,3 +7,4 @@ ipython==0.13
 Pygments==1.5
 PyGithub==1.4
 Markdown==2.2.0
+psycopg2==2.4.5
