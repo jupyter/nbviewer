@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+{% block body %}
+    <table class='table table-condensed table-bordered table-striped '>
+            <thead>
+                <tr><th>Most Popular</th></tr>
+            </thead>
+            {% for entry in entries %}
+            <tr><td> <a href='{{entry.url}}'>{{entry.url}}({{entry.count}})</a></td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+{% endblock %}

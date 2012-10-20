@@ -71,6 +71,11 @@ def internal_error(error):
 def page_not_found(error):
     return render_template('404.html'), 404
 
+@app.route('/popular')
+def popular():
+    entries = [{url:x.url,count:y} for x,y in stats.most_accessed(count=20)]
+    render_template('popular.html', entries=entries)
+
 @app.route('/404')
 def four_o_foru():
     abort(404)
