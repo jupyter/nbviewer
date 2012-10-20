@@ -1,13 +1,20 @@
 import os
-from flask import Flask , request, render_template
-import nbconvert.nbconvert as nbconvert
-import requests
-from flask import Response
-from nbformat import current as nbformat
-from flask import Flask, redirect, abort
 import re
+import requests
+
+from nbformat import current as nbformat
+import nbconvert.nbconvert as nbconvert
+
+from flask import Flask , request, render_template
+from flask import redirect, abort, Response
+
+from statistics import Stats
+from sqlalchemy import create_engine
 
 app = Flask(__name__)
+
+engine = create_engine('sqlite:///foo.db', echo=False)
+stat = Stats(engine)
 
 try :
     import pylibmc
@@ -109,6 +116,7 @@ def cachedget(url):
 @cachedfirstparam
 @app.route('/urls/<path:url>')
 def render_urls(url):
+    stat.get(url).access()
     content = cachedget('https://'+url)
     return render_content(content)
 
@@ -116,6 +124,7 @@ def render_urls(url):
 @cachedfirstparam
 @app.route('/url/<path:url>')
 def render_url(url):
+    stat.get(url).access()
     content = cachedget('http://'+url)
     return render_content(content)
 
