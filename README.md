@@ -31,3 +31,11 @@ so you will need some dependency like `node`,`uglify-js`.
  * any required python package should be availlable via `pip`, and should be added to `requirement.txt`.
    see `pip freeze` to know what to write in the file.
  * local debug mode is activated by creating a `.debug` file in the root directory, `.debug` is excluded in `.gitignore`and `.slugignore`
+
+Testing Locally
+---------------
+
+Sql qlchemy need to connect to a database, you should export tthe environement varaible DATABASE_URL
+it you don't have any installed DB or just want to try out, you can use in memory sqlite :
+
+$ export DATABASE_URL='sqlite:///:memory:'
