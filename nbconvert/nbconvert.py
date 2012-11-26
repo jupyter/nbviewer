@@ -759,6 +759,9 @@ class ConverterHTML(Converter):
         else:
             content = ''
         return ['<div class="prompt output_prompt">%s</div>' % content]
+    
+    # This can be overridden to add extra HTML in at the top of the <body>
+    extra_body_start_html = None
 
     def optional_header(self):
         from pygments.formatters import HtmlFormatter
@@ -795,6 +798,9 @@ class ConverterHTML(Converter):
             header.extend(self.in_tag('script', f.read(), {'type': 'text/javascript'}))
         
         header.extend(['</head>', '<body>'])
+        
+        if self.extra_body_start_html:
+            header.extend(self.extra_body_start_html.splitlines())
         
         return header
 

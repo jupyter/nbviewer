@@ -128,16 +128,18 @@ def render_urls(url):
         stats.get('urls/'+url).access()
     except :
         print 'oups crashed'
-    content = cachedget('https://'+url)
-    return render_content(content)
+    url = 'https://'+url
+    content = cachedget(url)
+    return render_content(content, url)
 
 #http !
 @cachedfirstparam
 @app.route('/url/<path:url>')
 def render_url(url):
     stats.get('url/'+url).access()
-    content = cachedget('http://'+url)
-    return render_content(content)
+    url = 'http://'+url
+    content = cachedget(url)
+    return render_content(content, url)
 
 
 @cachedfirstparam
@@ -149,8 +151,14 @@ def render_request(r=None):
     except  :
         abort(404)
 
-def render_content(content):
+other_views = """<div style="position:absolute; right:1em; top:1em; padding:0.4em; border:1px dashed black;">
+  <a href="{url}">Download notebook</a>
+</div>"""
+
+def render_content(content, url=None):
     converter = nbconvert.ConverterHTML()
+    if url:
+        converter.extra_body_start_html = other_views.format(url=url)
     converter.nb = nbformat.reads_json(content)
     return converter.convert()
 
@@ -174,9 +182,7 @@ def fetch_and_render(id=None):
         files = decoded['files'].values()
         if len(files) == 1 :
             jsonipynb = files[0]['content']
-            converter = nbconvert.ConverterHTML()
-            converter.nb = nbformat.reads_json(jsonipynb)
-            result = converter.convert()
+            return render_content(jsonipynb, files[0]['raw_url'])
         else :
             entries = []
             for file in files :
@@ -205,7 +211,7 @@ def gistsubfile(id, subfile):
         thefile = [f for f in files if f['filename'] == subfile]
         jsonipynb = thefile[0]['content']
         if subfile.endswith('.ipynb'):
-            return render_content(jsonipynb)
+            return render_content(jsonipynb, thefile[0]['raw_url'])
         else :
             return Response(jsonipynb, mimetype='text/plain')
     except ValueError as e :
