@@ -741,7 +741,7 @@ class ConverterHTML(Converter):
         """Return a list of elements bracketed by the given tag"""
         attr_s = ""
         for attr, value in attrs.iteritems():
-            attr_s += "%s=%s" % (attr, value)
+            attr_s += '%s="%s"' % (attr, value)
         return ['<%s %s>' % (tag, attr_s), src, '</%s>' % tag]
     
     def _ansi_colored(self, text):
@@ -792,7 +792,7 @@ class ConverterHTML(Converter):
         
         # TODO: this should be allowed to use local mathjax:
         header.extend(self.in_tag('script', '', {'type':'text/javascript',
-            'src': '"https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS_HTML"',
+            'src': 'https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS_HTML',
         }))
         with io.open(os.path.join(here, 'js', 'initmathjax.js'), encoding='utf-8') as f:
             header.extend(self.in_tag('script', f.read(), {'type': 'text/javascript'}))
