@@ -711,7 +711,7 @@ def output_container(f):
         lines = []
         lines.append('<div class="hbox output_area">')
         lines.extend(self._out_prompt(output))
-        classes = "output_subarea output_%s" % output.output_type
+        classes = "box-flex1 output_subarea output_%s" % output.output_type
         if 'html' in output.keys():
             classes +=  ' output_html rendered_html'
         if output.output_type == 'stream':
