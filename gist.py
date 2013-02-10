@@ -15,6 +15,10 @@ from flask.ext.sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
+app.config['GITHUB'] = {
+    'client_id': os.environ['GITHUB_OAUTH_KEY'],
+    'client_secret': os.environ['GITHUB_OAUTH_SECRET'],
+}
 
 
 #engine = create_engine('sqlite:///foo.db', echo=False)
@@ -162,6 +166,8 @@ def render_content(content, url=None):
     converter.nb = nbformat.reads_json(content)
     return converter.convert()
 
+def github_api_request(url):
+    return requests.get('https://api.github.com/%s' % url, params=app.config['GITHUB'])
 
 @cachedfirstparam
 @app.route('/<int:id>/')
@@ -172,11 +178,12 @@ def fetch_and_render(id=None):
     try :
         stats.get(str(id)).access()
     except :
-        print 'oups ', id, 'crashed'
-    r = requests.get('https://api.github.com/gists/{}'.format(id))
+        print 'oops ', id, 'crashed'
+    r = github_api_request('gists/{}'.format(id))
 
     if r.status_code != 200:
-        abort(404)
+        print r.content
+        abort(r.status_code)
     try :
         decoded = r.json.copy()
         files = decoded['files'].values()
@@ -201,7 +208,7 @@ def fetch_and_render(id=None):
 def gistsubfile(id, subfile):
     """Fetch and render a post from the Github API"""
 
-    r = requests.get('https://api.github.com/gists/{}'.format(id))
+    r = github_api_request('gists/{}'.format(id))
 
     if r.status_code != 200:
         abort(404)
