@@ -1,22 +1,31 @@
+import os
+import sys
+import logging
+
 from gist import app as gist
 #from githubapp import app as github
-import os
 
 if __name__ == '__main__':
     # Bind to PORT if defined, otherwise default to 5000.
     port = int(os.environ.get('PORT', 5000))
     debugfile = os.path.exists('.debug')
-    debugenv = os.environ.get('DEBUG', False) == 'True'
+    debugenv = os.environ.get('DEBUG', '')
     debug = debugfile or debugenv
-    print 'url scheme' , os.environ.get('URL_SCHEME', None)
-    if debug :
+    print 'url scheme' , os.environ.get('URL_SCHEME', 'gist')
+    if debug:
         print 'DEBUG MODE IS ACTIVATED !!!'
-    else :
-        print 'debug is not activated'
 
-    urlscheme = os.environ.get('URLSHEME', 'GIST')
-
-    #if urlscheme == 'GITHUB' :
-    #    github.run(host='0.0.0.0', port=port, debug=debug)
-    #else :
+    urlscheme = os.environ.get('URLSCHEME', 'GIST')
+    
+    if not debug:
+        log_level = getattr(logging, os.environ.get('LOG_LEVEL', 'WARN'))
+        gist.logger.setLevel(log_level)
+        handler = logging.StreamHandler(sys.stderr)
+        handler.setLevel(log_level)
+        handler.setFormatter(logging.Formatter(
+            '[%(asctime)s] %(levelname)s: %(message)s '
+        ))
+        gist.logger.addHandler(handler)
+        # gist.logger.addHandler(logging.StreamHandler())
+    
     gist.run(host='0.0.0.0', port=port, debug=debug)

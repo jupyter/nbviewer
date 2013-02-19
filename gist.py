@@ -14,14 +14,13 @@ from sqlalchemy import create_engine
 from flask.ext.sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
+
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite://')
 app.config['GITHUB'] = {
-    'client_id': os.environ['GITHUB_OAUTH_KEY'],
-    'client_secret': os.environ['GITHUB_OAUTH_SECRET'],
+    'client_id': os.environ.get('GITHUB_OAUTH_KEY', ''),
+    'client_secret': os.environ.get('GITHUB_OAUTH_SECRET', ''),
 }
 
-
-#engine = create_engine('sqlite:///foo.db', echo=False)
 engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'], echo=False)
 stats = Stats(engine)
 
@@ -63,14 +62,18 @@ def hello():
     betauser = (True if nvisit > 30 else False)
     return render_template('index.html', betauser=betauser)
 
+@app.errorhandler(400)
+def page_not_found(error):
+    return render_template('400.html'), 400
+
+@app.errorhandler(404)
+def page_not_found(error):
+    return render_template('404.html'), 404
 
 @app.errorhandler(500)
 def internal_error(error):
     return render_template('500.html'), 500
 
-@app.errorhandler(404)
-def page_not_found(error):
-    return render_template('404.html'), 404
 
 @app.route('/popular')
 def popular():
@@ -78,11 +81,15 @@ def popular():
     return render_template('popular.html', entries=entries)
 
 @app.route('/404')
-def four_o_foru():
+def four_o_four():
     abort(404)
 
+@app.route('/400')
+def four_hundred():
+    abort(400)
+
 @app.route('/500')
-def fiveoo():
+def five_hundred():
     abort(500)
 
 @app.route('/create/', methods=['POST'])
@@ -115,24 +122,32 @@ def create(v=None):
 #https !
 @cachedfirstparam
 def cachedget(url):
-    try :
+    try:
         r = requests.get(url)
-        if r.status_code is not 200 :
+        if r.status_code == 404:
             abort(404)
-        return r.content
-    except Exception :
-        abort(404)
+        elif not r.ok:
+            app.logger.error("Failed request: %s" % (
+                request_summary(r, header=True, content=app.debug)
+            ))
+            abort(400)
+    except Exception:
+        app.logger.error("Unhandled exception in request: %s" % (
+                request_summary(r)
+        ), exc_info=True)
+        abort(500)
+    return r.content
 
 
 
 @cachedfirstparam
 @app.route('/urls/<path:url>')
 def render_urls(url):
-    try : 
+    try:
         stats.get('urls/'+url).access()
-    except :
-        print 'oups crashed'
-    url = 'https://'+url
+    except Exception:
+        app.logger.error("exception getting stats", exc_info=True)
+    url = 'https://' + url
     content = cachedget(url)
     return render_content(content, url)
 
@@ -146,14 +161,27 @@ def render_url(url):
     return render_content(content, url)
 
 
-@cachedfirstparam
-def render_request(r=None):
-    try:
-        if r.status_code != 200:
-            abort(404)
-        return render_content(r.content)
-    except  :
-        abort(404)
+def request_summary(r, header=False, content=False):
+    """text summary of failed request"""
+    lines = [
+        "%s %s: %i %s" % (
+            r.request.method,
+            r.url.split('?')[0],
+            r.status_code,
+            r.reason),
+    ]
+    if header:
+        lines.extend([
+        '--- HEADER ---',
+        json.dumps(r.headers, indent=1),
+        ])
+    if content:
+        lines.extend([
+        '--- CONTENT ---',
+        json.dumps(r.json, indent=1),
+        ])
+    return '\n'.join(lines)
+    
 
 other_views = """<div style="position:absolute; right:1em; top:1em; padding:0.4em; border:1px dashed black;">
   <a href="{url}">Download notebook</a>
@@ -167,7 +195,12 @@ def render_content(content, url=None):
     return converter.convert()
 
 def github_api_request(url):
-    return requests.get('https://api.github.com/%s' % url, params=app.config['GITHUB'])
+    r = requests.get('https://api.github.com/%s' % url, params=app.config['GITHUB'])
+    if not r.ok:
+        summary = request_summary(r, header=(r.status_code != 404), content=app.debug)
+        app.logger.error("API request failed: %s", summary)
+        abort(r.status_code if r.status_code == 404 else 400)
+    return r
 
 @cachedfirstparam
 @app.route('/<int:id>/')
@@ -179,18 +212,16 @@ def fetch_and_render(id=None):
         stats.get(str(id)).access()
     except :
         print 'oops ', id, 'crashed'
+
     r = github_api_request('gists/{}'.format(id))
 
-    if r.status_code != 200:
-        print r.content
-        abort(r.status_code)
-    try :
+    try:
         decoded = r.json.copy()
         files = decoded['files'].values()
         if len(files) == 1 :
             jsonipynb = files[0]['content']
             return render_content(jsonipynb, files[0]['raw_url'])
-        else :
+        else:
             entries = []
             for file in files :
                 entry = {}
@@ -198,8 +229,12 @@ def fetch_and_render(id=None):
                 entry['url'] = '/%s/%s' %( id,file['filename'])
                 entries.append(entry)
             return render_template('gistlist.html', entries=entries)
-    except ValueError as e :
-        abort(404)
+    except ValueError:
+        app.logger.error("Failed to render gist: %s" % request_summary(r), exc_info=True)
+        abort(400)
+    except:
+        app.logger.error("Unhandled error rendering gist: %s" % request_summary(r), exc_info=True)
+        abort(500)
 
     return result
 
@@ -210,19 +245,21 @@ def gistsubfile(id, subfile):
 
     r = github_api_request('gists/{}'.format(id))
 
-    if r.status_code != 200:
-        abort(404)
-    try :
+    try:
         decoded = r.json.copy()
         files = decoded['files'].values()
         thefile = [f for f in files if f['filename'] == subfile]
         jsonipynb = thefile[0]['content']
         if subfile.endswith('.ipynb'):
             return render_content(jsonipynb, thefile[0]['raw_url'])
-        else :
+        else:
             return Response(jsonipynb, mimetype='text/plain')
-    except ValueError as e :
-        abort(404)
+    except ValueError:
+        app.logger.error("Failed to render gist: %s" % request_summary(r), exc_info=True)
+        abort(400)
+    except:
+        app.logger.error("Unhandled error rendering gist: %s" % request_summary(r), exc_info=True)
+        abort(500)
 
 if __name__ == '__main__':
     # Bind to PORT if defined, otherwise default to 5000.
