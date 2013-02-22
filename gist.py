@@ -12,8 +12,19 @@ from statistics import Stats
 from sqlalchemy import create_engine
 
 from flask.ext.sqlalchemy import SQLAlchemy
+from werkzeug.routing import BaseConverter
+
+class RegexConverter(BaseConverter):
+    """regex route filter
+    
+    from: http://stackoverflow.com/questions/5870188
+    """
+    def __init__(self, url_map, *items):
+        super(RegexConverter, self).__init__(url_map)
+        self.regex = items[0]
 
 app = Flask(__name__)
+app.url_map.converters['regex'] = RegexConverter
 
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite://')
 app.config['GITHUB'] = {
@@ -100,19 +111,17 @@ def create(v=None):
     increasegen = False
     if v and not value:
         value = v
-    gist = re.search(r'^https?://gist.github.com/([0-9]+)$', value)
-    if re.match('^[0-9]+$', value):
+    gist = re.search(r'^https?://gist.github.com/(\w+/)?([a-f0-9]+)$', value)
+    if re.match('^[a-f0-9]+$', value):
         response = redirect('/'+value)
     elif gist:
-        response = redirect('/'+gist.group(1))
+        response = redirect('/'+gist.group(2))
         
-    elif value.startswith('https://') and value.endswith('.ipynb'):
+    elif value.startswith('https://'):
         response = redirect('/urls/'+value[8:])
 
-    elif value.startswith('http://') and value.endswith('.ipynb'):
+    elif value.startswith('http://'):
         response = redirect('/url/'+value[7:])
-    else :
-        response = render_template('unknown_filetype.html')
 
     response = app.make_response(response)
     nvisit = int(request.cookies.get('rendered_urls',0))
@@ -150,7 +159,10 @@ def render_urls(url):
         app.logger.error("exception getting stats", exc_info=True)
     url = 'https://' + url
     content = cachedget(url)
-    return render_content(content, url)
+    try:
+        render_content(content, url)
+    except Exception:
+        abort(400)
 
 #http !
 @cachedfirstparam
@@ -159,7 +171,10 @@ def render_url(url):
     stats.get('url/'+url).access()
     url = 'http://'+url
     content = cachedget(url)
-    return render_content(content, url)
+    try:
+        render_content(content, url)
+    except Exception:
+        abort(400)
 
 
 def request_summary(r, header=False, content=False):
@@ -204,13 +219,13 @@ def github_api_request(url):
     return r
 
 @cachedfirstparam
-@app.route('/<int:id>/')
+@app.route('/<regex("[a-f0-9]+"):id>')
 def fetch_and_render(id=None):
     """Fetch and render a post from the Github API"""
-    if id is None :
+    if id is None:
         return redirect('/')
     try :
-        stats.get(str(id)).access()
+        stats.get(id).access()
     except :
         print 'oops ', id, 'crashed'
 
@@ -227,7 +242,7 @@ def fetch_and_render(id=None):
             for file in files :
                 entry = {}
                 entry['path'] = file['filename']
-                entry['url'] = '/%s/%s' %( id,file['filename'])
+                entry['url'] = '/%s/%s' % (id, file['filename'])
                 entries.append(entry)
             return render_template('gistlist.html', entries=entries)
     except ValueError:
