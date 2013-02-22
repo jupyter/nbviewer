@@ -160,8 +160,9 @@ def render_urls(url):
     url = 'https://' + url
     content = cachedget(url)
     try:
-        render_content(content, url)
+        return render_content(content, url)
     except Exception:
+        app.logger.error("Couldn't render notebook from %s" % url, exc_info=True)
         abort(400)
 
 #http !
@@ -172,8 +173,9 @@ def render_url(url):
     url = 'http://'+url
     content = cachedget(url)
     try:
-        render_content(content, url)
+        return render_content(content, url)
     except Exception:
+        app.logger.error("Couldn't render notebook from %s" % url, exc_info=True)
         abort(400)
 
 
