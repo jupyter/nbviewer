@@ -148,7 +148,10 @@ def render_urls(url):
         app.logger.error("exception getting stats", exc_info=True)
     url = 'https://' + url
     content = cachedget(url)
-    return render_content(content, url)
+    try:
+        render_content(content, url)
+    except Exception:
+        abort(400)
 
 #http !
 @cachedfirstparam
@@ -157,7 +160,10 @@ def render_url(url):
     stats.get('url/'+url).access()
     url = 'http://'+url
     content = cachedget(url)
-    return render_content(content, url)
+    try:
+        render_content(content, url)
+    except Exception:
+        abort(400)
 
 
 def request_summary(r, header=False, content=False):
