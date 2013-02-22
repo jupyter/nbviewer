@@ -12,8 +12,19 @@ from statistics import Stats
 from sqlalchemy import create_engine
 
 from flask.ext.sqlalchemy import SQLAlchemy
+from werkzeug.routing import BaseConverter
+
+class RegexConverter(BaseConverter):
+    """regex route filter
+    
+    from: http://stackoverflow.com/questions/5870188
+    """
+    def __init__(self, url_map, *items):
+        super(RegexConverter, self).__init__(url_map)
+        self.regex = items[0]
 
 app = Flask(__name__)
+app.url_map.converters['regex'] = RegexConverter
 
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite://')
 app.config['GITHUB'] = {
@@ -100,8 +111,8 @@ def create(v=None):
     increasegen = False
     if v and not value:
         value = v
-    gist = re.search(r'^https?://gist.github.com/(\w+/)?([a-z0-9]+)$', value)
-    if re.match('^[a-z0-9]+$', value):
+    gist = re.search(r'^https?://gist.github.com/(\w+/)?([a-f0-9]+)$', value)
+    if re.match('^[a-f0-9]+$', value):
         response = redirect('/'+value)
     elif gist:
         response = redirect('/'+gist.group(2))
@@ -208,13 +219,13 @@ def github_api_request(url):
     return r
 
 @cachedfirstparam
-@app.route('/<int:id>/')
+@app.route('/<regex("[a-f0-9]+"):id>')
 def fetch_and_render(id=None):
     """Fetch and render a post from the Github API"""
-    if id is None :
+    if id is None:
         return redirect('/')
     try :
-        stats.get(str(id)).access()
+        stats.get(id).access()
     except :
         print 'oops ', id, 'crashed'
 
@@ -231,7 +242,7 @@ def fetch_and_render(id=None):
             for file in files :
                 entry = {}
                 entry['path'] = file['filename']
-                entry['url'] = '/%s/%s' %( id,file['filename'])
+                entry['url'] = '/%s/%s' % (id, file['filename'])
                 entries.append(entry)
             return render_template('gistlist.html', entries=entries)
     except ValueError:
