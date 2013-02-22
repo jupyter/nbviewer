@@ -100,19 +100,17 @@ def create(v=None):
     increasegen = False
     if v and not value:
         value = v
-    gist = re.search(r'^https?://gist.github.com/([0-9]+)$', value)
-    if re.match('^[0-9]+$', value):
+    gist = re.search(r'^https?://gist.github.com/(\w+/)?([a-z0-9]+)$', value)
+    if re.match('^[a-z0-9]+$', value):
         response = redirect('/'+value)
     elif gist:
-        response = redirect('/'+gist.group(1))
+        response = redirect('/'+gist.group(2))
         
-    elif value.startswith('https://') and value.endswith('.ipynb'):
+    elif value.startswith('https://'):
         response = redirect('/urls/'+value[8:])
 
-    elif value.startswith('http://') and value.endswith('.ipynb'):
+    elif value.startswith('http://'):
         response = redirect('/url/'+value[7:])
-    else :
-        response = render_template('unknown_filetype.html')
 
     response = app.make_response(response)
     nvisit = int(request.cookies.get('rendered_urls',0))
