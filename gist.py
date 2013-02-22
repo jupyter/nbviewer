@@ -116,12 +116,13 @@ def create(v=None):
         response = redirect('/'+value)
     elif gist:
         response = redirect('/'+gist.group(2))
-        
     elif value.startswith('https://'):
         response = redirect('/urls/'+value[8:])
-
     elif value.startswith('http://'):
         response = redirect('/url/'+value[7:])
+    else:
+        # default is to assume http url
+        response = redirect('/url/'+value)
 
     response = app.make_response(response)
     nvisit = int(request.cookies.get('rendered_urls',0))
