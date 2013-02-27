@@ -37,9 +37,14 @@ stats = Stats(engine)
 
 try :
     import pylibmc
-    mc = pylibmc.Client(["127.0.0.1"], binary=True,
-                    behaviors={"tcp_nodelay": True,
-                                "ketama": True})
+    mc = pylibmc.Client(
+        servers=[os.environ.get('MEMCACHE_SERVERS')],
+        username=os.environ.get('MEMCACHE_USERNAME'),
+        password=os.environ.get('MEMCACHE_PASSWORD'),
+        binary=True,
+         behaviors={"tcp_nodelay": True,
+                                "ketama": True}
+    )
 
     def cachedfirstparam(function):
 
