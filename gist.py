@@ -141,9 +141,7 @@ def cachedget(url):
     try:
         r = requests.get(url)
     except Exception:
-        app.logger.error("Unhandled exception in request: %s" % (
-                request_summary(r)
-        ), exc_info=True)
+        app.logger.error("Unhandled exception in request: %s" % url, exc_info=True)
         abort(500)
     else:
         if r.status_code == 404:
