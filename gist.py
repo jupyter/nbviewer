@@ -39,9 +39,9 @@ stats = Stats(engine)
 try :
     import pylibmc
     mc = pylibmc.Client(
-        servers=[os.environ.get('MEMCACHE_SERVERS')],
-        username=os.environ.get('MEMCACHE_USERNAME'),
-        password=os.environ.get('MEMCACHE_PASSWORD'),
+        servers=[os.environ.get('MEMCACHIER_SERVERS')],
+        username=os.environ.get('MEMCACHIER_USERNAME'),
+        password=os.environ.get('MEMCACHIER_PASSWORD'),
         binary=True,
          behaviors={"tcp_nodelay": True,
                                 "ketama": True}
