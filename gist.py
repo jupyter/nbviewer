@@ -13,6 +13,7 @@ from sqlalchemy import create_engine
 
 from flask.ext.sqlalchemy import SQLAlchemy
 from werkzeug.routing import BaseConverter
+from werkzeug.exceptions import NotFound
 
 class RegexConverter(BaseConverter):
     """regex route filter
@@ -164,7 +165,16 @@ def render_urls(url):
     except Exception:
         app.logger.error("exception getting stats", exc_info=True)
     url = 'https://' + url
-    content = cachedget(url)
+    try:
+        content = cachedget(url)
+    except NotFound:
+        if '/files/' in url:
+            new_url = url.replace('/files/', '/', 1)
+            app.logger.info("redirecting nb local-files url: %s to %s" % (url, new_url))
+            return redirect(new_url)
+        else:
+            raise
+    
     try:
         return render_content(content, url)
     except Exception:
@@ -177,7 +187,16 @@ def render_urls(url):
 def render_url(url):
     stats.get('url/'+url).access()
     url = 'http://'+url
-    content = cachedget(url)
+    try:
+        content = cachedget(url)
+    except NotFound:
+        if '/files/' in url:
+            new_url = url.replace('/files/', '/', 1)
+            app.logger.info("redirecting nb local-files url: %s to %s" % (url, new_url))
+            return redirect(new_url)
+        else:
+            raise
+    
     try:
         return render_content(content, url)
     except Exception:
