@@ -52,16 +52,25 @@ try :
         def wrapper(*args, **kw):
             if len(args)+len(kw) != 1:
                return function(*args, **kw)
-            else :
+            else:
                 key = kw.values()[0] if kw else args[0]
                 skey = str(key)+str(function.__name__)
-                mcv = mc.get(skey)
-                #mcv = None
-                if mcv :
+                
+                try:
+                    mcv = mc.get(skey)
+                except Exception:
+                    app.logger.error("memchache get failed", exc_info=True)
+                    mcv = None
+
+                if mcv:
                     return mcv
-                else :
+                else:
                     value = function(key)
-                    mc.set(skey, value, time=600)
+                    try:
+                        mc.set(skey, value, time=600)
+                    except Exception:
+                        app.logger.error("memchache set failed", exc_info=True)
+                        mcv = None
                     return value
         return wrapper
 
