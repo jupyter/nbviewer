@@ -167,7 +167,7 @@ def cachedget(url):
     return r.content
 
 def render_url_urls(url, https=False):
-    prefix = 'urls/' if https else 'url'
+    prefix = 'urls/' if https else 'url/'
 
     try:
         stats.get(prefix+url).access()
