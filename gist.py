@@ -79,8 +79,12 @@ except :
         return fun
 
 @cachedfirstparam
-def static(strng) :
+def static(strng):
     return open('static/'+strng).read()
+
+@app.route('/favicon.ico')
+def favicon():
+    return static('ico/ipynb_icon_16x16.ico')
 
 @app.route('/')
 def hello():
