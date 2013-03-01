@@ -166,53 +166,42 @@ def cachedget(url):
             abort(400)
     return r.content
 
+def render_url_urls(url, https=False):
+    prefix = 'urls/' if https else 'url/'
+
+    try:
+        stats.get(prefix+url).access()
+    except Exception:
+        app.logger.error("exception getting stats", exc_info=True)
+
+    url = ('https://' + url) if https else ('http://' + url)
+
+    try:
+        content = cachedget(url)
+    except NotFound:
+        if '/files/' in url:
+            new_url = url.replace('/files/', '/', 1)
+            app.logger.info("redirecting nb local-files url: %s to %s" % (url, new_url))
+            return redirect(new_url)
+        else:
+            raise
+
+    try:
+        return render_content(content, url)
+    except Exception:
+        app.logger.error("Couldn't render notebook from %s" % url, exc_info=True)
+        abort(400)
 
 
 @cachedfirstparam
 @app.route('/urls/<path:url>')
 def render_urls(url):
-    try:
-        stats.get('urls/'+url).access()
-    except Exception:
-        app.logger.error("exception getting stats", exc_info=True)
-    url = 'https://' + url
-    try:
-        content = cachedget(url)
-    except NotFound:
-        if '/files/' in url:
-            new_url = url.replace('/files/', '/', 1)
-            app.logger.info("redirecting nb local-files url: %s to %s" % (url, new_url))
-            return redirect(new_url)
-        else:
-            raise
-    
-    try:
-        return render_content(content, url)
-    except Exception:
-        app.logger.error("Couldn't render notebook from %s" % url, exc_info=True)
-        abort(400)
+    return render_url_urls(url, https=True)
 
-#http !
 @cachedfirstparam
 @app.route('/url/<path:url>')
 def render_url(url):
-    stats.get('url/'+url).access()
-    url = 'http://'+url
-    try:
-        content = cachedget(url)
-    except NotFound:
-        if '/files/' in url:
-            new_url = url.replace('/files/', '/', 1)
-            app.logger.info("redirecting nb local-files url: %s to %s" % (url, new_url))
-            return redirect(new_url)
-        else:
-            raise
-    
-    try:
-        return render_content(content, url)
-    except Exception:
-        app.logger.error("Couldn't render notebook from %s" % url, exc_info=True)
-        abort(400)
+    return render_url_urls(url, https=False)
 
 
 def request_summary(r, header=False, content=False):
@@ -235,7 +224,7 @@ def request_summary(r, header=False, content=False):
         json.dumps(r.json, indent=1),
         ])
     return '\n'.join(lines)
-    
+
 
 other_views = """<div style="position:absolute; right:1em; top:1em; padding:0.4em; border:1px dashed black;">
   <a href="{url}">Download notebook</a>
