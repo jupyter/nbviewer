@@ -237,7 +237,18 @@ def request_summary(r, header=False, content=False):
 
 def render_content(content, url=None):
     nb = nbformat.reads_json(content)
-    return render_template('notebook.html', body=C.convert(nb)[0], download_url=url)
+
+    css_theme = nb.get('metadata',{}).get('_nbviewer',{}).get('css',None)
+
+    if css_theme and not re.match('\w',css_theme):
+        css_theme = None
+
+    return render_template('notebook.html',
+            body=C.convert(nb)[0],
+            download_url=url,
+            css_theme=css_theme,
+            mathjax_conf=None
+    )
 
 def github_api_request(url):
     r = requests.get('https://api.github.com/%s' % url, params=app.config['GITHUB'])

@@ -44,6 +44,9 @@
     </style>
     {{ super() }}
     <link href="/static/css/pygments.css" rel="stylesheet">
+    {% if css_theme %}
+        <link href="/static/css/theme/{{css_theme}}.css" rel="stylesheet">
+    {% endif %}
     <script src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS_HTML"type="text/javascript">
     </script>
     <script type="text/javascript">
