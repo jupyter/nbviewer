@@ -100,7 +100,13 @@ def favicon():
 def hello():
     nvisit = int(request.cookies.get('rendered_urls',0))
     betauser = (True if nvisit > 30 else False)
-    return render_template('index.html', betauser=betauser)
+    theme = request.cookies.get('theme',None)
+
+    response = app.make_response(render_template('index.html', betauser=betauser))
+
+
+    response.set_cookie('theme',value=theme)
+    return response
 
 @app.errorhandler(400)
 def page_not_found(error):
@@ -242,6 +248,10 @@ def render_content(content, url=None):
 
     if css_theme and not re.match('\w',css_theme):
         css_theme = None
+
+    forced_theme = request.cookies.get('theme',None)
+    if forced_theme and forced_theme != 'None' :
+        css_theme = forced_theme
 
     return render_template('notebook.html',
             body=C.convert(nb)[0],
