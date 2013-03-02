@@ -53,6 +53,8 @@ class NotebookStats(object):
            self._stat  = session.query(Notebook).filter_by(url=url).one()
         except NoResultFound : 
            self._stat = Notebook(url)
+        except Exception:
+            return
         self.session=session
         session.add(self._stat)
         session.commit()
@@ -64,17 +66,20 @@ class NotebookStats(object):
 class Stats(object): 
 
     def __init__(self,engine):
-        self.engine = engine
-        self.Session = sessionmaker(bind=self.engine)
-        self.session = self.Session()
-        Base.metadata.create_all(engine) 
-        #counting number of acces...
-        # in the access time table, we group by notebook id, and count the reapeating occurences
-        # we construct a 
-        # :notebook_id: , :count: table
-        self.stmt = self.session.query(AccessTime.notebook_id, func.count('*').\
-                    label('access_count')).\
-                    group_by(AccessTime.notebook_id).subquery()
+        try :
+            self.engine = engine
+            self.Session = sessionmaker(bind=self.engine)
+            self.session = self.Session()
+            Base.metadata.create_all(engine) 
+            #counting number of acces...
+            # in the access time table, we group by notebook id, and count the reapeating occurences
+            # we construct a 
+            # :notebook_id: , :count: table
+            self.stmt = self.session.query(AccessTime.notebook_id, func.count('*').\
+                        label('access_count')).\
+                        group_by(AccessTime.notebook_id).subquery()
+        except Exception:
+            pass
 
     def get(self,url):
         return NotebookStats(self.session, url)

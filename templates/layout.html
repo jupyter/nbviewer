@@ -8,10 +8,11 @@
     <meta name="author" content="">
 
     <!-- Le styles -->
-    <link href="/static/css/bootstrap.css" rel="stylesheet">
-    <link href="/static/css/bootstrap-responsive.css" rel="stylesheet">
+    <!-- <link href="/static/css/bootstrap.css" rel="stylesheet"> -->
+    <!-- <link href="/static/css/bootstrap-responsive.css" rel="stylesheet"> -->
     <link href="/static/css/docs.css" rel="stylesheet">
     <link href="/static/js/google-code-prettify/prettify.css" rel="stylesheet">
+    <link href="/static/style.min.css" rel="stylesheet">
 
     <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!--[if lt IE 9]>
@@ -24,6 +25,8 @@
     <link rel="apple-touch-icon-precomposed" sizes="114x114" href="/static/ico/apple-touch-icon-114-precomposed.png">
     <link rel="apple-touch-icon-precomposed" sizes="72x72" href="/static/ico/apple-touch-icon-72-precomposed.png">
     <link rel="apple-touch-icon-precomposed" href="/static/ico/apple-touch-icon-57-precomposed.png">
+    {% block extra_head %}
+    {% endblock %}
 
   </head>
 
@@ -54,7 +57,10 @@
                     <a href="http://nbviewer-dev.herokuapp.com">Try the beta</a>
                   </li>
               {% endif %}
+
             </ul>
+              {% block otherlinks %}
+              {% endblock %}
           </div>
         </div>
       </div>

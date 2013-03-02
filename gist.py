@@ -4,7 +4,8 @@ import requests
 import json
 
 from nbformat import current as nbformat
-import nbconvert.nbconvert as nbconvert
+
+from nbconvert2.converters.template import ConverterTemplate
 
 from flask import Flask , request, render_template
 from flask import redirect, abort, Response
@@ -35,6 +36,15 @@ app.config['GITHUB'] = {
 
 engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'], echo=False)
 stats = Stats(engine)
+
+
+from IPython.config import Config
+config = Config()
+config.ConverterTemplate.template_file='basichtml'
+config.NbconvertApp.fileext='html'
+config.CSSHtmlHeaderTransformer.enabled=False
+
+C = ConverterTemplate(config=config)
 
 try :
     import pylibmc
@@ -203,7 +213,6 @@ def render_urls(url):
 def render_url(url):
     return render_url_urls(url, https=False)
 
-
 def request_summary(r, header=False, content=False):
     """text summary of failed request"""
     lines = [
@@ -226,16 +235,9 @@ def request_summary(r, header=False, content=False):
     return '\n'.join(lines)
 
 
-other_views = """<div style="position:absolute; right:1em; top:1em; padding:0.4em; border:1px dashed black;">
-  <a href="{url}">Download notebook</a>
-</div>"""
-
 def render_content(content, url=None):
-    converter = nbconvert.ConverterHTML()
-    if url:
-        converter.extra_body_start_html = other_views.format(url=url)
-    converter.nb = nbformat.reads_json(content)
-    return converter.convert()
+    nb = nbformat.reads_json(content)
+    return render_template('notebook.html', body=C.convert(nb)[0], download_url=url)
 
 def github_api_request(url):
     r = requests.get('https://api.github.com/%s' % url, params=app.config['GITHUB'])
