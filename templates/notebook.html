@@ -17,6 +17,27 @@
     * {
         margin :0;
     }
+
+    .navbar-inner {
+        opacity: 0.5;
+        transition: opacity 0.5s ease-in-out;
+        -webkit-transition: opacity 0.5s ease-in-out;
+    }
+
+    .navbar-inner ul{
+        opacity: 0.0;
+        transition: opacity 0.5s ease-in-out;
+        -webkit-transition: opacity 0.5s ease-in-out;
+    }
+    
+    .navbar-inner:hover {
+        opacity: 1.0;
+    }
+
+    .navbar-inner:hover ul{
+        opacity: 1.0;
+    }
+
     </style>
     {{ super() }}
     <link href="/static/css/pygments.css" rel="stylesheet">

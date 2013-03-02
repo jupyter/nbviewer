@@ -27,6 +27,11 @@
     <link rel="apple-touch-icon-precomposed" href="/static/ico/apple-touch-icon-57-precomposed.png">
     {% block extra_head %}
     {% endblock %}
+    <style>
+        .navbar-inner .container{
+            width: 95%;
+        }
+    </style>
 
   </head>
 
@@ -43,11 +48,11 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="brand" href="http://ipython.org">IPython</a>
+          <a class="brand" href="/">Home</a>
           <div class="nav-collapse collapse">
             <ul class="nav">
               <li class="{{index}}">
-                <a href="/">Home</a>
+                <a href="http://www.ipython.org">IPython</a>
               </li>
               <li>
               <a href="http://penandpants.com/2012/10/16/open-in-nbviewer-bookmarklet/">Bookmarklet</a>
