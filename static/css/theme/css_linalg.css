@@ -1,0 +1,173 @@
+   div.cell {
+       width: inherit ;
+       background-color: #f3f3f3 ;
+   }
+
+   .container {
+       width:50em;
+    }
+
+   /* block fixes margin on input boxes */
+   /* in firefox */
+   .input.hbox {
+        width: 50em;
+    }
+    
+   .input_area { 
+        background-color: white ; 
+    }
+
+    .output_area pre {
+        font-family: "Source Code Pro", source-code-pro, Consolas, monospace;
+        border: 0px;
+    }
+
+    div.output_text {
+        font-family: "Source Code Pro", source-code-pro, Consolas, monospace; 
+    }
+
+    div.text_cell {
+        width: 35em;
+        text-align: left;
+    }
+    
+    div.prompt {
+        width: 0px;
+        visibility: hidden ;
+    }
+    
+    .code_cell {
+        background-color: #f3f3f3;
+    }
+    
+    .highlight {
+        background-color: #ffffff;
+    }
+
+    div.input_prompt {
+        visibility: hidden;
+        width: 0 ;
+    }
+
+    div.text_cell_render {
+        font-family: "Minion Pro", "minion-pro", "Charis SIL", Palatino, serif ;
+        font-size: 14pt ;
+        line-height: 145% ;
+        width: 35em ;
+        text-align: left ;
+        background-color: #f3f3f3 ;
+    }
+
+    div.text_cell_render h1 {
+        display: block;
+        font-size: 28pt;
+        color: #3B3B3B;
+        margin-bottom: 0em;
+        margin-top: 0.5em;
+        
+    }
+    
+    .rendered_html li {
+        margin-bottom: .25em;
+        color: #3B3B3B;;
+    }
+    
+    div.text_cell_render h2:before {
+        content: "\2FFA";
+        margin-right: 0.5em;
+        font-size: .5em;
+        vertical-align: baseline;
+        border-top: 1px;
+
+    }
+
+    .hiterm {
+        font-weight: 500;
+        color: #DC143C;
+    }
+
+   .text_cell_render h2 {
+        font-size: 20pt;
+        margin-bottom: 0em;
+        margin-top: 0.5em;
+        display: block;
+        color: #3B3B3B;
+    }
+
+    .MathJax_Display {
+        /*text-align: center ;*/
+        margin-left: 2em ;
+        margin-top: .5em ;
+        margin-bottom: .5em ;
+    }
+
+    .text_cell_render h3 {
+        font-size: 14pt;
+        font-weight: 600;
+        font-style: italic;
+        margin-bottom: -0.5em;
+        margin-top: -0.25em;
+        color: #3B3B3B;
+        text-indent: 2em;
+    }
+
+    .text_cell_render h5 {
+        font-weight: 300;
+        font-size: 14pt;
+        color: #4057A1;
+        font-style: italic;
+        margin-bottom: .5em;
+        margin-top: 0.5em;
+        display: block;
+    }
+    
+    .CodeMirror {
+        font-family: "Source Code Pro", source-code-pro, Consolas, monospace ;
+        font-size: 10pt;
+        background:  #fffffe; /* #f0f8fb #e2eef9*/
+        border: 0px;
+    }
+    
+    .rendered_html {
+        
+    }
+
+    .rendered_html code {
+        font-family: "Source Code Pro", source-code-pro,Consolas,    monospace;
+        font-size: 85%;
+    }
+    
+   pre, code, kbd, samp { font-family: "Source Code Pro", source-code-pro, Consola, monospace; }
+    
+    .rendered_html p {
+        text-align: left;
+        color: #3B3B3B;
+        margin-bottom: .5em;
+
+    }
+
+    .rendered_html p+p { 
+          text-indent: 1em;
+           margin-top: 0;
+       }
+
+    .rendered_html ol {
+        list-style: decimal;
+        /*margin: 1em 2em;*/
+    }
+
+    .rendered_html ol ol {
+        list-style: decimal;
+    }
+
+    .rendered_html ol ol ol {
+        list-style: decimal;
+    }
+
+    body{background-color:#f3f3f3;}
+
+    .rendered_html p.hangpar {
+        text-indent: 0;
+    }
+
+</style>
