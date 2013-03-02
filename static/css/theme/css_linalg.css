@@ -1,14 +1,16 @@
-   .cell {
+   div.cell {
        width: inherit ;
        background-color: #f3f3f3 ;
-       margin-left: 120px ;
    }
+
+   .container {
+       width:50em;
+    }
 
    /* block fixes margin on input boxes */
    /* in firefox */
    .input.hbox {
-        width: 50em ;
-        display: block ;
+        width: 50em;
     }
     
    .input_area { 
@@ -127,7 +129,6 @@
     }
     
     .rendered_html {
-        margin-left: 120px;
         
     }
 
