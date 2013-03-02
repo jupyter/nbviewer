@@ -100,7 +100,13 @@ def favicon():
 def hello():
     nvisit = int(request.cookies.get('rendered_urls',0))
     betauser = (True if nvisit > 30 else False)
-    return render_template('index.html', betauser=betauser)
+    theme = request.cookies.get('theme',None)
+
+    response = app.make_response(render_template('index.html', betauser=betauser))
+
+
+    response.set_cookie('theme',value=theme)
+    return response
 
 @app.errorhandler(400)
 def page_not_found(error):
@@ -237,7 +243,22 @@ def request_summary(r, header=False, content=False):
 
 def render_content(content, url=None):
     nb = nbformat.reads_json(content)
-    return render_template('notebook.html', body=C.convert(nb)[0], download_url=url)
+
+    css_theme = nb.get('metadata',{}).get('_nbviewer',{}).get('css',None)
+
+    if css_theme and not re.match('\w',css_theme):
+        css_theme = None
+
+    forced_theme = request.cookies.get('theme',None)
+    if forced_theme and forced_theme != 'None' :
+        css_theme = forced_theme
+
+    return render_template('notebook.html',
+            body=C.convert(nb)[0],
+            download_url=url,
+            css_theme=css_theme,
+            mathjax_conf=None
+    )
 
 def github_api_request(url):
     r = requests.get('https://api.github.com/%s' % url, params=app.config['GITHUB'])
