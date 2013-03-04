@@ -16,6 +16,9 @@ from sqlalchemy import create_engine
 from werkzeug.routing import BaseConverter
 from werkzeug.exceptions import NotFound
 
+from flask.ext.cache import Cache
+
+
 class RegexConverter(BaseConverter):
     """regex route filter
     
@@ -38,6 +41,18 @@ engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'], echo=False)
 stats = Stats(engine)
 
 
+servers=os.environ.get('MEMCACHIER_SERVERS','127.0.0.1'),
+username=os.environ.get('MEMCACHIER_USERNAME'),
+password=os.environ.get('MEMCACHIER_PASSWORD'),
+
+cache = Cache(app,config={'CACHE_TYPE': 'memcached',
+            'CACHE_MEMCACHED_SERVERS':servers,
+            'CACHE_MEMCACHED_USERNAME':username,
+            'CACHE_MEMCACHED_PASSWORD':password
+    })
+
+
+
 from IPython.config import Config
 config = Config()
 config.ConverterTemplate.template_file='basichtml'
@@ -49,7 +64,7 @@ C = ConverterTemplate(config=config)
 try :
     import pylibmc
     mc = pylibmc.Client(
-        servers=[os.environ.get('MEMCACHIER_SERVERS')],
+        servers=[os.environ.get('MEMCACHIER_SERVERS','127.0.0.1')],
         username=os.environ.get('MEMCACHIER_USERNAME'),
         password=os.environ.get('MEMCACHIER_PASSWORD'),
         binary=True,
@@ -58,9 +73,9 @@ try :
     )
 
     def cachedfirstparam(function):
-
         def wrapper(*args, **kw):
             if len(args)+len(kw) != 1:
+
                 return function(*args, **kw)
             else:
                 key = kw.values()[0] if kw else args[0]
@@ -84,7 +99,9 @@ try :
                     return value
         return wrapper
 
-except :
+except Exception as exp:
+    app.logger.error("Caching will be disabled", exc_info=True)
+    print 'cahcing will be disabled',exp
     def cachedfirstparam(fun):
         return fun
 
@@ -97,6 +114,7 @@ def favicon():
     return static('ico/ipynb_icon_16x16.ico')
 
 @app.route('/')
+@cache.cached(5000)
 def hello():
     nvisit = int(request.cookies.get('rendered_urls',0))
     betauser = (True if nvisit > 30 else False)
@@ -165,8 +183,9 @@ def create(v=None):
     return response
 
 #https !
-@cachedfirstparam
+@cache.memoize(20)
 def cachedget(url):
+    print 'cachedget'
     try:
         r = requests.get(url)
     except Exception:
@@ -182,7 +201,9 @@ def cachedget(url):
             abort(400)
     return r.content
 
+@cache.memoize(10*60)
 def render_url_urls(url, https=False):
+    print 'render url/urls'
     prefix = 'urls/' if https else 'url/'
 
     try:
@@ -209,15 +230,16 @@ def render_url_urls(url, https=False):
         abort(400)
 
 
-@cachedfirstparam
-@app.route('/urls/<path:url>')
-def render_urls(url):
-    return render_url_urls(url, https=True)
 
-@cachedfirstparam
 @app.route('/url/<path:url>')
+@cache.memoize(20)
 def render_url(url):
     return render_url_urls(url, https=False)
+
+@app.route('/urls/<path:url>')
+@cache.memoize(20)
+def render_urlsx(url):
+    return render_url_urls(url, https=True)
 
 def request_summary(r, header=False, content=False):
     """text summary of failed request"""
@@ -240,6 +262,8 @@ def request_summary(r, header=False, content=False):
         ])
     return '\n'.join(lines)
 
+def body_render(config,body):
+    return render_template('notebook.html',body=body, **config) 
 
 def render_content(content, url=None):
     nb = nbformat.reads_json(content)
@@ -253,12 +277,14 @@ def render_content(content, url=None):
     if forced_theme and forced_theme != 'None' :
         css_theme = forced_theme
 
-    return render_template('notebook.html',
-            body=C.convert(nb)[0],
-            download_url=url,
-            css_theme=css_theme,
-            mathjax_conf=None
-    )
+    #body=C.convert(nb)[0],
+    config = {
+            'download_url':url,
+            'css_theme':css_theme,
+            'mathjax_conf':None
+            }
+    return body_render(config,body=C.convert(nb)[0])#body_render(config, body)
+
 
 def github_api_request(url):
     r = requests.get('https://api.github.com/%s' % url, params=app.config['GITHUB'])

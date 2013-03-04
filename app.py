@@ -5,6 +5,11 @@ import logging
 from gist import app as gist
 #from githubapp import app as github
 
+from tornado.wsgi import WSGIContainer
+from tornado.httpserver import HTTPServer
+from tornado.ioloop import IOLoop
+
+
 if __name__ == '__main__':
     # Bind to PORT if defined, otherwise default to 5000.
     port = int(os.environ.get('PORT', 5000))
@@ -28,4 +33,7 @@ if __name__ == '__main__':
         gist.logger.addHandler(handler)
         # gist.logger.addHandler(logging.StreamHandler())
     
-    gist.run(host='0.0.0.0', port=port, debug=debug)
+    http_server = HTTPServer(WSGIContainer(gist))
+    http_server.listen(port)
+    IOLoop.instance().start()
+    #gist.run(host='0.0.0.0', port=port, debug=debug)
