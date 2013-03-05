@@ -163,7 +163,7 @@ def cachedget(url):
             abort(400)
     return r.content
 
-@cache.memoize(10*60)
+@cache.memoize(10*minutes)
 def render_url_urls(url, https=False):
     print 'render url/urls'
     prefix = 'urls/' if https else 'url/'
@@ -194,13 +194,11 @@ def render_url_urls(url, https=False):
 
 
 @app.route('/url/<path:url>')
-@cache.memoize(60)
 def render_url(url):
     return render_url_urls(url, https=False)
 
 @app.route('/urls/<path:url>')
-@cache.memoize(60)
-def render_urlsx(url):
+def render_urls(url):
     return render_url_urls(url, https=True)
 
 def request_summary(r, header=False, content=False):
