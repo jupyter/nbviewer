@@ -64,51 +64,6 @@ config.CSSHtmlHeaderTransformer.enabled=False
 
 C = ConverterTemplate(config=config)
 
-try :
-    import pylibmc
-    mc = pylibmc.Client(
-        servers=[os.environ.get('MEMCACHIER_SERVERS','127.0.0.1')],
-        username=os.environ.get('MEMCACHIER_USERNAME'),
-        password=os.environ.get('MEMCACHIER_PASSWORD'),
-        binary=True,
-         behaviors={"tcp_nodelay": True,
-                                "ketama": True}
-    )
-
-    def cachedfirstparam(function):
-        def wrapper(*args, **kw):
-            if len(args)+len(kw) != 1:
-
-                return function(*args, **kw)
-            else:
-                key = kw.values()[0] if kw else args[0]
-                skey = str(key)+str(function.__name__)
-                
-                try:
-                    mcv = mc.get(skey)
-                except Exception:
-                    app.logger.error("memchache get failed", exc_info=True)
-                    mcv = None
-
-                if mcv:
-                    return mcv
-                else:
-                    value = function(key)
-                    try:
-                        mc.set(skey, value, time=600)
-                    except Exception:
-                        app.logger.error("memchache set failed", exc_info=True)
-                        mcv = None
-                    return value
-        return wrapper
-
-except Exception as exp:
-    app.logger.error("Caching will be disabled", exc_info=True)
-    print 'cahcing will be disabled',exp
-    def cachedfirstparam(fun):
-        return fun
-
-@cachedfirstparam
 def static(strng):
     return open('static/'+strng).read()
 
@@ -297,7 +252,6 @@ def github_api_request(url):
         abort(r.status_code if r.status_code == 404 else 400)
     return r
 
-@cachedfirstparam
 @app.route('/<regex("[a-f0-9]+"):id>')
 def fetch_and_render(id=None):
     """Fetch and render a post from the Github API"""
