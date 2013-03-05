@@ -104,7 +104,7 @@ def internal_error(error):
     return render_template('500.html'), 500
 
 
-@app.route('/popular')
+#@app.route('/popular')
 @cache.cached(1*minutes)
 def popular():
     entries = [{'url':y.url,'count':x} for x,y in stats.most_accessed(count=20)]
@@ -169,13 +169,6 @@ def cachedget(url):
 
 @cache.memoize(10*minutes)
 def render_url_urls(url, https=False):
-    print 'render url/urls'
-    prefix = 'urls/' if https else 'url/'
-
-    try:
-        stats.get(prefix+url).access()
-    except Exception:
-        app.logger.error("exception getting stats", exc_info=True)
 
     url = ('https://' + url) if https else ('http://' + url)
 
@@ -263,10 +256,6 @@ def fetch_and_render(id=None):
     """Fetch and render a post from the Github API"""
     if id is None:
         return redirect('/')
-    try :
-        stats.get(id).access()
-    except :
-        print 'oops ', id, 'crashed'
 
     r = github_api_request('gists/{}'.format(id))
 
