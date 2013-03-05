@@ -192,19 +192,10 @@ def render_url_urls(url, https=False):
 
 @app.route('/url/<path:url>')
 def render_url(url):
-    try:
-        stats.get('/urls/'+url).access()
-    except Exception:
-        app.logger.error("exception getting stats", exc_info=True)
     return render_url_urls(url, https=False)
 
 @app.route('/urls/<path:url>')
 def render_urls(url):
-    try:
-        stats.get('/url/'+url).access()
-    except Exception:
-        app.logger.error("exception getting stats", exc_info=True)
-
     return render_url_urls(url, https=True)
 
 def request_summary(r, header=False, content=False):
@@ -265,10 +256,6 @@ def fetch_and_render(id=None):
     """Fetch and render a post from the Github API"""
     if id is None:
         return redirect('/')
-    try :
-        stats.get(id).access()
-    except :
-        print 'oops ', id, 'crashed'
 
     r = github_api_request('gists/{}'.format(id))
 
