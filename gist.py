@@ -76,17 +76,20 @@ def favicon():
     return static('ico/ipynb_icon_16x16.ico')
 
 @app.route('/')
-@cache.cached(5*hours)
 def hello():
     nvisit = int(request.cookies.get('rendered_urls', 0))
     betauser = (True if nvisit > 30 else False)
     theme = request.cookies.get('theme', None)
 
-    response = app.make_response(render_template('index.html', betauser=betauser))
-
+    response = _hello(betauser)
 
     response.set_cookie('theme', value=theme)
     return response
+
+@cache.cached(5*hours)
+def _hello(betauser):
+    return app.make_response(render_template('index.html', betauser=betauser))
+
 
 @app.errorhandler(400)
 @cache.cached(5*hours)
@@ -149,7 +152,7 @@ def create(v=None):
     return response
 
 #https !
-#@cache.memoize()
+@cache.memoize()
 def cachedget(url):
     print 'cachedget'
     try:
@@ -167,8 +170,12 @@ def cachedget(url):
             abort(400)
     return r.content
 
+def uc_render_url_urls(url, https=False):
+    forced_theme = request.cookies.get('theme', None)
+    return render_url_urls(url, https, forced_theme=forced_theme)
+
 @cache.memoize(10*minutes)
-def render_url_urls(url, https=False):
+def render_url_urls(url, https, forced_theme=None):
 
     url = ('https://' + url) if https else ('http://' + url)
 
@@ -183,7 +190,7 @@ def render_url_urls(url, https=False):
             raise
 
     try:
-        return render_content(content, url)
+        return render_content(content, url, forced_theme)
     except Exception:
         app.logger.error("Couldn't render notebook from %s" % url, exc_info=True)
         abort(400)
@@ -192,11 +199,11 @@ def render_url_urls(url, https=False):
 
 @app.route('/url/<path:url>')
 def render_url(url):
-    return render_url_urls(url, https=False)
+    return uc_render_url_urls(url, https=False)
 
 @app.route('/urls/<path:url>')
 def render_urls(url):
-    return render_url_urls(url, https=True)
+    return uc_render_url_urls(url, https=True)
 
 def request_summary(r, header=False, content=False):
     """text summary of failed request"""
@@ -222,7 +229,7 @@ def request_summary(r, header=False, content=False):
 def body_render(config, body):
     return render_template('notebook.html', body=body, **config)
 
-def render_content(content, url=None):
+def render_content(content, url=None, forced_theme=None):
     nb = nbformat.reads_json(content)
 
     css_theme = nb.get('metadata', {}).get('_nbviewer', {}).get('css', None)
@@ -230,7 +237,6 @@ def render_content(content, url=None):
     if css_theme and not re.match('\w', css_theme):
         css_theme = None
 
-    forced_theme = request.cookies.get('theme', None)
     if forced_theme and forced_theme != 'None' :
         css_theme = forced_theme
 
