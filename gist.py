@@ -235,12 +235,12 @@ def render_url_urls(url, https=False):
 
 
 @app.route('/url/<path:url>')
-@cache.memoize(20)
+@cache.memoize(60)
 def render_url(url):
     return render_url_urls(url, https=False)
 
 @app.route('/urls/<path:url>')
-@cache.memoize(20)
+@cache.memoize(60)
 def render_urlsx(url):
     return render_url_urls(url, https=True)
 
