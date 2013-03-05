@@ -89,19 +89,23 @@ def hello():
     return response
 
 @app.errorhandler(400)
+@cache.cached(5*hours)
 def page_not_found(error):
     return render_template('400.html'), 400
 
 @app.errorhandler(404)
+@cache.cached(5*hours)
 def page_not_found(error):
     return render_template('404.html'), 404
 
 @app.errorhandler(500)
+@cache.cached(5*hours)
 def internal_error(error):
     return render_template('500.html'), 500
 
 
 @app.route('/popular')
+@cache.cached(1*minutes)
 def popular():
     entries = [{'url':y.url,'count':x} for x,y in stats.most_accessed(count=20)]
     return render_template('popular.html', entries=entries)
