@@ -169,13 +169,6 @@ def cachedget(url):
 
 @cache.memoize(10*minutes)
 def render_url_urls(url, https=False):
-    print 'render url/urls'
-    prefix = 'urls/' if https else 'url/'
-
-    try:
-        stats.get(prefix+url).access()
-    except Exception:
-        app.logger.error("exception getting stats", exc_info=True)
 
     url = ('https://' + url) if https else ('http://' + url)
 
@@ -199,10 +192,19 @@ def render_url_urls(url, https=False):
 
 @app.route('/url/<path:url>')
 def render_url(url):
+    try:
+        stats.get('/urls/'+url).access()
+    except Exception:
+        app.logger.error("exception getting stats", exc_info=True)
     return render_url_urls(url, https=False)
 
 @app.route('/urls/<path:url>')
 def render_urls(url):
+    try:
+        stats.get('/url/'+url).access()
+    except Exception:
+        app.logger.error("exception getting stats", exc_info=True)
+
     return render_url_urls(url, https=True)
 
 def request_summary(r, header=False, content=False):
