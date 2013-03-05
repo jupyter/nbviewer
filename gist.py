@@ -104,7 +104,7 @@ def internal_error(error):
     return render_template('500.html'), 500
 
 
-@app.route('/popular')
+#@app.route('/popular')
 @cache.cached(1*minutes)
 def popular():
     entries = [{'url':y.url,'count':x} for x,y in stats.most_accessed(count=20)]
