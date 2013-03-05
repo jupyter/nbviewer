@@ -45,7 +45,7 @@ servers=os.environ.get('MEMCACHIER_SERVERS','127.0.0.1'),
 username=os.environ.get('MEMCACHIER_USERNAME'),
 password=os.environ.get('MEMCACHIER_PASSWORD'),
 
-cache = Cache(app,config={'CACHE_TYPE': 'memcached',
+cache = Cache(app,config={'CACHE_TYPE': 'saslmemcached',
             'CACHE_MEMCACHED_SERVERS':servers,
             'CACHE_MEMCACHED_USERNAME':username,
             'CACHE_MEMCACHED_PASSWORD':password
