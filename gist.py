@@ -42,14 +42,17 @@ stats = Stats(engine)
 
 
 servers=os.environ.get('MEMCACHIER_SERVERS','127.0.0.1'),
-username=os.environ.get('MEMCACHIER_USERNAME'),
-password=os.environ.get('MEMCACHIER_PASSWORD'),
+username=str(os.environ.get('MEMCACHIER_USERNAME','')),
+password=str(os.environ.get('MEMCACHIER_PASSWORD','')),
 
-cache = Cache(app,config={'CACHE_TYPE': 'memcached',
+config={'CACHE_TYPE': 'saslmemcached',
             'CACHE_MEMCACHED_SERVERS':servers,
-            'CACHE_MEMCACHED_USERNAME':username,
-            'CACHE_MEMCACHED_PASSWORD':password
-    })
+            'CACHE_MEMCACHED_PASSWORD':password[0]
+    }
+
+config['CACHE_MEMCACHED_USERNAME'] = username[0]
+
+cache = Cache(app,config=config)
 
 
 
@@ -232,12 +235,12 @@ def render_url_urls(url, https=False):
 
 
 @app.route('/url/<path:url>')
-@cache.memoize(20)
+@cache.memoize(60)
 def render_url(url):
     return render_url_urls(url, https=False)
 
 @app.route('/urls/<path:url>')
-@cache.memoize(20)
+@cache.memoize(60)
 def render_urlsx(url):
     return render_url_urls(url, https=True)
 
