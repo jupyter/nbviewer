@@ -41,26 +41,26 @@ engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'], echo=False)
 stats = Stats(engine)
 
 
-servers=os.environ.get('MEMCACHIER_SERVERS','127.0.0.1'),
-username=str(os.environ.get('MEMCACHIER_USERNAME','')),
-password=str(os.environ.get('MEMCACHIER_PASSWORD','')),
+servers = os.environ.get('MEMCACHIER_SERVERS', '127.0.0.1'),
+username = str(os.environ.get('MEMCACHIER_USERNAME', '')),
+password = str(os.environ.get('MEMCACHIER_PASSWORD', '')),
 
-config={'CACHE_TYPE': 'saslmemcached',
+config = {'CACHE_TYPE': 'saslmemcached',
             'CACHE_MEMCACHED_SERVERS':servers,
-            'CACHE_MEMCACHED_PASSWORD':password[0]
+            'CACHE_MEMCACHED_PASSWORD':password[0],
+            'CACHE_MEMCACHED_USERNAME':username[0]
     }
 
-config['CACHE_MEMCACHED_USERNAME'] = username[0]
 
-cache = Cache(app,config=config)
+cache = Cache(app, config=config)
 
 
 
 from IPython.config import Config
 config = Config()
-config.ConverterTemplate.template_file='basichtml'
-config.NbconvertApp.fileext='html'
-config.CSSHtmlHeaderTransformer.enabled=False
+config.ConverterTemplate.template_file = 'basichtml'
+config.NbconvertApp.fileext = 'html'
+config.CSSHtmlHeaderTransformer.enabled = False
 
 C = ConverterTemplate(config=config)
 
@@ -78,36 +78,36 @@ def favicon():
 @app.route('/')
 @cache.cached(5*hours)
 def hello():
-    nvisit = int(request.cookies.get('rendered_urls',0))
+    nvisit = int(request.cookies.get('rendered_urls', 0))
     betauser = (True if nvisit > 30 else False)
-    theme = request.cookies.get('theme',None)
+    theme = request.cookies.get('theme', None)
 
     response = app.make_response(render_template('index.html', betauser=betauser))
 
 
-    response.set_cookie('theme',value=theme)
+    response.set_cookie('theme', value=theme)
     return response
 
 @app.errorhandler(400)
 @cache.cached(5*hours)
-def page_not_found(error):
+def page_not_found():
     return render_template('400.html'), 400
 
 @app.errorhandler(404)
 @cache.cached(5*hours)
-def page_not_found(error):
+def page_not_found():
     return render_template('404.html'), 404
 
 @app.errorhandler(500)
 @cache.cached(5*hours)
-def internal_error(error):
+def internal_error():
     return render_template('500.html'), 500
 
 
 #@app.route('/popular')
 @cache.cached(1*minutes)
 def popular():
-    entries = [{'url':y.url,'count':x} for x,y in stats.most_accessed(count=20)]
+    entries = [{'url':y.url, 'count':x} for x, y in stats.most_accessed(count=20)]
     return render_template('popular.html', entries=entries)
 
 @app.route('/404')
@@ -144,8 +144,8 @@ def create(v=None):
         response = redirect('/url/'+value)
 
     response = app.make_response(response)
-    nvisit = int(request.cookies.get('rendered_urls',0))
-    response.set_cookie('rendered_urls',value=nvisit+1)
+    nvisit = int(request.cookies.get('rendered_urls', 0))
+    response.set_cookie('rendered_urls', value=nvisit+1)
     return response
 
 #https !
@@ -219,18 +219,18 @@ def request_summary(r, header=False, content=False):
         ])
     return '\n'.join(lines)
 
-def body_render(config,body):
-    return render_template('notebook.html',body=body, **config) 
+def body_render(config, body):
+    return render_template('notebook.html', body=body, **config)
 
 def render_content(content, url=None):
     nb = nbformat.reads_json(content)
 
-    css_theme = nb.get('metadata',{}).get('_nbviewer',{}).get('css',None)
+    css_theme = nb.get('metadata', {}).get('_nbviewer', {}).get('css', None)
 
-    if css_theme and not re.match('\w',css_theme):
+    if css_theme and not re.match('\w', css_theme):
         css_theme = None
 
-    forced_theme = request.cookies.get('theme',None)
+    forced_theme = request.cookies.get('theme', None)
     if forced_theme and forced_theme != 'None' :
         css_theme = forced_theme
 
@@ -240,7 +240,7 @@ def render_content(content, url=None):
             'css_theme':css_theme,
             'mathjax_conf':None
             }
-    return body_render(config,body=C.convert(nb)[0])#body_render(config, body)
+    return body_render(config, body=C.convert(nb)[0])#body_render(config, body)
 
 
 def github_api_request(url):
