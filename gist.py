@@ -64,15 +64,19 @@ config.CSSHtmlHeaderTransformer.enabled=False
 
 C = ConverterTemplate(config=config)
 
+minutes = 60
+hours = 60*minutes
+
 def static(strng):
     return open('static/'+strng).read()
 
 @app.route('/favicon.ico')
+@cache.cached(5*hours)
 def favicon():
     return static('ico/ipynb_icon_16x16.ico')
 
 @app.route('/')
-@cache.cached(5000)
+@cache.cached(5*hours)
 def hello():
     nvisit = int(request.cookies.get('rendered_urls',0))
     betauser = (True if nvisit > 30 else False)
@@ -141,7 +145,7 @@ def create(v=None):
     return response
 
 #https !
-@cache.memoize(20)
+#@cache.memoize()
 def cachedget(url):
     print 'cachedget'
     try:
