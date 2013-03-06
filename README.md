@@ -39,3 +39,14 @@ Sqlalchemy needs to connect to a database, you should export the environment var
 If you don't have any installed DB or just want to try out, you can use in memory sqlite :
 
 $ export DATABASE_URL='sqlite:///:memory:'
+
+## Deploying on heroku
+
+    heroku create [appname]
+    heroku git:remote -a [appname] -r [appname]
+    heroku addons:add memcachier:dev --app [appname]
+    heroku addons:add newrelic:standard --app [appname]
+
+to deploy the new version :
+
+    git push nbviewer2 <local-branch>:master
