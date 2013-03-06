@@ -17,6 +17,7 @@ from werkzeug.routing import BaseConverter
 from werkzeug.exceptions import NotFound
 
 from flask.ext.cache import Cache
+from flaskext.markdown import Markdown
 
 
 class RegexConverter(BaseConverter):
@@ -29,6 +30,7 @@ class RegexConverter(BaseConverter):
         self.regex = items[0]
 
 app = Flask(__name__)
+Markdown(app)
 app.url_map.converters['regex'] = RegexConverter
 
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite://')
@@ -44,8 +46,18 @@ stats = Stats(engine)
 servers = os.environ.get('MEMCACHIER_SERVERS', '127.0.0.1'),
 username = str(os.environ.get('MEMCACHIER_USERNAME', '')),
 password = str(os.environ.get('MEMCACHIER_PASSWORD', '')),
+config = None
 
-config = {'CACHE_TYPE': 'saslmemcached',
+print username[0]
+print password[0]
+
+if username[0] == '' or password[0]== '':
+    print 'using clasical memcached'
+    config = {'CACHE_TYPE': 'memcached',
+            'CACHE_MEMCACHED_SERVERS':servers}
+else :
+    print 'using sasl memcached'
+    config = {'CACHE_TYPE': 'saslmemcached',
             'CACHE_MEMCACHED_SERVERS':servers,
             'CACHE_MEMCACHED_PASSWORD':password[0],
             'CACHE_MEMCACHED_USERNAME':username[0]
@@ -90,6 +102,10 @@ def hello():
 def _hello(betauser):
     return app.make_response(render_template('index.html', betauser=betauser))
 
+@app.route('/faq')
+#@cache.cached(5*hours)
+def faq():
+    return render_template('faq.md')
 
 @app.errorhandler(400)
 @cache.cached(5*hours)
