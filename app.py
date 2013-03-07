@@ -7,6 +7,7 @@ from gist import app as gist
 
 from tornado.wsgi import WSGIContainer
 from tornado.httpserver import HTTPServer
+from tornado.web import FallbackHandler, Application
 from tornado.ioloop import IOLoop
 
 
@@ -32,8 +33,16 @@ if __name__ == '__main__':
         ))
         gist.logger.addHandler(handler)
         # gist.logger.addHandler(logging.StreamHandler())
+
+
+    wsgi_app = WSGIContainer(gist)
+    application = Application([
+        (r".*", FallbackHandler, dict(fallback=wsgi_app))
+    ])
+    application.settings['gzip']=True
+
     
-    http_server = HTTPServer(WSGIContainer(gist))
-    http_server.listen(port)
+    #http_server = HTTPServer(WSGIContainer(gist))
+    application.listen(port)
     IOLoop.instance().start()
     #gist.run(host='0.0.0.0', port=port, debug=debug)
