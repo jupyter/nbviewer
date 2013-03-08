@@ -9,18 +9,7 @@
     {% endblock %}
 
     {% block extra_head %}
-    <style>
-    .imgwrap {
-        text-align: center;
-    }
-    .input_area{
-        padding: 0.4em
-    }
-
-    * {
-        margin :0;
-    }
-
+    <style type="text/css" media='screen and (min-width:980px)'>
     .navbar-inner {
         opacity: 0.5;
         transition: opacity 0.5s ease-in-out;
@@ -32,6 +21,24 @@
         transition: opacity 0.5s ease-in-out;
         -webkit-transition: opacity 0.5s ease-in-out;
     }
+
+    body{
+        padding-top:50px;
+    }
+
+    </style>
+    <style type="text/css" >
+    .imgwrap {
+        text-align: center;
+    }
+    .input_area{
+        padding: 0.4em
+    }
+
+    * {
+        margin :0;
+    }
+
     
     .navbar-inner:hover {
         opacity: 1.0;

@@ -48,8 +48,6 @@ username = str(os.environ.get('MEMCACHIER_USERNAME', '')),
 password = str(os.environ.get('MEMCACHIER_PASSWORD', '')),
 config = None
 
-print username[0]
-print password[0]
 
 if username[0] == '' or password[0]== '':
     print 'using clasical memcached'
@@ -63,9 +61,7 @@ else :
             'CACHE_MEMCACHED_USERNAME':username[0]
     }
 
-
 cache = Cache(app, config=config)
-
 
 
 from IPython.config import Config
@@ -78,6 +74,7 @@ C = ConverterTemplate(config=config)
 
 minutes = 60
 hours = 60*minutes
+
 
 def static(strng):
     return open('static/'+strng).read()
@@ -109,17 +106,17 @@ def faq():
 
 @app.errorhandler(400)
 @cache.cached(5*hours)
-def page_not_found():
+def page_not_found(error):
     return render_template('400.html'), 400
 
 @app.errorhandler(404)
 @cache.cached(5*hours)
-def page_not_found():
+def page_not_found(error):
     return render_template('404.html'), 404
 
 @app.errorhandler(500)
 @cache.cached(5*hours)
-def internal_error():
+def internal_error(error):
     return render_template('500.html'), 500
 
 
@@ -170,7 +167,6 @@ def create(v=None):
 #https !
 @cache.memoize()
 def cachedget(url):
-    print 'cachedget'
     try:
         r = requests.get(url)
     except Exception:
