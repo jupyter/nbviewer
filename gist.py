@@ -10,7 +10,6 @@ from nbconvert2.converters.template import ConverterTemplate
 from flask import Flask , request, render_template
 from flask import redirect, abort, Response
 
-from statistics import Stats
 from sqlalchemy import create_engine
 
 from werkzeug.routing import BaseConverter
@@ -18,6 +17,8 @@ from werkzeug.exceptions import NotFound
 
 from flask.ext.cache import Cache
 from flaskext.markdown import Markdown
+
+from lib.MemcachedMultipart import multipartmemecached
 
 
 class RegexConverter(BaseConverter):
@@ -39,8 +40,6 @@ app.config['GITHUB'] = {
     'client_secret': os.environ.get('GITHUB_OAUTH_SECRET', ''),
 }
 
-engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'], echo=False)
-stats = Stats(engine)
 
 
 servers = os.environ.get('MEMCACHIER_SERVERS', '127.0.0.1'),
@@ -51,11 +50,11 @@ config = None
 
 if username[0] == '' or password[0]== '':
     print 'using clasical memcached'
-    config = {'CACHE_TYPE': 'memcached',
+    config = {'CACHE_TYPE': 'lib.MemcachedMultipart.multipartmemecached',
             'CACHE_MEMCACHED_SERVERS':servers}
 else :
     print 'using sasl memcached'
-    config = {'CACHE_TYPE': 'saslmemcached',
+    config = {'CACHE_TYPE': 'lib.multipartmemecached',
             'CACHE_MEMCACHED_SERVERS':servers,
             'CACHE_MEMCACHED_PASSWORD':password[0],
             'CACHE_MEMCACHED_USERNAME':username[0]
