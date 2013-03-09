@@ -276,13 +276,14 @@ def fetch_and_render(id=None):
         return redirect('/')
 
     r = github_api_request('gists/{}'.format(id))
+    forced_theme = request.cookies.get('theme', None)
 
     try:
         decoded = r.json.copy()
         files = decoded['files'].values()
         if len(files) == 1 :
             jsonipynb = files[0]['content']
-            return render_content(jsonipynb, files[0]['raw_url'])
+            return render_content(jsonipynb, files[0]['raw_url'], forced_theme=forced_theme)
         else:
             entries = []
             for file in files :
