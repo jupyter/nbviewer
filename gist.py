@@ -54,7 +54,7 @@ if username[0] == '' or password[0]== '':
             'CACHE_MEMCACHED_SERVERS':servers}
 else :
     print 'using sasl memcached'
-    config = {'CACHE_TYPE': 'lib.multipartmemecached',
+    config = {'CACHE_TYPE': 'lib.MemcachedMultipart.multipartmemecached',
             'CACHE_MEMCACHED_SERVERS':servers,
             'CACHE_MEMCACHED_PASSWORD':password[0],
             'CACHE_MEMCACHED_USERNAME':username[0]
