@@ -87,11 +87,13 @@ def favicon():
 def hello():
     nvisit = int(request.cookies.get('rendered_urls', 0))
     betauser = (True if nvisit > 30 else False)
-    theme = request.cookies.get('theme', None)
+    default_theme = request.cookies.get('default_theme', None)
+    forced_theme = request.cookies.get('forced_theme', None)
 
     response = _hello(betauser)
 
-    response.set_cookie('theme', value=theme)
+    response.set_cookie('default_theme', value=default_theme)
+    response.set_cookie('forced_theme', value=forced_theme)
     return response
 
 @cache.cached(5*hours)
@@ -182,11 +184,12 @@ def cachedget(url):
     return r.content
 
 def uc_render_url_urls(url, https=False):
-    forced_theme = request.cookies.get('theme', None)
-    return render_url_urls(url, https, forced_theme=forced_theme)
+    forced_theme = request.cookies.get('forced_theme', None)
+    default_theme = request.cookies.get('default_theme', None)
+    return render_url_urls(url, https, forced_theme=forced_theme, default_theme=default_theme)
 
 @cache.memoize(10*minutes)
-def render_url_urls(url, https, forced_theme=None):
+def render_url_urls(url, https, forced_theme=None, default_theme=None):
 
     url = ('https://' + url) if https else ('http://' + url)
 
@@ -201,7 +204,7 @@ def render_url_urls(url, https, forced_theme=None):
             raise
 
     try:
-        return render_content(content, url, forced_theme)
+        return render_content(content, url, forced_theme, default_theme=default_theme)
     except Exception:
         app.logger.error("Couldn't render notebook from %s" % url, exc_info=True)
         abort(400)
@@ -240,10 +243,10 @@ def request_summary(r, header=False, content=False):
 def body_render(config, body):
     return render_template('notebook.html', body=body, **config)
 
-def render_content(content, url=None, forced_theme=None):
+def render_content(content, url=None, forced_theme=None, default_theme=None):
     nb = nbformat.reads_json(content)
 
-    css_theme = nb.get('metadata', {}).get('_nbviewer', {}).get('css', None)
+    css_theme = nb.get('metadata', {}).get('_nbviewer', {}).get('css', default_theme)
 
     if css_theme and not re.match('\w', css_theme):
         css_theme = None
@@ -275,13 +278,20 @@ def fetch_and_render(id=None):
         return redirect('/')
 
     r = github_api_request('gists/{}'.format(id))
+    forced_theme = request.cookies.get('forced_theme', None)
+    default_theme = request.cookies.get('default_theme', None)
 
     try:
         decoded = r.json.copy()
         files = decoded['files'].values()
         if len(files) == 1 :
             jsonipynb = files[0]['content']
-            return render_content(jsonipynb, files[0]['raw_url'])
+            return render_content(
+                    jsonipynb,
+                    files[0]['raw_url'],
+                    forced_theme=forced_theme,
+                    default_theme=default_theme
+                    )
         else:
             entries = []
             for file in files :
