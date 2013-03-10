@@ -183,6 +183,16 @@ def cachedget(url):
     return r.content
 
 def uc_render_url_urls(url, https=False):
+    recursive_list = [
+            'nbviewer.ipython.org',
+            'nbtest.herokuapp.com',
+            'nbviewer.herokuapp.com',
+            'nbviewer2.herokuapp.com',
+            'gistpynb.herokuapp.com',
+            ]
+    for head in recursive_list:
+        if url.startswith(head):
+            return redirect('http://'+url)
     forced_theme = request.cookies.get('theme', None)
     return render_url_urls(url, https, forced_theme=forced_theme)
 
