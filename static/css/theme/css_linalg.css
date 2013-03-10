@@ -4,13 +4,13 @@
    }
 
    .container {
-       width:50em;
+       max-width:50em;
     }
 
    /* block fixes margin on input boxes */
    /* in firefox */
    .input.hbox {
-        width: 50em;
+        max-width: 50em;
     }
     
    .input_area { 
@@ -27,7 +27,7 @@
     }
 
     div.text_cell {
-        width: 35em;
+        max-width: 35em;
         text-align: left;
     }
     
@@ -53,7 +53,7 @@
         font-family: "Minion Pro", "minion-pro", "Charis SIL", Palatino, serif ;
         font-size: 14pt ;
         line-height: 145% ;
-        width: 35em ;
+        max-width: 35em ;
         text-align: left ;
         background-color: #f3f3f3 ;
     }
