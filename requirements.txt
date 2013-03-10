@@ -1,13 +1,14 @@
 Flask==0.9
-Flask-SQLAlchemy==0.16
-SQLAlchemy==0.7.9
-Flask-Cache==0.10.0
 Flask-Markdown
 requests==0.13.5
-ipython==0.13
-Pygments==1.5
+Pygments
 Markdown==2.2.0
 psycopg2==2.4.5
 pylibmc==1.2.3
-tornado==2.4
+tornado
 newrelic
+
+-e git://github.com/thadeusb/flask-cache.git@40cfd9280dc66ea54df0961420fc94853d506a35#egg=Flask-Cache
+
+ipython==0.13
+
