@@ -353,7 +353,7 @@ class URLSHandler(tornado.web.RequestHandler):
 
         url = 'https://' + url
         
-        cached = stupidcache.get(url, None):
+        cached = stupidcache.get(url, None)
         
         if cached is None:
             http_client = AsyncHTTPClient()
@@ -373,7 +373,7 @@ class URLHandler(tornado.web.RequestHandler):
 
         url = 'http://' + url
         
-        cached = stupidcache.get(url, None):
+        cached = stupidcache.get(url, None)
         
         if cached is None:
             http_client = AsyncHTTPClient()
