@@ -359,7 +359,7 @@ class URLSHandler(tornado.web.RequestHandler):
             http_client = AsyncHTTPClient()
             content = yield gen.Task(http_client.fetch, url)
             cached = render_content(content.body, url)
-            stupidcache[url] = render_content(cached, url)
+            stupidcache[url] = cached
         
         self.write(cached)
         self.finish()
