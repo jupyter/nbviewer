@@ -335,6 +335,9 @@ if __name__ == '__main__':
         print 'debug is not activated'
     app.run(host='0.0.0.0', port=port, debug=debug)
 
+from tornado.web import asynchronous
+from tornado.httpclient import AsyncHTTPClient
+from tornado import gen
 
 
 class MainHandler(tornado.web.RequestHandler):
@@ -343,10 +346,27 @@ class MainHandler(tornado.web.RequestHandler):
 
 
 class URLSHandler(tornado.web.RequestHandler):
+    
+    @asynchronous
+    @gen.engine 
     def get(self, url):
-        return self.write(render_url_urls(url, True))
+        url = 'https://' + url
+        print 'fetching ', url
+        http_client = AsyncHTTPClient()
+        content = yield gen.Task(http_client.fetch, url)
+        self.write(render_content(content.body, url))
+        self.finish()
+
 
 class URLHandler(tornado.web.RequestHandler):
+
+    @asynchronous
+    @gen.engine
     def get(self, url):
-        return self.write(render_url_urls(url, False))
+        url = 'http://' + url
+        print 'fetching ', url
+        http_client = AsyncHTTPClient()
+        content = yield gen.Task(http_client.fetch, url)
+        self.write(render_content(content.body, url))
+        self.finish()
 
