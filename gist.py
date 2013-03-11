@@ -339,22 +339,29 @@ from tornado.web import asynchronous
 from tornado.httpclient import AsyncHTTPClient
 from tornado import gen
 
+stupidcache = {}
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
         self.write(env.get_template('index.html').render())
-
 
 class URLSHandler(tornado.web.RequestHandler):
     
     @asynchronous
     @gen.engine 
     def get(self, url):
+
         url = 'https://' + url
-        print 'fetching ', url
-        http_client = AsyncHTTPClient()
-        content = yield gen.Task(http_client.fetch, url)
-        self.write(render_content(content.body, url))
+        
+        cached = stupidcache.get(url, None):
+        
+        if cached is None:
+            http_client = AsyncHTTPClient()
+            content = yield gen.Task(http_client.fetch, url)
+            cached = content.body
+            stupidcache[url] = cached
+        
+        self.write(render_content(cached, url))
         self.finish()
 
 
@@ -363,10 +370,17 @@ class URLHandler(tornado.web.RequestHandler):
     @asynchronous
     @gen.engine
     def get(self, url):
+
         url = 'http://' + url
-        print 'fetching ', url
-        http_client = AsyncHTTPClient()
-        content = yield gen.Task(http_client.fetch, url)
-        self.write(render_content(content.body, url))
+        
+        cached = stupidcache.get(url, None):
+        
+        if cached is None:
+            http_client = AsyncHTTPClient()
+            content = yield gen.Task(http_client.fetch, url)
+            cached = content.body
+            stupidcache[url] = cached
+        
+        self.write(render_content(cached, url))
         self.finish()
 
