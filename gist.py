@@ -2,7 +2,6 @@ import os
 import re
 import requests
 import json
-
 from nbformat import current as nbformat
 
 from nbconvert2.converters.template import ConverterTemplate
@@ -19,6 +18,9 @@ from flask.ext.cache import Cache
 from flaskext.markdown import Markdown
 
 from lib.MemcachedMultipart import multipartmemecached
+
+import tornado.web
+from jinja2 import Environment, FileSystemLoader
 
 
 class RegexConverter(BaseConverter):
@@ -41,6 +43,7 @@ app.config['GITHUB'] = {
 }
 
 
+env = Environment(loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), "templates")))
 
 servers = os.environ.get('MEMCACHIER_SERVERS', '127.0.0.1'),
 username = str(os.environ.get('MEMCACHIER_USERNAME', '')),
@@ -164,7 +167,7 @@ def create(v=None):
     return response
 
 #https !
-@cache.memoize()
+#@cache.memoize()
 def cachedget(url):
     try:
         r = requests.get(url)
@@ -185,7 +188,7 @@ def uc_render_url_urls(url, https=False):
     forced_theme = request.cookies.get('theme', None)
     return render_url_urls(url, https, forced_theme=forced_theme)
 
-@cache.memoize(10*minutes)
+#@cache.memoize(10*minutes)
 def render_url_urls(url, https, forced_theme=None):
 
     url = ('https://' + url) if https else ('http://' + url)
@@ -238,7 +241,7 @@ def request_summary(r, header=False, content=False):
     return '\n'.join(lines)
 
 def body_render(config, body):
-    return render_template('notebook.html', body=body, **config)
+    return env.get_template('notebook.html').render(body=body)
 
 def render_content(content, url=None, forced_theme=None):
     nb = nbformat.reads_json(content)
@@ -331,3 +334,19 @@ if __name__ == '__main__':
     else :
         print 'debug is not activated'
     app.run(host='0.0.0.0', port=port, debug=debug)
+
+
+
+class MainHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.write(env.get_template('index.html').render())
+
+
+class URLSHandler(tornado.web.RequestHandler):
+    def get(self, url):
+        return self.write(render_url_urls(url, True))
+
+class URLHandler(tornado.web.RequestHandler):
+    def get(self, url):
+        return self.write(render_url_urls(url, False))
+

@@ -3,11 +3,13 @@ import sys
 import logging
 
 from gist import app as gist
+from gist import MainHandler, URLHandler,URLSHandler 
 #from githubapp import app as github
 
 from tornado.wsgi import WSGIContainer
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
+import tornado.web
 
 
 if __name__ == '__main__':
@@ -33,7 +35,14 @@ if __name__ == '__main__':
         gist.logger.addHandler(handler)
         # gist.logger.addHandler(logging.StreamHandler())
     
-    http_server = HTTPServer(WSGIContainer(gist))
-    http_server.listen(port)
+    application = tornado.web.Application([
+        (r"/", MainHandler),
+        (r'/static/(.*)', tornado.web.StaticFileHandler, {'path': 'static/'}),
+        (r'/url/(.*)', URLHandler ),
+        (r'/urls/(.*)', URLSHandler ),
+    ])
+
+    application.listen(port)
     IOLoop.instance().start()
     #gist.run(host='0.0.0.0', port=port, debug=debug)
+
