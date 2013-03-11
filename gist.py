@@ -358,10 +358,10 @@ class URLSHandler(tornado.web.RequestHandler):
         if cached is None:
             http_client = AsyncHTTPClient()
             content = yield gen.Task(http_client.fetch, url)
-            cached = content.body
-            stupidcache[url] = cached
+            cached = render_content(content.body, url)
+            stupidcache[url] = render_content(cached, url)
         
-        self.write(render_content(cached, url))
+        self.write(cached)
         self.finish()
 
 
