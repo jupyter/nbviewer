@@ -366,13 +366,13 @@ class GistHandler(tornado.web.RequestHandler):
             return redirect('/')
 
         r = github_api_request('gists/{}'.format(id))
-
+        print(r.content)
         try:
             decoded = r.json.copy()
             files = decoded['files'].values()
             if len(files) == 1 :
                 jsonipynb = files[0]['content']
-                return render_content(jsonipynb, files[0]['raw_url'])
+                tw =  render_content(jsonipynb, files[0]['raw_url'])
             else:
                 entries = []
                 for file in files :
@@ -380,13 +380,15 @@ class GistHandler(tornado.web.RequestHandler):
                     entry['path'] = file['filename']
                     entry['url'] = '/%s/%s' % (id, file['filename'])
                     entries.append(entry)
-                return render_template('gistlist.html', entries=entries)
+                tw = render_template('gistlist.html', entries=entries)
         except ValueError:
-            app.logger.error("Failed to render gist: %s" % request_summary(r), exc_info=True)
+            #app.logger.error("Failed to render gist: %s" % request_summary(r), exc_info=True)
             abort(400)
-        except:
-            app.logger.error("Unhandled error rendering gist: %s" % request_summary(r), exc_info=True)
-            abort(500)
-
-        return result
+        #except Exception as e:
+            #ap#p.logger.error("Unhandled error rendering gist: %s" % request_summary(r), exc_info=True)
+            #print(e) 
+            #abort(500)
+        self.write(tw)
+        self.finish()
+        #return result
 
