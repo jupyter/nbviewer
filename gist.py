@@ -15,7 +15,14 @@ from werkzeug.routing import BaseConverter
 from werkzeug.exceptions import NotFound
 
 from flask.ext.cache import Cache
-from flaskext.markdown import Markdown
+
+
+import jinja2 
+import markdown 
+
+def safe_markdown(text): 
+    return jinja2.Markup(markdown.markdown(text)) 
+
 
 from lib.MemcachedMultipart import multipartmemecached
 
@@ -33,7 +40,6 @@ class RegexConverter(BaseConverter):
         self.regex = items[0]
 
 app = Flask(__name__)
-Markdown(app)
 app.url_map.converters['regex'] = RegexConverter
 
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite://')
@@ -44,6 +50,7 @@ app.config['GITHUB'] = {
 
 
 env = Environment(loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), "templates")))
+env.filters['markdown'] = safe_markdown
 
 servers = os.environ.get('MEMCACHIER_SERVERS', '127.0.0.1'),
 username = str(os.environ.get('MEMCACHIER_USERNAME', '')),
@@ -86,26 +93,6 @@ def static(strng):
 def favicon():
     return static('ico/ipynb_icon_16x16.ico')
 
-@app.route('/')
-def hello():
-    nvisit = int(request.cookies.get('rendered_urls', 0))
-    betauser = (True if nvisit > 30 else False)
-    theme = request.cookies.get('theme', None)
-
-    response = _hello(betauser)
-
-    response.set_cookie('theme', value=theme)
-    return response
-
-@cache.cached(5*hours)
-def _hello(betauser):
-    return app.make_response(render_template('index.html', betauser=betauser))
-
-@app.route('/faq')
-#@cache.cached(5*hours)
-def faq():
-    return render_template('faq.md')
-
 @app.errorhandler(400)
 @cache.cached(5*hours)
 def page_not_found(error):
@@ -121,12 +108,6 @@ def page_not_found(error):
 def internal_error(error):
     return render_template('500.html'), 500
 
-
-#@app.route('/popular')
-@cache.cached(1*minutes)
-def popular():
-    entries = [{'url':y.url, 'count':x} for x, y in stats.most_accessed(count=20)]
-    return render_template('popular.html', entries=entries)
 
 @app.route('/404')
 def four_o_four():
@@ -325,15 +306,6 @@ def gistsubfile(id, subfile):
         app.logger.error("Unhandled error rendering gist: %s" % request_summary(r), exc_info=True)
         abort(500)
 
-if __name__ == '__main__':
-    # Bind to PORT if defined, otherwise default to 5000.
-    port = int(os.environ.get('PORT', 5000))
-    debug = os.path.exists('.debug')
-    if debug :
-        print 'DEBUG MODE IS ACTIVATED !!!'
-    else :
-        print 'debug is not activated'
-    app.run(host='0.0.0.0', port=port, debug=debug)
 
 from tornado.web import asynchronous
 from tornado.httpclient import AsyncHTTPClient
@@ -341,46 +313,46 @@ from tornado import gen
 
 stupidcache = {}
 
+class FAQHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.write(env.get_template('faq.md').render())
+
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
         self.write(env.get_template('index.html').render())
 
-class URLSHandler(tornado.web.RequestHandler):
-    
-    @asynchronous
-    @gen.engine 
-    def get(self, url):
-
-        url = 'https://' + url
-        
-        cached = stupidcache.get(url, None)
-        
-        if cached is None:
-            http_client = AsyncHTTPClient()
-            content = yield gen.Task(http_client.fetch, url)
-            cached = render_content(content.body, url)
-            stupidcache[url] = cached
-        
-        self.write(cached)
-        self.finish()
-
-
 class URLHandler(tornado.web.RequestHandler):
+
+    def __init__(self, *args, **kwargs):
+        self.https=kwargs.pop('https',False)
+        super(URLHandler, self).__init__(*args, **kwargs)
 
     @asynchronous
     @gen.engine
     def get(self, url):
 
-        url = 'http://' + url
+        url = ('https://' if self.https else 'http://')+url
         
         cached = stupidcache.get(url, None)
-        
+        should_finish =  True
         if cached is None:
             http_client = AsyncHTTPClient()
             content = yield gen.Task(http_client.fetch, url)
-            cached = content.body
-            stupidcache[url] = cached
-        
-        self.write(render_content(cached, url))
-        self.finish()
+            if content.code == 404 : # not found
+                if '/files/' in url:
+                    new_url = url.replace('/files/', '/', 1)
+                    self.redirect(new_url)
+                    should_finish = False
+                    #app.logger.info("redirecting nb local-files url: %s to %s" % (url, new_url))
+                else :
+                    raise
+            else :
+                cached = content.body
+                stupidcache[url] = cached
+        if should_finish:
+            try :
+                self.write(render_content(cached, url))
+            except Exception:
+                raise tornado.web.HTTPError(400)
+            self.finish()
 

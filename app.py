@@ -3,7 +3,7 @@ import sys
 import logging
 
 from gist import app as gist
-from gist import MainHandler, URLHandler,URLSHandler 
+from gist import MainHandler, URLHandler, FAQHandler
 #from githubapp import app as github
 
 from tornado.wsgi import WSGIContainer
@@ -37,9 +37,19 @@ if __name__ == '__main__':
     
     application = tornado.web.Application([
         (r"/", MainHandler),
-        (r'/static/(.*)', tornado.web.StaticFileHandler, {'path': 'static/'}),
+        # planed url
+        (r'/faq/?',FAQHandler),
+        #(r'/create/',,),
+        #(r'/<gistnumber>(/<subfile>)?',,),
+        #(r'/<githubuser>/<gistnumber>',,),
+        #(r'/login/?',,), ?
+        #(r'/github/*',,),
+        #(r'/preferences',,),
+        #(r'',,),
+        #(r'',,),
         (r'/url/(.*)', URLHandler ),
-        (r'/urls/(.*)', URLSHandler ),
+        (r'/urls/(.*)', URLHandler, {'https':True} ),
+        (r'/static/(.*)', tornado.web.StaticFileHandler, {'path': 'static/'}),
     ])
 
     application.listen(port)
