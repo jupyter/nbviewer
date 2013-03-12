@@ -380,14 +380,13 @@ class GistHandler(tornado.web.RequestHandler):
                     entry['path'] = file['filename']
                     entry['url'] = '/%s/%s' % (id, file['filename'])
                     entries.append(entry)
-                tw = render_template('gistlist.html', entries=entries)
+                tw = env.get_template('gistlist.html').render(entries=entries)
         except ValueError:
             #app.logger.error("Failed to render gist: %s" % request_summary(r), exc_info=True)
             abort(400)
-        #except Exception as e:
-            #ap#p.logger.error("Unhandled error rendering gist: %s" % request_summary(r), exc_info=True)
-            #print(e) 
-            #abort(500)
+        except Exception as e:
+            #app.logger.error("Unhandled error rendering gist: %s" % request_summary(r), exc_info=True)
+            abort(500)
         self.write(tw)
         self.finish()
         #return result
