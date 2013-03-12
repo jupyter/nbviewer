@@ -17,11 +17,11 @@ from werkzeug.exceptions import NotFound
 from flask.ext.cache import Cache
 
 
-import jinja2 
-import markdown 
+import jinja2
+import markdown
 
-def safe_markdown(text): 
-    return jinja2.Markup(markdown.markdown(text)) 
+def safe_markdown(text):
+    return jinja2.Markup(markdown.markdown(text))
 
 
 from lib.MemcachedMultipart import multipartmemecached
@@ -32,7 +32,7 @@ from jinja2 import Environment, FileSystemLoader
 
 class RegexConverter(BaseConverter):
     """regex route filter
-    
+
     from: http://stackoverflow.com/questions/5870188
     """
     def __init__(self, url_map, *items):
@@ -165,40 +165,6 @@ def cachedget(url):
             abort(400)
     return r.content
 
-def uc_render_url_urls(url, https=False):
-    forced_theme = request.cookies.get('theme', None)
-    return render_url_urls(url, https, forced_theme=forced_theme)
-
-#@cache.memoize(10*minutes)
-def render_url_urls(url, https, forced_theme=None):
-
-    url = ('https://' + url) if https else ('http://' + url)
-
-    try:
-        content = cachedget(url)
-    except NotFound:
-        if '/files/' in url:
-            new_url = url.replace('/files/', '/', 1)
-            app.logger.info("redirecting nb local-files url: %s to %s" % (url, new_url))
-            return redirect(new_url)
-        else:
-            raise
-
-    try:
-        return render_content(content, url, forced_theme)
-    except Exception:
-        app.logger.error("Couldn't render notebook from %s" % url, exc_info=True)
-        abort(400)
-
-
-
-@app.route('/url/<path:url>')
-def render_url(url):
-    return uc_render_url_urls(url, https=False)
-
-@app.route('/urls/<path:url>')
-def render_urls(url):
-    return uc_render_url_urls(url, https=True)
 
 def request_summary(r, header=False, content=False):
     """text summary of failed request"""
@@ -241,7 +207,7 @@ def render_content(content, url=None, forced_theme=None):
             'css_theme':css_theme,
             'mathjax_conf':None
             }
-    return body_render(config, body=C.convert(nb)[0])#body_render(config, body)
+    return body_render(config, body=C.convert(nb)[0])
 
 
 def github_api_request(url):
@@ -252,59 +218,6 @@ def github_api_request(url):
         abort(r.status_code if r.status_code == 404 else 400)
     return r
 
-@app.route('/<regex("[a-f0-9]+"):id>')
-def fetch_and_render(id=None):
-    """Fetch and render a post from the Github API"""
-    if id is None:
-        return redirect('/')
-
-    r = github_api_request('gists/{}'.format(id))
-
-    try:
-        decoded = r.json.copy()
-        files = decoded['files'].values()
-        if len(files) == 1 :
-            jsonipynb = files[0]['content']
-            return render_content(jsonipynb, files[0]['raw_url'])
-        else:
-            entries = []
-            for file in files :
-                entry = {}
-                entry['path'] = file['filename']
-                entry['url'] = '/%s/%s' % (id, file['filename'])
-                entries.append(entry)
-            return render_template('gistlist.html', entries=entries)
-    except ValueError:
-        app.logger.error("Failed to render gist: %s" % request_summary(r), exc_info=True)
-        abort(400)
-    except:
-        app.logger.error("Unhandled error rendering gist: %s" % request_summary(r), exc_info=True)
-        abort(500)
-
-    return result
-
-
-@app.route('/<int:id>/<subfile>')
-def gistsubfile(id, subfile):
-    """Fetch and render a post from the Github API"""
-
-    r = github_api_request('gists/{}'.format(id))
-
-    try:
-        decoded = r.json.copy()
-        files = decoded['files'].values()
-        thefile = [f for f in files if f['filename'] == subfile]
-        jsonipynb = thefile[0]['content']
-        if subfile.endswith('.ipynb'):
-            return render_content(jsonipynb, thefile[0]['raw_url'])
-        else:
-            return Response(jsonipynb, mimetype='text/plain')
-    except ValueError:
-        app.logger.error("Failed to render gist: %s" % request_summary(r), exc_info=True)
-        abort(400)
-    except:
-        app.logger.error("Unhandled error rendering gist: %s" % request_summary(r), exc_info=True)
-        abort(500)
 
 
 from tornado.web import asynchronous
@@ -332,7 +245,7 @@ class URLHandler(tornado.web.RequestHandler):
     def get(self, url):
 
         url = ('https://' if self.https else 'http://')+url
-        
+
         cached = stupidcache.get(url, None)
         should_finish =  True
         if cached is None:
@@ -359,18 +272,39 @@ class URLHandler(tornado.web.RequestHandler):
 
 class GistHandler(tornado.web.RequestHandler):
 
-    def get(self, id=None, **kwargs):
-        """Fetch and render a post from the Github API"""
-        print('houba')
+    def get(self, id=None, subfile=None , **kwargs):
+        """Fetch and render a gist from the Github API
+
+        - Gist with only one file :
+            try to render it as IPython notebook
+
+        - If multifile:
+            - No subfile set : show a list of files.
+
+            - Subfile set:
+                - try to render it as ipynb, or,
+                - if it fails, return as raw file (text/plain).
+        """
         if id is None:
             return redirect('/')
 
         r = github_api_request('gists/{}'.format(id))
-        print(r.content)
         try:
             decoded = r.json.copy()
             files = decoded['files'].values()
-            if len(files) == 1 :
+            if subfile :
+                thefile = [f for f in files if f['filename'] == subfile]
+                jsonipynb = thefile[0]['content']
+                if subfile.endswith('.ipynb'):
+                    tw =  render_content(jsonipynb, thefile[0]['raw_url'])
+                else:
+                    try:
+                        tw = render_content(jsonipynb, thefile[0]['raw_url'])
+                    except Exception:
+                        tw = jsonipynb
+                        self.set_header("Content-Type", "text/plain")
+
+            elif len(files) == 1 :
                 jsonipynb = files[0]['content']
                 tw =  render_content(jsonipynb, files[0]['raw_url'])
             else:
@@ -384,10 +318,9 @@ class GistHandler(tornado.web.RequestHandler):
         except ValueError:
             #app.logger.error("Failed to render gist: %s" % request_summary(r), exc_info=True)
             abort(400)
-        except Exception as e:
+        #except Exception as e:
+
             #app.logger.error("Unhandled error rendering gist: %s" % request_summary(r), exc_info=True)
-            abort(500)
+        #    abort(500)
         self.write(tw)
         self.finish()
-        #return result
-
