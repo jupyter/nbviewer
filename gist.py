@@ -356,3 +356,37 @@ class URLHandler(tornado.web.RequestHandler):
                 raise tornado.web.HTTPError(400)
             self.finish()
 
+
+class GistHandler(tornado.web.RequestHandler):
+
+    def get(self, id=None, **kwargs):
+        """Fetch and render a post from the Github API"""
+        print('houba')
+        if id is None:
+            return redirect('/')
+
+        r = github_api_request('gists/{}'.format(id))
+
+        try:
+            decoded = r.json.copy()
+            files = decoded['files'].values()
+            if len(files) == 1 :
+                jsonipynb = files[0]['content']
+                return render_content(jsonipynb, files[0]['raw_url'])
+            else:
+                entries = []
+                for file in files :
+                    entry = {}
+                    entry['path'] = file['filename']
+                    entry['url'] = '/%s/%s' % (id, file['filename'])
+                    entries.append(entry)
+                return render_template('gistlist.html', entries=entries)
+        except ValueError:
+            app.logger.error("Failed to render gist: %s" % request_summary(r), exc_info=True)
+            abort(400)
+        except:
+            app.logger.error("Unhandled error rendering gist: %s" % request_summary(r), exc_info=True)
+            abort(500)
+
+        return result
+

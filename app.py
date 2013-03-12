@@ -3,7 +3,7 @@ import sys
 import logging
 
 from gist import app as gist
-from gist import MainHandler, URLHandler, FAQHandler
+from gist import MainHandler, URLHandler, FAQHandler, GistHandler
 #from githubapp import app as github
 
 from tornado.wsgi import WSGIContainer
@@ -41,7 +41,6 @@ if __name__ == '__main__':
         (r'/faq/?',FAQHandler),
         #(r'/create/',,),
         #(r'/<gistnumber>(/<subfile>)?',,),
-        #(r'/<githubuser>/<gistnumber>',,),
         #(r'/login/?',,), ?
         #(r'/github/*',,),
         #(r'/preferences',,),
@@ -50,7 +49,10 @@ if __name__ == '__main__':
         (r'/url/(.*)', URLHandler ),
         (r'/urls/(.*)', URLHandler, {'https':True} ),
         (r'/static/(.*)', tornado.web.StaticFileHandler, {'path': 'static/'}),
-    ])
+        (r'/(?P<_>(?P<user>[a-zA-Z0-9]+)/)?(?P<id>[a-f0-9]+)$',GistHandler),
+    ],
+    debug=True
+    )
 
     application.listen(port)
     IOLoop.instance().start()
