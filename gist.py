@@ -2,6 +2,7 @@ import os
 import re
 import requests
 import json
+import httplib
 from nbformat import current as nbformat
 
 from nbconvert2.converters.template import ConverterTemplate
@@ -229,6 +230,7 @@ stupidcache = {}
 class BaseHandler(tornado.web.RequestHandler):
 
     def write_error(self, status_code, **kwargs):
+        short_description = httplib.responses.get(status_code,'Unknown Error')
         self.write(env.get_template('errors.html').render(locals()))
         self.finish()
 
@@ -264,7 +266,7 @@ class URLHandler(BaseHandler):
                     should_finish = False
                     #app.logger.info("redirecting nb local-files url: %s to %s" % (url, new_url))
                 else :
-                    raise
+                    raise tornado.web.HTTPError(404)
             else :
                 cached = content.body
                 stupidcache[url] = cached
