@@ -18,11 +18,6 @@ if __name__ == '__main__':
     debugfile = os.path.exists('.debug')
     debugenv = os.environ.get('DEBUG', '')
     debug = debugfile or debugenv
-    print 'url scheme' , os.environ.get('URL_SCHEME', 'gist')
-    if debug:
-        print 'DEBUG MODE IS ACTIVATED !!!'
-
-    urlscheme = os.environ.get('URLSCHEME', 'GIST')
     
     if not debug:
         log_level = getattr(logging, os.environ.get('LOG_LEVEL', 'WARN'))
@@ -53,7 +48,7 @@ if __name__ == '__main__':
         # with <username> and <subfile> optionnal
         (r'/(?P<_>(?P<user>[a-zA-Z0-9]+)/)?(?P<id>[a-f0-9]+)(?P<__>/(?P<subfile>.*))?$',GistHandler),
     ],
-    debug=False
+    debug=debug
     )
 
     application.listen(port)
