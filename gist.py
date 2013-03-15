@@ -186,13 +186,13 @@ def render_content(content, url=None, forced_theme=None):
     return body_render(config, body=C.convert(nb)[0])
 
 
-def github_api_request(url):
+def github_api_request(url, callback):
     r = requests.get('https://api.github.com/%s' % url, params=app.config['GITHUB'])
     if not r.ok:
         summary = request_summary(r, header=(r.status_code != 404), content=app.debug)
         app.logger.error("API request failed: %s", summary)
         abort(r.status_code if r.status_code == 404 else 400)
-    return r
+    return callback(r)
 
 
 
@@ -261,6 +261,8 @@ class URLHandler(BaseHandler):
 
 class GistHandler(BaseHandler):
 
+    @asynchronous
+    @gen.engine
     def get(self, id=None, subfile=None , **kwargs):
         """Fetch and render a gist from the Github API
 
@@ -275,9 +277,9 @@ class GistHandler(BaseHandler):
                 - if it fails, return as raw file (text/plain).
         """
         if id is None:
-            return redirect('/')
+            self.redirect('/')
 
-        r = github_api_request('gists/{}'.format(id))
+        r = yield gen.Task(github_api_request,'gists/{}'.format(id))
         try:
             decoded = r.json.copy()
             files = decoded['files'].values()
