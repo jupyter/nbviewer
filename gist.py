@@ -94,33 +94,8 @@ def static(strng):
 def favicon():
     return static('ico/ipynb_icon_16x16.ico')
 
-@app.errorhandler(400)
-@cache.cached(5*hours)
-def page_not_found(error):
-    return render_template('400.html'), 400
-
-@app.errorhandler(404)
-@cache.cached(5*hours)
-def page_not_found(error):
-    return render_template('404.html'), 404
-
-@app.errorhandler(500)
-@cache.cached(5*hours)
-def internal_error(error):
-    return render_template('500.html'), 500
 
 
-@app.route('/404')
-def four_o_four():
-    abort(404)
-
-@app.route('/400')
-def four_hundred():
-    abort(400)
-
-@app.route('/500')
-def five_hundred():
-    abort(500)
 
 @app.route('/create/', methods=['POST'])
 def create(v=None):
@@ -228,19 +203,25 @@ from tornado import gen
 stupidcache = {}
 
 class BaseHandler(tornado.web.RequestHandler):
+    """A base handler to have custom error page
+    """
 
     def write_error(self, status_code, **kwargs):
         short_description = httplib.responses.get(status_code,'Unknown Error')
         self.write(env.get_template('errors.html').render(locals()))
         self.finish()
 
+
+faq = env.get_template('faq.md')
 class FAQHandler(BaseHandler):
     def get(self):
-        self.write(env.get_template('faq.md').render())
+        self.write(faq.render())
 
+
+index = env.get_template('index.html')
 class MainHandler(BaseHandler):
     def get(self):
-        self.write(env.get_template('index.html').render())
+        self.write(index.render())
 
 class URLHandler(BaseHandler):
 
