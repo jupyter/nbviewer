@@ -53,7 +53,7 @@ if __name__ == '__main__':
         # with <username> and <subfile> optionnal
         (r'/(?P<_>(?P<user>[a-zA-Z0-9]+)/)?(?P<id>[a-f0-9]+)(?P<__>/(?P<subfile>.*))?$',GistHandler),
     ],
-    debug=True
+    debug=False
     )
 
     application.listen(port)

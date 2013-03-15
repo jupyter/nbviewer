@@ -226,15 +226,21 @@ from tornado import gen
 
 stupidcache = {}
 
-class FAQHandler(tornado.web.RequestHandler):
+class BaseHandler(tornado.web.RequestHandler):
+
+    def write_error(self, status_code, **kwargs):
+        self.write(env.get_template('errors.html').render(locals()))
+        self.finish()
+
+class FAQHandler(BaseHandler):
     def get(self):
         self.write(env.get_template('faq.md').render())
 
-class MainHandler(tornado.web.RequestHandler):
+class MainHandler(BaseHandler):
     def get(self):
         self.write(env.get_template('index.html').render())
 
-class URLHandler(tornado.web.RequestHandler):
+class URLHandler(BaseHandler):
 
     def __init__(self, *args, **kwargs):
         self.https=kwargs.pop('https',False)
@@ -270,7 +276,7 @@ class URLHandler(tornado.web.RequestHandler):
             self.finish()
 
 
-class GistHandler(tornado.web.RequestHandler):
+class GistHandler(BaseHandler):
 
     def get(self, id=None, subfile=None , **kwargs):
         """Fetch and render a gist from the Github API

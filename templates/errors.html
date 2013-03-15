@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+{% block body %}
+
+<header class="jumbotron masthead">
+  <div class="inner">
+      <h1>{{status_code}} : {{error_name}} </h1>
+      <p>{{short_description}}</p>
+      <p class="marketing-byline">{{long_description}}</p>
+  </div>
+
+  </header>
+
+
+<hr class="soften">
+
+{% endblock %}
