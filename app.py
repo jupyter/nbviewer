@@ -3,7 +3,7 @@ import sys
 import logging
 
 from gist import app as gist
-from gist import MainHandler, URLHandler, FAQHandler, GistHandler
+from gist import *
 #from githubapp import app as github
 
 from tornado.wsgi import WSGIContainer
@@ -47,6 +47,7 @@ if __name__ == '__main__':
         # match <username>/<gistnumber>/<subfile>
         # with <username> and <subfile> optionnal
         (r'/(?P<_>(?P<user>[a-zA-Z0-9]+)/)?(?P<id>[a-f0-9]+)(?P<__>/(?P<subfile>.*))?$',GistHandler),
+        (r'/(.*)$',NotFoundHandler),
     ],
     debug=debug
     )

@@ -8,12 +8,11 @@ from nbformat import current as nbformat
 from nbconvert2.converters.template import ConverterTemplate
 
 from flask import Flask , request, render_template
-from flask import redirect, abort, Response
+from flask import redirect, Response
 
 from sqlalchemy import create_engine
 
 from werkzeug.routing import BaseConverter
-from werkzeug.exceptions import NotFound
 
 from flask.ext.cache import Cache
 
@@ -130,15 +129,15 @@ def cachedget(url):
         r = requests.get(url)
     except Exception:
         app.logger.error("Unhandled exception in request: %s" % url, exc_info=True)
-        abort(500)
+        raise tornado.web.HTTPError(500)
     else:
         if r.status_code == 404:
-            abort(404)
+            raise tornado.web.HTTPError(404)
         elif not r.ok:
             app.logger.error("Failed request: %s" % (
                 request_summary(r, header=True, content=app.debug)
             ))
-            abort(400)
+            raise tornado.web.HTTPError(400)
     return r.content
 
 
@@ -191,7 +190,7 @@ def github_api_request(url, callback):
     if not r.ok:
         summary = request_summary(r, header=(r.status_code != 404), content=app.debug)
         app.logger.error("API request failed: %s", summary)
-        abort(r.status_code if r.status_code == 404 else 400)
+        raise tornado.web.HTTPError(r.status_code if r.status_code == 404 else 400)
     return callback(r)
 
 
@@ -210,6 +209,15 @@ class BaseHandler(tornado.web.RequestHandler):
         short_description = httplib.responses.get(status_code,'Unknown Error')
         self.write(env.get_template('errors.html').render(locals()))
         self.finish()
+
+
+class NotFoundHandler(BaseHandler):
+    """ A custom not Found handler 
+
+    Use to raise a custom 404 page if no url matches.
+    """
+    def get(self,*args,**kwargs):
+        raise tornado.web.HTTPError(404)
 
 
 faq = env.get_template('faq.md')
@@ -308,10 +316,10 @@ class GistHandler(BaseHandler):
                 tw = env.get_template('gistlist.html').render(entries=entries)
         except ValueError:
             #app.logger.error("Failed to render gist: %s" % request_summary(r), exc_info=True)
-            abort(400)
+            raise tornado.web.HTTPError(400)
         #except Exception as e:
 
             #app.logger.error("Unhandled error rendering gist: %s" % request_summary(r), exc_info=True)
-        #    abort(500)
+        #    raise tornado.web.HTTPError(500)
         self.write(tw)
         self.finish()
