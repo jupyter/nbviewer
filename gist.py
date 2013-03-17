@@ -4,13 +4,11 @@ import requests
 import json
 import httplib
 from nbformat import current as nbformat
+from werkzeug.contrib.cache import SimpleCache
 
 from nbconvert2.converters.template import ConverterTemplate
 
-from flask import Flask , request, render_template
-from flask import redirect, Response
-
-from sqlalchemy import create_engine
+from flask import request
 
 from werkzeug.routing import BaseConverter
 
@@ -30,20 +28,9 @@ import tornado.web
 from jinja2 import Environment, FileSystemLoader
 
 
-class RegexConverter(BaseConverter):
-    """regex route filter
+g_config = {}
 
-    from: http://stackoverflow.com/questions/5870188
-    """
-    def __init__(self, url_map, *items):
-        super(RegexConverter, self).__init__(url_map)
-        self.regex = items[0]
-
-app = Flask(__name__)
-app.url_map.converters['regex'] = RegexConverter
-
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite://')
-app.config['GITHUB'] = {
+g_config['GITHUB'] = {
     'client_id': os.environ.get('GITHUB_OAUTH_KEY', ''),
     'client_secret': os.environ.get('GITHUB_OAUTH_SECRET', ''),
 }
@@ -58,7 +45,7 @@ password = str(os.environ.get('MEMCACHIER_PASSWORD', '')),
 config = None
 
 
-if username[0] == '' or password[0]== '':
+if username[0] == '' or password[0 ]== '':
     print 'using clasical memcached'
     config = {'CACHE_TYPE': 'lib.MemcachedMultipart.multipartmemecached',
             'CACHE_MEMCACHED_SERVERS':servers}
@@ -70,7 +57,6 @@ else :
             'CACHE_MEMCACHED_USERNAME':username[0]
     }
 
-cache = Cache(app, config=config)
 
 
 from IPython.config import Config
@@ -81,64 +67,47 @@ config.CSSHtmlHeaderTransformer.enabled = False
 
 C = ConverterTemplate(config=config)
 
-minutes = 60
-hours = 60*minutes
+second = 1
+seconds = second
+minute = 60
+minutes = minute
+hour = 60*minutes
+hours = hour
+
+##heroku dyno have 512 Mb Memory, more than memcache, let's use it. 
+cache = SimpleCache(threshold=100, default_timeout= 10*minutes)
 
 
-def static(strng):
-    return open('static/'+strng).read()
+def cachedget(url, timeout, *args, **kwargs):
+    """Fetch an url, and put the result in cache
+    
+    Fetch it from cache if already in it
+    """
 
-@app.route('/favicon.ico')
-@cache.cached(5*hours)
-def favicon():
-    return static('ico/ipynb_icon_16x16.ico')
-
-
-
-
-@app.route('/create/', methods=['POST'])
-def create(v=None):
-    value = request.form['gistnorurl']
-
-    response = None
-    increasegen = False
-    if v and not value:
-        value = v
-    gist = re.search(r'^https?://gist.github.com/(\w+/)?([a-f0-9]+)$', value)
-    if re.match('^[a-f0-9]+$', value):
-        response = redirect('/'+value)
-    elif gist:
-        response = redirect('/'+gist.group(2))
-    elif value.startswith('https://'):
-        response = redirect('/urls/'+value[8:])
-    elif value.startswith('http://'):
-        response = redirect('/url/'+value[7:])
-    else:
-        # default is to assume http url
-        response = redirect('/url/'+value)
-
-    response = app.make_response(response)
-    nvisit = int(request.cookies.get('rendered_urls', 0))
-    response.set_cookie('rendered_urls', value=nvisit+1)
-    return response
-
-#https !
-#@cache.memoize()
-def cachedget(url):
+    value = cache.get(url)
+    if value : 
+        return value
     try:
         r = requests.get(url)
     except Exception:
-        app.logger.error("Unhandled exception in request: %s" % url, exc_info=True)
+        #app.logger.error("Unhandled exception in request: %s" % url, exc_info=True)
         raise tornado.web.HTTPError(500)
     else:
         if r.status_code == 404:
             raise tornado.web.HTTPError(404)
         elif not r.ok:
-            app.logger.error("Failed request: %s" % (
-                request_summary(r, header=True, content=app.debug)
-            ))
+            #app.logger.error("Failed request: %s" % (
+            #    request_summary(r, header=True, content=app.debug)
+            #))
             raise tornado.web.HTTPError(400)
-    return r.content
+    content = r.content
+
+    try : 
+        cache.set(url, content)
+    except Exception:
+        pass
+
+    return content
 
 
 def request_summary(r, header=False, content=False):
@@ -163,7 +132,10 @@ def request_summary(r, header=False, content=False):
     return '\n'.join(lines)
 
 def body_render(config, body):
-    return env.get_template('notebook.html').render(body=body)
+    return env.get_template('notebook.html').render(
+            body=body,
+            download_url=config['download_url']
+            )
 
 def render_content(content, url=None, forced_theme=None):
     nb = nbformat.reads_json(content)
@@ -176,7 +148,6 @@ def render_content(content, url=None, forced_theme=None):
     if forced_theme and forced_theme != 'None' :
         css_theme = forced_theme
 
-    #body=C.convert(nb)[0],
     config = {
             'download_url':url,
             'css_theme':css_theme,
@@ -186,10 +157,10 @@ def render_content(content, url=None, forced_theme=None):
 
 
 def github_api_request(url, callback):
-    r = requests.get('https://api.github.com/%s' % url, params=app.config['GITHUB'])
+    r = requests.get('https://api.github.com/%s' % url, params=g_config['GITHUB'])
     if not r.ok:
-        summary = request_summary(r, header=(r.status_code != 404), content=app.debug)
-        app.logger.error("API request failed: %s", summary)
+        #summary = request_summary(r, header=(r.status_code != 404), content=app.debug)
+        #app.logger.error("API request failed: %s", summary)
         raise tornado.web.HTTPError(r.status_code if r.status_code == 404 else 400)
     return callback(r)
 
@@ -201,12 +172,13 @@ from tornado import gen
 
 stupidcache = {}
 
+
 class BaseHandler(tornado.web.RequestHandler):
     """A base handler to have custom error page
     """
 
     def write_error(self, status_code, **kwargs):
-        short_description = httplib.responses.get(status_code,'Unknown Error')
+        short_description = httplib.responses.get(status_code, 'Unknown Error')
         self.write(env.get_template('errors.html').render(locals()))
         self.finish()
 
@@ -216,7 +188,7 @@ class NotFoundHandler(BaseHandler):
 
     Use to raise a custom 404 page if no url matches.
     """
-    def get(self,*args,**kwargs):
+    def get(self, *args, **kwargs):
         raise tornado.web.HTTPError(404)
 
 
@@ -234,7 +206,7 @@ class MainHandler(BaseHandler):
 class URLHandler(BaseHandler):
 
     def __init__(self, *args, **kwargs):
-        self.https=kwargs.pop('https',False)
+        self.https=kwargs.pop('https', False)
         super(URLHandler, self).__init__(*args, **kwargs)
 
     @asynchronous
@@ -287,7 +259,7 @@ class GistHandler(BaseHandler):
         if id is None:
             self.redirect('/')
 
-        r = yield gen.Task(github_api_request,'gists/{}'.format(id))
+        r = yield gen.Task(github_api_request, 'gists/{}'.format(id))
         try:
             decoded = r.json.copy()
             files = decoded['files'].values()
@@ -323,3 +295,22 @@ class GistHandler(BaseHandler):
         #    raise tornado.web.HTTPError(500)
         self.write(tw)
         self.finish()
+
+class CreateHandler(BaseHandler):
+    def post(self, v=None):
+        value = self.get_argument('gistnorurl', '')
+
+        if v and not value:
+            value = v
+        gist = re.search(r'^https?://gist.github.com/(\w+/)?([a-f0-9]+)$', value)
+        if re.match('^[a-f0-9]+$', value):
+            self.redirect('/'+value)
+        elif gist:
+            self.redirect('/'+gist.group(2))
+        elif value.startswith('https://'):
+            self.redirect('/urls/'+value[8:])
+        elif value.startswith('http://'):
+            self.redirect('/url/'+value[7:])
+        else:
+            # default is to assume http url
+            self.redirect('/url/'+value)

@@ -2,7 +2,6 @@ import os
 import sys
 import logging
 
-from gist import app as gist
 from gist import *
 #from githubapp import app as github
 
@@ -19,22 +18,13 @@ if __name__ == '__main__':
     debugenv = os.environ.get('DEBUG', '')
     debug = debugfile or debugenv
     
-    if not debug:
-        log_level = getattr(logging, os.environ.get('LOG_LEVEL', 'WARN'))
-        gist.logger.setLevel(log_level)
-        handler = logging.StreamHandler(sys.stderr)
-        handler.setLevel(log_level)
-        handler.setFormatter(logging.Formatter(
-            '[%(asctime)s] %(levelname)s: %(message)s '
-        ))
-        gist.logger.addHandler(handler)
-        # gist.logger.addHandler(logging.StreamHandler())
+    
     
     application = tornado.web.Application([
         (r"/", MainHandler),
         # planed url
         (r'/faq/?',FAQHandler),
-        #(r'/create/',,),
+        (r'/create/?',CreateHandler),
         #(r'/<gistnumber>(/<subfile>)?',,),
         #(r'/login/?',,), ?
         #(r'/github/*',,),
@@ -52,7 +42,17 @@ if __name__ == '__main__':
     debug=debug
     )
 
+    if not debug:
+        log_level = getattr(logging, os.environ.get('LOG_LEVEL', 'WARN'))
+        application.logger.setLevel(log_level)
+        handler = logging.StreamHandler(sys.stderr)
+        handler.setLevel(log_level)
+        handler.setFormatter(logging.Formatter(
+            '[%(asctime)s] %(levelname)s: %(message)s '
+        ))
+        application.logger.addHandler(handler)
+        application.logger.addHandler(logging.StreamHandler())
+
     application.listen(port)
     IOLoop.instance().start()
-    #gist.run(host='0.0.0.0', port=port, debug=debug)
 
