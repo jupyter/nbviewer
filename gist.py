@@ -1,50 +1,63 @@
 import os
 import re
-import requests
 import json
 import httplib
-
-from IPython.nbformat import current as nbformat
-from werkzeug.contrib.cache import SimpleCache
-
-from nbconvert2.converters.template import ConverterTemplate
-
-from flask import request
-
-from werkzeug.routing import BaseConverter
-
-from flask.ext.cache import Cache
-
 
 import jinja2
 import markdown
 
-def safe_markdown(text):
-    return jinja2.Markup(markdown.markdown(text))
+# probably to get rid of
+import requests
 
+#ipython import
+from IPython.nbformat import current as nbformat
+from IPython.config import Config
+from nbconvert2.converters.template import ConverterTemplate
 
+#external import
+from werkzeug.contrib.cache import SimpleCache
+
+# to get rid of
+from flask import request
 from lib.MemcachedMultipart import multipartmemecached
 
+# tornado import
 import tornado.web
+from tornado.web import asynchronous
+from tornado.httpclient import AsyncHTTPClient
+from tornado import gen
 from jinja2 import Environment, FileSystemLoader
 
 
+# global config
+
 g_config = {}
 
+# token to access github and not be limited in # of request
 g_config['GITHUB'] = {
     'client_id': os.environ.get('GITHUB_OAUTH_KEY', ''),
     'client_secret': os.environ.get('GITHUB_OAUTH_SECRET', ''),
 }
 
 
-env = Environment(loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), "templates")))
+#jinja environement
+env = Environment(
+        loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), "templates"))
+        )
+
+def safe_markdown(text):
+    return jinja2.Markup(markdown.markdown(text))
+
 env.filters['markdown'] = safe_markdown
 
+
+# deal with memcache server if we have some
+# nothing use it anymore, but just in case...
 servers = os.environ.get('MEMCACHIER_SERVERS', '127.0.0.1'),
 username = str(os.environ.get('MEMCACHIER_USERNAME', '')),
 password = str(os.environ.get('MEMCACHIER_PASSWORD', '')),
-config = None
 
+config = None
 
 if username[0] == '' or password[0 ]== '':
     print 'using clasical memcached'
@@ -59,14 +72,7 @@ else :
     }
 
 
-
-from IPython.config import Config
-config = Config()
-config.ConverterTemplate.template_file = 'basichtml'
-config.NbconvertApp.fileext = 'html'
-config.CSSHtmlHeaderTransformer.enabled = False
-
-C = ConverterTemplate(config=config)
+# Cache configuration
 
 second = 1
 seconds = second
@@ -75,8 +81,18 @@ minutes = minute
 hour = 60*minutes
 hours = hour
 
-##heroku dyno have 512 Mb Memory, more than memcache, let's use it. 
+# heroku dyno have 512 Mb Memory, more than memcache, let's use it.
 cache = SimpleCache(threshold=100, default_timeout= 10*minutes)
+
+
+# nbconvert converter configuration,
+config = Config()
+config.ConverterTemplate.template_file = 'basichtml'
+config.NbconvertApp.fileext = 'html'
+config.CSSHtmlHeaderTransformer.enabled = False
+
+C = ConverterTemplate(config=config)
+
 
 
 def cachedget(url, timeout, *args, **kwargs):
@@ -86,9 +102,10 @@ def cachedget(url, timeout, *args, **kwargs):
     """
 
     value = cache.get(url)
-    if value : 
+    if value :
         return value
     try:
+        # use async http client from tornado here
         r = requests.get(url)
     except Exception:
         #app.logger.error("Unhandled exception in request: %s" % url, exc_info=True)
@@ -103,7 +120,7 @@ def cachedget(url, timeout, *args, **kwargs):
             raise tornado.web.HTTPError(400)
     content = r.content
 
-    try : 
+    try :
         cache.set(url, content)
     except Exception:
         pass
@@ -158,6 +175,7 @@ def render_content(content, url=None, forced_theme=None):
 
 
 def github_api_request(url, callback):
+    # try to get rid of sync requests here
     r = requests.get('https://api.github.com/%s' % url, params=g_config['GITHUB'])
     if not r.ok:
         #summary = request_summary(r, header=(r.status_code != 404), content=app.debug)
@@ -167,9 +185,6 @@ def github_api_request(url, callback):
 
 
 
-from tornado.web import asynchronous
-from tornado.httpclient import AsyncHTTPClient
-from tornado import gen
 
 stupidcache = {}
 
@@ -185,7 +200,7 @@ class BaseHandler(tornado.web.RequestHandler):
 
 
 class NotFoundHandler(BaseHandler):
-    """ A custom not Found handler 
+    """ A custom not Found handler
 
     Use to raise a custom 404 page if no url matches.
     """
