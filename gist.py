@@ -3,7 +3,8 @@ import re
 import requests
 import json
 import httplib
-from nbformat import current as nbformat
+
+from IPython.nbformat import current as nbformat
 from werkzeug.contrib.cache import SimpleCache
 
 from nbconvert2.converters.template import ConverterTemplate
