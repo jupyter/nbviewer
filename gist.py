@@ -152,7 +152,8 @@ def request_summary(r, header=False, content=False):
 def body_render(config, body):
     return env.get_template('notebook.html').render(
             body=body,
-            download_url=config['download_url']
+            download_url=config['download_url'],
+            css_theme=config.get('css_theme')
             )
 
 def render_content(content, url=None, forced_theme=None):
