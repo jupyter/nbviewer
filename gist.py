@@ -176,6 +176,7 @@ def render_content(content, url=None, forced_theme=None):
 
 def github_api_request(url, callback):
     # try to get rid of sync requests here
+    # might need to steal _encode_params from requests.models
     r = requests.get('https://api.github.com/%s' % url, params=g_config['GITHUB'])
     if not r.ok:
         #summary = request_summary(r, header=(r.status_code != 404), content=app.debug)
@@ -185,8 +186,6 @@ def github_api_request(url, callback):
 
 
 
-
-stupidcache = {}
 
 
 class BaseHandler(tornado.web.RequestHandler):
@@ -231,7 +230,7 @@ class URLHandler(BaseHandler):
 
         url = ('https://' if self.https else 'http://')+url
 
-        cached = stupidcache.get(url, None)
+        cached = cache.get(url)
         should_finish =  True
         if cached is None:
             http_client = AsyncHTTPClient()
@@ -246,7 +245,7 @@ class URLHandler(BaseHandler):
                     raise tornado.web.HTTPError(404)
             else :
                 cached = content.body
-                stupidcache[url] = cached
+                cache.set(url,cached)
         if should_finish:
             try :
                 self.write(render_content(cached, url))
