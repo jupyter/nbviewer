@@ -6,6 +6,9 @@ import httplib
 import jinja2
 import markdown
 
+# for statistics
+import newrelic.agent
+
 # probably to get rid of
 import requests
 
@@ -216,6 +219,8 @@ class FAQHandler(BaseHandler):
 
 index = env.get_template('index.html')
 class MainHandler(BaseHandler):
+
+    @newrelic.agent.function_trace()
     def get(self):
         self.write(index.render())
 
@@ -225,6 +230,7 @@ class URLHandler(BaseHandler):
         self.https=kwargs.pop('https', False)
         super(URLHandler, self).__init__(*args, **kwargs)
 
+    @newrelic.agent.function_trace()
     @asynchronous
     @gen.engine
     def get(self, url):
@@ -257,6 +263,7 @@ class URLHandler(BaseHandler):
 
 class GistHandler(BaseHandler):
 
+    @newrelic.agent.function_trace()
     @asynchronous
     @gen.engine
     def get(self, id=None, subfile=None , **kwargs):
