@@ -42,16 +42,16 @@ if __name__ == '__main__':
     debug=debug
     )
 
-    if not debug:
-        log_level = getattr(logging, os.environ.get('LOG_LEVEL', 'WARN'))
-        application.logger.setLevel(log_level)
-        handler = logging.StreamHandler(sys.stderr)
-        handler.setLevel(log_level)
-        handler.setFormatter(logging.Formatter(
-            '[%(asctime)s] %(levelname)s: %(message)s '
-        ))
-        application.logger.addHandler(handler)
-        application.logger.addHandler(logging.StreamHandler())
+    #if not debug:
+    #    log_level = getattr(logging, os.environ.get('LOG_LEVEL', 'WARN'))
+    #    application.logger.setLevel(log_level)
+    #    handler = logging.StreamHandler(sys.stderr)
+    #    handler.setLevel(log_level)
+    #    handler.setFormatter(logging.Formatter(
+    #        '[%(asctime)s] %(levelname)s: %(message)s '
+    #    ))
+    #    application.logger.addHandler(handler)
+    #    application.logger.addHandler(logging.StreamHandler())
 
     application.listen(port)
     IOLoop.instance().start()
