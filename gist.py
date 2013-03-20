@@ -13,12 +13,13 @@ graphite = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 graphite.sendto("%s.request.time 1444\n" % apikey, ("carbon.hostedgraphite.com", 2003))
 
 def mesure(key, value):
-    graphite.sendto("%(api)s.gist.%(key)s %(value)s\n"
-            .format(
+    s = "%(api)s.gist.%(key)s %(value)s\n".format(
                 api=apikey,
                 key=key,
                 value=value
-                ),
+                )
+    graphite.sendto(s
+            ,
         ("carbon.hostedgraphite.com", 2003)
     )
 
