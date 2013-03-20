@@ -3,6 +3,37 @@ import re
 import json
 import httplib
 
+import socket
+from contextlib import contextmanager
+from datetime import datetime
+
+
+apikey = os.environ.get('HOSTEDGRAPHITE_APIKEY',None)
+graphite = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+graphite.sendto("%s.request.time 1444\n" % apikey, ("carbon.hostedgraphite.com", 2003))
+
+def mesure(key, value):
+    graphite.sendto("%(api)s.gist.%(key)s %(value)s\n"
+            .format(
+                api=apikey,
+                key=key,
+                value=value
+                ),
+        ("carbon.hostedgraphite.com", 2003)
+    )
+
+@contextmanager
+def timeit_as(name):
+    tic = datetime.now()
+    yield
+    toc = datetime.now()
+    delta = toc-tic
+    mesure(name, delta.microseconds)
+    
+
+
+
+
 import jinja2
 import markdown
 
@@ -222,7 +253,8 @@ class MainHandler(BaseHandler):
 
     @newrelic.agent.function_trace()
     def get(self):
-        self.write(index.render())
+        with timeit_as('home.render_write'):
+            self.write(index.render())
 
 class URLHandler(BaseHandler):
 
@@ -241,7 +273,8 @@ class URLHandler(BaseHandler):
         should_finish =  True
         if cached is None:
             http_client = AsyncHTTPClient()
-            content = yield gen.Task(http_client.fetch, url)
+            with timeit_as('foobar'):
+                content = yield gen.Task(http_client.fetch, url)
             if content.code == 404 : # not found
                 if '/files/' in url:
                     new_url = url.replace('/files/', '/', 1)
