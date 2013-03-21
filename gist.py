@@ -1,54 +1,93 @@
 import os
 import re
-import requests
 import json
+import httplib
 
-from nbformat import current as nbformat
+import socket
+from contextlib import contextmanager
+from datetime import datetime
 
+
+apikey = os.environ.get('HOSTEDGRAPHITE_APIKEY',None)
+graphite = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+def mesure(key, value):
+    s = "{api}.gist.{key} {value}\n".format(
+                api=apikey,
+                key=key,
+                value=value
+                )
+    print s
+    graphite.sendto(s,
+        ("carbon.hostedgraphite.com", 2003)
+    )
+    #graphite.close()
+
+@contextmanager
+def timeit_as(name):
+    tic = datetime.now()
+    yield
+    toc = datetime.now()
+    delta = toc-tic
+    mesure(name, delta.microseconds)
+
+
+
+
+import jinja2
+import markdown
+
+#ipython import
+from IPython.nbformat import current as nbformat
+from IPython.config import Config
 from nbconvert2.converters.template import ConverterTemplate
 
-from flask import Flask , request, render_template
-from flask import redirect, abort, Response
+#external import
+from werkzeug.contrib.cache import SimpleCache
 
-from sqlalchemy import create_engine
-
-from werkzeug.routing import BaseConverter
-from werkzeug.exceptions import NotFound
-
-from flask.ext.cache import Cache
-from flaskext.markdown import Markdown
-
+# to get rid of
+from flask import request
 from lib.MemcachedMultipart import multipartmemecached
 
+# tornado import
+import tornado.web
+from tornado.web import asynchronous
+from tornado.httpclient import AsyncHTTPClient
+from tornado import gen
+from jinja2 import Environment, FileSystemLoader
 
-class RegexConverter(BaseConverter):
-    """regex route filter
-    
-    from: http://stackoverflow.com/questions/5870188
-    """
-    def __init__(self, url_map, *items):
-        super(RegexConverter, self).__init__(url_map)
-        self.regex = items[0]
 
-app = Flask(__name__)
-Markdown(app)
-app.url_map.converters['regex'] = RegexConverter
+# global config
 
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite://')
-app.config['GITHUB'] = {
+g_config = {}
+
+# token to access github and not be limited in # of request
+g_config['GITHUB'] = {
     'client_id': os.environ.get('GITHUB_OAUTH_KEY', ''),
     'client_secret': os.environ.get('GITHUB_OAUTH_SECRET', ''),
 }
 
 
+#jinja environement
+env = Environment(
+        loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), "templates"))
+        )
 
+def safe_markdown(text):
+    return jinja2.Markup(markdown.markdown(text))
+
+env.filters['markdown'] = safe_markdown
+
+
+# deal with memcache server if we have some
+# nothing use it anymore, but just in case...
 servers = os.environ.get('MEMCACHIER_SERVERS', '127.0.0.1'),
 username = str(os.environ.get('MEMCACHIER_USERNAME', '')),
 password = str(os.environ.get('MEMCACHIER_PASSWORD', '')),
+
 config = None
 
-
-if username[0] == '' or password[0]== '':
+if username[0] == '' or password[0 ]== '':
     print 'using clasical memcached'
     config = {'CACHE_TYPE': 'lib.MemcachedMultipart.multipartmemecached',
             'CACHE_MEMCACHED_SERVERS':servers}
@@ -60,10 +99,39 @@ else :
             'CACHE_MEMCACHED_USERNAME':username[0]
     }
 
-cache = Cache(app, config=config)
+
+# Cache configuration
+
+second = 1
+seconds = second
+minute = 60
+minutes = minute
+hour = 60*minutes
+hours = hour
 
 
-from IPython.config import Config
+class TrackedCache(SimpleCache):
+    """ a simple cache that hits graphite for stats"""
+
+    def __init__(self, *args, **kwargs):
+        super(TrackedCache,self).__init__(*args, **kwargs)
+
+    def get(self, *args,**kwargs):
+        v = super(TrackedCache, self).get(*args, **kwargs)
+        mesure('cache.get',(1 if v else 0))
+        return v
+
+    def set(self, *args,**kwargs):
+        #mesure('cache.set',1)
+        return super(TrackedCache, self).set(*args, **kwargs)
+
+# heroku dyno have 512 Mb Memory, more than memcache, let's use it.
+cache = TrackedCache(threshold=100, default_timeout= 10*minutes)
+
+
+
+
+# nbconvert converter configuration,
 config = Config()
 config.ConverterTemplate.template_file = 'basichtml'
 config.NbconvertApp.fileext = 'html'
@@ -71,150 +139,6 @@ config.CSSHtmlHeaderTransformer.enabled = False
 
 C = ConverterTemplate(config=config)
 
-minutes = 60
-hours = 60*minutes
-
-
-def static(strng):
-    return open('static/'+strng).read()
-
-@app.route('/favicon.ico')
-@cache.cached(5*hours)
-def favicon():
-    return static('ico/ipynb_icon_16x16.ico')
-
-@app.route('/')
-def hello():
-    nvisit = int(request.cookies.get('rendered_urls', 0))
-    betauser = (True if nvisit > 30 else False)
-    theme = request.cookies.get('theme', None)
-
-    response = _hello(betauser)
-
-    response.set_cookie('theme', value=theme)
-    return response
-
-@cache.cached(5*hours)
-def _hello(betauser):
-    return app.make_response(render_template('index.html', betauser=betauser))
-
-@app.route('/faq')
-#@cache.cached(5*hours)
-def faq():
-    return render_template('faq.md')
-
-@app.errorhandler(400)
-@cache.cached(5*hours)
-def page_not_found(error):
-    return render_template('400.html'), 400
-
-@app.errorhandler(404)
-@cache.cached(5*hours)
-def page_not_found(error):
-    return render_template('404.html'), 404
-
-@app.errorhandler(500)
-@cache.cached(5*hours)
-def internal_error(error):
-    return render_template('500.html'), 500
-
-
-#@app.route('/popular')
-@cache.cached(1*minutes)
-def popular():
-    entries = [{'url':y.url, 'count':x} for x, y in stats.most_accessed(count=20)]
-    return render_template('popular.html', entries=entries)
-
-@app.route('/404')
-def four_o_four():
-    abort(404)
-
-@app.route('/400')
-def four_hundred():
-    abort(400)
-
-@app.route('/500')
-def five_hundred():
-    abort(500)
-
-@app.route('/create/', methods=['POST'])
-def create(v=None):
-    value = request.form['gistnorurl']
-
-    response = None
-    increasegen = False
-    if v and not value:
-        value = v
-    gist = re.search(r'^https?://gist.github.com/(\w+/)?([a-f0-9]+)$', value)
-    if re.match('^[a-f0-9]+$', value):
-        response = redirect('/'+value)
-    elif gist:
-        response = redirect('/'+gist.group(2))
-    elif value.startswith('https://'):
-        response = redirect('/urls/'+value[8:])
-    elif value.startswith('http://'):
-        response = redirect('/url/'+value[7:])
-    else:
-        # default is to assume http url
-        response = redirect('/url/'+value)
-
-    response = app.make_response(response)
-    nvisit = int(request.cookies.get('rendered_urls', 0))
-    response.set_cookie('rendered_urls', value=nvisit+1)
-    return response
-
-#https !
-@cache.memoize()
-def cachedget(url):
-    try:
-        r = requests.get(url)
-    except Exception:
-        app.logger.error("Unhandled exception in request: %s" % url, exc_info=True)
-        abort(500)
-    else:
-        if r.status_code == 404:
-            abort(404)
-        elif not r.ok:
-            app.logger.error("Failed request: %s" % (
-                request_summary(r, header=True, content=app.debug)
-            ))
-            abort(400)
-    return r.content
-
-def uc_render_url_urls(url, https=False):
-    forced_theme = request.cookies.get('theme', None)
-    return render_url_urls(url, https, forced_theme=forced_theme)
-
-@cache.memoize(10*minutes)
-def render_url_urls(url, https, forced_theme=None):
-
-    url = ('https://' + url) if https else ('http://' + url)
-
-    try:
-        content = cachedget(url)
-    except NotFound:
-        if '/files/' in url:
-            new_url = url.replace('/files/', '/', 1)
-            app.logger.info("redirecting nb local-files url: %s to %s" % (url, new_url))
-            return redirect(new_url)
-        else:
-            raise
-
-    try:
-        return render_content(content, url, forced_theme)
-    except Exception:
-        app.logger.error("Couldn't render notebook from %s" % url, exc_info=True)
-        abort(400)
-
-
-
-@app.route('/url/<path:url>')
-def render_url(url):
-    return uc_render_url_urls(url, https=False)
-
-@app.route('/urls/<path:url>')
-def render_urls(url):
-    return uc_render_url_urls(url, https=True)
 
 def request_summary(r, header=False, content=False):
     """text summary of failed request"""
@@ -238,7 +162,11 @@ def request_summary(r, header=False, content=False):
     return '\n'.join(lines)
 
 def body_render(config, body):
-    return render_template('notebook.html', body=body, **config)
+    return env.get_template('notebook.html').render(
+            body=body,
+            download_url=config['download_url'],
+            css_theme=config.get('css_theme')
+            )
 
 def render_content(content, url=None, forced_theme=None):
     nb = nbformat.reads_json(content)
@@ -251,83 +179,187 @@ def render_content(content, url=None, forced_theme=None):
     if forced_theme and forced_theme != 'None' :
         css_theme = forced_theme
 
-    #body=C.convert(nb)[0],
     config = {
             'download_url':url,
             'css_theme':css_theme,
             'mathjax_conf':None
             }
-    return body_render(config, body=C.convert(nb)[0])#body_render(config, body)
+    with timeit_as('raw_conversion'):
+        body=C.convert(nb)[0]
+    with timeit_as('final_rendering'):
+        render = body_render(config, body=body)
+    return render
 
 
-def github_api_request(url):
-    r = requests.get('https://api.github.com/%s' % url, params=app.config['GITHUB'])
-    if not r.ok:
-        summary = request_summary(r, header=(r.status_code != 404), content=app.debug)
-        app.logger.error("API request failed: %s", summary)
-        abort(r.status_code if r.status_code == 404 else 400)
-    return r
 
-@app.route('/<regex("[a-f0-9]+"):id>')
-def fetch_and_render(id=None):
-    """Fetch and render a post from the Github API"""
-    if id is None:
-        return redirect('/')
 
-    r = github_api_request('gists/{}'.format(id))
 
-    try:
-        decoded = r.json.copy()
-        files = decoded['files'].values()
-        if len(files) == 1 :
-            jsonipynb = files[0]['content']
-            return render_content(jsonipynb, files[0]['raw_url'])
+
+
+class BaseHandler(tornado.web.RequestHandler):
+    """A base handler to have custom error page
+    """
+
+    @asynchronous
+    @gen.engine
+    def github_api_request(self, url, callback):
+        # try to get rid of sync requests here
+        # might need to steal _encode_params from requests.models
+        http_client = AsyncHTTPClient()
+        with timeit_as('github_api_fetch'):
+                paramurl = "https://api.github.com/{url}?client_id={client_id}&client_secret={client_secret}".format(
+                        url=url,**g_config['GITHUB']
+                        )
+                print(paramurl)
+                response = yield gen.Task(http_client.fetch, paramurl)
+        if not response.code == 200:
+            #summary = request_summary(r, header=(r.status_code != 404), content=app.debug)
+            #app.logger.error("API request failed: %s", summary)
+            raise tornado.web.HTTPError(response.code if response.code == 404 else 400)
+        callback(response)
+
+    def write_error(self, status_code, **kwargs):
+        short_description = httplib.responses.get(status_code, 'Unknown Error')
+        self.write(env.get_template('errors.html').render(locals()))
+        self.finish()
+
+
+class NotFoundHandler(BaseHandler):
+    """ A custom not Found handler
+
+    Use to raise a custom 404 page if no url matches.
+    """
+    def get(self, *args, **kwargs):
+        raise tornado.web.HTTPError(404)
+
+
+faq = env.get_template('faq.md')
+class FAQHandler(BaseHandler):
+    def get(self):
+        self.write(faq.render())
+
+
+index = env.get_template('index.html')
+ir = index.render()
+class MainHandler(BaseHandler):
+
+    def get(self):
+        #with timeit_as('home.render_write'):
+        self.write(ir)
+
+class URLHandler(BaseHandler):
+
+    def __init__(self, *args, **kwargs):
+        self.https=kwargs.pop('https', False)
+        super(URLHandler, self).__init__(*args, **kwargs)
+
+    @asynchronous
+    @gen.engine
+    def get(self, url):
+
+        url = ('https://' if self.https else 'http://')+url
+
+        cached = cache.get(url)
+        should_finish =  True
+        if cached is None:
+            http_client = AsyncHTTPClient()
+            with timeit_as('fetch_url'):
+                content = yield gen.Task(http_client.fetch, url)
+            if content.code == 404 : # not found
+                if '/files/' in url:
+                    new_url = url.replace('/files/', '/', 1)
+                    self.redirect(new_url)
+                    should_finish = False
+                    #app.logger.info("redirecting nb local-files url: %s to %s" % (url, new_url))
+                else :
+                    raise tornado.web.HTTPError(404)
+            else :
+                cached = content.body
+                cache.set(url,cached)
+        if should_finish:
+            try :
+                result = cache.get('rendered_'+url)
+                if not result:
+                    result = render_content(cached, url)
+                    cache.set('rendered_'+url, result)
+                self.write(result)
+            except Exception:
+                raise tornado.web.HTTPError(400)
+            self.finish()
+
+
+class GistHandler(BaseHandler):
+
+    @asynchronous
+    @gen.engine
+    def get(self, id=None, subfile=None , **kwargs):
+        """Fetch and render a gist from the Github API
+
+        - Gist with only one file :
+            try to render it as IPython notebook
+
+        - If multifile:
+            - No subfile set : show a list of files.
+
+            - Subfile set:
+                - try to render it as ipynb, or,
+                - if it fails, return as raw file (text/plain).
+        """
+        if id is None:
+            self.redirect('/')
+
+        response = yield gen.Task(self.github_api_request, 'gists/{}'.format(id))
+        try:
+            decoded = json.loads(response.body)
+            files = decoded['files'].values()
+            if subfile :
+                thefile = [f for f in files if f['filename'] == subfile]
+                jsonipynb = thefile[0]['content']
+                if subfile.endswith('.ipynb'):
+                    tw =  render_content(jsonipynb, thefile[0]['raw_url'])
+                else:
+                    try:
+                        tw = render_content(jsonipynb, thefile[0]['raw_url'])
+                    except Exception:
+                        tw = jsonipynb
+                        self.set_header("Content-Type", "text/plain")
+
+            elif len(files) == 1 :
+                jsonipynb = files[0]['content']
+                tw =  render_content(jsonipynb, files[0]['raw_url'])
+            else:
+                entries = []
+                for file in files :
+                    entry = {}
+                    entry['path'] = file['filename']
+                    entry['url'] = '/%s/%s' % (id, file['filename'])
+                    entries.append(entry)
+                tw = env.get_template('gistlist.html').render(entries=entries)
+        except ValueError:
+            #app.logger.error("Failed to render gist: %s" % request_summary(r), exc_info=True)
+            raise tornado.web.HTTPError(400)
+        #except Exception as e:
+
+            #app.logger.error("Unhandled error rendering gist: %s" % request_summary(r), exc_info=True)
+        #    raise tornado.web.HTTPError(500)
+        self.write(tw)
+        self.finish()
+
+class CreateHandler(BaseHandler):
+    def post(self, v=None):
+        value = self.get_argument('gistnorurl', '')
+
+        if v and not value:
+            value = v
+        gist = re.search(r'^https?://gist.github.com/(\w+/)?([a-f0-9]+)$', value)
+        if re.match('^[a-f0-9]+$', value):
+            self.redirect('/'+value)
+        elif gist:
+            self.redirect('/'+gist.group(2))
+        elif value.startswith('https://'):
+            self.redirect('/urls/'+value[8:])
+        elif value.startswith('http://'):
+            self.redirect('/url/'+value[7:])
         else:
-            entries = []
-            for file in files :
-                entry = {}
-                entry['path'] = file['filename']
-                entry['url'] = '/%s/%s' % (id, file['filename'])
-                entries.append(entry)
-            return render_template('gistlist.html', entries=entries)
-    except ValueError:
-        app.logger.error("Failed to render gist: %s" % request_summary(r), exc_info=True)
-        abort(400)
-    except:
-        app.logger.error("Unhandled error rendering gist: %s" % request_summary(r), exc_info=True)
-        abort(500)
-
-    return result
-
-
-@app.route('/<int:id>/<subfile>')
-def gistsubfile(id, subfile):
-    """Fetch and render a post from the Github API"""
-
-    r = github_api_request('gists/{}'.format(id))
-
-    try:
-        decoded = r.json.copy()
-        files = decoded['files'].values()
-        thefile = [f for f in files if f['filename'] == subfile]
-        jsonipynb = thefile[0]['content']
-        if subfile.endswith('.ipynb'):
-            return render_content(jsonipynb, thefile[0]['raw_url'])
-        else:
-            return Response(jsonipynb, mimetype='text/plain')
-    except ValueError:
-        app.logger.error("Failed to render gist: %s" % request_summary(r), exc_info=True)
-        abort(400)
-    except:
-        app.logger.error("Unhandled error rendering gist: %s" % request_summary(r), exc_info=True)
-        abort(500)
-
-if __name__ == '__main__':
-    # Bind to PORT if defined, otherwise default to 5000.
-    port = int(os.environ.get('PORT', 5000))
-    debug = os.path.exists('.debug')
-    if debug :
-        print 'DEBUG MODE IS ACTIVATED !!!'
-    else :
-        print 'debug is not activated'
-    app.run(host='0.0.0.0', port=port, debug=debug)
+            # default is to assume http url
+            self.redirect('/url/'+value)
