@@ -278,7 +278,11 @@ class URLHandler(BaseHandler):
                 cache.set(url,cached)
         if should_finish:
             try :
-                self.write(render_content(cached, url))
+                result = cache.get('rendered_'+url)
+                if not result:
+                    result = render_content(cached, url)
+                    cache.set('rendered_'+url, result)
+                self.write(result)
             except Exception:
                 raise tornado.web.HTTPError(400)
             self.finish()
