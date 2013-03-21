@@ -10,7 +10,7 @@ from datetime import datetime
 
 apikey = os.environ.get('HOSTEDGRAPHITE_APIKEY',None)
 graphite = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-graphite.sendto("%s.request.time 1444\n" % apikey, ("carbon.hostedgraphite.com", 2003))
+#graphite.sendto("%s.request.time 1444\n" % apikey, ("carbon.hostedgraphite.com", 2003))
 
 def mesure(key, value):
     s = "%(api)s.gist.%(key)s %(value)s\n".format(
@@ -18,8 +18,7 @@ def mesure(key, value):
                 key=key,
                 value=value
                 )
-    graphite.sendto(s
-            ,
+    graphite.sendto(s,
         ("carbon.hostedgraphite.com", 2003)
     )
 
@@ -136,7 +135,8 @@ def cachedget(url, timeout, *args, **kwargs):
     Fetch it from cache if already in it
     """
 
-    value = cache.get(url)
+    #value = cache.get(url)
+    value = False
     if value :
         return value
     try:
@@ -207,7 +207,9 @@ def render_content(content, url=None, forced_theme=None):
             'css_theme':css_theme,
             'mathjax_conf':None
             }
-    return body_render(config, body=C.convert(nb)[0])
+    with timeit_as('raw_conversion'):
+        body=C.convert(nb)[0]
+    return body_render(config, body=body)
 
 
 def github_api_request(url, callback):
@@ -274,7 +276,7 @@ class URLHandler(BaseHandler):
         should_finish =  True
         if cached is None:
             http_client = AsyncHTTPClient()
-            with timeit_as('foobar'):
+            with timeit_as('fetch_ulr'):
                 content = yield gen.Task(http_client.fetch, url)
             if content.code == 404 : # not found
                 if '/files/' in url:
