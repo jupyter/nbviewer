@@ -18,6 +18,7 @@ def mesure(key, value):
                 key=key,
                 value=value
                 )
+    print s
     graphite = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     graphite.sendto(s,
         ("carbon.hostedgraphite.com", 2003)
