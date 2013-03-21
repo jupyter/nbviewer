@@ -10,7 +10,6 @@ from datetime import datetime
 
 apikey = os.environ.get('HOSTEDGRAPHITE_APIKEY',None)
 graphite = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-#graphite.sendto("%s.request.time 1444\n" % apikey, ("carbon.hostedgraphite.com", 2003))
 
 def mesure(key, value):
     s = "{api}.gist.{key} {value}\n".format(
@@ -31,19 +30,12 @@ def timeit_as(name):
     toc = datetime.now()
     delta = toc-tic
     mesure(name, delta.microseconds)
-    
 
 
 
 
 import jinja2
 import markdown
-
-# for statistics
-import newrelic.agent
-
-# probably to get rid of
-import requests
 
 #ipython import
 from IPython.nbformat import current as nbformat
@@ -117,8 +109,26 @@ minutes = minute
 hour = 60*minutes
 hours = hour
 
+
+class TrackedCache(SimpleCache):
+    """ a simple cache that hits graphite for stats"""
+
+    def __init__(self, *args, **kwargs):
+        super(TrackedCache,self).__init__(*args, **kwargs)
+
+    def get(self, *args,**kwargs):
+        v = super(TrackedCache, self).get(*args, **kwargs)
+        mesure('cache.get',(1 if v else 0))
+        return v
+
+    def set(self, *args,**kwargs):
+        #mesure('cache.set',1)
+        return super(TrackedCache, self).set(*args, **kwargs)
+
 # heroku dyno have 512 Mb Memory, more than memcache, let's use it.
-cache = SimpleCache(threshold=100, default_timeout= 10*minutes)
+cache = TrackedCache(threshold=100, default_timeout= 10*minutes)
+
+
 
 
 # nbconvert converter configuration,
@@ -128,41 +138,6 @@ config.NbconvertApp.fileext = 'html'
 config.CSSHtmlHeaderTransformer.enabled = False
 
 C = ConverterTemplate(config=config)
-
-
-
-def cachedget(url, timeout, *args, **kwargs):
-    """Fetch an url, and put the result in cache
-    
-    Fetch it from cache if already in it
-    """
-
-    #value = cache.get(url)
-    value = False
-    if value :
-        return value
-    try:
-        # use async http client from tornado here
-        r = requests.get(url)
-    except Exception:
-        #app.logger.error("Unhandled exception in request: %s" % url, exc_info=True)
-        raise tornado.web.HTTPError(500)
-    else:
-        if r.status_code == 404:
-            raise tornado.web.HTTPError(404)
-        elif not r.ok:
-            #app.logger.error("Failed request: %s" % (
-            #    request_summary(r, header=True, content=app.debug)
-            #))
-            raise tornado.web.HTTPError(400)
-    content = r.content
-
-    try :
-        cache.set(url, content)
-    except Exception:
-        pass
-
-    return content
 
 
 def request_summary(r, header=False, content=False):
@@ -211,18 +186,11 @@ def render_content(content, url=None, forced_theme=None):
             }
     with timeit_as('raw_conversion'):
         body=C.convert(nb)[0]
-    return body_render(config, body=body)
+    with timeit_as('final_rendering'):
+        render = body_render(config, body=body)
+    return render
 
 
-def github_api_request(url, callback):
-    # try to get rid of sync requests here
-    # might need to steal _encode_params from requests.models
-    r = requests.get('https://api.github.com/%s' % url, params=g_config['GITHUB'])
-    if not r.ok:
-        #summary = request_summary(r, header=(r.status_code != 404), content=app.debug)
-        #app.logger.error("API request failed: %s", summary)
-        raise tornado.web.HTTPError(r.status_code if r.status_code == 404 else 400)
-    return callback(r)
 
 
 
@@ -231,6 +199,24 @@ def github_api_request(url, callback):
 class BaseHandler(tornado.web.RequestHandler):
     """A base handler to have custom error page
     """
+
+    @asynchronous
+    @gen.engine
+    def github_api_request(self, url, callback):
+        # try to get rid of sync requests here
+        # might need to steal _encode_params from requests.models
+        http_client = AsyncHTTPClient()
+        with timeit_as('github_api_fetch'):
+                paramurl = "https://api.github.com/{url}?client_id={client_id}&client_secret={client_secret}".format(
+                        url=url,**g_config['GITHUB']
+                        )
+                print(paramurl)
+                response = yield gen.Task(http_client.fetch, paramurl)
+        if not response.code == 200:
+            #summary = request_summary(r, header=(r.status_code != 404), content=app.debug)
+            #app.logger.error("API request failed: %s", summary)
+            raise tornado.web.HTTPError(response.code if response.code == 404 else 400)
+        callback(response)
 
     def write_error(self, status_code, **kwargs):
         short_description = httplib.responses.get(status_code, 'Unknown Error')
@@ -254,12 +240,12 @@ class FAQHandler(BaseHandler):
 
 
 index = env.get_template('index.html')
+ir = index.render()
 class MainHandler(BaseHandler):
 
-    @newrelic.agent.function_trace()
     def get(self):
-        with timeit_as('home.render_write'):
-            self.write(index.render())
+        #with timeit_as('home.render_write'):
+        self.write(ir)
 
 class URLHandler(BaseHandler):
 
@@ -267,7 +253,6 @@ class URLHandler(BaseHandler):
         self.https=kwargs.pop('https', False)
         super(URLHandler, self).__init__(*args, **kwargs)
 
-    @newrelic.agent.function_trace()
     @asynchronous
     @gen.engine
     def get(self, url):
@@ -278,7 +263,7 @@ class URLHandler(BaseHandler):
         should_finish =  True
         if cached is None:
             http_client = AsyncHTTPClient()
-            with timeit_as('fetch_ulr'):
+            with timeit_as('fetch_url'):
                 content = yield gen.Task(http_client.fetch, url)
             if content.code == 404 : # not found
                 if '/files/' in url:
@@ -301,7 +286,6 @@ class URLHandler(BaseHandler):
 
 class GistHandler(BaseHandler):
 
-    @newrelic.agent.function_trace()
     @asynchronous
     @gen.engine
     def get(self, id=None, subfile=None , **kwargs):
@@ -320,9 +304,9 @@ class GistHandler(BaseHandler):
         if id is None:
             self.redirect('/')
 
-        r = yield gen.Task(github_api_request, 'gists/{}'.format(id))
+        response = yield gen.Task(self.github_api_request, 'gists/{}'.format(id))
         try:
-            decoded = r.json.copy()
+            decoded = json.loads(response.body)
             files = decoded['files'].values()
             if subfile :
                 thefile = [f for f in files if f['filename'] == subfile]
