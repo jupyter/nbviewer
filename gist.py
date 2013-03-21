@@ -9,7 +9,7 @@ from datetime import datetime
 
 
 apikey = os.environ.get('HOSTEDGRAPHITE_APIKEY',None)
-graphite = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+#graphite = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 #graphite.sendto("%s.request.time 1444\n" % apikey, ("carbon.hostedgraphite.com", 2003))
 
 def mesure(key, value):
@@ -18,9 +18,11 @@ def mesure(key, value):
                 key=key,
                 value=value
                 )
+    graphite = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     graphite.sendto(s,
         ("carbon.hostedgraphite.com", 2003)
     )
+    graphite.close()
 
 @contextmanager
 def timeit_as(name):
