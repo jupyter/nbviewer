@@ -8,10 +8,11 @@
     <meta name="author" content="">
 
     <!-- Le styles -->
-    <link href="/static/css/bootstrap.css" rel="stylesheet">
-    <link href="/static/css/bootstrap-responsive.css" rel="stylesheet">
+    <!--<link href="/static/css/bootstrap.css" rel="stylesheet">-->
     <link href="/static/css/docs.css" rel="stylesheet">
     <link href="/static/js/google-code-prettify/prettify.css" rel="stylesheet">
+    <link href="/static/style.min.css" rel="stylesheet">
+    <link href="/static/css/bootstrap-responsive.css" rel="stylesheet">
 
     <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!--[if lt IE 9]>
@@ -24,7 +25,8 @@
     <link rel="apple-touch-icon-precomposed" sizes="114x114" href="/static/ico/apple-touch-icon-114-precomposed.png">
     <link rel="apple-touch-icon-precomposed" sizes="72x72" href="/static/ico/apple-touch-icon-72-precomposed.png">
     <link rel="apple-touch-icon-precomposed" href="/static/ico/apple-touch-icon-57-precomposed.png">
-
+    {% block extra_head %}
+    {% endblock %}
   </head>
 
   <body data-spy="scroll" data-target=".subnav" data-offset="50">
@@ -40,11 +42,16 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="brand" href="http://ipython.org">IPython</a>
           <div class="nav-collapse collapse">
             <ul class="nav">
-              <li class="{{index}}">
+              <li>
                 <a href="/">Home</a>
+              </li>
+              <li>
+                <a href="/faq">FAQ</a>
+              </li>
+              <li class="{{index}}">
+                <a href="http://www.ipython.org">IPython</a>
               </li>
               <li>
               <a href="http://penandpants.com/2012/10/16/open-in-nbviewer-bookmarklet/">Bookmarklet</a>
@@ -54,7 +61,10 @@
                     <a href="http://nbviewer-dev.herokuapp.com">Try the beta</a>
                   </li>
               {% endif %}
+
             </ul>
+              {% block otherlinks %}
+              {% endblock %}
           </div>
         </div>
       </div>
@@ -81,23 +91,23 @@
     <!-- Le javascript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
-    <script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
-    <script src="/static/js/jquery.js"></script>
-    <script src="/static/js/google-code-prettify/prettify.js"></script>
-    <script src="/static/js/bootstrap-transition.js"></script>
-    <script src="/static/js/bootstrap-alert.js"></script>
-    <script src="/static/js/bootstrap-modal.js"></script>
-    <script src="/static/js/bootstrap-dropdown.js"></script>
-    <script src="/static/js/bootstrap-scrollspy.js"></script>
-    <script src="/static/js/bootstrap-tab.js"></script>
-    <script src="/static/js/bootstrap-tooltip.js"></script>
-    <script src="/static/js/bootstrap-popover.js"></script>
-    <script src="/static/js/bootstrap-button.js"></script>
-    <script src="/static/js/bootstrap-collapse.js"></script>
-    <script src="/static/js/bootstrap-carousel.js"></script>
-    <script src="/static/js/bootstrap-typeahead.js"></script>
-    <script src="/static/js/application.js"></script>
     
+    <!--<script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>-->
+    <script src="/static/js/jquery.js"></script>
+    <!--<script src="/static/js/google-code-prettify/prettify.js"></script>-->
+    <!--<script src="/static/js/bootstrap-transition.js"></script>-->
+    <!--<script src="/static/js/bootstrap-alert.js"></script>-->
+    <!--<script src="/static/js/bootstrap-modal.js"></script>-->
+    <!--<script src="/static/js/bootstrap-dropdown.js"></script>-->
+    <!--<script src="/static/js/bootstrap-scrollspy.js"></script>-->
+    <!--<script src="/static/js/bootstrap-tab.js"></script>-->
+    <!--<script src="/static/js/bootstrap-tooltip.js"></script>-->
+    <!--<script src="/static/js/bootstrap-popover.js"></script>-->
+    <!--<script src="/static/js/bootstrap-button.js"></script>-->
+    <script src="/static/js/bootstrap-collapse.js"></script>
+    <!--<script src="/static/js/bootstrap-carousel.js"></script>-->
+    <!--<script src="/static/js/bootstrap-typeahead.js"></script>-->
+    <!--<script src="/static/js/application.js"></script>-->
 
     
     <!-- Analytics
@@ -114,7 +124,5 @@
       })();
 
     </script>
-    
-
   </body>
 </html>
