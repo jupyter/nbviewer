@@ -4,16 +4,22 @@ import requests
 import json
 
 from nbformat import current as nbformat
-import nbconvert.nbconvert as nbconvert
+
+from nbconvert2.converters.template import ConverterTemplate
 
 from flask import Flask , request, render_template
 from flask import redirect, abort, Response
 
-from statistics import Stats
 from sqlalchemy import create_engine
 
 from werkzeug.routing import BaseConverter
 from werkzeug.exceptions import NotFound
+
+from flask.ext.cache import Cache
+from flaskext.markdown import Markdown
+
+from lib.MemcachedMultipart import multipartmemecached
+
 
 class RegexConverter(BaseConverter):
     """regex route filter
@@ -25,6 +31,7 @@ class RegexConverter(BaseConverter):
         self.regex = items[0]
 
 app = Flask(__name__)
+Markdown(app)
 app.url_map.converters['regex'] = RegexConverter
 
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite://')
@@ -33,81 +40,89 @@ app.config['GITHUB'] = {
     'client_secret': os.environ.get('GITHUB_OAUTH_SECRET', ''),
 }
 
-engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'], echo=False)
-stats = Stats(engine)
 
-try :
-    import pylibmc
-    mc = pylibmc.Client(
-        servers=[os.environ.get('MEMCACHIER_SERVERS')],
-        username=os.environ.get('MEMCACHIER_USERNAME'),
-        password=os.environ.get('MEMCACHIER_PASSWORD'),
-        binary=True,
-         behaviors={"tcp_nodelay": True,
-                                "ketama": True}
-    )
 
-    def cachedfirstparam(function):
+servers = os.environ.get('MEMCACHIER_SERVERS', '127.0.0.1'),
+username = str(os.environ.get('MEMCACHIER_USERNAME', '')),
+password = str(os.environ.get('MEMCACHIER_PASSWORD', '')),
+config = None
 
-        def wrapper(*args, **kw):
-            if len(args)+len(kw) != 1:
-                return function(*args, **kw)
-            else:
-                key = kw.values()[0] if kw else args[0]
-                skey = str(key)+str(function.__name__)
-                
-                try:
-                    mcv = mc.get(skey)
-                except Exception:
-                    app.logger.error("memchache get failed", exc_info=True)
-                    mcv = None
 
-                if mcv:
-                    return mcv
-                else:
-                    value = function(key)
-                    try:
-                        mc.set(skey, value, time=600)
-                    except Exception:
-                        app.logger.error("memchache set failed", exc_info=True)
-                        mcv = None
-                    return value
-        return wrapper
+if username[0] == '' or password[0]== '':
+    print 'using clasical memcached'
+    config = {'CACHE_TYPE': 'lib.MemcachedMultipart.multipartmemecached',
+            'CACHE_MEMCACHED_SERVERS':servers}
+else :
+    print 'using sasl memcached'
+    config = {'CACHE_TYPE': 'lib.MemcachedMultipart.multipartmemecached',
+            'CACHE_MEMCACHED_SERVERS':servers,
+            'CACHE_MEMCACHED_PASSWORD':password[0],
+            'CACHE_MEMCACHED_USERNAME':username[0]
+    }
 
-except :
-    def cachedfirstparam(fun):
-        return fun
+cache = Cache(app, config=config)
 
-@cachedfirstparam
+
+from IPython.config import Config
+config = Config()
+config.ConverterTemplate.template_file = 'basichtml'
+config.NbconvertApp.fileext = 'html'
+config.CSSHtmlHeaderTransformer.enabled = False
+
+C = ConverterTemplate(config=config)
+
+minutes = 60
+hours = 60*minutes
+
+
 def static(strng):
     return open('static/'+strng).read()
 
 @app.route('/favicon.ico')
+@cache.cached(5*hours)
 def favicon():
     return static('ico/ipynb_icon_16x16.ico')
 
 @app.route('/')
 def hello():
-    nvisit = int(request.cookies.get('rendered_urls',0))
+    nvisit = int(request.cookies.get('rendered_urls', 0))
     betauser = (True if nvisit > 30 else False)
-    return render_template('index.html', betauser=betauser)
+    theme = request.cookies.get('theme', None)
+
+    response = _hello(betauser)
+
+    response.set_cookie('theme', value=theme)
+    return response
+
+@cache.cached(5*hours)
+def _hello(betauser):
+    return app.make_response(render_template('index.html', betauser=betauser))
+
+@app.route('/faq')
+#@cache.cached(5*hours)
+def faq():
+    return render_template('faq.md')
 
 @app.errorhandler(400)
+@cache.cached(5*hours)
 def page_not_found(error):
     return render_template('400.html'), 400
 
 @app.errorhandler(404)
+@cache.cached(5*hours)
 def page_not_found(error):
     return render_template('404.html'), 404
 
 @app.errorhandler(500)
+@cache.cached(5*hours)
 def internal_error(error):
     return render_template('500.html'), 500
 
 
-@app.route('/popular')
+#@app.route('/popular')
+@cache.cached(1*minutes)
 def popular():
-    entries = [{'url':y.url,'count':x} for x,y in stats.most_accessed(count=20)]
+    entries = [{'url':y.url, 'count':x} for x, y in stats.most_accessed(count=20)]
     return render_template('popular.html', entries=entries)
 
 @app.route('/404')
@@ -144,12 +159,12 @@ def create(v=None):
         response = redirect('/url/'+value)
 
     response = app.make_response(response)
-    nvisit = int(request.cookies.get('rendered_urls',0))
-    response.set_cookie('rendered_urls',value=nvisit+1)
+    nvisit = int(request.cookies.get('rendered_urls', 0))
+    response.set_cookie('rendered_urls', value=nvisit+1)
     return response
 
 #https !
-@cachedfirstparam
+@cache.memoize()
 def cachedget(url):
     try:
         r = requests.get(url)
@@ -166,13 +181,12 @@ def cachedget(url):
             abort(400)
     return r.content
 
-def render_url_urls(url, https=False):
-    prefix = 'urls/' if https else 'url/'
+def uc_render_url_urls(url, https=False):
+    forced_theme = request.cookies.get('theme', None)
+    return render_url_urls(url, https, forced_theme=forced_theme)
 
-    try:
-        stats.get(prefix+url).access()
-    except Exception:
-        app.logger.error("exception getting stats", exc_info=True)
+@cache.memoize(10*minutes)
+def render_url_urls(url, https, forced_theme=None):
 
     url = ('https://' + url) if https else ('http://' + url)
 
@@ -187,22 +201,20 @@ def render_url_urls(url, https=False):
             raise
 
     try:
-        return render_content(content, url)
+        return render_content(content, url, forced_theme)
     except Exception:
         app.logger.error("Couldn't render notebook from %s" % url, exc_info=True)
         abort(400)
 
 
-@cachedfirstparam
-@app.route('/urls/<path:url>')
-def render_urls(url):
-    return render_url_urls(url, https=True)
 
-@cachedfirstparam
 @app.route('/url/<path:url>')
 def render_url(url):
-    return render_url_urls(url, https=False)
+    return uc_render_url_urls(url, https=False)
 
+@app.route('/urls/<path:url>')
+def render_urls(url):
+    return uc_render_url_urls(url, https=True)
 
 def request_summary(r, header=False, content=False):
     """text summary of failed request"""
@@ -225,17 +237,28 @@ def request_summary(r, header=False, content=False):
         ])
     return '\n'.join(lines)
 
+def body_render(config, body):
+    return render_template('notebook.html', body=body, **config)
 
-other_views = """<div style="position:absolute; right:1em; top:1em; padding:0.4em; border:1px dashed black;">
-  <a href="{url}">Download notebook</a>
-</div>"""
+def render_content(content, url=None, forced_theme=None):
+    nb = nbformat.reads_json(content)
 
-def render_content(content, url=None):
-    converter = nbconvert.ConverterHTML()
-    if url:
-        converter.extra_body_start_html = other_views.format(url=url)
-    converter.nb = nbformat.reads_json(content)
-    return converter.convert()
+    css_theme = nb.get('metadata', {}).get('_nbviewer', {}).get('css', None)
+
+    if css_theme and not re.match('\w', css_theme):
+        css_theme = None
+
+    if forced_theme and forced_theme != 'None' :
+        css_theme = forced_theme
+
+    #body=C.convert(nb)[0],
+    config = {
+            'download_url':url,
+            'css_theme':css_theme,
+            'mathjax_conf':None
+            }
+    return body_render(config, body=C.convert(nb)[0])#body_render(config, body)
+
 
 def github_api_request(url):
     r = requests.get('https://api.github.com/%s' % url, params=app.config['GITHUB'])
@@ -245,16 +268,11 @@ def github_api_request(url):
         abort(r.status_code if r.status_code == 404 else 400)
     return r
 
-@cachedfirstparam
 @app.route('/<regex("[a-f0-9]+"):id>')
 def fetch_and_render(id=None):
     """Fetch and render a post from the Github API"""
     if id is None:
         return redirect('/')
-    try :
-        stats.get(id).access()
-    except :
-        print 'oops ', id, 'crashed'
 
     r = github_api_request('gists/{}'.format(id))
 

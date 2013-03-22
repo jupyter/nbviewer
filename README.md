@@ -27,7 +27,7 @@ so you will need some dependencies like `node`,`uglify-js`.
  * everything in `/static/` is served statically
  * html files in `/static/` are built from `/template/` by doing `$ make` in the root dirrectory
  * `/template/layout.mustache` contain headers and footers
- * every `*.mustache` file in `template/pages` will create a corresponding html file in `/static/` 
+ * every `*.mustache` file in `template/pages` will create a corresponding html file in `/static/`
  * any required python package should be availlable via `pip`, and should be added to `requirement.txt`.
    see `pip freeze` to know what to write in the file.
  * local debug mode is activated by creating a `.debug` file in the root directory, `.debug` is excluded in `.gitignore`and `.slugignore`
@@ -39,3 +39,23 @@ Sqlalchemy needs to connect to a database, you should export the environment var
 If you don't have any installed DB or just want to try out, you can use in memory sqlite :
 
 $ export DATABASE_URL='sqlite:///:memory:'
+
+## Deploying on heroku
+
+    heroku create [appname]
+    heroku git:remote -a [appname] -r [appname]
+    heroku addons:add memcachier:dev --app [appname]
+    heroku addons:add newrelic:standard --app [appname]
+
+to deploy the new version :
+
+    git push nbviewer2 <local-branch>:master
+
+
+You can evetually set the following github key to make authenticated request to github.
+This will increase the maximum of request you can do to github /hour.
+
+    GITHUB_OAUTH_KEY:             xxxxxxxxxxxxxxxxxxxx
+    GITHUB_OAUTH_SECRET:          xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+you can use `heroku config:set KEY1=VALUE1` to do so.

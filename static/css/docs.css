@@ -10,10 +10,10 @@
 -------------------------------------------------- */
 body {
   position: relative;
-  padding-top: 90px;
   background-color: #fff;
   background-repeat: repeat-x;
   background-position: 0 40px;
+  padding-top: 40px;
 }
 
 
@@ -85,7 +85,6 @@ hr.soften {
 
 /* Masthead (docs home) */
 .masthead {
-  padding-top: 36px;
   margin-bottom: 72px;
 }
 .masthead h1,
