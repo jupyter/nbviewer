@@ -5,10 +5,13 @@
         <li class="{{index}}">
             <a href="{{download_url}}" download="{{download_name}}">Download Notebook</a>
         </li>
+        <li class="{{index}}">
+            <a href='javascript:window.open("https://twitter.com/share?related=IPython-dev&via=nbviewer&hashtags=IPython,nbviewer&text={{title}}&url="+window.location.href,"_blank")'>Tweet it</a>
     </ul>
     {% endblock %}
 
     {% block extra_head %}
+    <title>{{title}}</title>
     <style type="text/css" media='screen and (min-width:980px)'>
     .navbar-inner {
         opacity: 0.5;
