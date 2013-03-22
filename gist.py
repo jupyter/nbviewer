@@ -251,11 +251,20 @@ def render_content(content, url=None, forced_theme=None):
     if forced_theme and forced_theme != 'None' :
         css_theme = forced_theme
 
-    #body=C.convert(nb)[0],
+    # get the notebook title
+    try:
+        name = nb.metadata.name
+    except AttributeError:
+        name = url.rsplit('/')[-1]
+    
+    if not name.endswith(".ipynb"):
+        name = name + ".ipynb"
+    
     config = {
-            'download_url':url,
-            'css_theme':css_theme,
-            'mathjax_conf':None
+            'download_url': url,
+            'download_name': name,
+            'css_theme': css_theme,
+            'mathjax_conf': None,
             }
     return body_render(config, body=C.convert(nb)[0])#body_render(config, body)
 
