@@ -3,7 +3,7 @@ import re
 import requests
 import json
 
-from nbformat import current as nbformat
+from IPython.nbformat import current as nbformat
 
 from nbconvert.converters.template import ConverterTemplate
 
