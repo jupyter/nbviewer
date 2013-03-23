@@ -52,8 +52,8 @@ to deploy the new version :
     git push nbviewer2 <local-branch>:master
 
 
-You can evetually set the following github key to make authenticated request to github.
-This will increase the maximum of request you can do to github /hour.
+You can eventually set the following github key to make authenticated requests to github.
+This will increase the maximum number of requests you can do to github /hour.
 
     GITHUB_OAUTH_KEY:             xxxxxxxxxxxxxxxxxxxx
     GITHUB_OAUTH_SECRET:          xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
