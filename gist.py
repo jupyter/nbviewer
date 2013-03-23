@@ -5,7 +5,7 @@ import json
 
 from nbformat import current as nbformat
 
-from nbconvert2.converters.template import ConverterTemplate
+from nbconvert.converters.template import ConverterTemplate
 
 from flask import Flask , request, render_template
 from flask import redirect, abort, Response

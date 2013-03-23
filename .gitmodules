@@ -1,3 +1,3 @@
-[submodule "nbconvert2"]
-	path = nbconvert2
+[submodule "nbconvert"]
+	path = nbconvert
 	url = git://github.com/ipython/nbconvert.git
