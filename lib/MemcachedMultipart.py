@@ -1,6 +1,6 @@
 """
 Simple Subclass of memcached client that split
-the key/value into multipart if they are bigger than a certain treshold.
+the key/value into multipart if they are bigger than a certain threshold.
 """
 
 from flask.ext.cache.backends import SASLMemcachedCache
@@ -10,7 +10,7 @@ import cPickle as pickle
 class MemcachedMultipart(SASLMemcachedCache):
     """
     Simple Subclass of SASL Memcached client that split
-    the key/value into multipart if they are bigger than a certain treshold.
+    the key/value into multipart if they are bigger than a certain threshold.
     """
 
     def __init__(self, *args, **kwargs):
@@ -23,19 +23,30 @@ class MemcachedMultipart(SASLMemcachedCache):
         values = {}
         len_ser = len(serialized)
         chks = xrange(0, len_ser, chunksize)
-        print 'cut in', len(chks), 'chuncks'
+        print 'storing cache in %i chunks' % len(chks)
         for i in chks:
             values['%s.%s' % (key, i//chunksize)] = serialized[i : i+chunksize]
-        super(MemcachedMultipart, self).set_many(values, timeout)
+        try:
+            super(MemcachedMultipart, self).set_many(values, timeout)
+        except Exception as e:
+            print "memcache set failed!", e
 
     def get(self, key):
-        """get a key, eventually splitted in multiple part"""
-        to_get = ['%s.%s' % (key, i) for i in xrange(32)]
-        result = super(MemcachedMultipart, self).get_many( *to_get)
+        """get a key, split into multiple parts"""
+        to_get = ['%s.%s' % (key, i) for i in xrange(64)]
+        try:
+            result = super(MemcachedMultipart, self).get_many( *to_get)
+        except Exception as e:
+            print "memcache get failed", e
         serialized = ''.join([v for v in result if v is not None])
         if not serialized:
             return None
-        return pickle.loads(serialized)
+        try:
+            return pickle.loads(serialized)
+        except Exception as e:
+            print "memcache get failed, presumably because it's only partial in the cache"
+            print e
+            return None
 
 def multipartmemecached(app, config, args, kwargs):
     """methods to register  with flask cache"""
