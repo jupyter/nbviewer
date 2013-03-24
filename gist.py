@@ -269,12 +269,16 @@ def render_content(content, url=None, forced_theme=None):
     
     if not name.endswith(".ipynb"):
         name = name + ".ipynb"
+
+    title = name[:-6].replace('_',' ')
+
     
     config = {
             'download_url': url,
             'download_name': name,
             'css_theme': css_theme,
             'mathjax_conf': None,
+            'title':title
             }
     return body_render(config, body=C.convert(nb)[0])#body_render(config, body)
 
