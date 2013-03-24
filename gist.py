@@ -74,6 +74,16 @@ C = ConverterTemplate(config=config)
 minutes = 60
 hours = 60*minutes
 
+import newrelic.agent
+
+def nrhead():
+    return newrelic.agent.get_browser_timing_header()
+
+def nrfoot():
+    return newrelic.agent.get_browser_timing_footer()
+
+app.jinja_env.globals.update(nrhead=nrhead, nrfoot=nrfoot)
+
 
 def static(strng):
     return open('static/'+strng).read()
