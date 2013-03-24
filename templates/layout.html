@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
     <meta name="author" content="">
+    <!--NEW RELIC Start Perf Measurement-->
+    {{ nrhead() | safe}}
+    <!--NREND-->
 
     <!-- Le styles -->
     <!--<link href="/static/css/bootstrap.css" rel="stylesheet">-->
@@ -124,5 +127,8 @@
       })();
 
     </script>
+    <!--NEW RELIC Stop Perf Measurement-->
+    {{ nrfoot()| safe }}
+    <!--NEW RELIC End-->
   </body>
 </html>
