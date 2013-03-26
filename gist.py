@@ -215,7 +215,7 @@ def render_url_urls(url, https, forced_theme=None):
 
     try:
         return render_content(content, url, forced_theme)
-    except ValueError:
+    except NbFormatError:
         app.logger.error("Couldn't render notebook from %s" % url, exc_info=False)
         abort(400)
     except Exception:
@@ -256,11 +256,14 @@ def request_summary(r, header=False, content=False):
 def body_render(config, body):
     return render_template('notebook.html', body=body, **config)
 
+class NbFormatError(Exception):
+    pass
+
 def render_content(content, url=None, forced_theme=None):
     try :
         nb = nbformat.reads_json(content)
     except ValueError:
-        raise ValueError('Error reading json notebook')
+        raise NbFormatError('Error reading json notebook')
 
 
     css_theme = nb.get('metadata', {}).get('_nbviewer', {}).get('css', None)
