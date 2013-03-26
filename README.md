@@ -12,7 +12,12 @@ If you have an heroku account, or have access to one,
 just push the master branch :
 
 ```bash
-git push heroku master:master
+$ heroku create
+Creating something-madeup-123... done, stack is cedar
+http://something-madeup-123.herokuapp.com/ | git@heroku.com:something-madeup-123.git
+Git remote heroku added
+$ git push heroku master:master
+...
 ```
 
 The application will be available under `yourappname.herokuapp.com`
