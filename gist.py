@@ -178,6 +178,9 @@ def create(v=None):
 def cachedget(url):
     try:
         r = requests.get(url)
+    except SSLError:
+        app.logger.error("SSLEerror in request: %s" % url, exc_info=False)
+        abort(500)
     except Exception:
         app.logger.error("Unhandled exception in request: %s" % url, exc_info=True)
         abort(500)
@@ -212,6 +215,9 @@ def render_url_urls(url, https, forced_theme=None):
 
     try:
         return render_content(content, url, forced_theme)
+    except NbFormatError:
+        app.logger.error("Couldn't render notebook from %s" % url, exc_info=False)
+        abort(400)
     except Exception:
         app.logger.error("Couldn't render notebook from %s" % url, exc_info=True)
         abort(400)
@@ -250,8 +256,15 @@ def request_summary(r, header=False, content=False):
 def body_render(config, body):
     return render_template('notebook.html', body=body, **config)
 
+class NbFormatError(Exception):
+    pass
+
 def render_content(content, url=None, forced_theme=None):
-    nb = nbformat.reads_json(content)
+    try :
+        nb = nbformat.reads_json(content)
+    except ValueError:
+        raise NbFormatError('Error reading json notebook')
+
 
     css_theme = nb.get('metadata', {}).get('_nbviewer', {}).get('css', None)
 
@@ -266,10 +279,10 @@ def render_content(content, url=None, forced_theme=None):
         name = nb.metadata.name
     except AttributeError:
         name = url.rsplit('/')[-1]
-    
+
     if not name.endswith(".ipynb"):
         name = name + ".ipynb"
-    
+
     config = {
             'download_url': url,
             'download_name': name,
