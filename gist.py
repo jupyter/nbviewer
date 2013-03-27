@@ -9,6 +9,7 @@ from nbconvert.converters.template import ConverterTemplate
 
 from flask import Flask , request, render_template
 from flask import redirect, abort, Response
+from requests.exceptions import SSLError
 
 from sqlalchemy import create_engine
 
