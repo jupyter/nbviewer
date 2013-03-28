@@ -1,6 +1,6 @@
 Flask==0.9
 Flask-Markdown
-requests==0.13.5
+requests
 Pygments
 Markdown==2.2.0
 pylibmc==1.2.3
