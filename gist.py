@@ -333,7 +333,7 @@ def fetch_and_render(id=None):
     return result
 
 
-@app.route('/<int:id>/<subfile>')
+@app.route('/<regex("[a-f0-9]+"):id>/<subfile>')
 def gistsubfile(id, subfile):
     """Fetch and render a post from the Github API"""
 
