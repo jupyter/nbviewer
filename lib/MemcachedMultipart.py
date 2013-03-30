@@ -38,6 +38,7 @@ class MemcachedMultipart(SASLMemcachedCache):
             result = super(MemcachedMultipart, self).get_many( *to_get)
         except Exception as e:
             print "memcache get failed", e
+            return None
         serialized = ''.join([v for v in result if v is not None])
         if not serialized:
             return None
