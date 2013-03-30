@@ -34,6 +34,7 @@ class RegexConverter(BaseConverter):
 app = Flask(__name__)
 Markdown(app)
 app.url_map.converters['regex'] = RegexConverter
+app.url_map.strict_slashes = False
 
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite://')
 app.config['GITHUB'] = {
