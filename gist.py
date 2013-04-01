@@ -11,8 +11,6 @@ from flask import Flask , request, render_template
 from flask import redirect, abort, Response
 from requests.exceptions import SSLError
 
-from sqlalchemy import create_engine
-
 from werkzeug.routing import BaseConverter
 from werkzeug.exceptions import NotFound
 
@@ -24,7 +22,7 @@ from lib.MemcachedMultipart import multipartmemecached
 
 class RegexConverter(BaseConverter):
     """regex route filter
-    
+
     from: http://stackoverflow.com/questions/5870188
     """
     def __init__(self, url_map, *items):
