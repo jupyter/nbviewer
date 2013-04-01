@@ -34,6 +34,7 @@ class RegexConverter(BaseConverter):
 app = Flask(__name__)
 Markdown(app)
 app.url_map.converters['regex'] = RegexConverter
+app.url_map.strict_slashes = False
 
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite://')
 app.config['GITHUB'] = {
@@ -333,7 +334,7 @@ def fetch_and_render(id=None):
     return result
 
 
-@app.route('/<int:id>/<subfile>')
+@app.route('/<regex("[a-f0-9]+"):id>/<subfile>')
 def gistsubfile(id, subfile):
     """Fetch and render a post from the Github API"""
 
