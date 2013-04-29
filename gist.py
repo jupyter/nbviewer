@@ -322,7 +322,7 @@ def fetch_and_render(id=None):
                 entry['url'] = '/%s/%s' % (id, file['filename'])
                 entries.append(entry)
             return render_template('gistlist.html', entries=entries)
-    except ValueError:
+    except NbFormatError:
         app.logger.error("Failed to render gist: %s" % request_summary(r), exc_info=True)
         abort(400)
     except:
@@ -347,7 +347,7 @@ def gistsubfile(id, subfile):
             return render_content(jsonipynb, thefile[0]['raw_url'])
         else:
             return Response(jsonipynb, mimetype='text/plain')
-    except ValueError:
+    except NbFormatError:
         app.logger.error("Failed to render gist: %s" % request_summary(r), exc_info=True)
         abort(400)
     except:
