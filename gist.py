@@ -9,7 +9,7 @@ from nbconvert.converters.template import ConverterTemplate
 
 from flask import Flask , request, render_template
 from flask import redirect, abort, Response
-from requests.exceptions import SSLError
+from requests.exceptions import RequestException, Timeout
 
 from werkzeug.routing import BaseConverter
 from werkzeug.exceptions import NotFound
@@ -83,7 +83,6 @@ def nrfoot():
     return newrelic.agent.get_browser_timing_footer()
 
 app.jinja_env.globals.update(nrhead=nrhead, nrfoot=nrfoot)
-
 
 def static(strng):
     return open('static/'+strng).read()
@@ -177,10 +176,10 @@ def create(v=None):
 @cache.memoize()
 def cachedget(url):
     try:
-        r = requests.get(url)
-    except SSLError:
-        app.logger.error("SSLEerror in request: %s" % url, exc_info=False)
-        abort(500)
+        r = requests.get(url, timeout=8)
+    except RequestException as e:
+        app.logger.error("Error (%s) in request: %s" % (e, url), exc_info=False)
+        abort(400)
     except Exception:
         app.logger.error("Unhandled exception in request: %s" % url, exc_info=True)
         abort(500)
@@ -293,7 +292,7 @@ def render_content(content, url=None, forced_theme=None):
 
 
 def github_api_request(url):
-    r = requests.get('https://api.github.com/%s' % url, params=app.config['GITHUB'])
+    r = get('https://api.github.com/%s' % url, params=app.config['GITHUB'])
     if not r.ok:
         summary = request_summary(r, header=(r.status_code != 404), content=app.debug)
         app.logger.error("API request failed: %s", summary)
