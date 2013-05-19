@@ -292,7 +292,7 @@ def render_content(content, url=None, forced_theme=None):
 
 
 def github_api_request(url):
-    r = get('https://api.github.com/%s' % url, params=app.config['GITHUB'])
+    r = requests.get('https://api.github.com/%s' % url, params=app.config['GITHUB'])
     if not r.ok:
         summary = request_summary(r, header=(r.status_code != 404), content=app.debug)
         app.logger.error("API request failed: %s", summary)
