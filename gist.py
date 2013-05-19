@@ -249,7 +249,7 @@ def request_summary(r, header=False, content=False):
     if content:
         lines.extend([
         '--- CONTENT ---',
-        json.dumps(r.json, indent=1),
+        json.dumps(r.json(), indent=1),
         ])
     return '\n'.join(lines)
 
@@ -309,7 +309,7 @@ def fetch_and_render(id=None):
     r = github_api_request('gists/{}'.format(id))
 
     try:
-        decoded = r.json.copy()
+        decoded = r.json().copy()
         files = decoded['files'].values()
         if len(files) == 1 :
             jsonipynb = files[0]['content']
@@ -339,7 +339,7 @@ def gistsubfile(id, subfile):
     r = github_api_request('gists/{}'.format(id))
 
     try:
-        decoded = r.json.copy()
+        decoded = r.json().copy()
         files = decoded['files'].values()
         thefile = [f for f in files if f['filename'] == subfile]
         jsonipynb = thefile[0]['content']
