@@ -9,6 +9,9 @@
     {% endblock %}
 
     {% block extra_head %}
+    {{ super() }}
+    <link href="/static/ipython.min.css" rel="stylesheet">
+    <link href="/static/css/pygments.css" rel="stylesheet">
     <style type="text/css" media='screen and (min-width:980px)'>
     .navbar-inner {
         opacity: 0.5;
@@ -36,6 +39,8 @@
     }
     div.input_area > div.highlight > pre {
         margin: 0px;
+        padding: 0px;
+        border: none;
     }
 
     .navbar-inner:hover {
@@ -47,8 +52,6 @@
     }
 
     </style>
-    {{ super() }}
-    <link href="/static/css/pygments.css" rel="stylesheet">
     {% if css_theme %}
         <link href="/static/css/theme/{{css_theme}}.css" rel="stylesheet">
     {% endif %}
