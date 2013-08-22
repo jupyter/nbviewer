@@ -5,7 +5,7 @@ import json
 
 from IPython.nbformat import current as nbformat
 
-from nbconvert.converters.template import ConverterTemplate
+from IPython.nbconvert.exporters import HTMLExporter
 
 from flask import Flask , request, render_template
 from flask import redirect, abort, Response
@@ -65,11 +65,11 @@ cache = Cache(app, config=config)
 
 from IPython.config import Config
 config = Config()
-config.ConverterTemplate.template_file = 'basichtml'
+config.HTMLExporter.template_file = 'basic'
 config.NbconvertApp.fileext = 'html'
 config.CSSHtmlHeaderTransformer.enabled = False
 
-C = ConverterTemplate(config=config)
+C = HTMLExporter(config=config)
 
 minutes = 60
 hours = 60*minutes
@@ -277,6 +277,9 @@ def render_content(content, url=None, forced_theme=None):
     try:
         name = nb.metadata.name
     except AttributeError:
+        name = None
+    
+    if not name:
         name = url.rsplit('/')[-1]
 
     if not name.endswith(".ipynb"):
@@ -288,7 +291,7 @@ def render_content(content, url=None, forced_theme=None):
             'css_theme': css_theme,
             'mathjax_conf': None,
             }
-    return body_render(config, body=C.convert(nb)[0])#body_render(config, body)
+    return body_render(config, body=C.from_notebook_node(nb)[0])
 
 
 def github_api_request(url):
