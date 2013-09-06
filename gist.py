@@ -67,7 +67,9 @@ from IPython.config import Config
 config = Config()
 config.HTMLExporter.template_file = 'basic'
 config.NbconvertApp.fileext = 'html'
-config.CSSHtmlHeaderTransformer.enabled = False
+config.CSSHTMLHeaderTransformer.enabled = False
+# don't strip the files prefix - we use it for redirects
+config.Exporter.filters = {'strip_files_prefix': lambda s: s}
 
 C = HTMLExporter(config=config)
 
