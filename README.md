@@ -20,6 +20,11 @@ $ git push heroku master:master
 ...
 ```
 
+Set PATH environement variable for pandoc
+```
+$ heroku config:set PATH=bin:app/.heroku/venv/bin:/bin:/usr/local/bin:/usr/bin
+```
+
 The application will be available under `yourappname.herokuapp.com`
 
 
