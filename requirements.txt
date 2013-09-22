@@ -6,10 +6,9 @@ Markdown==2.2.0
 pylibmc==1.2.3
 tornado
 newrelic
-sphinx
 
 -e git://github.com/thadeusb/flask-cache.git@40cfd9280dc66ea54df0961420fc94853d506a35#egg=Flask-Cache
 
-ipython==1.0.0
+ipython==1.1.0
 gevent
 gunicorn
