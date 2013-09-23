@@ -9,14 +9,35 @@ Quick Deploy
 ------------
 
 If you have an heroku account, or have access to one, 
-just push the master branch :
+have a look at heroku-bootstrap.sh that does a quick setup of an heroku account
+and set some variables:
 
 ```bash
-$ heroku create
-Creating something-madeup-123... done, stack is cedar
-http://something-madeup-123.herokuapp.com/ | git@heroku.com:something-madeup-123.git
-Git remote heroku added
-$ git push heroku master:master
+$ ./heroku-bootstrap.sh <an-app-name>
+```
+```
+Creating <an-app-name>... done, stack is cedar
+http://<an-app-name>.herokuapp.com/ | git@heroku.com:<an-app-name>.git
+Adding memcachier:dev on <an-app-name>... done, v3 (free)
+MemCachier is now up and ready to go. Happy bananas!
+Use `heroku addons:docs memcachier` to view documentation.
+Adding newrelic:standard on <an-app-name>... done, v4 (free)
+Use `heroku addons:docs newrelic` to view documentation.
+Git remote <an-app-name> added
+Setting config vars and restarting <an-app-name>... done, v5
+LIBRARY_PATH: /app/.heroku/vendor/lib
+Setting config vars and restarting <an-app-name>... done, v6
+LD_LIBRARY_PATH: /app/.heroku/vendor/lib
+Setting config vars and restarting <an-app-name>... done, v7
+PATH: bin:app/.heroku/venv/bin:/bin:/usr/local/bin:/usr/bin
+Setting config vars and restarting <an-app-name>... done, v8
+BUILDPACK_URL: https://github.com/ddollar/heroku-buildpack-multi.git
+```
+
+Push the repo on your new app
+```
+$ git push <an-app-name> master:master
+...
 ...
 ```
 
