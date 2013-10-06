@@ -8,17 +8,19 @@
     <h1>IPython Notebook Viewer</h1>
     <p>A Simple way to share your IP[y]thon Notebook as Gists.</p>
     <p class="marketing-byline">Share your own notebook, or browse others'</p>
-    <form class="well" method="post" action='/create/'>
-            <div class="controls row">
-              <div class="input-append span7 offset3">
-                <input class="span6" 
+    <form class='well' method="post" action='/create/'>
+            <div class="" style='text-align:center'>
+              <div class="">
+                <input style="width:98%" 
                           id="appendedInputButton" 
                         size="16" 
                         type="text"  
                         name="gistnorurl"
                         autofocus="autofocus"
-                 placeholder="Enter a gist number or url"
-                  ><button class="btn" type="submit">Go!</button>
+                        placeholder="Enter a gist number or url"/>
+                <br/>
+
+                <button class="btn" type="submit" style='margin:auto'>Go!</button>
               </div>
             </div>
       </form>
@@ -28,124 +30,94 @@
 
 <div class="marketing">
   <ul class="thumbnails example-sites">
-    <li class="span6">
+    <li class="span4">
       <p class="marketing-byline">Probabilistic Programming</p>
       <a class="thumbnail" href="urls/raw.github.com/CamDavidsonPilon/Probabilistic-Programming-and-Bayesian-Methods-for-Hackers/master/Chapter1_Introduction/Chapter1_Introduction.ipynb" target="_blank">
         <img src="static/img/example-nb/bayesian-chap1.png" >
       </a>
     </li>
-    <li class="span6">
+    <li class="span4">
+      <p class="marketing-byline">An IJulia Preview</p>
+      <a class="thumbnail" href="url/jdj.mit.edu/~stevenj/IJulia%2520Preview.ipynb" target="_blank">
+        <img src="static/img/example-nb/ijulia-preview.png" >
+      </a>
+    </li>
+    <li class="span4">
       <p class="marketing-byline"> XKCD Plot With Matplotlib</p>
       <a class="thumbnail" href="url/jakevdp.github.com/downloads/notebooks/XKCD_plots.ipynb" target="_blank">
         <img src="/static/img/example-nb/XKCD-Matplotlib.png" >
       </a>
     </li>
-    <li class="span6">
+    <li class="span4">
       <p class="marketing-byline"> Non Parametric Regression</p>
       <a class="thumbnail" href="/2352771" target="_blank">
         <img src="/static/img/example-nb/covariance.png" >
       </a>
     </li>
-    <li class="span6">
+    <li class="span4">
       <p class="marketing-byline"> Exploring R formula</p>
       <a class="thumbnail" href="urls/raw.github.com/fperez/nipy-notebooks/master/exploring_r_formula.ipynb" target="_blank">
         <img src="/static/img/example-nb/exploring_r_formula.png" >
       </a>
     </li>
-    <li class="span6">
+    <li class="span4">
       <p class="marketing-byline"> Nose testing</p>
       <a class="thumbnail" href="urls/raw.github.com/swcarpentry/2012-11-scripps/master/python/testing-with-nose.ipynb" target="_blank">
         <img src="/static/img/example-nb/nose_testing.png" >
       </a>
     </li>
-    <li class="span6">
+    <li class="span4">
       <p class="marketing-byline"> Pandas timeseries</p>
       <a class="thumbnail" href="urls/raw.github.com/changhiskhan/talks/master/pydata2012/pandas_timeseries.ipynb" target="_blank">
         <img src="/static/img/example-nb/pandas_timeseries.png" >
       </a>
     </li>
-    <li class="span6">
+    <li class="span4">
       <p class="marketing-byline"> Working with pandas</p>
       <a class="thumbnail" href="/3962843" target="_blank">
         <img src="/static/img/example-nb/working_with_pandas.png" >
       </a>
     </li>
-    <li class="span6">
-      <p class="marketing-byline"> Another XKCD style plot</p>
-      <a class="thumbnail" href="/3835181" target="_blank">
-        <img src="/static/img/example-nb/xkcd2.png" >
-      </a>
-    </li>
-    <li class="span6">
-      <p class="marketing-byline"> Blogging</p>
-      <a class="thumbnail" href="urls/raw.github.com/fperez/blog/master/120907-Blogging with the IPython Notebook.ipynb" target="_blank">
-        <img src="/static/img/example-nb/blogging.png" >
-      </a>
-    </li>
-    <li class="span6">
+    <li class="span4">
       <p class="marketing-byline"> Fitting</p>
       <a class="thumbnail" href="/4042018" target="_blank">
         <img src="/static/img/example-nb/fitting.png" >
       </a>
     </li>
-    <li class="span6">
-      <p class="marketing-byline"> Slideshow and google Earth in the notebook</p>
-      <a class="thumbnail" href="url/epi.whoi.edu/esr/GIS_GRASS-R_Example.ipynb" target="_blank">
-        <img src="/static/img/example-nb/slideshow.png" >
-      </a>
-    </li>
-    <li class="span6">
+    <li class="span4">
       <p class="marketing-byline"> Analysis of current events</p>
       <a class="thumbnail" href="/4121857" target="_blank">
         <img src="/static/img/example-nb/gaza.png" >
       </a>
     </li>
-    <li class="span6">
+    <li class="span4">
       <p class="marketing-byline"> Cython extension</p>
       <a class="thumbnail" href="urls/raw.github.com/ipython/ipython/master/examples/notebooks/Cython Magics.ipynb" target="_blank">
         <img src="/static/img/example-nb/cython.png" >
       </a>
     </li>
-    <li class="span6">
+    <li class="span4">
       <p class="marketing-byline"> Jaynes-Cummings model</p>
       <a class="thumbnail" href="urls/raw.github.com/jrjohansson/qutip-lectures/master/Lecture-1-Jaynes-Cumming-model.ipynb" target="_blank">
         <img src="/static/img/example-nb/jaynes-cummings.png" >
       </a>
     </li>
-    <li class="span6">
-      <p class="marketing-byline"> Tide data</p>
-      <a class="thumbnail" href="urls/raw.github.com/jiffyclub/dc-python-meetup-nov-2012/master/TideDataDemo.ipynb" target="_blank">
-        <img src="/static/img/example-nb/tide.png" >
-      </a>
-    </li>
-    <li class="span6">
+    <li class="span4">
       <p class="marketing-byline"> SymPy notebook</p>
       <a class="thumbnail" href="urls/raw.github.com/ipython/ipython/master/examples/notebooks/SymPy Examples.ipynb" target="_blank">
         <img src="/static/img/example-nb/sympy.png" >
       </a>
     </li>
-    <li class="span6">
-      <p class="marketing-byline"> Data clean-up</p>
-      <a class="thumbnail" href="urls/raw.github.com/jiffyclub/dc-python-meetup-nov-2012/master/DataCleanup.ipynb" target="_blank">
-        <img src="/static/img/example-nb/data-cleanup.png" >
-      </a>
-    </li>
-    <li class="span6">
+    <li class="span4">
       <p class="marketing-byline"> Numpy tests</p>
       <a class="thumbnail" href="/3914904" target="_blank">
         <img src="/static/img/example-nb/numpy_tests.png" >
       </a>
     </li> 
-    <li class="span6">
+    <li class="span4">
       <p class="marketing-byline"> R magic extension</p>
       <a class="thumbnail" href="urls/raw.github.com/ipython/ipython/master/examples/notebooks/R Magics.ipynb" target="_blank">
         <img src="/static/img/example-nb/r_magic.png" >
-      </a>
-    </li>
-    <li class="span6">
-      <p class="marketing-byline"> American statistics</p>
-      <a class="thumbnail" href="/4052828" target="_blank">
-        <img src="/static/img/example-nb/american_statistics.png" >
       </a>
     </li>
 </ul>
