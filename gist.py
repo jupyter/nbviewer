@@ -102,7 +102,8 @@ def hello():
 
     response = _hello(betauser)
 
-    response.set_cookie('theme', value=theme)
+    if(theme):
+        response.set_cookie('theme', value=theme)
     return response
 
 @cache.cached(5*hours)
@@ -171,7 +172,7 @@ def create(v=None):
 
     response = app.make_response(response)
     nvisit = int(request.cookies.get('rendered_urls', 0))
-    response.set_cookie('rendered_urls', value=nvisit+1)
+    response.set_cookie('rendered_urls', value=str(nvisit+1))
     return response
 
 #https !
