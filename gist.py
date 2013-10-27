@@ -98,11 +98,9 @@ def favicon():
 def hello():
     nvisit = int(request.cookies.get('rendered_urls', 0))
     betauser = (True if nvisit > 30 else False)
-    theme = request.cookies.get('theme', None)
 
     response = _hello(betauser)
 
-    response.set_cookie('theme', value=theme)
     return response
 
 @cache.cached(5*hours)
@@ -170,8 +168,6 @@ def create(v=None):
         response = redirect('/url/'+value)
 
     response = app.make_response(response)
-    nvisit = int(request.cookies.get('rendered_urls', 0))
-    response.set_cookie('rendered_urls', value=nvisit+1)
     return response
 
 #https !
