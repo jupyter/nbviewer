@@ -20,6 +20,7 @@ from .github import AsyncGitHubClient
 #-----------------------------------------------------------------------------
 
 here = os.path.dirname(__file__)
+pjoin = os.path.join
 
 def nrhead():
     try:
@@ -49,7 +50,7 @@ def main():
     exporter = HTMLExporter(config=config)
     
     web.ErrorHandler = CustomErrorHandler
-    template_path = 'templates'
+    template_path = pjoin(here, 'templates')
     options.parse_command_line()
     env = Environment(loader=FileSystemLoader(template_path))
     env.globals.update(nrhead=nrhead, nrfoot=nrfoot)
@@ -58,7 +59,7 @@ def main():
     
     settings = dict(
         jinja2_env=env,
-        static_path='static',
+        static_path=pjoin(here, 'static'),
         github_client=client,
         exporter=exporter,
     )
