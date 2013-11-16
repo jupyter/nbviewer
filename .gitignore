@@ -3,3 +3,7 @@
 .DS_Store
 *.un~
 *.swp
+.pandoc
+bin
+build
+dist
