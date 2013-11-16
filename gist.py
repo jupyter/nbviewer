@@ -146,27 +146,71 @@ def four_hundred():
 def five_hundred():
     abort(500)
 
+GIST_RGX = re.compile(r'^([a-f0-9]+)/?$')
+GIST_URL_RGX = re.compile(r'^https?://gist.github.com/(\w+/)?([a-f0-9]+)/?$')
+GITHUB_URL_RGX = re.compile(r'^https?://github.com/(\w+)/(\w+)/blob/(.*)$')
+def transform_ipynb_uri(value):
+    """Transform a given value (an ipynb 'URI') into an app URL
+
+    >>> test_data = (
+    ...     # GIST_RGX
+    ...     ('1234',
+    ...     u'/1234'),
+    ...     ('1234/',
+    ...     u'/1234'),
+    ...     # GIST_URL_RGX
+    ...     ('https://gist.github.com/username/1234',
+    ...     u'/1234'),
+    ...     ('https://gist.github.com/username/1234/',
+    ...     u'/1234'),
+    ...     # GITHUB_URL_RGX
+    ...     ('https://github.com/user/repo/blob/master/path/file.ipynb',
+    ...     u'/urls/raw.github.com/user/repo/master/path/file.ipynb'),
+    ...     ('http://github.com/user/repo/blob/master/path/file.ipynb',
+    ...     u'/urls/raw.github.com/user/repo/master/path/file.ipynb'),
+    ...     # URL
+    ...     ('https://example.org/ipynb',
+    ...     u'/urls/example.org/ipynb'),
+    ...     ('http://example.org/ipynb',
+    ...     u'/url/example.org/ipynb'),
+    ...     ('example.org/ipynb',
+    ...     u'/url/example.org/ipynb'),
+    ...     (u'example.org/ipynb',
+    ...     u'/url/example.org/ipynb'),
+    ...     ('https://gist.github.com/user/1234/raw/a1b2c3/file.ipynb',
+    ...     u'/urls/gist.github.com/user/1234/raw/a1b2c3/file.ipynb'),
+    ... )
+    ... for (ipynb_uri, expected_output) in test_data:
+    ...     output = transform_ipynb_uri(ipynb_uri)
+    ...     assert output == expected_output
+    """
+    gist_n = GIST_RGX.match(value)
+    if gist_n:
+        return (u'/%s' % gist_n.groups()[0])
+
+    gist_url = GIST_URL_RGX.match(value)
+    if gist_url:
+        return (u'/%s' % gist_url.group(2))
+
+    github_url = GITHUB_URL_RGX.match(value)
+    if github_url:
+        user, repo, path = github_url.groups()
+        return u'/urls/raw.github.com/%s/%s/%s' % (user, repo, path)
+
+    if value.startswith('https://'):
+        return (u'/urls/%s' % value[8:])
+
+    if value.startswith('http://'):
+        return (u'/url/%s' % value[7:])
+
+    return (u'/url/%s' % value)
+
+
 @app.route('/create/', methods=['POST'])
 def create(v=None):
-    value = request.form['gistnorurl']
-
-    response = None
-    increasegen = False
-    if v and not value:
-        value = v
-    gist = re.search(r'^https?://gist.github.com/(\w+/)?([a-f0-9]+)$', value)
-    if re.match('^[a-f0-9]+$', value):
-        response = redirect('/'+value)
-    elif gist:
-        response = redirect('/'+gist.group(2))
-    elif value.startswith('https://'):
-        response = redirect('/urls/'+value[8:])
-    elif value.startswith('http://'):
-        response = redirect('/url/'+value[7:])
-    else:
-        # default is to assume http url
-        response = redirect('/url/'+value)
-
+    value = request.form.get('gistnorurl', v)
+    redirect_url = transform_ipynb_uri(value)
+    response = redirect(redirect_url)
     response = app.make_response(response)
     return response
 
