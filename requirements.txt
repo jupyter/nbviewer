@@ -1,12 +1,4 @@
-Flask
-Flask-Markdown
-requests
-Pygments
-Markdown
-pylibmc
-tornado
-newrelic
-ipython==1.1.0
-gunicorn
+tornado>=3.1.1
+ipython[nbconvert]>=1.1.0
 
-Flask-Cache
+-e git://github.com/dpnova/tornado-memcache.git#egg=TornadoAsyncMemcache
