@@ -8,6 +8,7 @@
 import base64
 import json
 import time
+# from concurrent.futures import ThreadPoolExecutor
 
 try:
     # py3
@@ -47,6 +48,10 @@ class BaseHandler(web.RequestHandler):
     @property
     def cache_expiry(self):
         return self.settings.get('cache_expiry', 60)
+    
+    @property
+    def pool(self):
+        return self.settings['pool']
     
     #---------------------------------------------------------------
     # template rendering
@@ -122,29 +127,41 @@ def cached(method):
     return cached_method
 
 
-class URLHandler(BaseHandler):
-    
+class RenderingHandler(BaseHandler):
+    @gen.coroutine
+    def finish_notebook(self, nbjson, url, msg=None):
+        if msg is None:
+            msg = url
+        try:
+            nbhtml, config = yield self.pool.submit(
+                render_notebook, self.exporter, nbjson, url=url
+            )
+        except NbFormatError as e:
+            app_log.error("Failed to render %s", msg, exc_info=True)
+            raise web.HTTPError(400)
+        
+        html = self.render_template('notebook.html', body=nbhtml, **config)
+        yield self.cache_and_finish(html)
+
+class URLHandler(RenderingHandler):
     @gen.coroutine
     @cached
+    @web.asynchronous
     def get(self, secure, url):
         proto = 'http' + secure
         
-        response = yield self.client.fetch("{}://{}".format(proto, url))
+        remote_url = "{}://{}".format(proto, url)
+        response = yield self.client.fetch(remote_url)
         if response.error:
             response.rethrow()
         
         nbjson = response.body.decode('utf8')
-        try:
-            nbhtml, config = render_notebook(self.exporter, nbjson, url=url)
-        except NbFormatError:
-            app_log.error("Failed to render file from url %s", url, exc_info=True)
-            raise web.HTTPError(400)
-        html = self.render_template('notebook.html', body=nbhtml, **config)
-        yield self.cache_and_finish(html)
+        yield self.finish_notebook(nbjson, remote_url, "file from url: %s" % remote_url)
 
 class GistHandler(BaseHandler):
     @gen.coroutine
     @cached
+    @web.asynchronous
     def get(self, gist_id):
         response = yield self.github_client.get_gist(gist_id)
         if response.error:
@@ -156,12 +173,7 @@ class GistHandler(BaseHandler):
         if len(files) == 1:
             file = list(files)[0]
             nbjson = file['content']
-            try:
-                nbhtml, config = render_notebook(self.exporter, nbjson, url=file['raw_url'])
-            except NbFormatError:
-                app_log.error("Failed to render gist: %s", gist_id, exc_info=True)
-                raise web.HTTPError(400)
-            html = self.render_template('notebook.html', body=nbhtml, **config)
+            yield self.finish_notebook(nbjson, file['raw_url'], "gist: %s" % gist_id)
         else:
             entries = []
             for file in files:
@@ -170,7 +182,7 @@ class GistHandler(BaseHandler):
                     url='/%s/%s' % (gist_id, file['filename']),
                 ))
             html = self.render_template('gistlist.html', entries=entries)
-        yield self.cache_and_finish(html)
+            yield self.cache_and_finish(html)
 
 class RawGitHubURLHandler(BaseHandler):
     def get(self, path):
@@ -187,6 +199,7 @@ class GitHubRedirectHandler(BaseHandler):
 class GitHubHandler(BaseHandler):
     @gen.coroutine
     @cached
+    @web.asynchronous
     def get(self, user, repo, ref, path):
         response = yield self.github_client.get_contents(user, repo, path, ref=ref)
         if response.error:
@@ -198,12 +211,10 @@ class GitHubHandler(BaseHandler):
             ).replace('/blob/', '/', 1)
         try:
             nbjson = base64.decodestring(data['content'].encode('ascii')).decode('utf8')
-            nbhtml, config = render_notebook(self.exporter, nbjson, url=raw_url)
-        except NbFormatError:
-            app_log.error("Failed to render file from GitHub: %s", data['url'], exc_info=True)
+        except Exception as e:
+            app_log.error("Failed to load file from GitHub: %s", data['url'], exc_info=True)
             raise web.HTTPError(400)
-        html = self.render_template('notebook.html', body=nbhtml, **config)
-        yield self.cache_and_finish(html)
+        yield self.finish_notebook(nbjson, raw_url, "file from GitHub: %s" % data['url'])
 
 class FilesRedirectHandler(BaseHandler):
     def get(self, before_files, after_files):

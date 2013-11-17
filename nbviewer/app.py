@@ -7,6 +7,8 @@
 
 import os
 
+from concurrent.futures import ThreadPoolExecutor
+
 from tornado import web, httpserver, ioloop, log
 from tornado.httpclient import AsyncHTTPClient
 
@@ -48,7 +50,10 @@ def main():
     """docstring for main"""
     define("port", default=5000, help="run on the given port", type=int)
     define("cache_expiry", default=10*60, help="cache timeout (seconds)", type=int)
+    define("threads", default=1, help="number of threads to use for background IO", type=int)
     tornado.options.parse_command_line()
+    
+    pool = ThreadPoolExecutor(options.threads)
     
     config = Config()
     config.HTMLExporter.template_file = 'basic'
@@ -60,7 +65,7 @@ def main():
     cache_urls = os.environ.get('MEMCACHE_SERVERS')
     if cache_urls:
         log.app_log.info("Using memecache")
-        cache = AsyncMemcache(cache_urls.split(','))
+        cache = AsyncMemcache(cache_urls.split(','), pool=pool)
     else:
         log.app_log.info("Using in-memory cache")
         cache = DummyAsyncCache()
@@ -85,6 +90,7 @@ def main():
         exporter=exporter,
         cache=cache,
         cache_expiry=options.cache_expiry,
+        pool=pool,
     )
     app = web.Application(handlers, **settings)
     http_server = httpserver.HTTPServer(app)
