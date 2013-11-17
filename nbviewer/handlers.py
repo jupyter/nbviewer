@@ -74,13 +74,14 @@ class BaseHandler(web.RequestHandler):
     # response caching
     #---------------------------------------------------------------
     
+    @gen.coroutine
     def cache_and_finish(self, content=''):
-        self.finish(content)
+        self.write(content)
         
         burl = utf8(self.request.uri)
         bcontent = utf8(content)
         
-        return self.cache.set(
+        yield self.cache.set(
             burl, bcontent, int(time.time() + self.cache_expiry),
         )
 
@@ -110,19 +111,16 @@ class FAQHandler(BaseHandler):
 
 
 def cached(method):
+    @gen.coroutine
     def cached_method(self, *args, **kwargs):
         cached_response = yield self.cache.get(self.request.uri)
         if cached_response is not None:
             app_log.debug("cache hit %s", self.request.uri)
-            self.finish(cached_response)
+            self.write(cached_response)
         else:
             app_log.debug("cache miss %s", self.request.uri)
-            # make the actual call.
-            # it's a bit hairy putting this in the right form for gen.coroutine
-            generator = method(self, *args, **kwargs)
-            for future in generator:
-                result = yield future
-                generator.send(result)
+            # call the wrapped method
+            yield method(self, *args, **kwargs)
     
     return cached_method
 
@@ -144,9 +142,8 @@ class RenderingHandler(BaseHandler):
         yield self.cache_and_finish(html)
 
 class URLHandler(RenderingHandler):
-    @gen.coroutine
     @cached
-    @web.asynchronous
+    @gen.coroutine
     def get(self, secure, url):
         proto = 'http' + secure
         
@@ -159,9 +156,8 @@ class URLHandler(RenderingHandler):
         yield self.finish_notebook(nbjson, remote_url, "file from url: %s" % remote_url)
 
 class GistHandler(RenderingHandler):
-    @gen.coroutine
     @cached
-    @web.asynchronous
+    @gen.coroutine
     def get(self, gist_id, filename=''):
         response = yield self.github_client.get_gist(gist_id)
         if response.error:
@@ -180,10 +176,10 @@ class GistHandler(RenderingHandler):
             raise web.HTTPError(404, "No such file in gist: %s (%s)", filename, list(files.keys()))
         else:
             entries = []
-            for file in files:
+            for filename, file in files.items():
                 entries.append(dict(
-                    path=file['filename'],
-                    url='/%s/%s' % (gist_id, file['filename']),
+                    path=filename,
+                    url='/%s/%s' % (gist_id, filename),
                 ))
             html = self.render_template('gistlist.html', entries=entries)
             yield self.cache_and_finish(html)
@@ -210,9 +206,8 @@ class GitHubRedirectHandler(BaseHandler):
         self.redirect(new_url)
 
 class GitHubHandler(RenderingHandler):
-    @gen.coroutine
     @cached
-    @web.asynchronous
+    @gen.coroutine
     def get(self, user, repo, ref, path):
         response = yield self.github_client.get_contents(user, repo, path, ref=ref)
         if response.error:
