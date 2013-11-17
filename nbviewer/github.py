@@ -6,7 +6,10 @@
 #-----------------------------------------------------------------------------
 
 import os
-from urllib2 import quote
+try:
+    from urllib.request import quote
+except ImportError:
+    from urllib2 import quote
 
 from tornado.httpclient import AsyncHTTPClient
 from tornado.httputil import url_concat

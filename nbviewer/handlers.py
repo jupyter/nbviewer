@@ -6,10 +6,17 @@
 #-----------------------------------------------------------------------------
 
 import base64
-import httplib
 import json
+import time
 
-from tornado import web
+try:
+    # py3
+    from http.client import responses
+except ImportError:
+    from httplib import responses
+
+from tornado import web, gen
+from tornado.escape import utf8
 from tornado.log import app_log, access_log
 
 from .render import render_notebook, NbFormatError
@@ -77,7 +84,7 @@ class URLHandler(BaseHandler):
         self.client.fetch("{}://{}".format(proto, remote_url),
             callback=self.handle_response
         )
-    
+
     def handle_response(self, response):
         if response.error:
             response.rethrow()
@@ -96,7 +103,7 @@ class GistHandler(BaseHandler):
     @web.asynchronous
     def get(self, gist_id):
         self.github_client.get_gist(gist_id, self.handle_gist_reply)
-    
+
     def handle_gist_reply(self, response):
         if response.error:
             response.rethrow()
