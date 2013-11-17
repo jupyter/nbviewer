@@ -6,6 +6,7 @@
 #-----------------------------------------------------------------------------
 
 import os
+from urllib2 import quote
 
 from tornado.httpclient import AsyncHTTPClient
 from tornado.httputil import url_concat
@@ -19,8 +20,8 @@ class AsyncGitHubClient(object):
     """AsyncHTTPClient wrapper with methods for common requests"""
     github_api_url = 'https://api.github.com/'
     auth = None
-    def __init__(self):
-        self.client = AsyncHTTPClient()
+    def __init__(self, client=None):
+        self.client = client or AsyncHTTPClient()
         self.authenticate()
     
     def authenticate(self):
@@ -45,9 +46,10 @@ class AsyncGitHubClient(object):
         return self.github_api_request(url, callback, **kwargs)
     
     def get_contents(self, owner, repo, path, callback=None, ref=None, **kwargs):
-        url =  self.github_api_url + 'repos/{owner}/{repo}/contents/{path}'.format(
+        path = quote('repos/{owner}/{repo}/contents/{path}'.format(
             **locals()
-        )
+        ))
+        url =  self.github_api_url + path
         if ref is not None:
             params = kwargs.setdefault('params', {})
             params['ref'] = ref

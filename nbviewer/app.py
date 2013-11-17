@@ -7,9 +7,15 @@
 
 import os
 
-from tornado import web, httpserver, ioloop, options
+from tornado import web, httpserver, ioloop, log
+from tornado.httpclient import AsyncHTTPClient
+
+import tornado.options
+from tornado.options import define, options
+
 from jinja2 import Environment, FileSystemLoader
 
+from IPython.config import Config
 from IPython.nbconvert.exporters import HTMLExporter
 
 from .handlers import handlers, CustomErrorHandler
@@ -38,8 +44,9 @@ def nrfoot():
 
 def main():
     """docstring for main"""
+    define("port", default=5000, help="run on the given port", type=int)
+    tornado.options.parse_command_line()
     
-    from IPython.config import Config
     config = Config()
     config.HTMLExporter.template_file = 'basic'
     config.NbconvertApp.fileext = 'html'
@@ -51,21 +58,24 @@ def main():
     
     web.ErrorHandler = CustomErrorHandler
     template_path = pjoin(here, 'templates')
-    options.parse_command_line()
+    static_path = pjoin(here, 'static')
     env = Environment(loader=FileSystemLoader(template_path))
     env.globals.update(nrhead=nrhead, nrfoot=nrfoot)
-    client = AsyncGitHubClient()
-    client.authenticate()
+    client = AsyncHTTPClient()
+    github_client = AsyncGitHubClient(client)
+    github_client.authenticate()
     
     settings = dict(
         jinja2_env=env,
-        static_path=pjoin(here, 'static'),
-        github_client=client,
+        static_path=static_path,
+        client=client,
+        github_client=github_client,
         exporter=exporter,
     )
     app = web.Application(handlers, **settings)
     http_server = httpserver.HTTPServer(app)
-    http_server.listen(5000)
+    log.app_log.info("Listing on port %i", options.port)
+    http_server.listen(options.port)
     ioloop.IOLoop.instance().start()
     
 

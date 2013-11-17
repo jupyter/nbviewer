@@ -29,6 +29,10 @@ class BaseHandler(web.RequestHandler):
     def github_client(self):
         return self.settings['github_client']
     
+    @property
+    def client(self):
+        return self.settings['client']
+    
     #---------------------------------------------------------------
     # template rendering
     #---------------------------------------------------------------
@@ -65,12 +69,28 @@ class IndexHandler(BaseHandler):
         self.finish(self.render_template('index.html'))
 
 class URLHandler(BaseHandler):
-    def get(self, prefix, remote_url):
-        app_log.info("requesting URL: %s | %s", prefix, remote_url)
-
-class GitHubURLHandler(BaseHandler):
-    def get(self, prefix, remote_url):
-        app_log.info("requesting URL: %s | %s", prefix, remote_url)
+    
+    @web.asynchronous
+    def get(self, secure, remote_url):
+        app_log.info("requesting URL: %s | %s", secure, remote_url)
+        proto = 'http' + secure
+        self.client.fetch("{}://{}".format(proto, remote_url),
+            callback=self.handle_response
+        )
+    
+    def handle_response(self, response):
+        if response.error:
+            response.rethrow()
+        
+        nbjson = response.body.decode('utf8')
+        url = response.request.url
+        try:
+            nbhtml, config = render_notebook(self.exporter, nbjson, url=url)
+        except NbFormatError:
+            app_log.error("Failed to render file from url %s", url, exc_info=True)
+            raise web.HTTPError(400)
+        html = self.render_template('notebook.html', body=nbhtml, **config)
+        self.finish(html)
 
 class GistHandler(BaseHandler):
     @web.asynchronous
@@ -110,6 +130,12 @@ class RawGitHubURLHandler(BaseHandler):
         app_log.info("Redirecting %s to %s", self.request.uri, new_url)
         self.redirect(new_url)
 
+class GitHubRedirectHandler(BaseHandler):
+    def get(self, user, repo, ref, path):
+        new_url = '/github/{user}/{repo}/{ref}/{path}'.format(**locals())
+        app_log.info("Redirecting %s to %s", self.request.uri, new_url)
+        self.redirect(new_url)
+
 class GitHubHandler(BaseHandler):
     @web.asynchronous
     def get(self, user, repo, ref, path):
@@ -123,8 +149,9 @@ class GitHubHandler(BaseHandler):
             response.rethrow()
         
         data = json.loads(response.body)
-        # app_log.info(json.dumps(data.keys(), indent=1))
-        raw_url = data['html_url'].replace('//github.com', '//rawgithub.com').replace('/blob/', '/', 1)
+        raw_url = data['html_url'].replace(
+            '//github.com', '//rawgithub.com', 1
+            ).replace('/blob/', '/', 1)
         try:
             nbjson = base64.decodestring(data['content'])
             nbhtml, config = render_notebook(self.exporter, nbjson, url=raw_url)
@@ -146,9 +173,10 @@ class FilesRedirectHandler(BaseHandler):
 handlers = [
     ('/', IndexHandler),
     ('/index.html', IndexHandler),
+    (r'/url[s]?/github\.com/([^\/]+)/([^\/]+)/(?:tree|blob)/([^\/]+)/(.*)', GitHubRedirectHandler),
     (r'/url[s]?/raw\.?github\.com/(.*)', RawGitHubURLHandler),
     (r'/url([s]?)/(.*)', URLHandler),
-    (r'/github/([\w\-]+)/([\w\-]+)/([\w\-]+)/(.*)', GitHubHandler),
+    (r'/github/([\w\-]+)/([^\/]+)/([^\/]+)/(.*)', GitHubHandler),
     (r'/gist/([a-fA-F0-9]+)', GistHandler),
     (r'/([a-fA-F0-9]+)', GistHandler),
     (r'/(.*)/files/(.*)', FilesRedirectHandler),
