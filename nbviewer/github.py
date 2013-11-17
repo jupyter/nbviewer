@@ -28,7 +28,12 @@ class AsyncGitHubClient(object):
         self.authenticate()
     
     def authenticate(self):
-        self.auth = os.environ.get('GITHUB_API_TOKEN', None)
+        self.auth = {
+            'client_id': os.environ.get('GITHUB_OAUTH_KEY', ''),
+            'client_secret': os.environ.get('GITHUB_OAUTH_SECRET', ''),
+            'token' : os.environ.get('GITHUB_API_TOKEN', ''),
+        }
+        self.auth = {k:v for k,v in self.auth.items() if v}
     
     def github_api_request(self, url, callback=None, params=None, **kwargs):
         """Make a GitHub API request to URL
@@ -38,7 +43,7 @@ class AsyncGitHubClient(object):
         """
         params = {} if params is None else params
         if self.auth:
-            params['token'] = self.auth
+            params.update(self.auth)
         url = url_concat(url, params)
         app_log.info("Fetching %s", url)
         future = self.client.fetch(url, callback, **kwargs)
