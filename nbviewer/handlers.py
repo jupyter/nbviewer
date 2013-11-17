@@ -158,22 +158,26 @@ class URLHandler(RenderingHandler):
         nbjson = response.body.decode('utf8')
         yield self.finish_notebook(nbjson, remote_url, "file from url: %s" % remote_url)
 
-class GistHandler(BaseHandler):
+class GistHandler(RenderingHandler):
     @gen.coroutine
     @cached
     @web.asynchronous
-    def get(self, gist_id):
+    def get(self, gist_id, filename=''):
         response = yield self.github_client.get_gist(gist_id)
         if response.error:
             response.rethrow()
         
         data = json.loads(response.body.decode('utf8'))
         gist_id=data['id']
-        files = data['files'].values()
+        files = data['files']
         if len(files) == 1:
-            file = list(files)[0]
+            filename = list(files.keys())[0]
+        if filename:
+            file = files[filename]
             nbjson = file['content']
             yield self.finish_notebook(nbjson, file['raw_url'], "gist: %s" % gist_id)
+        elif filename:
+            raise web.HTTPError(404, "No such file in gist: %s (%s)", filename, list(files.keys()))
         else:
             entries = []
             for file in files:
@@ -183,6 +187,15 @@ class GistHandler(BaseHandler):
                 ))
             html = self.render_template('gistlist.html', entries=entries)
             yield self.cache_and_finish(html)
+
+class GistRedirectHandler(BaseHandler):
+    def get(self, gist_id, file=''):
+        new_url = '/gist/%s' % gist_id
+        if file:
+            new_url = "%s/%s" % (new_url, file)
+        
+        app_log.info("Redirecting %s to %s", self.request.uri, new_url)
+        self.redirect(new_url)
 
 class RawGitHubURLHandler(BaseHandler):
     def get(self, path):
@@ -196,7 +209,7 @@ class GitHubRedirectHandler(BaseHandler):
         app_log.info("Redirecting %s to %s", self.request.uri, new_url)
         self.redirect(new_url)
 
-class GitHubHandler(BaseHandler):
+class GitHubHandler(RenderingHandler):
     @gen.coroutine
     @cached
     @web.asynchronous
@@ -234,6 +247,8 @@ handlers = [
     (r'/url([s]?)/(.*)', URLHandler),
     (r'/github/([\w\-]+)/([^\/]+)/([^\/]+)/(.*)', GitHubHandler),
     (r'/gist/([a-fA-F0-9]+)', GistHandler),
-    (r'/([a-fA-F0-9]+)', GistHandler),
+    (r'/gist/([a-fA-F0-9]+)/(.*)', GistHandler),
+    (r'/([a-fA-F0-9]+)', GistRedirectHandler),
+    (r'/([a-fA-F0-9]+)/(.*)', GistRedirectHandler),
     (r'/(.*)/files/(.*)', FilesRedirectHandler),
 ]
