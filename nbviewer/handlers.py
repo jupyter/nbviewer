@@ -40,6 +40,14 @@ class BaseHandler(web.RequestHandler):
     def client(self):
         return self.settings['client']
     
+    @property
+    def cache(self):
+        return self.settings['cache']
+    
+    @property
+    def cache_expiry(self):
+        return self.settings.get('cache_expiry', 60)
+    
     #---------------------------------------------------------------
     # template rendering
     #---------------------------------------------------------------
@@ -57,6 +65,20 @@ class BaseHandler(web.RequestHandler):
     def template_namespace(self):
         return {}
     
+    #---------------------------------------------------------------
+    # response caching
+    #---------------------------------------------------------------
+    
+    def cache_and_finish(self, content=''):
+        burl = utf8(self.request.uri)
+        bcontent = utf8(content)
+        self.cache.set(
+            burl, bcontent, time.time() + self.cache_expiry,
+            callback=lambda result: app_log.debug("cache set: %s", result),
+        )
+        self.finish(content)
+
+
 class CustomErrorHandler(web.ErrorHandler, BaseHandler):
     """Render errors with custom template"""
     def get_error_html(self, status_code, **kwargs):
@@ -66,54 +88,68 @@ class CustomErrorHandler(web.ErrorHandler, BaseHandler):
             self.log.error("no template", exc_info=True)
             html = self.render_template('error.html',
                 status_code=status_code,
-                status_message=httplib.responses[status_code]
+                status_message=responses[status_code]
             )
         return html
+
 
 class IndexHandler(BaseHandler):
     
     def get(self):
         self.finish(self.render_template('index.html'))
 
+
+def cached(method):
+    def cached_method(self, *args, **kwargs):
+        cached_response = yield gen.Task(self.cache.get, self.request.uri)
+        if cached_response is not None:
+            app_log.debug("cache hit %s", self.request.uri)
+            self.finish(cached_response)
+        else:
+            app_log.debug("cache miss %s", self.request.uri)
+            # make the actual call.
+            # it's a bit hairy putting this in the right form for gen.coroutine
+            generator = method(self, *args, **kwargs)
+            for future in generator:
+                result = yield future
+                generator.send(result)
+    
+    return cached_method
+
+
 class URLHandler(BaseHandler):
     
-    @web.asynchronous
-    def get(self, secure, remote_url):
-        app_log.info("requesting URL: %s | %s", secure, remote_url)
+    @gen.coroutine
+    @cached
+    def get(self, secure, url):
         proto = 'http' + secure
-        self.client.fetch("{}://{}".format(proto, remote_url),
-            callback=self.handle_response
-        )
-
-    def handle_response(self, response):
+        
+        response = yield self.client.fetch("{}://{}".format(proto, url))
         if response.error:
             response.rethrow()
         
         nbjson = response.body.decode('utf8')
-        url = response.request.url
         try:
             nbhtml, config = render_notebook(self.exporter, nbjson, url=url)
         except NbFormatError:
             app_log.error("Failed to render file from url %s", url, exc_info=True)
             raise web.HTTPError(400)
         html = self.render_template('notebook.html', body=nbhtml, **config)
-        self.finish(html)
+        self.cache_and_finish(html)
 
 class GistHandler(BaseHandler):
-    @web.asynchronous
+    @gen.coroutine
+    @cached
     def get(self, gist_id):
-        self.github_client.get_gist(gist_id, self.handle_gist_reply)
-
-    def handle_gist_reply(self, response):
+        response = yield self.github_client.get_gist(gist_id)
         if response.error:
             response.rethrow()
         
-        data = json.loads(response.body)
-        app_log.info(json.dumps(data.keys(), indent=1))
+        data = json.loads(response.body.decode('utf8'))
         gist_id=data['id']
         files = data['files'].values()
         if len(files) == 1:
-            file = files[0]
+            file = list(files)[0]
             nbjson = file['content']
             try:
                 nbhtml, config = render_notebook(self.exporter, nbjson, url=file['raw_url'])
@@ -129,7 +165,7 @@ class GistHandler(BaseHandler):
                     url='/%s/%s' % (gist_id, file['filename']),
                 ))
             html = self.render_template('gistlist.html', entries=entries)
-        self.finish(html)
+        self.cache_and_finish(html)
 
 class RawGitHubURLHandler(BaseHandler):
     def get(self, path):
@@ -144,33 +180,29 @@ class GitHubRedirectHandler(BaseHandler):
         self.redirect(new_url)
 
 class GitHubHandler(BaseHandler):
-    @web.asynchronous
+    @gen.coroutine
+    @cached
     def get(self, user, repo, ref, path):
-        app_log.info("GitHub: %s / %s / %s @ %s", user, repo, path, ref)
-        self.github_client.get_contents(user, repo, path, ref=ref,
-            callback=self.handle_reply
-        )
-    
-    def handle_reply(self, response):
+        response = yield self.github_client.get_contents(user, repo, path, ref=ref)
         if response.error:
             response.rethrow()
         
-        data = json.loads(response.body)
+        data = json.loads(response.body.decode('utf8'))
         raw_url = data['html_url'].replace(
             '//github.com', '//rawgithub.com', 1
             ).replace('/blob/', '/', 1)
         try:
-            nbjson = base64.decodestring(data['content'])
+            nbjson = base64.decodestring(data['content'].encode('ascii')).decode('utf8')
             nbhtml, config = render_notebook(self.exporter, nbjson, url=raw_url)
         except NbFormatError:
             app_log.error("Failed to render file from GitHub: %s", data['url'], exc_info=True)
             raise web.HTTPError(400)
         html = self.render_template('notebook.html', body=nbhtml, **config)
-        self.finish(html)
+        self.cache_and_finish(html)
 
 class FilesRedirectHandler(BaseHandler):
     def get(self, before_files, after_files):
-        app_log.info("redirect: %s / %s", before_files, after_files)
+        app_log.info("Redirecting %s to %s", before_files, after_files)
         self.redirect("%s/%s" % (before_files, after_files))
 
 #-----------------------------------------------------------------------------

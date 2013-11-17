@@ -19,7 +19,9 @@ from IPython.config import Config
 from IPython.nbconvert.exporters import HTMLExporter
 
 from .handlers import handlers, CustomErrorHandler
+from .cache import DummyAsyncCache
 from .github import AsyncGitHubClient
+import tornadoasyncmemcache as memcache
 
 #-----------------------------------------------------------------------------
 # Code
@@ -45,6 +47,7 @@ def nrfoot():
 def main():
     """docstring for main"""
     define("port", default=5000, help="run on the given port", type=int)
+    define("cache_expiry", default=10*60, help="cache timeout (seconds)", type=int)
     tornado.options.parse_command_line()
     
     config = Config()
@@ -53,6 +56,14 @@ def main():
     config.CSSHTMLHeaderTransformer.enabled = False
     # don't strip the files prefix - we use it for redirects
     config.Exporter.filters = {'strip_files_prefix': lambda s: s}
+    
+    cache_urls = os.environ.get('MEMCACHE_SERVERS')
+    if cache_urls:
+        log.app_log.info("Using memecache")
+        cache = memcache.ClientPool(cache_urls.split(','))
+    else:
+        log.app_log.info("Using in-memory cache")
+        cache = DummyAsyncCache()
 
     exporter = HTMLExporter(config=config)
     
@@ -71,6 +82,8 @@ def main():
         client=client,
         github_client=github_client,
         exporter=exporter,
+        cache=cache,
+        cache_expiry=options.cache_expiry,
     )
     app = web.Application(handlers, **settings)
     http_server = httpserver.HTTPServer(app)
