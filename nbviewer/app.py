@@ -17,6 +17,7 @@ from jinja2 import Environment, FileSystemLoader
 
 from IPython.config import Config
 from IPython.nbconvert.exporters import HTMLExporter
+from IPython.nbconvert.filters import markdown2html
 
 from .handlers import handlers, CustomErrorHandler
 from .cache import DummyAsyncCache
@@ -71,6 +72,7 @@ def main():
     template_path = pjoin(here, 'templates')
     static_path = pjoin(here, 'static')
     env = Environment(loader=FileSystemLoader(template_path))
+    env.filters['markdown'] = markdown2html
     env.globals.update(nrhead=nrhead, nrfoot=nrfoot)
     client = AsyncHTTPClient()
     github_client = AsyncGitHubClient(client)

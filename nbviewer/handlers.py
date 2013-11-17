@@ -94,9 +94,13 @@ class CustomErrorHandler(web.ErrorHandler, BaseHandler):
 
 
 class IndexHandler(BaseHandler):
-    
     def get(self):
         self.finish(self.render_template('index.html'))
+
+
+class FAQHandler(BaseHandler):
+    def get(self):
+        self.finish(self.render_template('faq.md'))
 
 
 def cached(method):
@@ -212,6 +216,7 @@ class FilesRedirectHandler(BaseHandler):
 handlers = [
     ('/', IndexHandler),
     ('/index.html', IndexHandler),
+    ('/faq', FAQHandler),
     (r'/url[s]?/github\.com/([^\/]+)/([^\/]+)/(?:tree|blob)/([^\/]+)/(.*)', GitHubRedirectHandler),
     (r'/url[s]?/raw\.?github\.com/(.*)', RawGitHubURLHandler),
     (r'/url([s]?)/(.*)', URLHandler),
