@@ -42,10 +42,11 @@ class AsyncGitHubClient(object):
         callback and **kwargs are passed to client.fetch unmodified.
         """
         params = {} if params is None else params
+        # don't log auth
+        app_log.info("Fetching %s", url_concat(url, params))
         if self.auth:
             params.update(self.auth)
         url = url_concat(url, params)
-        app_log.info("Fetching %s", url)
         future = self.client.fetch(url, callback, **kwargs)
         return future
         
