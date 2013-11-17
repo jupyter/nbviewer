@@ -47,14 +47,13 @@ def nrfoot():
     return newrelic.agent.get_browser_timing_footer()
 
 def main():
-    """docstring for main"""
+    # command-line options
     define("port", default=5000, help="run on the given port", type=int)
     define("cache_expiry", default=10*60, help="cache timeout (seconds)", type=int)
     define("threads", default=1, help="number of threads to use for background IO", type=int)
     tornado.options.parse_command_line()
     
-    pool = ThreadPoolExecutor(options.threads)
-    
+    # NBConvert config
     config = Config()
     config.HTMLExporter.template_file = 'basic'
     config.NbconvertApp.fileext = 'html'
@@ -62,15 +61,30 @@ def main():
     # don't strip the files prefix - we use it for redirects
     config.Exporter.filters = {'strip_files_prefix': lambda s: s}
     
-    cache_urls = os.environ.get('MEMCACHE_SERVERS')
-    if cache_urls:
-        log.app_log.info("Using memecache")
-        cache = AsyncMemcache(cache_urls.split(','), pool=pool)
+    exporter = HTMLExporter(config=config)
+    
+    # setup memcache
+    pool = ThreadPoolExecutor(options.threads)
+    memcache_urls = os.environ.get('MEMCACHIER_SERVERS',
+        os.environ.get('MEMCACHE_SERVERS')
+    )
+    if memcache_urls:
+        kwargs = dict(pool=pool)
+        username = os.environ.get('MEMCACHIER_USERNAME', '')
+        password = os.environ.get('MEMCACHIER_PASSWORD', '')
+        if username and password:
+            kwargs['username'] = username
+            kwargs['password'] = password
+            log.app_log.info("Using SASL memcache")
+        else:
+            log.app_log.info("Using plain memecache")
+        
+        cache = AsyncMemcache(memcache_urls.split(','), **kwargs)
     else:
         log.app_log.info("Using in-memory cache")
         cache = DummyAsyncCache()
-
-    exporter = HTMLExporter(config=config)
+    
+    # setup tornado handlers and settings
     
     web.ErrorHandler = CustomErrorHandler
     template_path = pjoin(here, 'templates')
@@ -92,6 +106,8 @@ def main():
         cache_expiry=options.cache_expiry,
         pool=pool,
     )
+    
+    # create and start the app
     app = web.Application(handlers, **settings)
     http_server = httpserver.HTTPServer(app)
     log.app_log.info("Listening on port %i", options.port)
