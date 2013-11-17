@@ -73,6 +73,7 @@ def main():
         username = os.environ.get('MEMCACHIER_USERNAME', '')
         password = os.environ.get('MEMCACHIER_PASSWORD', '')
         if username and password:
+            kwargs['binary'] = True
             kwargs['username'] = username
             kwargs['password'] = password
             log.app_log.info("Using SASL memcache")
