@@ -20,9 +20,8 @@ from IPython.nbconvert.exporters import HTMLExporter
 from IPython.nbconvert.filters import markdown2html
 
 from .handlers import handlers, CustomErrorHandler
-from .cache import DummyAsyncCache
+from .cache import DummyAsyncCache, AsyncMemcache
 from .github import AsyncGitHubClient
-import tornadoasyncmemcache as memcache
 
 #-----------------------------------------------------------------------------
 # Code
@@ -61,7 +60,7 @@ def main():
     cache_urls = os.environ.get('MEMCACHE_SERVERS')
     if cache_urls:
         log.app_log.info("Using memecache")
-        cache = memcache.ClientPool(cache_urls.split(','))
+        cache = AsyncMemcache(cache_urls.split(','))
     else:
         log.app_log.info("Using in-memory cache")
         cache = DummyAsyncCache()
@@ -89,7 +88,7 @@ def main():
     )
     app = web.Application(handlers, **settings)
     http_server = httpserver.HTTPServer(app)
-    log.app_log.info("Listing on port %i", options.port)
+    log.app_log.info("Listening on port %i", options.port)
     http_server.listen(options.port)
     ioloop.IOLoop.instance().start()
     

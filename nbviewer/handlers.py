@@ -70,13 +70,14 @@ class BaseHandler(web.RequestHandler):
     #---------------------------------------------------------------
     
     def cache_and_finish(self, content=''):
+        self.finish(content)
+        
         burl = utf8(self.request.uri)
         bcontent = utf8(content)
-        self.cache.set(
-            burl, bcontent, time.time() + self.cache_expiry,
-            callback=lambda result: app_log.debug("cache set: %s", result),
+        
+        return self.cache.set(
+            burl, bcontent, int(time.time() + self.cache_expiry),
         )
-        self.finish(content)
 
 
 class CustomErrorHandler(web.ErrorHandler, BaseHandler):
@@ -105,7 +106,7 @@ class FAQHandler(BaseHandler):
 
 def cached(method):
     def cached_method(self, *args, **kwargs):
-        cached_response = yield gen.Task(self.cache.get, self.request.uri)
+        cached_response = yield self.cache.get(self.request.uri)
         if cached_response is not None:
             app_log.debug("cache hit %s", self.request.uri)
             self.finish(cached_response)
@@ -139,7 +140,7 @@ class URLHandler(BaseHandler):
             app_log.error("Failed to render file from url %s", url, exc_info=True)
             raise web.HTTPError(400)
         html = self.render_template('notebook.html', body=nbhtml, **config)
-        self.cache_and_finish(html)
+        yield self.cache_and_finish(html)
 
 class GistHandler(BaseHandler):
     @gen.coroutine
@@ -169,7 +170,7 @@ class GistHandler(BaseHandler):
                     url='/%s/%s' % (gist_id, file['filename']),
                 ))
             html = self.render_template('gistlist.html', entries=entries)
-        self.cache_and_finish(html)
+        yield self.cache_and_finish(html)
 
 class RawGitHubURLHandler(BaseHandler):
     def get(self, path):
@@ -202,7 +203,7 @@ class GitHubHandler(BaseHandler):
             app_log.error("Failed to render file from GitHub: %s", data['url'], exc_info=True)
             raise web.HTTPError(400)
         html = self.render_template('notebook.html', body=nbhtml, **config)
-        self.cache_and_finish(html)
+        yield self.cache_and_finish(html)
 
 class FilesRedirectHandler(BaseHandler):
     def get(self, before_files, after_files):

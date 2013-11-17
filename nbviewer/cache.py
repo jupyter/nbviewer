@@ -7,12 +7,18 @@
 
 import os
 
+from concurrent.futures import ThreadPoolExecutor
 from tornado.concurrent import Future
 
 from tornado import gen
 from tornado.httpclient import AsyncHTTPClient
 from tornado.httputil import url_concat
 from tornado.log import app_log
+
+try:
+    from pylibmc import Client
+except ImportError:
+    Client = object
 
 #-----------------------------------------------------------------------------
 # Code
@@ -25,12 +31,12 @@ class DummyAsyncCache(object):
         self._cache_order = []
         self.limit = limit
     
-    def get(self, key, callback=None):
-        result = self._cache.get(key, None)
-        if callback:
-            callback(result)
+    def get(self, key):
+        f = Future()
+        f.set_result(None)
+        return f
 
-    def set(self, key, value, time=0, callback=None):
+    def set(self, key, value, time=0):
         if key in self._cache and self._cache_order[-1] != key:
             idx = self._cache_order.rfind(key)
             del self._cache_order[idx]
@@ -41,6 +47,21 @@ class DummyAsyncCache(object):
                 self._cache.pop(oldest)
             self._cache_order.append(key)
         self._cache[key] = value
-        if callback:
-            callback(None)
+        f = Future()
+        f.set_result(None)
+        return f
 
+class AsyncMemcache(Client):
+    """subclass pylibmc.Client that runs requests in a background thread
+    
+    via concurrent.futures.ThreadPoolExecutor
+    """
+    def __init__(self, *args, **kwargs):
+        self.pool = kwargs.pop('pool', None) or ThreadPoolExecutor(1)
+        super(AsyncMemcache, self).__init__(*args, **kwargs)
+    
+    def get(self, *args, **kwargs):
+        return self.pool.submit(super(AsyncMemcache, self).get, *args, **kwargs)
+    
+    def set(self, *args, **kwargs):
+        return self.pool.submit(super(AsyncMemcache, self).set, *args, **kwargs)
