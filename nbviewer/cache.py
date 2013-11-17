@@ -38,7 +38,7 @@ class DummyAsyncCache(object):
 
     def set(self, key, value, time=0):
         if key in self._cache and self._cache_order[-1] != key:
-            idx = self._cache_order.rfind(key)
+            idx = self._cache_order.index(key)
             del self._cache_order[idx]
             self._cache_order.append(key)
         else:
