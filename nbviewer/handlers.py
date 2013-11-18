@@ -21,6 +21,7 @@ from tornado.escape import utf8
 from tornado.log import app_log, access_log
 
 from .render import render_notebook, NbFormatError
+from .utils import transform_ipynb_uri
 
 #-----------------------------------------------------------------------------
 # Handler classes
@@ -141,6 +142,15 @@ class RenderingHandler(BaseHandler):
         html = self.render_template('notebook.html', body=nbhtml, **config)
         yield self.cache_and_finish(html)
 
+
+class CreateHandler(BaseHandler):
+    def post(self):
+        value = self.get_argument('gistnorurl', '')
+        redirect_url = transform_ipynb_uri(value)
+        self.redirect(redirect_url)
+        return
+
+
 class URLHandler(RenderingHandler):
     @cached
     @gen.coroutine
@@ -154,6 +164,7 @@ class URLHandler(RenderingHandler):
         
         nbjson = response.body.decode('utf8')
         yield self.finish_notebook(nbjson, remote_url, "file from url: %s" % remote_url)
+
 
 class GistHandler(RenderingHandler):
     @cached
@@ -184,6 +195,7 @@ class GistHandler(RenderingHandler):
             html = self.render_template('gistlist.html', entries=entries)
             yield self.cache_and_finish(html)
 
+
 class GistRedirectHandler(BaseHandler):
     def get(self, gist_id, file=''):
         new_url = '/gist/%s' % gist_id
@@ -193,6 +205,7 @@ class GistRedirectHandler(BaseHandler):
         app_log.info("Redirecting %s to %s", self.request.uri, new_url)
         self.redirect(new_url)
 
+
 class RawGitHubURLHandler(BaseHandler):
     def get(self, user, repo, path):
         new_url = '/github/{user}/{repo}/blob/{path}'.format(
@@ -201,11 +214,13 @@ class RawGitHubURLHandler(BaseHandler):
         app_log.info("Redirecting %s to %s", self.request.uri, new_url)
         self.redirect(new_url)
 
+
 class GitHubRedirectHandler(BaseHandler):
     def get(self, user, repo, ref, path):
         new_url = '/github/{user}/{repo}/{ref}/{path}'.format(**locals())
         app_log.info("Redirecting %s to %s", self.request.uri, new_url)
         self.redirect(new_url)
+
 
 class GitHubUserHandler(BaseHandler):
     @cached
@@ -223,6 +238,7 @@ class GitHubUserHandler(BaseHandler):
             ))
         html = self.render_template("userview.html", entries=entries)
         yield self.cache_and_finish(html)
+
 
 class GitHubRepoHandler(BaseHandler):
     def get(self, user, repo):
@@ -333,6 +349,7 @@ class AddSlashHandler(BaseHandler):
     def get(self, *args, **kwargs):
         self.redirect(self.request.uri + '/')
 
+
 class RemoveSlashHandler(BaseHandler):
     def get(self, *args, **kwargs):
         self.redirect(self.request.uri.rstrip('/'))
@@ -345,7 +362,9 @@ class RemoveSlashHandler(BaseHandler):
 handlers = [
     ('/', IndexHandler),
     ('/index.html', IndexHandler),
-    ('/faq', FAQHandler),
+    (r'/faq/?', FAQHandler),
+    (r'/create/?', CreateHandler),
+    
     (r'/url[s]?/github\.com/([^\/]+)/([^\/]+)/(?:tree|blob)/([^\/]+)/(.*)', GitHubRedirectHandler),
     (r'/url[s]?/raw\.?github\.com/([^\/]+)/([^\/]+)/(.*)', RawGitHubURLHandler),
     (r'/url([s]?)/(.*)', URLHandler),
