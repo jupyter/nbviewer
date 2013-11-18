@@ -59,7 +59,7 @@ def main():
     config.NbconvertApp.fileext = 'html'
     config.CSSHTMLHeaderTransformer.enabled = False
     # don't strip the files prefix - we use it for redirects
-    config.Exporter.filters = {'strip_files_prefix': lambda s: s}
+    # config.Exporter.filters = {'strip_files_prefix': lambda s: s}
     
     exporter = HTMLExporter(config=config)
     
