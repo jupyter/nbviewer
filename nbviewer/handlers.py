@@ -194,8 +194,10 @@ class GistRedirectHandler(BaseHandler):
         self.redirect(new_url)
 
 class RawGitHubURLHandler(BaseHandler):
-    def get(self, path):
-        new_url = '/github/%s' % path
+    def get(self, user, repo, path):
+        new_url = '/github/{user}/{repo}/blob/{path}'.format(
+            user=user, repo=repo, path=path,
+        )
         app_log.info("Redirecting %s to %s", self.request.uri, new_url)
         self.redirect(new_url)
 
@@ -205,7 +207,83 @@ class GitHubRedirectHandler(BaseHandler):
         app_log.info("Redirecting %s to %s", self.request.uri, new_url)
         self.redirect(new_url)
 
-class GitHubHandler(RenderingHandler):
+class GitHubUserHandler(BaseHandler):
+    @cached
+    @gen.coroutine
+    def get(self, user):
+        response = yield self.github_client.get_repos(user)
+        if response.error:
+            response.rethrow()
+        repos = json.loads(response.body.decode('utf8'))
+        entries = []
+        for repo in repos:
+            entries.append(dict(
+                url=repo['name'],
+                name=repo['name'],
+            ))
+        html = self.render_template("userview.html", entries=entries)
+        yield self.cache_and_finish(html)
+
+class GitHubRepoHandler(BaseHandler):
+    def get(self, user, repo):
+        self.redirect("/github/%s/%s/tree/master/" % (user, repo))
+
+
+class GitHubTreeHandler(BaseHandler):
+    @cached
+    @gen.coroutine
+    def get(self, user, repo, ref, path):
+        if not self.request.uri.endswith('/'):
+            self.redirect(self.request.uri + '/')
+            return
+        path = path.rstrip('/')
+        response = yield self.github_client.get_contents(user, repo, path, ref=ref)
+        if response.error:
+            response.rethrow()
+        contents = json.loads(response.body.decode('utf8'))
+        # app_log.debug(json.dumps(contents, indent=1))
+        if not isinstance(contents, list):
+            app_log.info("{user}/{repo}/{ref}/{path} not tree, redirecting to blob",
+                user=user, repo=repo, ref=ref, path=path,
+            )
+            self.redirect(
+                "/github/{user}/{repo}/blob/{ref}/{path}".format(
+                    user=user, repo=repo, ref=ref, path=path,
+                )
+            )
+            return
+        
+        base_url = "/github/{user}/{repo}/tree/{ref}".format(
+            user=user, repo=repo, ref=ref,
+        )
+        path_list = [{
+            'url' : base_url,
+            'name' : repo,
+        }]
+        if path:
+            for name in path.split('/'):
+                href = base_url = "%s/%s" % (base_url, name)
+                path_list.append({
+                    'url' : base_url,
+                    'name' : name,
+                })
+        
+        entries = []
+        for file in contents:
+            e = {}
+            e['name'] = file['name']
+            e['url'] = '/github/{user}/{repo}/{app}/{ref}/{path}'.format(
+                user=user, repo=repo, ref=ref, path=file['path'],
+                app='tree' if file['type'] == 'dir' else 'blob'
+            )
+            e['class'] = 'icon-folder-open' if file['type'] == 'dir' else 'icon-file'
+            entries.append(e)
+        # print path, path_list
+        html = self.render_template("treelist.html", entries=entries, path_list=path_list)
+        yield self.cache_and_finish(html)
+    
+
+class GitHubBlobHandler(RenderingHandler):
     @cached
     @gen.coroutine
     def get(self, user, repo, ref, path):
@@ -213,21 +291,49 @@ class GitHubHandler(RenderingHandler):
         if response.error:
             response.rethrow()
         
-        data = json.loads(response.body.decode('utf8'))
-        raw_url = data['html_url'].replace(
-            '//github.com', '//rawgithub.com', 1
-            ).replace('/blob/', '/', 1)
+        contents = json.loads(response.body.decode('utf8'))
+        if isinstance(contents, list):
+            self.log.info("{user}/{repo}/{path} not blob, redirecting to tree",
+                user=user, repo=repo, path=path
+            )
+            self.redirect(
+                "/github/{user}/{repo}/tree/{path}/".format(
+                    user=user, repo=repo, path=path
+                )
+            )
+            return
+        
         try:
-            nbjson = base64.decodestring(data['content'].encode('ascii')).decode('utf8')
+            filedata = base64.decodestring(contents['content'].encode('ascii'))
         except Exception as e:
-            app_log.error("Failed to load file from GitHub: %s", data['url'], exc_info=True)
+            app_log.error("Failed to load file from GitHub: %s", contents['url'], exc_info=True)
             raise web.HTTPError(400)
-        yield self.finish_notebook(nbjson, raw_url, "file from GitHub: %s" % data['url'])
+        
+        if contents['name'].endswith('.ipynb'):
+            try:
+                nbjson = filedata.decode('utf8')
+            except Exception as e:
+                app_log.error("Failed to decode notebook: %s", contents['url'], exc_info=True)
+                raise web.HTTPError(400)
+            raw_url = "https://raw.github.com/{user}/{repo}/{ref}/{path}".format(
+                user=user, repo=repo, ref=ref, path=path
+            )
+            yield self.finish_notebook(nbjson, raw_url, "file from GitHub: %s" % contents['url'])
+        else:
+            self.set_header("Content-Type", "text/plain")
+            self.write(filedata)
+
 
 class FilesRedirectHandler(BaseHandler):
     def get(self, before_files, after_files):
         app_log.info("Redirecting %s to %s", before_files, after_files)
         self.redirect("%s/%s" % (before_files, after_files))
+
+
+class AddSlashHandler(BaseHandler):
+    def get(self, *args, **kwargs):
+        self.redirect("%s/" % self.request.uri)
+
 
 #-----------------------------------------------------------------------------
 # Default handler URL mapping
@@ -238,12 +344,19 @@ handlers = [
     ('/index.html', IndexHandler),
     ('/faq', FAQHandler),
     (r'/url[s]?/github\.com/([^\/]+)/([^\/]+)/(?:tree|blob)/([^\/]+)/(.*)', GitHubRedirectHandler),
-    (r'/url[s]?/raw\.?github\.com/(.*)', RawGitHubURLHandler),
+    (r'/url[s]?/raw\.?github\.com/([^\/]+)/([^\/]+)/(.*)', RawGitHubURLHandler),
     (r'/url([s]?)/(.*)', URLHandler),
-    (r'/github/([\w\-]+)/([^\/]+)/([^\/]+)/(.*)', GitHubHandler),
+
+    (r'/github/([\w\-]+)', AddSlashHandler),
+    (r'/github/([\w\-]+)/', GitHubUserHandler),
+    (r'/github/([\w\-]+)/([\w\-]+)', AddSlashHandler),
+    (r'/github/([\w\-]+)/([\w\-]+)/', GitHubRepoHandler),
+    (r'/github/([\w\-]+)/([^\/]+)/blob/([^\/]+)/(.*)', GitHubBlobHandler),
+    (r'/github/([\w\-]+)/([^\/]+)/tree/([^\/]+)', AddSlashHandler),
+    (r'/github/([\w\-]+)/([^\/]+)/tree/([^\/]+)/(.*)', GitHubTreeHandler),
+
     (r'/gist/([a-fA-F0-9]+)', GistHandler),
     (r'/gist/([a-fA-F0-9]+)/(.*)', GistHandler),
     (r'/([a-fA-F0-9]+)', GistRedirectHandler),
     (r'/([a-fA-F0-9]+)/(.*)', GistRedirectHandler),
-    (r'/(.*)/files/(.*)', FilesRedirectHandler),
 ]
