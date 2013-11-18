@@ -22,7 +22,7 @@ from IPython.nbconvert.exporters import HTMLExporter
 from IPython.nbconvert.filters import markdown2html
 
 from .handlers import handlers, CustomErrorHandler
-from .cache import DummyAsyncCache, AsyncMemcache
+from .cache import DummyAsyncCache, AsyncMemcache, pylibmc
 from .github import AsyncGitHubClient
 
 #-----------------------------------------------------------------------------
@@ -68,7 +68,7 @@ def main():
     memcache_urls = os.environ.get('MEMCACHIER_SERVERS',
         os.environ.get('MEMCACHE_SERVERS')
     )
-    if memcache_urls:
+    if pylibmc and memcache_urls:
         kwargs = dict(pool=pool)
         username = os.environ.get('MEMCACHIER_USERNAME', '')
         password = os.environ.get('MEMCACHIER_PASSWORD', '')

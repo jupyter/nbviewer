@@ -16,9 +16,9 @@ from tornado.httputil import url_concat
 from tornado.log import app_log
 
 try:
-    from pylibmc import Client
+    import pylibmc
 except ImportError:
-    Client = object
+    pylibmc = None
 
 #-----------------------------------------------------------------------------
 # Code
@@ -51,17 +51,27 @@ class DummyAsyncCache(object):
         f.set_result(None)
         return f
 
-class AsyncMemcache(Client):
+class AsyncMemcache(object):
     """subclass pylibmc.Client that runs requests in a background thread
     
     via concurrent.futures.ThreadPoolExecutor
     """
     def __init__(self, *args, **kwargs):
         self.pool = kwargs.pop('pool', None) or ThreadPoolExecutor(1)
-        super(AsyncMemcache, self).__init__(*args, **kwargs)
+        self.mc = pylibmc.Client(*args, **kwargs)
+        self.mc_pool = pylibmc.ThreadMappedPool(self.mc)
     
     def get(self, *args, **kwargs):
-        return self.pool.submit(super(AsyncMemcache, self).get, *args, **kwargs)
+        return self.pool.submit(self._threadsafe_get, *args, **kwargs)
+    
+    def _threadsafe_get(self, *args, **kwargs):
+        with self.mc_pool.reserve() as mc:
+            return mc.get(*args, **kwargs)
     
     def set(self, *args, **kwargs):
-        return self.pool.submit(super(AsyncMemcache, self).set, *args, **kwargs)
+        return self.pool.submit(self._threadsafe_set, *args, **kwargs)
+
+    def _threadsafe_set(self, *args, **kwargs):
+        with self.mc_pool.reserve() as mc:
+            return mc.set(*args, **kwargs)
+
