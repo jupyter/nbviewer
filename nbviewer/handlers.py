@@ -92,7 +92,7 @@ class CustomErrorHandler(web.ErrorHandler, BaseHandler):
         try:
             html = self.render_template('%d.html' % status_code)
         except Exception as e:
-            self.log.error("no template", exc_info=True)
+            app_log.error("no template", exc_info=True)
             html = self.render_template('error.html',
                 status_code=status_code,
                 status_message=responses[status_code]
@@ -241,10 +241,9 @@ class GitHubTreeHandler(BaseHandler):
         if response.error:
             response.rethrow()
         contents = json.loads(response.body.decode('utf8'))
-        # app_log.debug(json.dumps(contents, indent=1))
         if not isinstance(contents, list):
             app_log.info("{user}/{repo}/{ref}/{path} not tree, redirecting to blob",
-                user=user, repo=repo, ref=ref, path=path,
+                extra=dict(user=user, repo=repo, ref=ref, path=path)
             )
             self.redirect(
                 "/github/{user}/{repo}/blob/{ref}/{path}".format(
@@ -293,12 +292,12 @@ class GitHubBlobHandler(RenderingHandler):
         
         contents = json.loads(response.body.decode('utf8'))
         if isinstance(contents, list):
-            self.log.info("{user}/{repo}/{path} not blob, redirecting to tree",
-                user=user, repo=repo, path=path
+            app_log.info("{user}/{repo}/{ref}/{path} not blob, redirecting to tree",
+                extra=dict(user=user, repo=repo, ref=ref, path=path)
             )
             self.redirect(
-                "/github/{user}/{repo}/tree/{path}/".format(
-                    user=user, repo=repo, path=path
+                "/github/{user}/{repo}/tree/{ref}/{path}/".format(
+                    user=user, repo=repo, ref=ref, path=path
                 )
             )
             return
@@ -332,7 +331,11 @@ class FilesRedirectHandler(BaseHandler):
 
 class AddSlashHandler(BaseHandler):
     def get(self, *args, **kwargs):
-        self.redirect("%s/" % self.request.uri)
+        self.redirect(self.request.uri + '/')
+
+class RemoveSlashHandler(BaseHandler):
+    def get(self, *args, **kwargs):
+        self.redirect(self.request.uri.rstrip('/'))
 
 
 #-----------------------------------------------------------------------------
@@ -351,6 +354,7 @@ handlers = [
     (r'/github/([\w\-]+)/', GitHubUserHandler),
     (r'/github/([\w\-]+)/([\w\-]+)', AddSlashHandler),
     (r'/github/([\w\-]+)/([\w\-]+)/', GitHubRepoHandler),
+    (r'/github/([\w\-]+)/([^\/]+)/blob/([^\/]+)/(.*)/', RemoveSlashHandler),
     (r'/github/([\w\-]+)/([^\/]+)/blob/([^\/]+)/(.*)', GitHubBlobHandler),
     (r'/github/([\w\-]+)/([^\/]+)/tree/([^\/]+)', AddSlashHandler),
     (r'/github/([\w\-]+)/([^\/]+)/tree/([^\/]+)/(.*)', GitHubTreeHandler),
