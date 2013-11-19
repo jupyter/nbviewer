@@ -301,11 +301,19 @@ class GitHubTreeHandler(BaseHandler):
         for file in contents:
             e = {}
             e['name'] = file['name']
-            e['url'] = '/github/{user}/{repo}/{app}/{ref}/{path}'.format(
-                user=user, repo=repo, ref=ref, path=file['path'],
-                app='tree' if file['type'] == 'dir' else 'blob'
-            )
-            e['class'] = 'icon-folder-open' if file['type'] == 'dir' else 'icon-file'
+            if file['type'] == 'dir':
+                e['url'] = '/github/{user}/{repo}/tree/{ref}/{path}'.format(
+                user=user, repo=repo, ref=ref, path=file['path']
+                )
+                e['class'] = 'icon-folder-open'
+            elif file['name'].endswith('.ipynb'):
+                e['url'] = '/github/{user}/{repo}/blob/{ref}/{path}'.format(
+                user=user, repo=repo, ref=ref, path=file['path']
+                )
+                e['class'] = 'icon-book'
+            else:
+                e['url'] = file['html_url']
+                e['class'] = 'icon-share'
             entries.append(e)
         # print path, path_list
         html = self.render_template("treelist.html", entries=entries, path_list=path_list)
