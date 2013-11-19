@@ -21,7 +21,7 @@ from IPython.config import Config
 from IPython.nbconvert.exporters import HTMLExporter
 from IPython.nbconvert.filters import markdown2html
 
-from .handlers import handlers, CustomErrorHandler
+from .handlers import handlers
 from .cache import DummyAsyncCache, AsyncMemcache, pylibmc
 from .github import AsyncGitHubClient
 
@@ -87,7 +87,6 @@ def main():
     
     # setup tornado handlers and settings
     
-    web.ErrorHandler = CustomErrorHandler
     template_path = pjoin(here, 'templates')
     static_path = pjoin(here, 'static')
     env = Environment(loader=FileSystemLoader(template_path))

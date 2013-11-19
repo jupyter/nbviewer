@@ -8,7 +8,6 @@
 import base64
 import json
 import time
-# from concurrent.futures import ThreadPoolExecutor
 
 try:
     # py3
@@ -72,6 +71,21 @@ class BaseHandler(web.RequestHandler):
         return {}
     
     #---------------------------------------------------------------
+    # error handling
+    #---------------------------------------------------------------
+    
+    def get_error_html(self, status_code, **kwargs):
+        try:
+            html = self.render_template('%d.html' % status_code)
+        except Exception as e:
+            app_log.error("No template for %d", status_code)
+            html = self.render_template('error.html',
+                status_code=status_code,
+                status_message=responses[status_code]
+            )
+        return html
+
+    #---------------------------------------------------------------
     # response caching
     #---------------------------------------------------------------
     
@@ -87,18 +101,10 @@ class BaseHandler(web.RequestHandler):
         )
 
 
-class CustomErrorHandler(web.ErrorHandler, BaseHandler):
-    """Render errors with custom template"""
-    def get_error_html(self, status_code, **kwargs):
-        try:
-            html = self.render_template('%d.html' % status_code)
-        except Exception as e:
-            app_log.error("no template", exc_info=True)
-            html = self.render_template('error.html',
-                status_code=status_code,
-                status_message=responses[status_code]
-            )
-        return html
+class Custom404(BaseHandler):
+    """Render our 404 template"""
+    def prepare(self):
+        raise web.HTTPError(404)
 
 
 class IndexHandler(BaseHandler):
@@ -390,5 +396,5 @@ handlers = [
     (r'/gist/(\w+/)?([0-9]+|[0-9a-f]{20})/(.*)', GistHandler),
     (r'/([0-9]+|[0-9a-f]{20})', GistRedirectHandler),
     (r'/([0-9]+|[0-9a-f]{20})/(.*)', GistRedirectHandler),
-    # (r'(.*)', CustomErrorHandler),
+    (r'.*', Custom404),
 ]
