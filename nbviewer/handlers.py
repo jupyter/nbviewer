@@ -15,7 +15,7 @@ try:
 except ImportError:
     from httplib import responses
 
-from tornado import web, gen
+from tornado import web, gen, httpclient
 from tornado.escape import utf8
 from tornado.log import app_log, access_log
 
@@ -164,9 +164,10 @@ class URLHandler(RenderingHandler):
         proto = 'http' + secure
         
         remote_url = "{}://{}".format(proto, url)
-        response = yield self.client.fetch(remote_url)
-        if response.error:
-            response.rethrow()
+        try:
+            response = yield self.client.fetch(remote_url)
+        except httpclient.HTTPError as e:
+            raise web.HTTPError(e.code)
         
         nbjson = response.body.decode('utf8')
         yield self.finish_notebook(nbjson, remote_url, "file from url: %s" % remote_url)
@@ -176,9 +177,10 @@ class GistHandler(RenderingHandler):
     @cached
     @gen.coroutine
     def get(self, user, gist_id, filename=''):
-        response = yield self.github_client.get_gist(gist_id)
-        if response.error:
-            response.rethrow()
+        try:
+            response = yield self.github_client.get_gist(gist_id)
+        except httpclient.HTTPError as e:
+            raise web.HTTPError(e.code)
         
         data = json.loads(response.body.decode('utf8'))
         gist_id=data['id']
@@ -240,9 +242,11 @@ class GitHubUserHandler(BaseHandler):
     @cached
     @gen.coroutine
     def get(self, user):
-        response = yield self.github_client.get_repos(user)
-        if response.error:
-            response.rethrow()
+        try:
+            response = yield self.github_client.get_repos(user)
+        except httpclient.HTTPError as e:
+            raise web.HTTPError(e.code)
+        
         repos = json.loads(response.body.decode('utf8'))
         entries = []
         for repo in repos:
@@ -267,9 +271,11 @@ class GitHubTreeHandler(BaseHandler):
             self.redirect(self.request.uri + '/')
             return
         path = path.rstrip('/')
-        response = yield self.github_client.get_contents(user, repo, path, ref=ref)
-        if response.error:
-            response.rethrow()
+        try:
+            response = yield self.github_client.get_contents(user, repo, path, ref=ref)
+        except httpclient.HTTPError as e:
+            raise web.HTTPError(e.code)
+        
         contents = json.loads(response.body.decode('utf8'))
         if not isinstance(contents, list):
             app_log.info("{user}/{repo}/{ref}/{path} not tree, redirecting to blob",
@@ -324,9 +330,10 @@ class GitHubBlobHandler(RenderingHandler):
     @cached
     @gen.coroutine
     def get(self, user, repo, ref, path):
-        response = yield self.github_client.get_contents(user, repo, path, ref=ref)
-        if response.error:
-            response.rethrow()
+        try:
+            response = yield self.github_client.get_contents(user, repo, path, ref=ref)
+        except httpclient.HTTPError as e:
+            raise web.HTTPError(e.code)
         
         contents = json.loads(response.body.decode('utf8'))
         if isinstance(contents, list):
