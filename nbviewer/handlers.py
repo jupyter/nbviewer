@@ -169,13 +169,21 @@ class URLHandler(RenderingHandler):
 class GistHandler(RenderingHandler):
     @cached
     @gen.coroutine
-    def get(self, gist_id, filename=''):
+    def get(self, user, gist_id, filename=''):
         response = yield self.github_client.get_gist(gist_id)
         if response.error:
             response.rethrow()
         
         data = json.loads(response.body.decode('utf8'))
         gist_id=data['id']
+        if user is None:
+            # redirect to /gist/user/gist_id if no user given
+            user = data['user']['login']
+            new_url = "/gist/{user}/{gist_id}".format(user=user, gist_id=gist_id)
+            if filename:
+                new_url = new_url + "/" + filename
+            self.redirect(new_url)
+            return
         files = data['files']
         if len(files) == 1:
             filename = list(files.keys())[0]
@@ -377,9 +385,10 @@ handlers = [
     (r'/github/([\w\-]+)/([^\/]+)/blob/([^\/]+)/(.*)', GitHubBlobHandler),
     (r'/github/([\w\-]+)/([^\/]+)/tree/([^\/]+)', AddSlashHandler),
     (r'/github/([\w\-]+)/([^\/]+)/tree/([^\/]+)/(.*)', GitHubTreeHandler),
-
-    (r'/gist/([a-fA-F0-9]+)', GistHandler),
-    (r'/gist/([a-fA-F0-9]+)/(.*)', GistHandler),
-    (r'/([a-fA-F0-9]+)', GistRedirectHandler),
-    (r'/([a-fA-F0-9]+)/(.*)', GistRedirectHandler),
+    
+    (r'/gist/(\w+/)?([0-9]+|[0-9a-f]{20})', GistHandler),
+    (r'/gist/(\w+/)?([0-9]+|[0-9a-f]{20})/(.*)', GistHandler),
+    (r'/([0-9]+|[0-9a-f]{20})', GistRedirectHandler),
+    (r'/([0-9]+|[0-9a-f]{20})/(.*)', GistRedirectHandler),
+    # (r'(.*)', CustomErrorHandler),
 ]
