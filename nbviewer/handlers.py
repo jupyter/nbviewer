@@ -164,12 +164,26 @@ class URLHandler(RenderingHandler):
         proto = 'http' + secure
         
         remote_url = "{}://{}".format(proto, url)
+        if not url.endswith('.ipynb'):
+            # this is how we handle relative links (files/ URLs) in notebooks
+            # if it's not a .ipynb URL and it is a link from a notebook,
+            # redirect to the original URL rather than trying to render it as a notebook
+            refer_url = self.request.headers.get('Referer', '').split('://')[-1]
+            if refer_url.startswith(self.request.host + '/url'):
+                self.redirect(remote_url)
+                return
+        
         try:
             response = yield self.client.fetch(remote_url)
         except httpclient.HTTPError as e:
             raise web.HTTPError(e.code)
         
-        nbjson = response.body.decode('utf8')
+        try:
+            nbjson = response.body.decode('utf8')
+        except UnicodeDecodeError:
+            self.log.error("Notebook is not utf8: %s", remote_url, exc_info=True)
+            raise web.HTTPError(400)
+        
         yield self.finish_notebook(nbjson, remote_url, "file from url: %s" % remote_url)
 
 
