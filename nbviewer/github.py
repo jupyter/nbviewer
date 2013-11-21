@@ -75,3 +75,8 @@ class AsyncGitHubClient(object):
         path = "users/{user}/repos".format(user=user)
         return self.github_api_request(path, callback ,**kwargs)
     
+    def get_gists(self, user, callback=None, **kwargs):
+        """List a user's gists"""
+        path = "users/{user}/gists".format(user=user)
+        return self.github_api_request(path, callback ,**kwargs)
+    

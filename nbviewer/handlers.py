@@ -187,6 +187,28 @@ class URLHandler(RenderingHandler):
         yield self.finish_notebook(nbjson, remote_url, "file from url: %s" % remote_url)
 
 
+class UserGistsHandler(BaseHandler):
+    @cached
+    @gen.coroutine
+    def get(self, user):
+        try:
+            response = yield self.github_client.get_gists(user)
+        except httpclient.HTTPError as e:
+            raise web.HTTPError(e.code)
+        gists = json.loads(response.body.decode('utf8'))
+        entries = []
+        for gist in gists:
+            notebooks = [f for f in gist['files'] if f.endswith('.ipynb')]
+            if notebooks:
+                entries.append(dict(
+                    id=gist['id'],
+                    notebooks=notebooks,
+                    description=gist['description'] or '',
+                ))
+        html = self.render_template("usergists.html", entries=entries, user=user)
+        yield self.cache_and_finish(html)
+
+
 class GistHandler(RenderingHandler):
     @cached
     @gen.coroutine
@@ -425,5 +447,7 @@ handlers = [
     (r'/gist/(\w+/)?([0-9]+|[0-9a-f]{20})/(.*)', GistHandler),
     (r'/([0-9]+|[0-9a-f]{20})', GistRedirectHandler),
     (r'/([0-9]+|[0-9a-f]{20})/(.*)', GistRedirectHandler),
+    (r'/gist/(\w+)/?', UserGistsHandler),
+
     (r'.*', Custom404),
 ]
