@@ -33,7 +33,7 @@ class DummyAsyncCache(object):
     
     def get(self, key):
         f = Future()
-        f.set_result(None)
+        f.set_result(self._cache.get(key))
         return f
 
     def set(self, key, value, time=0):
