@@ -134,18 +134,22 @@ def cached(method):
 
 class RenderingHandler(BaseHandler):
     @gen.coroutine
-    def finish_notebook(self, nbjson, url, msg=None):
+    def finish_notebook(self, nbjson, download_url, home_url=None, msg=None):
         if msg is None:
             msg = url
         try:
             nbhtml, config = yield self.pool.submit(
-                render_notebook, self.exporter, nbjson, url=url
+                render_notebook, self.exporter, nbjson, download_url,
             )
         except NbFormatError as e:
             app_log.error("Failed to render %s", msg, exc_info=True)
             raise web.HTTPError(400)
         
-        html = self.render_template('notebook.html', body=nbhtml, **config)
+        html = self.render_template('notebook.html',
+            body=nbhtml,
+            download_url=download_url,
+            home_url=home_url,
+            **config)
         yield self.cache_and_finish(html)
 
 
@@ -184,7 +188,7 @@ class URLHandler(RenderingHandler):
             self.log.error("Notebook is not utf8: %s", remote_url, exc_info=True)
             raise web.HTTPError(400)
         
-        yield self.finish_notebook(nbjson, remote_url, "file from url: %s" % remote_url)
+        yield self.finish_notebook(nbjson, download_url=remote_url, msg="file from url: %s" % remote_url)
 
 
 class UserGistsHandler(BaseHandler):
@@ -218,23 +222,26 @@ class GistHandler(RenderingHandler):
         except httpclient.HTTPError as e:
             raise web.HTTPError(e.code)
         
-        data = json.loads(response.body.decode('utf8'))
-        gist_id=data['id']
+        gist = json.loads(response.body.decode('utf8'))
+        gist_id=gist['id']
         if user is None:
             # redirect to /gist/user/gist_id if no user given
-            user = data['user']['login']
+            user = gist['user']['login']
             new_url = "/gist/{user}/{gist_id}".format(user=user, gist_id=gist_id)
             if filename:
                 new_url = new_url + "/" + filename
             self.redirect(new_url)
             return
-        files = data['files']
+        files = gist['files']
         if len(files) == 1:
             filename = list(files.keys())[0]
         if filename:
             file = files[filename]
             nbjson = file['content']
-            yield self.finish_notebook(nbjson, file['raw_url'], "gist: %s" % gist_id)
+            yield self.finish_notebook(nbjson, file['raw_url'],
+                home_url=gist['html_url'],
+                msg="gist: %s" % gist_id,
+            )
         elif filename:
             raise web.HTTPError(404, "No such file in gist: %s (%s)", filename, list(files.keys()))
         else:
@@ -398,7 +405,10 @@ class GitHubBlobHandler(RenderingHandler):
             raw_url = "https://raw.github.com/{user}/{repo}/{ref}/{path}".format(
                 user=user, repo=repo, ref=ref, path=path
             )
-            yield self.finish_notebook(nbjson, raw_url, "file from GitHub: %s" % contents['url'])
+            yield self.finish_notebook(nbjson, raw_url,
+                home_url=contents['html_url'],
+                msg="file from GitHub: %s" % contents['url'],
+            )
         else:
             self.set_header("Content-Type", "text/plain")
             self.write(filedata)

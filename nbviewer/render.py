@@ -48,9 +48,7 @@ def render_notebook(exporter, json_notebook, url=None, forced_theme=None):
     html, resources = exporter.from_notebook_node(nb)
 
     config = {
-            'download_url': url,
             'download_name': name,
             'css_theme': css_theme,
-            'mathjax_conf': None,
             }
     return html, config
