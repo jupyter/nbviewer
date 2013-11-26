@@ -91,6 +91,17 @@ class BaseHandler(web.RequestHandler):
     
     @gen.coroutine
     def cache_and_finish(self, content=''):
+        """finish a request and cache the result
+        
+        does not actually call finish - if used in @web.asynchronous,
+        finish must be called separately. But we never use @web.asynchronous,
+        because we are using gen.coroutine for async.
+        
+        currently only works if:
+        
+        - result is not written in multiple chunks
+        - custom headers are not used
+        """
         self.write(content)
         
         burl = utf8(self.request.uri)
@@ -108,16 +119,23 @@ class Custom404(BaseHandler):
 
 
 class IndexHandler(BaseHandler):
+    """Render the index"""
     def get(self):
         self.finish(self.render_template('index.html'))
 
 
 class FAQHandler(BaseHandler):
+    """Render the markdown FAQ page"""
     def get(self):
         self.finish(self.render_template('faq.md'))
 
 
 def cached(method):
+    """decorator for a cached page.
+    
+    This only handles getting from the cache, not writing to it.
+    Writing to the cache must be handled in the decorated method.
+    """
     @gen.coroutine
     def cached_method(self, *args, **kwargs):
         cached_response = yield self.cache.get(self.request.uri)
@@ -133,8 +151,15 @@ def cached(method):
 
 
 class RenderingHandler(BaseHandler):
+    """Base for handlers that render notebooks"""
     @gen.coroutine
     def finish_notebook(self, nbjson, download_url, home_url=None, msg=None):
+        """render a notebook from its JSON body.
+        
+        download_url is required, home_url is not.
+        
+        msg is extra information for the log message when rendering fails.
+        """
         if msg is None:
             msg = url
         try:
@@ -154,6 +179,10 @@ class RenderingHandler(BaseHandler):
 
 
 class CreateHandler(BaseHandler):
+    """handle creation via frontpage form
+    
+    only redirects to the appropriate URL
+    """
     def post(self):
         value = self.get_argument('gistnorurl', '')
         redirect_url = transform_ipynb_uri(value)
@@ -162,6 +191,7 @@ class CreateHandler(BaseHandler):
 
 
 class URLHandler(RenderingHandler):
+    """Renderer for /url or /urls"""
     @cached
     @gen.coroutine
     def get(self, secure, url):
@@ -192,6 +222,10 @@ class URLHandler(RenderingHandler):
 
 
 class UserGistsHandler(BaseHandler):
+    """list a user's gists containing notebooks
+    
+    .ipynb file extension is required for listing (not for rendering).
+    """
     @cached
     @gen.coroutine
     def get(self, user):
@@ -214,6 +248,7 @@ class UserGistsHandler(BaseHandler):
 
 
 class GistHandler(RenderingHandler):
+    """render a gist notebook, or list files if a multifile gist"""
     @cached
     @gen.coroutine
     def get(self, user, gist_id, filename=''):
@@ -256,6 +291,7 @@ class GistHandler(RenderingHandler):
 
 
 class GistRedirectHandler(BaseHandler):
+    """redirect old /<gist-id> to new /gist/<gist-id>"""
     def get(self, gist_id, file=''):
         new_url = '/gist/%s' % gist_id
         if file:
@@ -266,6 +302,7 @@ class GistRedirectHandler(BaseHandler):
 
 
 class RawGitHubURLHandler(BaseHandler):
+    """redirect old /urls/raw.github urls to /github/ API urls"""
     def get(self, user, repo, path):
         new_url = '/github/{user}/{repo}/blob/{path}'.format(
             user=user, repo=repo, path=path,
@@ -275,6 +312,7 @@ class RawGitHubURLHandler(BaseHandler):
 
 
 class GitHubRedirectHandler(BaseHandler):
+    """redirect github blob|tree urls to /github/ API urls"""
     def get(self, user, repo, ref, path):
         new_url = '/github/{user}/{repo}/{ref}/{path}'.format(**locals())
         app_log.info("Redirecting %s to %s", self.request.uri, new_url)
@@ -282,6 +320,7 @@ class GitHubRedirectHandler(BaseHandler):
 
 
 class GitHubUserHandler(BaseHandler):
+    """list a user's github repos"""
     @cached
     @gen.coroutine
     def get(self, user):
@@ -302,11 +341,13 @@ class GitHubUserHandler(BaseHandler):
 
 
 class GitHubRepoHandler(BaseHandler):
+    """redirect /github/user/repo to .../tree/master"""
     def get(self, user, repo):
         self.redirect("/github/%s/%s/tree/master/" % (user, repo))
 
 
 class GitHubTreeHandler(BaseHandler):
+    """list files in a github repo (like github tree)"""
     @cached
     @gen.coroutine
     def get(self, user, repo, ref, path):
@@ -370,6 +411,14 @@ class GitHubTreeHandler(BaseHandler):
     
 
 class GitHubBlobHandler(RenderingHandler):
+    """handler for files on github
+    
+    If it's a...
+    
+    - notebook, render it
+    - non-notebook file, serve file unmodified
+    - directory, redirect to tree
+    """
     @cached
     @gen.coroutine
     def get(self, user, repo, ref, path):
@@ -415,17 +464,23 @@ class GitHubBlobHandler(RenderingHandler):
 
 
 class FilesRedirectHandler(BaseHandler):
+    """redirect files URLs without files prefix
+    
+    matches behavior of old app, currently unused.
+    """
     def get(self, before_files, after_files):
         app_log.info("Redirecting %s to %s", before_files, after_files)
         self.redirect("%s/%s" % (before_files, after_files))
 
 
 class AddSlashHandler(BaseHandler):
+    """redirector for URLs that should always have trailing slash"""
     def get(self, *args, **kwargs):
         self.redirect(self.request.uri + '/')
 
 
 class RemoveSlashHandler(BaseHandler):
+    """redirector for URLs that should never have trailing slash"""
     def get(self, *args, **kwargs):
         self.redirect(self.request.uri.rstrip('/'))
 
