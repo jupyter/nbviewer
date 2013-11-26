@@ -48,6 +48,7 @@ def nrfoot():
 
 def main():
     # command-line options
+    define("debug", default=False, help="run in debug mode", type=bool)
     define("port", default=5000, help="run on the given port", type=int)
     define("cache_expiry", default=10*60, help="cache timeout (seconds)", type=int)
     define("threads", default=1, help="number of threads to use for background IO", type=int)
@@ -108,7 +109,7 @@ def main():
     )
     
     # create and start the app
-    app = web.Application(handlers, **settings)
+    app = web.Application(handlers, debug=options.debug, **settings)
     http_server = httpserver.HTTPServer(app)
     log.app_log.info("Listening on port %i", options.port)
     http_server.listen(options.port)
