@@ -47,6 +47,8 @@ class AsyncGitHubClient(object):
         url = url_path_join(self.github_api_url, path)
         
         params = {} if params is None else params
+        headers = kwargs.setdefault('headers', {})
+        headers.setdefault('User-Agent', 'Tornado-Async-GitHub-Client')
         # don't log auth
         app_log.info("Fetching %s", url_concat(url, params))
         if self.auth:
