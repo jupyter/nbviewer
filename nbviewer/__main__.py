@@ -1,2 +1,2 @@
-from .app import main
+from nbviewer.app import main
 main()
