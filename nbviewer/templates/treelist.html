@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+{% block body %}
+<ul class="breadcrumb">
+    {% for part in path_list %}
+    <li><a href="{{part['url']}}">{{part['name']}}</a> <span class="divider">/</span></li>
+    {% endfor %}
+</ul>
+    <table class='table table-condensed table-bordered table-striped '>
+            <thead>
+                <tr><th>Name</th></tr>
+            </thead>
+            <tbody>
+                    <tr><td><a href='../'><i class=' icon-backward'></i> .. 
+                    {% if not path_list %}
+                    (list of repository)
+                    {% endif %}
+                    </a></td></tr>
+                {% for entry in entries %}
+                    <tr><td><i class='{{entry.class}}'></i> <a href='{{entry.url}}'>{{entry.name}}</a></td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+{% endblock %}

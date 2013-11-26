@@ -1,12 +1,5 @@
-Flask
-Flask-Markdown
-requests
-Pygments
-Markdown
+tornado>=3.1.1
 pylibmc
-tornado
-newrelic
-ipython==1.1.0
-gunicorn
+futures
 
-Flask-Cache
+ipython[nbconvert]>=1.1.0
