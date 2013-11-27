@@ -313,8 +313,8 @@ class RawGitHubURLHandler(BaseHandler):
 
 class GitHubRedirectHandler(BaseHandler):
     """redirect github blob|tree urls to /github/ API urls"""
-    def get(self, user, repo, ref, path):
-        new_url = '/github/{user}/{repo}/{ref}/{path}'.format(**locals())
+    def get(self, user, repo, tree_or_blob, ref, path):
+        new_url = '/github/{user}/{repo}/{tree_or_blob}/{ref}/{path}'.format(**locals())
         app_log.info("Redirecting %s to %s", self.request.uri, new_url)
         self.redirect(new_url)
 
@@ -482,7 +482,7 @@ handlers = [
     (r'/faq/?', FAQHandler),
     (r'/create/?', CreateHandler),
     
-    (r'/url[s]?/github\.com/([^\/]+)/([^\/]+)/(?:tree|blob)/([^\/]+)/(.*)', GitHubRedirectHandler),
+    (r'/url[s]?/github\.com/([^\/]+)/([^\/]+)/(tree|blob)/([^\/]+)/(.*)', GitHubRedirectHandler),
     (r'/url[s]?/raw\.?github\.com/([^\/]+)/([^\/]+)/(.*)', RawGitHubURLHandler),
     (r'/url([s]?)/(.*)', URLHandler),
 
