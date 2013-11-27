@@ -6,6 +6,10 @@
 #-----------------------------------------------------------------------------
 
 import re
+try:
+    from urllib.request import quote
+except ImportError:
+    from urllib2 import quote
 
 def url_path_join(*pieces):
     """Join components of url into a relative url
