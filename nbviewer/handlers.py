@@ -269,7 +269,11 @@ class GistHandler(RenderingHandler):
         gist_id=gist['id']
         if user is None:
             # redirect to /gist/user/gist_id if no user given
-            user = gist['user']['login']
+            user_dict = gist['user']
+            if user_dict:
+                user = user_dict['login']
+            else:
+                user = 'anonymous'
             new_url = "/gist/{user}/{gist_id}".format(user=user, gist_id=gist_id)
             if filename:
                 new_url = new_url + "/" + filename
