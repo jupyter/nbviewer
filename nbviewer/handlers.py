@@ -20,7 +20,7 @@ from tornado.escape import utf8
 from tornado.log import app_log, access_log
 
 from .render import render_notebook, NbFormatError
-from .utils import transform_ipynb_uri
+from .utils import transform_ipynb_uri, quote
 
 #-----------------------------------------------------------------------------
 # Handler classes
@@ -107,9 +107,12 @@ class BaseHandler(web.RequestHandler):
         burl = utf8(self.request.uri)
         bcontent = utf8(content)
         
-        yield self.cache.set(
-            burl, bcontent, int(time.time() + self.cache_expiry),
-        )
+        try:
+            yield self.cache.set(
+                burl, bcontent, int(time.time() + self.cache_expiry),
+            )
+        except Exception:
+            app_log.error("cache set for %s failed", burl, exc_info=True)
 
 
 class Custom404(BaseHandler):
@@ -138,7 +141,12 @@ def cached(method):
     """
     @gen.coroutine
     def cached_method(self, *args, **kwargs):
-        cached_response = yield self.cache.get(self.request.uri)
+        try:
+            cached_response = yield self.cache.get(self.request.uri)
+        except Exception as e:
+            app_log.error("exception getting %s from cache", self.request.uri)
+            cached_response = None
+        
         if cached_response is not None:
             app_log.debug("cache hit %s", self.request.uri)
             self.write(cached_response)
@@ -313,8 +321,8 @@ class RawGitHubURLHandler(BaseHandler):
 
 class GitHubRedirectHandler(BaseHandler):
     """redirect github blob|tree urls to /github/ API urls"""
-    def get(self, user, repo, ref, path):
-        new_url = '/github/{user}/{repo}/{ref}/{path}'.format(**locals())
+    def get(self, user, repo, tree_or_blob, ref, path):
+        new_url = '/github/{user}/{repo}/{tree_or_blob}/{ref}/{path}'.format(**locals())
         app_log.info("Redirecting %s to %s", self.request.uri, new_url)
         self.redirect(new_url)
 
@@ -417,50 +425,37 @@ class GitHubBlobHandler(RenderingHandler):
     
     - notebook, render it
     - non-notebook file, serve file unmodified
-    - directory, redirect to tree
     """
     @cached
     @gen.coroutine
     def get(self, user, repo, ref, path):
+        raw_url = "https://raw.github.com/{user}/{repo}/{ref}/{path}".format(
+            user=user, repo=repo, ref=ref, path=quote(path)
+        )
+        blob_url = "https://github.com/{user}/{repo}/blob/{ref}/{path}".format(
+            user=user, repo=repo, ref=ref, path=quote(path),
+        )
+        app_log.info("fetching %s", raw_url)
         try:
-            response = yield self.github_client.get_contents(user, repo, path, ref=ref)
+            response = yield self.client.fetch(raw_url)
         except httpclient.HTTPError as e:
             raise web.HTTPError(e.code)
         
-        contents = json.loads(response.body.decode('utf8'))
-        if isinstance(contents, list):
-            app_log.info("{user}/{repo}/{ref}/{path} not blob, redirecting to tree",
-                extra=dict(user=user, repo=repo, ref=ref, path=path)
-            )
-            self.redirect(
-                "/github/{user}/{repo}/tree/{ref}/{path}/".format(
-                    user=user, repo=repo, ref=ref, path=path
-                )
-            )
-            return
+        filedata = response.body
         
-        try:
-            filedata = base64.decodestring(contents['content'].encode('ascii'))
-        except Exception as e:
-            app_log.error("Failed to load file from GitHub: %s", contents['url'], exc_info=True)
-            raise web.HTTPError(400)
-        
-        if contents['name'].endswith('.ipynb'):
+        if path.endswith('.ipynb'):
             try:
                 nbjson = filedata.decode('utf8')
             except Exception as e:
-                app_log.error("Failed to decode notebook: %s", contents['url'], exc_info=True)
+                app_log.error("Failed to decode notebook: %s", raw_url, exc_info=True)
                 raise web.HTTPError(400)
-            raw_url = "https://raw.github.com/{user}/{repo}/{ref}/{path}".format(
-                user=user, repo=repo, ref=ref, path=path
-            )
             yield self.finish_notebook(nbjson, raw_url,
-                home_url=contents['html_url'],
-                msg="file from GitHub: %s" % contents['url'],
+                home_url=blob_url,
+                msg="file from GitHub: %s" % raw_url,
             )
         else:
             self.set_header("Content-Type", "text/plain")
-            self.write(filedata)
+            self.cache_and_finish(filedata)
 
 
 class FilesRedirectHandler(BaseHandler):
@@ -495,7 +490,7 @@ handlers = [
     (r'/faq/?', FAQHandler),
     (r'/create/?', CreateHandler),
     
-    (r'/url[s]?/github\.com/([^\/]+)/([^\/]+)/(?:tree|blob)/([^\/]+)/(.*)', GitHubRedirectHandler),
+    (r'/url[s]?/github\.com/([^\/]+)/([^\/]+)/(tree|blob)/([^\/]+)/(.*)', GitHubRedirectHandler),
     (r'/url[s]?/raw\.?github\.com/([^\/]+)/([^\/]+)/(.*)', RawGitHubURLHandler),
     (r'/url([s]?)/(.*)', URLHandler),
 

@@ -22,7 +22,7 @@ from IPython.nbconvert.exporters import HTMLExporter
 from IPython.nbconvert.filters import markdown2html
 
 from .handlers import handlers
-from .cache import DummyAsyncCache, AsyncMemcache, pylibmc
+from .cache import DummyAsyncCache, AsyncMultipartMemcache, pylibmc
 from .github import AsyncGitHubClient
 
 #-----------------------------------------------------------------------------
@@ -81,7 +81,7 @@ def main():
         else:
             log.app_log.info("Using plain memecache")
         
-        cache = AsyncMemcache(memcache_urls.split(','), **kwargs)
+        cache = AsyncMultipartMemcache(memcache_urls.split(','), **kwargs)
     else:
         log.app_log.info("Using in-memory cache")
         cache = DummyAsyncCache()

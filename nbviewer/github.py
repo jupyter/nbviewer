@@ -6,16 +6,12 @@
 #-----------------------------------------------------------------------------
 
 import os
-try:
-    from urllib.request import quote
-except ImportError:
-    from urllib2 import quote
 
 from tornado.httpclient import AsyncHTTPClient
 from tornado.httputil import url_concat
 from tornado.log import app_log
 
-from .utils import url_path_join
+from .utils import url_path_join, quote
 
 #-----------------------------------------------------------------------------
 # Async GitHub Client
