@@ -33,3 +33,10 @@ class GistTestCase(NBViewerTestCase):
         self.assertEqual(r.status_code, 200)
         html = r.text
         self.assertIn('Download Notebook', html)
+    
+    def test_anonymous_gist(self):
+        url = self.url('gist/4465051')
+        r = requests.get(url)
+        self.assertEqual(r.status_code, 200)
+        html = r.text
+        self.assertIn('Download Notebook', html)
