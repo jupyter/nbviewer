@@ -107,9 +107,12 @@ class BaseHandler(web.RequestHandler):
         burl = utf8(self.request.uri)
         bcontent = utf8(content)
         
-        yield self.cache.set(
-            burl, bcontent, int(time.time() + self.cache_expiry),
-        )
+        try:
+            yield self.cache.set(
+                burl, bcontent, int(time.time() + self.cache_expiry),
+            )
+        except Exception:
+            app_log.error("cache set for %s failed", burl, exc_info=True)
 
 
 class Custom404(BaseHandler):
@@ -138,7 +141,12 @@ def cached(method):
     """
     @gen.coroutine
     def cached_method(self, *args, **kwargs):
-        cached_response = yield self.cache.get(self.request.uri)
+        try:
+            cached_response = yield self.cache.get(self.request.uri)
+        except Exception as e:
+            app_log.error("exception getting %s from cache", self.request.uri)
+            cached_response = None
+        
         if cached_response is not None:
             app_log.debug("cache hit %s", self.request.uri)
             self.write(cached_response)
