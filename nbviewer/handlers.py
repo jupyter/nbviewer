@@ -7,6 +7,7 @@
 
 import base64
 import json
+import socket
 import time
 
 from contextlib import contextmanager
@@ -100,6 +101,8 @@ class BaseHandler(web.RequestHandler):
             yield
         except httpclient.HTTPError as e:
             self.reraise_client_error(e)
+        except socket.error as e:
+            raise web.HTTPError(404, str(e))
         
     def get_error_html(self, status_code, **kwargs):
         """render custom error pages"""
