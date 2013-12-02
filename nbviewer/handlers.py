@@ -9,6 +9,8 @@ import base64
 import json
 import time
 
+from contextlib import contextmanager
+
 try:
     # py3
     from http.client import responses
@@ -74,15 +76,62 @@ class BaseHandler(web.RequestHandler):
     # error handling
     #---------------------------------------------------------------
     
-    def get_error_html(self, status_code, **kwargs):
+    def reraise_client_error(self, exc):
+        """Remote fetch raised an error"""
+        url = exc.response.request.url
+        app_log.warn("Fetching %s failed with %s", url, exc)
+        if exc.code >= 500:
+            # 5XX, server error
+            raise web.HTTPError(502, str(exc))
+        else:
+            if exc.code == 404:
+                raise web.HTTPError(404, "Remote %s" % exc)
+            else:
+                # client-side error, but we are the client
+                raise web.HTTPError(500, str(exc))
+    
+    @contextmanager
+    def catch_client_error(self):
+        """context manager for catching httpclient errors
+        
+        they are transformed into appropriate web.HTTPErrors
+        """
         try:
-            html = self.render_template('%d.html' % status_code)
+            yield
+        except httpclient.HTTPError as e:
+            self.reraise_client_error(e)
+        
+    def get_error_html(self, status_code, **kwargs):
+        """render custom error pages"""
+        exception = kwargs.get('exception')
+        message = ''
+        status_message = responses.get(status_code, 'Unknown')
+        if exception:
+            # get the custom message, if defined
+            try:
+                message = exception.log_message % exception.args
+            except Exception:
+                pass
+            
+            # construct the custom reason, if defined
+            reason = getattr(exception, 'reason', '')
+            if reason:
+                status_message = reason
+        
+        # build template namespace
+        ns = dict(
+            status_code=status_code,
+            status_message=status_message,
+            message=message,
+            exception=exception,
+        )
+        
+        # render the template
+        try:
+            html = self.render_template('%d.html' % status_code, **ns)
         except Exception as e:
-            app_log.error("No template for %d", status_code)
-            html = self.render_template('error.html',
-                status_code=status_code,
-                status_message=responses[status_code]
-            )
+            app_log.warn("No template for %d", status_code)
+            html = self.render_template('error.html', **ns)
         return html
 
     #---------------------------------------------------------------
@@ -169,14 +218,14 @@ class RenderingHandler(BaseHandler):
         msg is extra information for the log message when rendering fails.
         """
         if msg is None:
-            msg = url
+            msg = download_url
         try:
             nbhtml, config = yield self.pool.submit(
                 render_notebook, self.exporter, nbjson, download_url,
             )
         except NbFormatError as e:
             app_log.error("Failed to render %s", msg, exc_info=True)
-            raise web.HTTPError(400)
+            raise web.HTTPError(400, str(e))
         
         html = self.render_template('notebook.html',
             body=nbhtml,
@@ -216,10 +265,8 @@ class URLHandler(RenderingHandler):
                 return
         
         app_log.info("Fetching %s", remote_url)
-        try:
+        with self.catch_client_error():
             response = yield self.client.fetch(remote_url)
-        except httpclient.HTTPError as e:
-            raise web.HTTPError(e.code)
         
         try:
             nbjson = response_text(response)
@@ -238,10 +285,9 @@ class UserGistsHandler(BaseHandler):
     @cached
     @gen.coroutine
     def get(self, user):
-        try:
+        with self.catch_client_error():
             response = yield self.github_client.get_gists(user)
-        except httpclient.HTTPError as e:
-            raise web.HTTPError(e.code)
+        
         gists = json.loads(response_text(response))
         entries = []
         for gist in gists:
@@ -261,10 +307,8 @@ class GistHandler(RenderingHandler):
     @cached
     @gen.coroutine
     def get(self, user, gist_id, filename=''):
-        try:
+        with self.catch_client_error():
             response = yield self.github_client.get_gist(gist_id)
-        except httpclient.HTTPError as e:
-            raise web.HTTPError(e.code)
         
         gist = json.loads(response_text(response))
         gist_id=gist['id']
@@ -341,10 +385,8 @@ class GitHubUserHandler(BaseHandler):
     @cached
     @gen.coroutine
     def get(self, user):
-        try:
+        with self.catch_client_error():
             response = yield self.github_client.get_repos(user)
-        except httpclient.HTTPError as e:
-            raise web.HTTPError(e.code)
         
         repos = json.loads(response_text(response))
         entries = []
@@ -372,10 +414,8 @@ class GitHubTreeHandler(BaseHandler):
             self.redirect(self.request.uri + '/')
             return
         path = path.rstrip('/')
-        try:
+        with self.catch_client_error(self):
             response = yield self.github_client.get_contents(user, repo, path, ref=ref)
-        except httpclient.HTTPError as e:
-            raise web.HTTPError(e.code)
         
         contents = json.loads(response_text(response))
         if not isinstance(contents, list):
