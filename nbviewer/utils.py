@@ -7,9 +7,22 @@
 
 import re
 try:
-    from urllib.request import quote
+    from urllib.request import quote as stdlib_quote
 except ImportError:
-    from urllib2 import quote
+    from urllib2 import quote as stdlib_quote
+
+from IPython.utils import py3compat
+
+def quote(s):
+    """unicode-safe quote
+    
+    - Python 2 requires str, not unicode
+    - always return unicode
+    """
+    s = py3compat.cast_bytes_py2(s)
+    quoted = stdlib_quote(s)
+    return py3compat.str_to_unicode(quoted)
+
 
 def url_path_join(*pieces):
     """Join components of url into a relative url
