@@ -7,7 +7,7 @@
 
 import re
 try:
-    from urllib.request import quote as stdlib_quote
+    from urllib.parse import quote as stdlib_quote
 except ImportError:
     from urllib2 import quote as stdlib_quote
 
