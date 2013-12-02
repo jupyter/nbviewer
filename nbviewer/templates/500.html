@@ -1,17 +1,9 @@
-{% extends "layout.html" %}
-{% block body %}
-
-<header class="jumbotron masthead">
-  <div class="inner">
-    <h1>500 : Server error! </h1>
-    <p>You broke the internet!</p>
-    <p class="marketing-byline">Kidding, you might just have crashed the web process - it'll just take a few second to restart.</p>
-    <p class="marketing-byline"> If this is reproducible, please send us a bug report! </p>
-  </div>
-
-  </header>
-
-
-<hr class="soften">
-
+{% extends "error.html" %}
+{% block error_detail %}
+<p>You broke the internet!</p>
+<p class="marketing-byline">Kidding, this might just be an intermittent failure in nbviewer.</p>
+<p class="marketing-byline"> If this is reproducible, please send us a bug report!</p>
+{% if message %}
+<p class="marketing-byline">The upstream error was {{message}}</p>
+{% endif %}
 {% endblock %}
