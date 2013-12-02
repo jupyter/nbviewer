@@ -1,3 +1,4 @@
+# encoding: utf-8
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2013 The IPython Development Team
 #
@@ -5,7 +6,7 @@
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
-from nbviewer.utils import transform_ipynb_uri
+from nbviewer import utils
 
 def test_transform_ipynb_uri():
     test_data = (
@@ -37,6 +38,24 @@ def test_transform_ipynb_uri():
         u'/urls/gist.github.com/user/1234/raw/a1b2c3/file.ipynb'),
     )
     for (ipynb_uri, expected_output) in test_data:
-        output = transform_ipynb_uri(ipynb_uri)
+        output = utils.transform_ipynb_uri(ipynb_uri)
         assert output == expected_output
+    
+
+def test_quote():
+    tests = [
+        ('hi', u'hi'),
+        (u'hi', u'hi'),
+        (b'hi', u'hi'),
+        (' /#', u'%20/%23'),
+        (b' /#', u'%20/%23'),
+        (u' /#', u'%20/%23'),
+        (u'ü /é#/', u'%C3%BC%20/%C3%A9%23/'),
+        (u'ü /é#/'.encode('utf8'), u'%C3%BC%20/%C3%A9%23/'),
+        ('ü /é#/', u'%C3%BC%20/%C3%A9%23/'),
+    ]
+    for s, expected in tests:
+        quoted = utils.quote(s)
+        assert quoted == expected
+        assert type(quoted) == type(expected)
     
