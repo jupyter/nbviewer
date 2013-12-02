@@ -205,7 +205,7 @@ class URLHandler(RenderingHandler):
     def get(self, secure, url):
         proto = 'http' + secure
         
-        remote_url = "{}://{}".format(proto, url)
+        remote_url = "{}://{}".format(proto, quote(url))
         if not url.endswith('.ipynb'):
             # this is how we handle relative links (files/ URLs) in notebooks
             # if it's not a .ipynb URL and it is a link from a notebook,
@@ -215,6 +215,7 @@ class URLHandler(RenderingHandler):
                 self.redirect(remote_url)
                 return
         
+        app_log.info("Fetching %s", remote_url)
         try:
             response = yield self.client.fetch(remote_url)
         except httpclient.HTTPError as e:
@@ -324,9 +325,11 @@ class RawGitHubURLHandler(BaseHandler):
 
 
 class GitHubRedirectHandler(BaseHandler):
-    """redirect github blob|tree urls to /github/ API urls"""
-    def get(self, user, repo, tree_or_blob, ref, path):
-        new_url = '/github/{user}/{repo}/{tree_or_blob}/{ref}/{path}'.format(**locals())
+    """redirect github blob|tree|raw urls to /github/ API urls"""
+    def get(self, user, repo, app, ref, path):
+        if app == 'raw':
+            app = 'blob'
+        new_url = '/github/{user}/{repo}/{app}/{ref}/{path}'.format(**locals())
         app_log.info("Redirecting %s to %s", self.request.uri, new_url)
         self.redirect(new_url)
 
@@ -494,7 +497,7 @@ handlers = [
     (r'/faq/?', FAQHandler),
     (r'/create/?', CreateHandler),
     
-    (r'/url[s]?/github\.com/([^\/]+)/([^\/]+)/(tree|blob)/([^\/]+)/(.*)', GitHubRedirectHandler),
+    (r'/url[s]?/github\.com/([^\/]+)/([^\/]+)/(tree|blob|raw)/([^\/]+)/(.*)', GitHubRedirectHandler),
     (r'/url[s]?/raw\.?github\.com/([^\/]+)/([^\/]+)/(.*)', RawGitHubURLHandler),
     (r'/url([s]?)/(.*)', URLHandler),
 
