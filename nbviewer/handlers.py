@@ -205,7 +205,7 @@ class URLHandler(RenderingHandler):
     def get(self, secure, url):
         proto = 'http' + secure
         
-        remote_url = "{}://{}".format(proto, url)
+        remote_url = "{}://{}".format(proto, quote(url))
         if not url.endswith('.ipynb'):
             # this is how we handle relative links (files/ URLs) in notebooks
             # if it's not a .ipynb URL and it is a link from a notebook,
@@ -215,6 +215,7 @@ class URLHandler(RenderingHandler):
                 self.redirect(remote_url)
                 return
         
+        app_log.info("Fetching %s", remote_url)
         try:
             response = yield self.client.fetch(remote_url)
         except httpclient.HTTPError as e:
