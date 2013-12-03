@@ -1,3 +1,4 @@
+# coding: utf-8
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2013 The IPython Development Team
 #
@@ -18,6 +19,34 @@ class GitHubTestCase(NBViewerTestCase):
         url = self.ipython_example('Part 1 - Running Code.ipynb')
         r = requests.get(url)
         self.assertEqual(r.status_code, 200)
+
+    def test_github_unicode(self):
+        url = self.url('github/tlapicka/IPythonNotebooks/blob',
+            'ee6d2d13b96023e5f5e38e4516803eb22ede977e',
+            u'Matplotlib -- osy a mřížka.ipynb',
+        )
+        r = requests.get(url)
+        self.assertEqual(r.status_code, 200)
+
+    def test_github_blob_redirect_unicode(self):
+        url = self.url('/urls/github.com/tlapicka/IPythonNotebooks/blob',
+            'ee6d2d13b96023e5f5e38e4516803eb22ede977e',
+            u'Matplotlib -- osy a mřížka.ipynb',
+        )
+        r = requests.get(url)
+        self.assertEqual(r.status_code, 200)
+        # verify redirect
+        self.assertIn('/github/tlapicka/IPythonNotebooks/blob/', r.request.url)
+
+    def test_github_raw_redirect_unicode(self):
+        url = self.url('/url/raw.github.com/tlapicka/IPythonNotebooks',
+            'ee6d2d13b96023e5f5e38e4516803eb22ede977e',
+            u'Matplotlib -- osy a mřížka.ipynb',
+        )
+        r = requests.get(url)
+        self.assertEqual(r.status_code, 200)
+        # verify redirect
+        self.assertIn('/github/tlapicka/IPythonNotebooks/blob/', r.request.url)
 
     def test_github_tag(self):
         url = self.ipython_example('Part 1 - Running Code.ipynb', ref='rel-1.0.0')

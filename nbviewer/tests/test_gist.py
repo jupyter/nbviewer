@@ -45,3 +45,10 @@ class GistTestCase(NBViewerTestCase):
         self.assertEqual(r.status_code, 200)
         html = r.text
         self.assertIn('Download Notebook', html)
+    
+    def test_gist_unicode(self):
+        url = self.url('gist/amueller/3974344')
+        r = requests.get(url)
+        self.assertEqual(r.status_code, 200)
+        html = r.text
+        self.assertIn('<th>Name</th>', html)
