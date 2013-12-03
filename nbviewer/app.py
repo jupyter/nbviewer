@@ -7,6 +7,7 @@
 
 import os
 
+import logging
 from concurrent.futures import ThreadPoolExecutor
 
 from tornado import web, httpserver, ioloop, log
@@ -51,6 +52,7 @@ def main():
     define("debug", default=False, help="run in debug mode", type=bool)
     define("port", default=5000, help="run on the given port", type=int)
     define("cache_expiry", default=10*60, help="cache timeout (seconds)", type=int)
+    define("mc_threads", default=1, help="number of threads to use for Async Memcache", type=int)
     define("threads", default=1, help="number of threads to use for background IO", type=int)
     tornado.options.parse_command_line()
     
@@ -62,15 +64,21 @@ def main():
     # don't strip the files prefix - we use it for redirects
     # config.Exporter.filters = {'strip_files_prefix': lambda s: s}
     
-    exporter = HTMLExporter(config=config)
+    exporter = HTMLExporter(config=config, log=log.app_log)
+    
+    # DEBUG env implies both autoreload and log-level
+    if os.environ.get("DEBUG"):
+        options.debug = True
+        logging.getLogger().setLevel(logging.DEBUG)
     
     # setup memcache
+    mc_pool = ThreadPoolExecutor(options.mc_threads)
     pool = ThreadPoolExecutor(options.threads)
     memcache_urls = os.environ.get('MEMCACHIER_SERVERS',
         os.environ.get('MEMCACHE_SERVERS')
     )
     if pylibmc and memcache_urls:
-        kwargs = dict(pool=pool)
+        kwargs = dict(pool=mc_pool)
         username = os.environ.get('MEMCACHIER_USERNAME', '')
         password = os.environ.get('MEMCACHIER_PASSWORD', '')
         if username and password:
