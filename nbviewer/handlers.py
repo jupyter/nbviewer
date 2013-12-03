@@ -417,7 +417,7 @@ class GitHubTreeHandler(BaseHandler):
             self.redirect(self.request.uri + '/')
             return
         path = path.rstrip('/')
-        with self.catch_client_error(self):
+        with self.catch_client_error():
             response = yield self.github_client.get_contents(user, repo, path, ref=ref)
         
         contents = json.loads(response_text(response))
