@@ -55,12 +55,12 @@ class AsyncGitHubClient(object):
         
     def get_gist(self, gist_id, callback=None, **kwargs):
         """Get a gist"""
-        path = 'gists/{}'.format(gist_id)
+        path = u'gists/{}'.format(gist_id)
         return self.github_api_request(path, callback, **kwargs)
     
     def get_contents(self, user, repo, path, callback=None, ref=None, **kwargs):
         """Make contents API request - either file contents or directory listing"""
-        path = quote('repos/{user}/{repo}/contents/{path}'.format(
+        path = quote(u'repos/{user}/{repo}/contents/{path}'.format(
             **locals()
         ))
         if ref is not None:
@@ -70,11 +70,11 @@ class AsyncGitHubClient(object):
     
     def get_repos(self, user, callback=None, **kwargs):
         """List a user's repos"""
-        path = "users/{user}/repos".format(user=user)
+        path = u"users/{user}/repos".format(user=user)
         return self.github_api_request(path, callback ,**kwargs)
     
     def get_gists(self, user, callback=None, **kwargs):
         """List a user's gists"""
-        path = "users/{user}/gists".format(user=user)
+        path = u"users/{user}/gists".format(user=user)
         return self.github_api_request(path, callback ,**kwargs)
     

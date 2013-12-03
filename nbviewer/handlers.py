@@ -205,7 +205,7 @@ class URLHandler(RenderingHandler):
     def get(self, secure, url):
         proto = 'http' + secure
         
-        remote_url = "{}://{}".format(proto, quote(url))
+        remote_url = u"{}://{}".format(proto, quote(url))
         if not url.endswith('.ipynb'):
             # this is how we handle relative links (files/ URLs) in notebooks
             # if it's not a .ipynb URL and it is a link from a notebook,
@@ -275,7 +275,7 @@ class GistHandler(RenderingHandler):
                 user = user_dict['login']
             else:
                 user = 'anonymous'
-            new_url = "/gist/{user}/{gist_id}".format(user=user, gist_id=gist_id)
+            new_url = u"/gist/{user}/{gist_id}".format(user=user, gist_id=gist_id)
             if filename:
                 new_url = new_url + "/" + filename
             self.redirect(new_url)
@@ -317,7 +317,7 @@ class GistRedirectHandler(BaseHandler):
 class RawGitHubURLHandler(BaseHandler):
     """redirect old /urls/raw.github urls to /github/ API urls"""
     def get(self, user, repo, path):
-        new_url = '/github/{user}/{repo}/blob/{path}'.format(
+        new_url = u'/github/{user}/{repo}/blob/{path}'.format(
             user=user, repo=repo, path=path,
         )
         app_log.info("Redirecting %s to %s", self.request.uri, new_url)
@@ -329,7 +329,7 @@ class GitHubRedirectHandler(BaseHandler):
     def get(self, user, repo, app, ref, path):
         if app == 'raw':
             app = 'blob'
-        new_url = '/github/{user}/{repo}/{app}/{ref}/{path}'.format(**locals())
+        new_url = u'/github/{user}/{repo}/{app}/{ref}/{path}'.format(**locals())
         app_log.info("Redirecting %s to %s", self.request.uri, new_url)
         self.redirect(new_url)
 
@@ -381,13 +381,13 @@ class GitHubTreeHandler(BaseHandler):
                 extra=dict(user=user, repo=repo, ref=ref, path=path)
             )
             self.redirect(
-                "/github/{user}/{repo}/blob/{ref}/{path}".format(
+                u"/github/{user}/{repo}/blob/{ref}/{path}".format(
                     user=user, repo=repo, ref=ref, path=path,
                 )
             )
             return
         
-        base_url = "/github/{user}/{repo}/tree/{ref}".format(
+        base_url = u"/github/{user}/{repo}/tree/{ref}".format(
             user=user, repo=repo, ref=ref,
         )
         path_list = [{
@@ -407,12 +407,12 @@ class GitHubTreeHandler(BaseHandler):
             e = {}
             e['name'] = file['name']
             if file['type'] == 'dir':
-                e['url'] = '/github/{user}/{repo}/tree/{ref}/{path}'.format(
+                e['url'] = u'/github/{user}/{repo}/tree/{ref}/{path}'.format(
                 user=user, repo=repo, ref=ref, path=file['path']
                 )
                 e['class'] = 'icon-folder-open'
             elif file['name'].endswith('.ipynb'):
-                e['url'] = '/github/{user}/{repo}/blob/{ref}/{path}'.format(
+                e['url'] = u'/github/{user}/{repo}/blob/{ref}/{path}'.format(
                 user=user, repo=repo, ref=ref, path=file['path']
                 )
                 e['class'] = 'icon-book'
@@ -436,10 +436,10 @@ class GitHubBlobHandler(RenderingHandler):
     @cached
     @gen.coroutine
     def get(self, user, repo, ref, path):
-        raw_url = "https://raw.github.com/{user}/{repo}/{ref}/{path}".format(
+        raw_url = u"https://raw.github.com/{user}/{repo}/{ref}/{path}".format(
             user=user, repo=repo, ref=ref, path=quote(path)
         )
-        blob_url = "https://github.com/{user}/{repo}/blob/{ref}/{path}".format(
+        blob_url = u"https://github.com/{user}/{repo}/blob/{ref}/{path}".format(
             user=user, repo=repo, ref=ref, path=quote(path),
         )
         app_log.info("fetching %s", raw_url)
