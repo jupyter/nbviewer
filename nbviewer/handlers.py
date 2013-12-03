@@ -21,6 +21,7 @@ except ImportError:
 from tornado import web, gen, httpclient
 from tornado.escape import utf8
 from tornado.httputil import url_concat
+from tornado.ioloop import IOLoop
 from tornado.log import app_log, access_log
 
 from .render import render_notebook, NbFormatError
@@ -248,6 +249,34 @@ def cached(method):
 
 class RenderingHandler(BaseHandler):
     """Base for handlers that render notebooks"""
+    @property
+    def render_timeout(self):
+        """0 render_timeout means never finish early"""
+        return self.settings.setdefault('render_timeout', 0)
+    
+    def initialize(self):
+        loop = IOLoop.current()
+        if self.render_timeout:
+            self.slow_timeout = loop.add_timeout(
+                loop.time() + self.render_timeout,
+                self.finish_early
+            )
+        
+    def finish_early(self):
+        """When the render is slow, draw a 'waiting' page instead
+        
+        rely on the cache to deliver the page to a future request.
+        """
+        if self._finished:
+            return
+        app_log.info("finishing early %s", self.request.uri)
+        html = self.render_template('slow_notebook.html')
+        self.finish(html)
+        
+        # short circuit write / finish because the rest of the rendering will still happen
+        self.write = self.finish = lambda chunk=None: None
+    
+    
     @gen.coroutine
     def finish_notebook(self, nbjson, download_url, home_url=None, msg=None):
         """render a notebook from its JSON body.
