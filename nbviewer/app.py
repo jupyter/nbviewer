@@ -24,6 +24,7 @@ from IPython.nbconvert.filters import markdown2html
 
 from .handlers import handlers
 from .cache import DummyAsyncCache, AsyncMultipartMemcache, pylibmc
+from .client import LoggingSimpleAsyncHTTPClient
 from .github import AsyncGitHubClient
 
 #-----------------------------------------------------------------------------
@@ -101,6 +102,7 @@ def main():
     env = Environment(loader=FileSystemLoader(template_path))
     env.filters['markdown'] = markdown2html
     env.globals.update(nrhead=nrhead, nrfoot=nrfoot)
+    AsyncHTTPClient.configure(LoggingSimpleAsyncHTTPClient)
     client = AsyncHTTPClient()
     github_client = AsyncGitHubClient(client)
     github_client.authenticate()

@@ -107,6 +107,17 @@ class BaseHandler(web.RequestHandler):
         except socket.error as e:
             raise web.HTTPError(404, str(e))
         
+    @contextmanager
+    def time_block(self, message):
+        """context manager for timing a block
+        
+        logs millisecond timings of the block
+        """
+        tic = time.time()
+        yield
+        toc = time.time()
+        app_log.info("%s in %.2f ms", message, 1e3*(toc-tic))
+        
     def get_error_html(self, status_code, **kwargs):
         """render custom error pages"""
         exception = kwargs.get('exception')
@@ -163,11 +174,14 @@ class BaseHandler(web.RequestHandler):
         bcontent = utf8(content)
         
         try:
-            yield self.cache.set(
-                burl, bcontent, int(time.time() + self.cache_expiry),
-            )
+            with self.time_block("cache set %s" % burl):
+                yield self.cache.set(
+                    burl, bcontent, int(time.time() + self.cache_expiry),
+                )
         except Exception:
             app_log.error("cache set for %s failed", burl, exc_info=True)
+        else:
+            app_log.debug("cache set finished %s", burl)
 
 
 class Custom404(BaseHandler):
@@ -197,7 +211,8 @@ def cached(method):
     @gen.coroutine
     def cached_method(self, *args, **kwargs):
         try:
-            cached_response = yield self.cache.get(self.request.uri)
+            with self.time_block("cache get %s" % self.request.uri):
+                cached_response = yield self.cache.get(self.request.uri)
         except Exception as e:
             app_log.error("exception getting %s from cache", self.request.uri, exc_info=True)
             cached_response = None
@@ -226,15 +241,16 @@ class RenderingHandler(BaseHandler):
         if msg is None:
             msg = download_url
         try:
-            app_log.info("requesting render of %s", download_url)
-            nbhtml, config = yield self.pool.submit(
-                render_notebook, self.exporter, nbjson, download_url,
-            )
+            app_log.debug("Requesting render of %s", download_url)
+            with self.time_block("Rendered %s" % download_url):
+                nbhtml, config = yield self.pool.submit(
+                    render_notebook, self.exporter, nbjson, download_url,
+                )
         except NbFormatError as e:
             app_log.error("Failed to render %s", msg, exc_info=True)
             raise web.HTTPError(400, str(e))
         else:
-            app_log.info("finished render of %s", download_url)
+            app_log.debug("Finished render of %s", download_url)
         
         html = self.render_template('notebook.html',
             body=nbhtml,
@@ -273,7 +289,6 @@ class URLHandler(RenderingHandler):
                 self.redirect(remote_url)
                 return
         
-        app_log.info("Fetching %s", remote_url)
         with self.catch_client_error():
             response = yield self.client.fetch(remote_url)
         
@@ -494,7 +509,6 @@ class GitHubBlobHandler(RenderingHandler):
         blob_url = u"https://github.com/{user}/{repo}/blob/{ref}/{path}".format(
             user=user, repo=repo, ref=ref, path=quote(path),
         )
-        app_log.info("fetching %s", raw_url)
         try:
             response = yield self.client.fetch(raw_url)
         except httpclient.HTTPError as e:
