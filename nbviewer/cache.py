@@ -52,7 +52,7 @@ class DummyAsyncCache(object):
         return f
 
 class AsyncMemcache(object):
-    """subclass pylibmc.Client that runs requests in a background thread
+    """Wrap pylibmc.Client to run in a background thread
     
     via concurrent.futures.ThreadPoolExecutor
     """
@@ -62,17 +62,21 @@ class AsyncMemcache(object):
         self.mc = pylibmc.Client(*args, **kwargs)
         self.mc_pool = pylibmc.ThreadMappedPool(self.mc)
     
-    def get(self, *args, **kwargs):
-        return self.pool.submit(self._threadsafe_get, *args, **kwargs)
+    def get(self, key, *args, **kwargs):
+        app_log.debug("memcache get submit %s", key)
+        return self.pool.submit(self._threadsafe_get, key, *args, **kwargs)
     
     def _threadsafe_get(self, key, *args, **kwargs):
+        app_log.debug("memcache get %s", key)
         with self.mc_pool.reserve() as mc:
             return mc.get(key, *args, **kwargs)
     
-    def set(self, *args, **kwargs):
-        return self.pool.submit(self._threadsafe_set, *args, **kwargs)
+    def set(self, key, *args, **kwargs):
+        app_log.debug("memcache set submit %s", key)
+        return self.pool.submit(self._threadsafe_set, key, *args, **kwargs)
 
     def _threadsafe_set(self, key, value, *args, **kwargs):
+        app_log.debug("memcache set %s", key)
         with self.mc_pool.reserve() as mc:
             return mc.set(key, value, *args, **kwargs)
 
@@ -87,6 +91,7 @@ class AsyncMultipartMemcache(AsyncMemcache):
         super(AsyncMultipartMemcache, self).__init__(*args, **kwargs)
     
     def _threadsafe_get(self, key, *args, **kwargs):
+        app_log.debug("memcache get %s", key)
         keys = [b'%s.%i' % (key, idx) for idx in range(self.max_chunks)]
         with self.mc_pool.reserve() as mc:
             values = mc.get_multi(keys, *args, **kwargs)
@@ -99,9 +104,10 @@ class AsyncMultipartMemcache(AsyncMemcache):
             return b''.join(parts)
     
     def _threadsafe_set(self, key, value, *args, **kwargs):
+        app_log.debug("memcache set %s", key)
         chunk_size = self.chunk_size
         offsets = range(0, len(value), chunk_size)
-        app_log.info('storing cache in %i chunks' % len(offsets))
+        app_log.debug('storing %s in %i chunks', key, len(offsets))
         if len(offsets) > self.max_chunks:
             raise ValueError("file is too large: %s" % len(value))
         values = {}

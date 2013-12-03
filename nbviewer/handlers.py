@@ -199,7 +199,7 @@ def cached(method):
         try:
             cached_response = yield self.cache.get(self.request.uri)
         except Exception as e:
-            app_log.error("exception getting %s from cache", self.request.uri)
+            app_log.error("exception getting %s from cache", self.request.uri, exc_info=True)
             cached_response = None
         
         if cached_response is not None:
@@ -226,12 +226,15 @@ class RenderingHandler(BaseHandler):
         if msg is None:
             msg = download_url
         try:
+            app_log.info("requesting render of %s", download_url)
             nbhtml, config = yield self.pool.submit(
                 render_notebook, self.exporter, nbjson, download_url,
             )
         except NbFormatError as e:
             app_log.error("Failed to render %s", msg, exc_info=True)
             raise web.HTTPError(400, str(e))
+        else:
+            app_log.info("finished render of %s", download_url)
         
         html = self.render_template('notebook.html',
             body=nbhtml,
