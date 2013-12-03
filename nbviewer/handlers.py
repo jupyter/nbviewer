@@ -510,11 +510,11 @@ handlers = [
     (r'/github/([\w\-]+)/([^\/]+)/tree/([^\/]+)', AddSlashHandler),
     (r'/github/([\w\-]+)/([^\/]+)/tree/([^\/]+)/(.*)', GitHubTreeHandler),
     
-    (r'/gist/(\w+/)?([0-9]+|[0-9a-f]{20})', GistHandler),
-    (r'/gist/(\w+/)?([0-9]+|[0-9a-f]{20})/(.*)', GistHandler),
+    (r'/gist/([\w\-]+/)?([0-9]+|[0-9a-f]{20})', GistHandler),
+    (r'/gist/([\w\-]+/)?([0-9]+|[0-9a-f]{20})/(.*)', GistHandler),
     (r'/([0-9]+|[0-9a-f]{20})', GistRedirectHandler),
     (r'/([0-9]+|[0-9a-f]{20})/(.*)', GistRedirectHandler),
-    (r'/gist/(\w+)/?', UserGistsHandler),
+    (r'/gist/([\w\-]+)/?', UserGistsHandler),
 
     (r'.*', Custom404),
 ]
