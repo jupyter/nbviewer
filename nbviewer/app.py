@@ -52,7 +52,8 @@ def main():
     # command-line options
     define("debug", default=False, help="run in debug mode", type=bool)
     define("port", default=5000, help="run on the given port", type=int)
-    define("cache_expiry", default=10*60, help="cache timeout (seconds)", type=int)
+    define("cache_expiry_min", default=10*60, help="minimum cache expiry (seconds)", type=int)
+    define("cache_expiry_max", default=2*60*60, help="maximum cache expiry (seconds)", type=int)
     define("mc_threads", default=1, help="number of threads to use for Async Memcache", type=int)
     define("threads", default=1, help="number of threads to use for background IO", type=int)
     tornado.options.parse_command_line()
@@ -114,7 +115,8 @@ def main():
         github_client=github_client,
         exporter=exporter,
         cache=cache,
-        cache_expiry=options.cache_expiry,
+        cache_expiry_min=options.cache_expiry_min,
+        cache_expiry_max=options.cache_expiry_max,
         pool=pool,
     )
     

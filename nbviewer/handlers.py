@@ -49,8 +49,12 @@ class BaseHandler(web.RequestHandler):
         return self.settings['cache']
     
     @property
-    def cache_expiry(self):
-        return self.settings.get('cache_expiry', 60)
+    def cache_expiry_min(self):
+        return self.settings.setdefault('cache_expiry_min', 60)
+    
+    @property
+    def cache_expiry_max(self):
+        return self.settings.setdefault('cache_expiry_max', 120)
     
     @property
     def pool(self):
@@ -172,11 +176,24 @@ class BaseHandler(web.RequestHandler):
         
         burl = utf8(self.request.uri)
         bcontent = utf8(content)
+        request_time = self.request.request_time()
+        # set cache expiry to 120x request time
+        # bounded by cache_expiry_min,max
+        # a 30 second render will be cached for an hour
+        expiry = max(
+            min(120 * request_time, self.cache_expiry_max),
+            self.cache_expiry_min,
+        )
+        refer_url = self.request.headers.get('Referer', '').split('://')[-1]
+        if refer_url == self.request.host + '/':
+            # if it's a link from the front page, cache for a long time
+            expiry = self.cache_expiry_max
         
+        app_log.info("caching (expiry=%is) %s", expiry, self.request.uri)
         try:
             with self.time_block("cache set %s" % burl):
                 yield self.cache.set(
-                    burl, bcontent, int(time.time() + self.cache_expiry),
+                    burl, bcontent, int(time.time() + expiry),
                 )
         except Exception:
             app_log.error("cache set for %s failed", burl, exc_info=True)
