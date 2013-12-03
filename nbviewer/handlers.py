@@ -224,7 +224,7 @@ class URLHandler(RenderingHandler):
         try:
             nbjson = response_text(response)
         except UnicodeDecodeError:
-            self.log.error("Notebook is not utf8: %s", remote_url, exc_info=True)
+            app_log.error("Notebook is not utf8: %s", remote_url, exc_info=True)
             raise web.HTTPError(400)
         
         yield self.finish_notebook(nbjson, download_url=remote_url, msg="file from url: %s" % remote_url)
