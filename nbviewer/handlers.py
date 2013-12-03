@@ -280,10 +280,12 @@ class GistHandler(RenderingHandler):
                 new_url = new_url + "/" + filename
             self.redirect(new_url)
             return
+        
         files = gist['files']
-        if len(files) == 1:
+        if len(files) == 1 and not filename:
             filename = list(files.keys())[0]
-        if filename:
+        
+        if filename and filename in files:
             file = files[filename]
             nbjson = file['content']
             yield self.finish_notebook(nbjson, file['raw_url'],

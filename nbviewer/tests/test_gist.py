@@ -20,6 +20,11 @@ class GistTestCase(NBViewerTestCase):
         r = requests.get(url)
         self.assertEqual(r.status_code, 400)
 
+    def test_gist_no_such_file(self):
+        url = self.url('6689377/no/file.ipynb')
+        r = requests.get(url)
+        self.assertEqual(r.status_code, 404)
+
     def test_gist_list(self):
         url = self.url('7518294')
         r = requests.get(url)
