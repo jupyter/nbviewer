@@ -5,7 +5,9 @@
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
+import cgi
 import re
+
 try:
     from urllib.parse import quote as stdlib_quote
 except ImportError:
@@ -74,3 +76,31 @@ def transform_ipynb_uri(value):
         return u'/url/%s' % value[7:]
 
     return u'/url/%s' % value
+
+# get_encoding_from_headers from requests.utils (1.2.3)
+# (c) 2013 Kenneth Reitz
+# used under Apache 2.0
+
+def get_encoding_from_headers(headers):
+    """Returns encodings from given HTTP Header Dict.
+
+    :param headers: dictionary to extract encoding from.
+    """
+
+    content_type = headers.get('content-type')
+
+    if not content_type:
+        return None
+
+    content_type, params = cgi.parse_header(content_type)
+
+    if 'charset' in params:
+        return params['charset'].strip("'\"")
+
+    if 'text' in content_type:
+        return 'ISO-8859-1'
+
+def response_text(response):
+    """mimic requests.text property, but for plain HTTPResponse"""
+    encoding = get_encoding_from_headers(response.headers) or 'utf-8'
+    return response.body.decode(encoding, 'replace')

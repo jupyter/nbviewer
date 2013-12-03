@@ -20,7 +20,7 @@ from tornado.escape import utf8
 from tornado.log import app_log, access_log
 
 from .render import render_notebook, NbFormatError
-from .utils import transform_ipynb_uri, quote
+from .utils import transform_ipynb_uri, quote, response_text
 
 #-----------------------------------------------------------------------------
 # Handler classes
@@ -222,7 +222,7 @@ class URLHandler(RenderingHandler):
             raise web.HTTPError(e.code)
         
         try:
-            nbjson = response.body.decode('utf8')
+            nbjson = response_text(response)
         except UnicodeDecodeError:
             self.log.error("Notebook is not utf8: %s", remote_url, exc_info=True)
             raise web.HTTPError(400)
@@ -242,7 +242,7 @@ class UserGistsHandler(BaseHandler):
             response = yield self.github_client.get_gists(user)
         except httpclient.HTTPError as e:
             raise web.HTTPError(e.code)
-        gists = json.loads(response.body.decode('utf8'))
+        gists = json.loads(response_text(response))
         entries = []
         for gist in gists:
             notebooks = [f for f in gist['files'] if f.endswith('.ipynb')]
@@ -266,7 +266,7 @@ class GistHandler(RenderingHandler):
         except httpclient.HTTPError as e:
             raise web.HTTPError(e.code)
         
-        gist = json.loads(response.body.decode('utf8'))
+        gist = json.loads(response_text(response))
         gist_id=gist['id']
         if user is None:
             # redirect to /gist/user/gist_id if no user given
@@ -344,7 +344,7 @@ class GitHubUserHandler(BaseHandler):
         except httpclient.HTTPError as e:
             raise web.HTTPError(e.code)
         
-        repos = json.loads(response.body.decode('utf8'))
+        repos = json.loads(response_text(response))
         entries = []
         for repo in repos:
             entries.append(dict(
@@ -375,7 +375,7 @@ class GitHubTreeHandler(BaseHandler):
         except httpclient.HTTPError as e:
             raise web.HTTPError(e.code)
         
-        contents = json.loads(response.body.decode('utf8'))
+        contents = json.loads(response_text(response))
         if not isinstance(contents, list):
             app_log.info("{user}/{repo}/{ref}/{path} not tree, redirecting to blob",
                 extra=dict(user=user, repo=repo, ref=ref, path=path)
@@ -452,7 +452,7 @@ class GitHubBlobHandler(RenderingHandler):
         
         if path.endswith('.ipynb'):
             try:
-                nbjson = filedata.decode('utf8')
+                nbjson = response_text(response)
             except Exception as e:
                 app_log.error("Failed to decode notebook: %s", raw_url, exc_info=True)
                 raise web.HTTPError(400)
