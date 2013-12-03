@@ -6,6 +6,7 @@
 #-----------------------------------------------------------------------------
 
 import os
+import zlib
 
 from concurrent.futures import ThreadPoolExecutor
 from tornado.concurrent import Future
@@ -87,7 +88,7 @@ class AsyncMultipartMemcache(AsyncMemcache):
     """
     def __init__(self, *args, **kwargs):
         self.chunk_size = kwargs.pop('chunk_size', 950000)
-        self.max_chunks = kwargs.pop('max_chunks', 64)
+        self.max_chunks = kwargs.pop('max_chunks', 16)
         super(AsyncMultipartMemcache, self).__init__(*args, **kwargs)
     
     def _threadsafe_get(self, key, *args, **kwargs):
@@ -101,18 +102,23 @@ class AsyncMultipartMemcache(AsyncMemcache):
                 break
             parts.append(values[key])
         if parts:
-            return b''.join(parts)
+            compressed = b''.join(parts)
+            try:
+                return zlib.decompress(compressed)
+            except zlib.error as e:
+                app_log.error("zlib decompression of %s failed: %s", key, e)
     
     def _threadsafe_set(self, key, value, *args, **kwargs):
         app_log.debug("memcache set %s", key)
         chunk_size = self.chunk_size
-        offsets = range(0, len(value), chunk_size)
+        compressed = zlib.compress(value)
+        offsets = range(0, len(compressed), chunk_size)
         app_log.debug('storing %s in %i chunks', key, len(offsets))
         if len(offsets) > self.max_chunks:
-            raise ValueError("file is too large: %s" % len(value))
+            raise ValueError("file is too large: %sB" % len(compressed))
         values = {}
         for idx, offset in enumerate(offsets):
-            values[b'%s.%i' % (key, idx)] = value[offset:offset+chunk_size]
+            values[b'%s.%i' % (key, idx)] = compressed[offset:offset+chunk_size]
         with self.mc_pool.reserve() as mc:
             return mc.set_multi(values, *args, **kwargs)
 
