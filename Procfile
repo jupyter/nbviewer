@@ -1,1 +1,1 @@
-web: newrelic-admin run-program python -m nbviewer --port=$PORT --threads=4 --mc-threads=4
+web: newrelic-admin run-program python -m nbviewer --port=$PORT --threads=11 --mc-threads=11
