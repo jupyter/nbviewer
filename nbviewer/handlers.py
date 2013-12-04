@@ -20,6 +20,7 @@ except ImportError:
 
 from tornado import web, gen, httpclient
 from tornado.escape import utf8
+from tornado.httputil import url_concat
 from tornado.log import app_log, access_log
 
 from .render import render_notebook, NbFormatError
@@ -185,7 +186,7 @@ class BaseHandler(web.RequestHandler):
             self.cache_expiry_min,
         )
         refer_url = self.request.headers.get('Referer', '').split('://')[-1]
-        if refer_url == self.request.host + '/':
+        if refer_url == self.request.host + '/' and not self.get_argument('create', ''):
             # if it's a link from the front page, cache for a long time
             expiry = self.cache_expiry_max
         
@@ -285,8 +286,8 @@ class CreateHandler(BaseHandler):
     def post(self):
         value = self.get_argument('gistnorurl', '')
         redirect_url = transform_ipynb_uri(value)
-        self.redirect(redirect_url)
-        return
+        app_log.info("create %s => %s", value, redirect_url)
+        self.redirect(url_concat(redirect_url, {'create': 1}))
 
 
 class URLHandler(RenderingHandler):
