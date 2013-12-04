@@ -273,8 +273,8 @@ class RenderingHandler(BaseHandler):
         html = self.render_template('slow_notebook.html')
         self.finish(html)
         
-        # short circuit write / finish because the rest of the rendering will still happen
-        self.write = self.finish = lambda chunk=None: None
+        # short circuit some methods because the rest of the rendering will still happen
+        self.write = self.finish = self.redirect = lambda chunk=None: None
     
     
     @gen.coroutine
