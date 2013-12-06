@@ -112,3 +112,12 @@ class GitHubTestCase(NBViewerTestCase):
         # verify redirect
         self.assertIn('/github/ipython/ipython/blob/master', r.request.url)
         self.assertIn('global-exclude', r.text)
+
+    def test_github_blob_redirect(self):
+        url = self.url("github/ipython/ipython/blob/master/IPython")
+        r = requests.get(url)
+        self.assertEqual(r.status_code, 200)
+        # verify redirect
+        self.assertIn('/github/ipython/ipython/tree/master/IPython', r.request.url)
+        self.assertIn('__init__.py', r.text)
+

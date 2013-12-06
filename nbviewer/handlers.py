@@ -434,6 +434,7 @@ class GitHubBlobHandler(RenderingHandler):
     
     - notebook, render it
     - non-notebook file, serve file unmodified
+    - directory, redirect to tree
     """
     @cached
     @gen.coroutine
@@ -449,6 +450,16 @@ class GitHubBlobHandler(RenderingHandler):
             response = yield self.client.fetch(raw_url)
         except httpclient.HTTPError as e:
             raise web.HTTPError(e.code)
+        
+        if response.effective_url.startswith("https://github.com/{user}/{repo}/tree".format(
+            user=user, repo=repo
+        )):
+            tree_url = "/github/{user}/{repo}/tree/{ref}/{path}/".format(
+                user=user, repo=repo, ref=ref, path=quote(path),
+            )
+            app_log.info("%s is a directory, redirecting to %s", raw_url, tree_url)
+            self.redirect(tree_url)
+            return
         
         filedata = response.body
         
