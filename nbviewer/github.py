@@ -43,8 +43,7 @@ class AsyncGitHubClient(object):
         url = url_path_join(self.github_api_url, path)
         
         params = {} if params is None else params
-        headers = kwargs.setdefault('headers', {})
-        headers.setdefault('User-Agent', 'Tornado-Async-GitHub-Client')
+        kwargs.setdefault('user_agent', 'Tornado-Async-GitHub-Client')
         if self.auth:
             params.update(self.auth)
         url = url_concat(url, params)
