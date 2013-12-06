@@ -1,17 +1,10 @@
-{% extends "layout.html" %}
-{% block body %}
-
-<header class="jumbotron masthead">
-  <div class="inner">
-    <h1>404 : Not found ! </h1>
-    <p>You are requesting a page that does not exist!</p>
-    <p class="marketing-byline">Either in this server, or the remote url. Please check again later...</p>
-  </div>
-
-  </header>
-
-
-<hr class="soften">
-
+{% extends "error.html" %}
+{% block error_detail %}
+<p>You are requesting a page that does not exist!</p>
+{% if '404' in message %}
+<p class="marketing-byline">The remote resource was not found.</p>
+{% elif message %}
+<p class="marketing-byline">{{message}}</p>
+{% endif %}
 {% endblock %}
 

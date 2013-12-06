@@ -3,12 +3,12 @@
 
 <header class="jumbotron masthead">
   <div class="inner">
-    <h1>Error {{status_code}} : {{status_message}} </h1>
+    {% block h1_error %}
+    <h1>{{status_code}} : {{status_message}}</h1>
+    {% endblock h1_error %}
+    {% block error_detail %}
+    {% endblock %}
   </div>
-
-  </header>
-
-
-<hr class="soften">
+</header>
 
 {% endblock %}
