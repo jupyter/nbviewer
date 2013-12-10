@@ -1,7 +1,7 @@
 #!/bin/sh
 heroku create $1
 heroku addons:add memcachier:dev --app $1
-heroku addons:add newrelic:standard --app $1
+heroku addons:add newrelic:wayne --app $1
 heroku git:remote -r $1 --app $1
 heroku config:set LIBRARY_PATH=/app/.heroku/vendor/lib  --app $1
 heroku config:set LD_LIBRARY_PATH=/app/.heroku/vendor/lib  --app $1
