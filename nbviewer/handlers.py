@@ -556,10 +556,8 @@ class GitHubBlobHandler(RenderingHandler):
         blob_url = u"https://github.com/{user}/{repo}/blob/{ref}/{path}".format(
             user=user, repo=repo, ref=ref, path=quote(path),
         )
-        try:
+        with self.catch_client_error():
             response = yield self.client.fetch(raw_url)
-        except httpclient.HTTPError as e:
-            raise web.HTTPError(e.code)
         
         if response.effective_url.startswith("https://github.com/{user}/{repo}/tree".format(
             user=user, repo=repo
