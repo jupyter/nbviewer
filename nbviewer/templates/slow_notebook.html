@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+{% block body %}
+<header class="jumbotron masthead">
+  <div class="inner">
+      <h1>Working...</h1>
+      <p>This notebook is taking a long time to render.</p>
+      <p>Please wait, the page will reload in a few seconds.</p>
+  </div>
+</header>
+
+<script type="text/javascript">
+setTimeout(function(){ location.reload(true); }, 5000);
+</script>
+{% endblock %}
