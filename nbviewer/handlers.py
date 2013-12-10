@@ -516,6 +516,9 @@ class GitHubTreeHandler(BaseHandler):
                 })
         
         entries = []
+        dirs = []
+        ipynbs = []
+        others = []
         for file in contents:
             e = {}
             e['name'] = file['name']
@@ -524,15 +527,20 @@ class GitHubTreeHandler(BaseHandler):
                 user=user, repo=repo, ref=ref, path=file['path']
                 )
                 e['class'] = 'icon-folder-open'
+                dirs.append(e)
             elif file['name'].endswith('.ipynb'):
                 e['url'] = u'/github/{user}/{repo}/blob/{ref}/{path}'.format(
                 user=user, repo=repo, ref=ref, path=file['path']
                 )
                 e['class'] = 'icon-book'
+                ipynbs.append(e)
             else:
                 e['url'] = file['html_url']
                 e['class'] = 'icon-share'
-            entries.append(e)
+                others.append(e)
+        entries.extend(dirs)
+        entries.extend(ipynbs)
+        entries.extend(others)
         # print path, path_list
         html = self.render_template("treelist.html", entries=entries, path_list=path_list)
         yield self.cache_and_finish(html)
