@@ -20,6 +20,7 @@ except ImportError:
 
 from tornado import web, gen, httpclient
 from tornado.escape import utf8
+from tornado.httputil import url_concat
 from tornado.log import app_log, access_log
 
 from .render import render_notebook, NbFormatError
@@ -49,8 +50,12 @@ class BaseHandler(web.RequestHandler):
         return self.settings['cache']
     
     @property
-    def cache_expiry(self):
-        return self.settings.get('cache_expiry', 60)
+    def cache_expiry_min(self):
+        return self.settings.setdefault('cache_expiry_min', 60)
+    
+    @property
+    def cache_expiry_max(self):
+        return self.settings.setdefault('cache_expiry_max', 120)
     
     @property
     def pool(self):
@@ -107,6 +112,17 @@ class BaseHandler(web.RequestHandler):
         except socket.error as e:
             raise web.HTTPError(404, str(e))
         
+    @contextmanager
+    def time_block(self, message):
+        """context manager for timing a block
+        
+        logs millisecond timings of the block
+        """
+        tic = time.time()
+        yield
+        toc = time.time()
+        app_log.info("%s in %.2f ms", message, 1e3*(toc-tic))
+        
     def get_error_html(self, status_code, **kwargs):
         """render custom error pages"""
         exception = kwargs.get('exception')
@@ -161,13 +177,29 @@ class BaseHandler(web.RequestHandler):
         
         burl = utf8(self.request.uri)
         bcontent = utf8(content)
+        request_time = self.request.request_time()
+        # set cache expiry to 120x request time
+        # bounded by cache_expiry_min,max
+        # a 30 second render will be cached for an hour
+        expiry = max(
+            min(120 * request_time, self.cache_expiry_max),
+            self.cache_expiry_min,
+        )
+        refer_url = self.request.headers.get('Referer', '').split('://')[-1]
+        if refer_url == self.request.host + '/' and not self.get_argument('create', ''):
+            # if it's a link from the front page, cache for a long time
+            expiry = self.cache_expiry_max
         
+        app_log.info("caching (expiry=%is) %s", expiry, self.request.uri)
         try:
-            yield self.cache.set(
-                burl, bcontent, int(time.time() + self.cache_expiry),
-            )
+            with self.time_block("cache set %s" % burl):
+                yield self.cache.set(
+                    burl, bcontent, int(time.time() + expiry),
+                )
         except Exception:
             app_log.error("cache set for %s failed", burl, exc_info=True)
+        else:
+            app_log.debug("cache set finished %s", burl)
 
 
 class Custom404(BaseHandler):
@@ -197,9 +229,10 @@ def cached(method):
     @gen.coroutine
     def cached_method(self, *args, **kwargs):
         try:
-            cached_response = yield self.cache.get(self.request.uri)
+            with self.time_block("cache get %s" % self.request.uri):
+                cached_response = yield self.cache.get(self.request.uri)
         except Exception as e:
-            app_log.error("exception getting %s from cache", self.request.uri)
+            app_log.error("exception getting %s from cache", self.request.uri, exc_info=True)
             cached_response = None
         
         if cached_response is not None:
@@ -226,12 +259,16 @@ class RenderingHandler(BaseHandler):
         if msg is None:
             msg = download_url
         try:
-            nbhtml, config = yield self.pool.submit(
-                render_notebook, self.exporter, nbjson, download_url,
-            )
+            app_log.debug("Requesting render of %s", download_url)
+            with self.time_block("Rendered %s" % download_url):
+                nbhtml, config = yield self.pool.submit(
+                    render_notebook, self.exporter, nbjson, download_url,
+                )
         except NbFormatError as e:
             app_log.error("Failed to render %s", msg, exc_info=True)
             raise web.HTTPError(400, str(e))
+        else:
+            app_log.debug("Finished render of %s", download_url)
         
         html = self.render_template('notebook.html',
             body=nbhtml,
@@ -249,8 +286,8 @@ class CreateHandler(BaseHandler):
     def post(self):
         value = self.get_argument('gistnorurl', '')
         redirect_url = transform_ipynb_uri(value)
-        self.redirect(redirect_url)
-        return
+        app_log.info("create %s => %s", value, redirect_url)
+        self.redirect(url_concat(redirect_url, {'create': 1}))
 
 
 class URLHandler(RenderingHandler):
@@ -270,7 +307,6 @@ class URLHandler(RenderingHandler):
                 self.redirect(remote_url)
                 return
         
-        app_log.info("Fetching %s", remote_url)
         with self.catch_client_error():
             response = yield self.client.fetch(remote_url)
         
@@ -491,7 +527,6 @@ class GitHubBlobHandler(RenderingHandler):
         blob_url = u"https://github.com/{user}/{repo}/blob/{ref}/{path}".format(
             user=user, repo=repo, ref=ref, path=quote(path),
         )
-        app_log.info("fetching %s", raw_url)
         try:
             response = yield self.client.fetch(raw_url)
         except httpclient.HTTPError as e:
