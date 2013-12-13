@@ -7,6 +7,7 @@
 
 import os
 
+import json
 import logging
 from concurrent.futures import ThreadPoolExecutor
 
@@ -33,6 +34,8 @@ from .github import AsyncGitHubClient
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
+access_log = log.access_log
+app_log = log.app_log
 
 here = os.path.dirname(__file__)
 pjoin = os.path.join
@@ -50,6 +53,40 @@ def nrfoot():
     except ImportError:
         return ''
     return newrelic.agent.get_browser_timing_footer()
+
+def log_request(handler):
+    status = handler.get_status()
+    request = handler.request
+    if status < 300 or status == 304 and isinstance(handler, web.StaticFileHandler):
+        # static-file get successes (or 304 FOUND) are debug-level
+        log_method = access_log.debug
+    elif status < 400:
+        log_method = access_log.info
+    elif status < 500:
+        log_method = access_log.warning
+    else:
+        log_method = access_log.error
+    
+    request_time = 1000.0 * handler.request.request_time()
+    ns = dict(
+        status=status,
+        method=request.method,
+        ip=request.remote_ip,
+        uri=request.uri,
+        request_time=request_time,
+    )
+    msg = "{status} {method} {uri} ({ip}) {request_time:.2f}ms"
+    if status >= 300:
+        # log referers on redirects
+        ns['referer'] = request.headers.get('Referer', 'unknown')
+        msg = msg + ' referer={referer}'
+    if status >= 400:
+        # log user agent for failed requests
+        ns['agent'] = request.headers.get('User-Agent', 'unknown')
+        msg = msg + ' user-agent={agent}'
+        # log all headers for failed requests (temporary)
+        log_method(json.dumps(request.headers, indent=2))
+    log_method(msg.format(**ns))
 
 def main():
     # command-line options
@@ -112,6 +149,7 @@ def main():
     github_client.authenticate()
     
     settings = dict(
+        log_function=log_request,
         jinja2_env=env,
         static_path=static_path,
         client=client,
