@@ -9,6 +9,7 @@ import os
 
 import json
 import logging
+from cgi import escape
 from concurrent.futures import ThreadPoolExecutor
 
 from tornado import web, httpserver, ioloop, log
@@ -30,6 +31,7 @@ try:
 except ImportError:
     from .client import LoggingSimpleAsyncHTTPClient as HTTPClientClass
 from .github import AsyncGitHubClient
+from .utils import git_info
 
 #-----------------------------------------------------------------------------
 # Code
@@ -142,7 +144,14 @@ def main():
     static_path = pjoin(here, 'static')
     env = Environment(loader=FileSystemLoader(template_path))
     env.filters['markdown'] = markdown2html
-    env.globals.update(nrhead=nrhead, nrfoot=nrfoot)
+    try:
+        git_data = git_info(here)
+    except Exception as e:
+        app_log.error("Failed to get git info: %s", e)
+        git_data = {}
+    else:
+        git_data['msg'] = escape(git_data['msg'])
+    env.globals.update(nrhead=nrhead, nrfoot=nrfoot, git_data=git_data)
     AsyncHTTPClient.configure(HTTPClientClass)
     client = AsyncHTTPClient()
     github_client = AsyncGitHubClient(client)

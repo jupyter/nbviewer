@@ -84,6 +84,13 @@
       Some icons from <a href="http://glyphicons.com">Glyphicons Free</a>, built thanks to <a href="http://twitter.github.com/bootstrap/"> Twitter Bootstrap</a></p>
       <p>This web site does not host notebooks, it only renders notebooks available on other websites.
       Thanks to all our <a href="https://github.com/ipython/nbviewer/contributors">contributors</a>.</p>
+      {% if git_data %}
+      <p class="text-muted">
+          nbviewer version:
+          <a href="https://github.com/ipython/nbviewer/{{git_data['sha']}}">{{git_data['sha'][:7]}}</a>
+          ({{git_data['date']}})
+      </p>
+      {% endif %}
       </footer>
     </div><!-- /container -->
 
