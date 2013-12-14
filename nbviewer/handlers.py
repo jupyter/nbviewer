@@ -23,6 +23,13 @@ from tornado.escape import utf8
 from tornado.httputil import url_concat
 from tornado.ioloop import IOLoop
 from tornado.log import app_log, access_log
+try:
+    import pycurl
+    from tornado.curl_httpclient import CurlError
+except ImportError:
+    pycurl = None
+    class CurlError(Exception): pass
+
 
 from .render import render_notebook, NbFormatError
 from .utils import transform_ipynb_uri, quote, response_text
@@ -90,15 +97,28 @@ class BaseHandler(web.RequestHandler):
         except AttributeError:
             url = 'url'
         app_log.warn("Fetching %s failed with %s", url, exc)
+        if exc.code == 599:
+            str_exc = str(exc)
+            # strip the unhelpful 599 prefix
+            if str_exc.startswith('HTTP 599: '):
+                str_exc = str_exc[10:]
+            if isinstance(exc, CurlError):
+                en = getattr(exc, 'errno', -1)
+                # can't connect to server should be 404
+                # possibly more here
+                if en in (pycurl.E_COULDNT_CONNECT, pycurl.E_COULDNT_RESOLVE_HOST):
+                    raise web.HTTPError(404, str_exc)
+            # otherwise, raise 400 with informative message:
+            raise web.HTTPError(400, str_exc)
         if exc.code >= 500:
-            # 5XX, server error
+            # 5XX, server error, but not this server
             raise web.HTTPError(502, str(exc))
         else:
             if exc.code == 404:
                 raise web.HTTPError(404, "Remote %s" % exc)
             else:
-                # client-side error, but we are the client
-                raise web.HTTPError(500, str(exc))
+                # client-side error, blame our client
+                raise web.HTTPError(400, str(exc))
     
     @contextmanager
     def catch_client_error(self):
@@ -112,7 +132,7 @@ class BaseHandler(web.RequestHandler):
             self.reraise_client_error(e)
         except socket.error as e:
             raise web.HTTPError(404, str(e))
-        
+    
     @contextmanager
     def time_block(self, message):
         """context manager for timing a block
