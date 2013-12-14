@@ -29,16 +29,11 @@ def log_request(handler):
     else:
         log_method = access_log.error
     
-    # If behind a proxy, get the true requester's address
-    if 'X-Forwarded-For' in request.headers:
-        remote_ip = request.headers['X-Forwarded-For'].split(',')[0].strip()
-    else:
-        remote_ip = request.remote_ip
     request_time = 1000.0 * handler.request.request_time()
     ns = dict(
         status=status,
         method=request.method,
-        ip=remote_ip,
+        ip=request.remote_ip,
         uri=request.uri,
         request_time=request_time,
     )

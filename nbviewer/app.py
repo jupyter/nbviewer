@@ -139,7 +139,7 @@ def main():
     
     # create and start the app
     app = web.Application(handlers, debug=options.debug, **settings)
-    http_server = httpserver.HTTPServer(app)
+    http_server = httpserver.HTTPServer(app, xheaders=True)
     log.app_log.info("Listening on port %i", options.port)
     http_server.listen(options.port)
     ioloop.IOLoop.instance().start()
