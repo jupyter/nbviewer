@@ -57,6 +57,13 @@ def nrfoot():
     return newrelic.agent.get_browser_timing_footer()
 
 def log_request(handler):
+    """log a bit more information about each request than tornado's default
+    
+    - move static file get success to debug-level (reduces noise)
+    - get proxied IP instead of proxy IP
+    - log referer for redirect and failed requests
+    - log user-agent for failed requests
+    """
     status = handler.get_status()
     request = handler.request
     if status < 300 or status == 304 and isinstance(handler, web.StaticFileHandler):
@@ -69,18 +76,23 @@ def log_request(handler):
     else:
         log_method = access_log.error
     
+    # If behind a proxy, get the true requester's address
+    if 'X-Forwarded-For' in request.headers:
+        remote_ip = request.headers['X-Forwarded-For'].split(',')[0].strip()
+    else:
+        remote_ip = request.remote_ip
     request_time = 1000.0 * handler.request.request_time()
     ns = dict(
         status=status,
         method=request.method,
-        ip=request.remote_ip,
+        ip=remote_ip,
         uri=request.uri,
         request_time=request_time,
     )
     msg = "{status} {method} {uri} ({ip}) {request_time:.2f}ms"
     if status >= 300:
         # log referers on redirects
-        ns['referer'] = request.headers.get('Referer', 'unknown')
+        ns['referer'] = request.headers.get('Referer', '')
         msg = msg + ' referer={referer}'
     if status >= 400:
         # log user agent for failed requests
