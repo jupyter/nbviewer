@@ -6,6 +6,7 @@
 #-----------------------------------------------------------------------------
 
 import base64
+import hashlib
 import json
 import socket
 import time
@@ -181,6 +182,23 @@ class BaseHandler(web.RequestHandler):
     # response caching
     #---------------------------------------------------------------
     
+    _cache_key = None
+    @property
+    def cache_key(self):
+        """Use checksum of uri, not uri itself, in the cache
+        
+        cache has size limit on keys
+        """
+        if self._cache_key is None:
+            self._cache_key = hashlib.sha1(utf8(self.request.uri)).hexdigest()
+        return self._cache_key
+    
+    def truncate(self, s, limit=256):
+        """Truncate long strings"""
+        if len(s) > limit:
+            s = "%s...%s" % (s[:limit/2], s[limit/2:])
+        return s
+    
     @gen.coroutine
     def cache_and_finish(self, content=''):
         """finish a request and cache the result
@@ -195,8 +213,7 @@ class BaseHandler(web.RequestHandler):
         - custom headers are not used
         """
         self.write(content)
-        
-        burl = utf8(self.request.uri)
+        short_url = self.truncate(self.request.uri)
         bcontent = utf8(content)
         request_time = self.request.request_time()
         # set cache expiry to 120x request time
@@ -211,16 +228,16 @@ class BaseHandler(web.RequestHandler):
             # if it's a link from the front page, cache for a long time
             expiry = self.cache_expiry_max
         
-        app_log.info("caching (expiry=%is) %s", expiry, self.request.uri)
+        app_log.info("caching (expiry=%is) %s", expiry, short_url)
         try:
-            with self.time_block("cache set %s" % burl):
+            with self.time_block("cache set %s" % self.short_url):
                 yield self.cache.set(
-                    burl, bcontent, int(time.time() + expiry),
+                    self.cache_key, bcontent, int(time.time() + expiry),
                 )
         except Exception:
-            app_log.error("cache set for %s failed", burl, exc_info=True)
+            app_log.error("cache set for %s failed", short_url, exc_info=True)
         else:
-            app_log.debug("cache set finished %s", burl)
+            app_log.debug("cache set finished %s", short_url)
 
 
 class Custom404(BaseHandler):
@@ -249,18 +266,19 @@ def cached(method):
     """
     @gen.coroutine
     def cached_method(self, *args, **kwargs):
+        short_url = self.truncate(self.request.uri)
         try:
-            with self.time_block("cache get %s" % self.request.uri):
-                cached_response = yield self.cache.get(self.request.uri)
+            with self.time_block("cache get %s" % short_url):
+                cached_response = yield self.cache.get(self.cache_key)
         except Exception as e:
-            app_log.error("exception getting %s from cache", self.request.uri, exc_info=True)
+            app_log.error("Exception getting %s from cache", short_url, exc_info=True)
             cached_response = None
         
         if cached_response is not None:
-            app_log.debug("cache hit %s", self.request.uri)
+            app_log.debug("cache hit %s", short_url)
             self.write(cached_response)
         else:
-            app_log.debug("cache miss %s", self.request.uri)
+            app_log.debug("cache miss %s", short_url)
             # call the wrapped method
             yield method(self, *args, **kwargs)
     
@@ -647,6 +665,9 @@ handlers = [
     ('/index.html', IndexHandler),
     (r'/faq/?', FAQHandler),
     (r'/create/?', CreateHandler),
+    
+    # don't let super old browsers request data-uris
+    (r'.*/data:.*;base64,.*', Custom404),
     
     (r'/url[s]?/github\.com/([^\/]+)/([^\/]+)/(tree|blob|raw)/([^\/]+)/(.*)', GitHubRedirectHandler),
     (r'/url[s]?/raw\.?github\.com/([^\/]+)/([^\/]+)/(.*)', RawGitHubURLHandler),
