@@ -8,6 +8,7 @@
 import os
 
 import logging
+from cgi import escape
 from concurrent.futures import ThreadPoolExecutor
 
 from tornado import web, httpserver, ioloop, log
@@ -29,10 +30,14 @@ try:
 except ImportError:
     from .client import LoggingSimpleAsyncHTTPClient as HTTPClientClass
 from .github import AsyncGitHubClient
+from .log import log_request
+from .utils import git_info
 
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
+access_log = log.access_log
+app_log = log.app_log
 
 here = os.path.dirname(__file__)
 pjoin = os.path.join
@@ -105,13 +110,21 @@ def main():
     static_path = pjoin(here, 'static')
     env = Environment(loader=FileSystemLoader(template_path))
     env.filters['markdown'] = markdown2html
-    env.globals.update(nrhead=nrhead, nrfoot=nrfoot)
+    try:
+        git_data = git_info(here)
+    except Exception as e:
+        app_log.error("Failed to get git info: %s", e)
+        git_data = {}
+    else:
+        git_data['msg'] = escape(git_data['msg'])
+    env.globals.update(nrhead=nrhead, nrfoot=nrfoot, git_data=git_data)
     AsyncHTTPClient.configure(HTTPClientClass)
     client = AsyncHTTPClient()
     github_client = AsyncGitHubClient(client)
     github_client.authenticate()
     
     settings = dict(
+        log_function=log_request,
         jinja2_env=env,
         static_path=static_path,
         client=client,
@@ -126,7 +139,7 @@ def main():
     
     # create and start the app
     app = web.Application(handlers, debug=options.debug, **settings)
-    http_server = httpserver.HTTPServer(app)
+    http_server = httpserver.HTTPServer(app, xheaders=True)
     log.app_log.info("Listening on port %i", options.port)
     http_server.listen(options.port)
     ioloop.IOLoop.instance().start()

@@ -7,6 +7,7 @@
 
 import cgi
 import re
+from subprocess import check_output
 
 try:
     from urllib.parse import quote as stdlib_quote
@@ -104,3 +105,14 @@ def response_text(response):
     """mimic requests.text property, but for plain HTTPResponse"""
     encoding = get_encoding_from_headers(response.headers) or 'utf-8'
     return response.body.decode(encoding, 'replace')
+
+def git_info(path):
+    """Return some git info"""
+    command = ['git', 'log', '-1', '--format=%H\n%s\n%aD']
+    sha, msg, date = check_output(command, cwd=path).decode('utf8').splitlines()
+    return dict(
+        sha=sha,
+        date=date,
+        msg=msg,
+    )
+    
