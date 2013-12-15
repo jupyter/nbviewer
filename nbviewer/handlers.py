@@ -230,7 +230,7 @@ class BaseHandler(web.RequestHandler):
         
         app_log.info("caching (expiry=%is) %s", expiry, short_url)
         try:
-            with self.time_block("cache set %s" % self.short_url):
+            with self.time_block("cache set %s" % short_url):
                 yield self.cache.set(
                     self.cache_key, bcontent, int(time.time() + expiry),
                 )
