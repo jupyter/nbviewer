@@ -414,7 +414,7 @@ class GistHandler(RenderingHandler):
             for filename, file in files.items():
                 entries.append(dict(
                     path=filename,
-                    url='/%s/%s' % (gist_id, filename),
+                    url=quote('/%s/%s' % (gist_id, filename)),
                 ))
             html = self.render_template('gistlist.html', entries=entries)
             yield self.cache_and_finish(html)
