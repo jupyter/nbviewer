@@ -434,7 +434,7 @@ class GistHandler(RenderingHandler):
             for filename, file in files.items():
                 entries.append(dict(
                     path=filename,
-                    url='/%s/%s' % (gist_id, filename),
+                    url=quote('/%s/%s' % (gist_id, filename)),
                 ))
             html = self.render_template('gistlist.html', entries=entries)
             yield self.cache_and_finish(html)
@@ -558,10 +558,12 @@ class GitHubTreeHandler(BaseHandler):
                 e['url'] = file['html_url']
                 e['class'] = 'icon-share'
                 others.append(e)
+            e['url'] = quote(e['url'])
         entries.extend(dirs)
         entries.extend(ipynbs)
         entries.extend(others)
         # print path, path_list
+
         html = self.render_template("treelist.html", entries=entries, path_list=path_list)
         yield self.cache_and_finish(html)
     
