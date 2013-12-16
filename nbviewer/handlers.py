@@ -332,6 +332,9 @@ class RenderingHandler(BaseHandler):
                     render_notebook, self.exporter, nbjson, download_url,
                 )
         except NbFormatError as e:
+            app_log.error("Invalid notebook %s: %s", msg, e)
+            raise web.HTTPError(400, str(e))
+        except Exception as e:
             app_log.error("Failed to render %s", msg, exc_info=True)
             raise web.HTTPError(400, str(e))
         else:
