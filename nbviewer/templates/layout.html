@@ -65,8 +65,15 @@
               {% endif %}
 
             </ul>
+            <ul class="nav pull-right"> 
+              {% if github_url %}
+              <li>
+                  <a href="{{github_url}}">View on GitHub</a>
+              </li>
+              {% endif %}
               {% block otherlinks %}
               {% endblock %}
+            </ul>
           </div>
         </div>
       </div>

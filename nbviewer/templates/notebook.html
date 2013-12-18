@@ -1,16 +1,14 @@
 {% extends "layout.html" %}
 
     {% block otherlinks %}
-    <ul class="nav pull-right"> 
-        {% if home_url %}
-        <li class="{{index}}">
-            <a href="{{home_url}}">Notebook Home</a>
-        </li>
-        {% endif %}
-        <li class="{{index}}">
-            <a href="{{download_url}}" download="{{download_name}}">Download Notebook</a>
-        </li>
-    </ul>
+      {% if home_url %}
+      <li class="{{index}}">
+          <a href="{{home_url}}">Notebook Home</a>
+      </li>
+      {% endif %}
+      <li class="{{index}}">
+          <a href="{{download_url}}" download="{{download_name}}">Download Notebook</a>
+      </li>
     {% endblock %}
 
     {% block extra_head %}
