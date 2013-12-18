@@ -16,7 +16,15 @@
                     {% endif %}
                     </a></td></tr>
                 {% for entry in entries %}
-                    <tr><td><i class='{{entry.class}}'></i> <a href='{{entry.url}}'>{{entry.name}}</a></td></tr>
+                  <tr><td><i class='{{entry.class}}'></i>
+                  {% if entry.url %}
+                    <a href='{{entry.url}}'>
+                  {% endif %}
+                      {{entry.name}}
+                  {% if entry.url %}
+                    </a>
+                  {% endif %}
+                  </td></tr>
                 {% endfor %}
             </tbody>
         </table>

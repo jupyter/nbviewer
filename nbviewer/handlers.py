@@ -575,15 +575,20 @@ class GitHubTreeHandler(BaseHandler):
                 )
                 e['class'] = 'icon-book'
                 ipynbs.append(e)
-            else:
+            elif file['html_url']:
                 e['url'] = file['html_url']
                 e['class'] = 'icon-share'
                 others.append(e)
+            else:
+                # submodules don't have html_url
+                e['url'] = ''
+                e['class'] = 'icon-folder-close'
+                others.append(e)
             e['url'] = quote(e['url'])
+        
         entries.extend(dirs)
         entries.extend(ipynbs)
         entries.extend(others)
-        # print path, path_list
 
         html = self.render_template("treelist.html", entries=entries, path_list=path_list)
         yield self.cache_and_finish(html)
