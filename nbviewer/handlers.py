@@ -410,7 +410,10 @@ class UserGistsHandler(BaseHandler):
                     notebooks=notebooks,
                     description=gist['description'] or '',
                 ))
-        html = self.render_template("usergists.html", entries=entries, user=user)
+        github_url = u"https://gist.github.com/{user}".format(user=user)
+        html = self.render_template("usergists.html",
+            entries=entries, user=user, github_url=github_url,
+        )
         yield self.cache_and_finish(html)
 
 
@@ -437,6 +440,7 @@ class GistHandler(RenderingHandler):
             self.redirect(new_url)
             return
         
+        github_url = gist['html_url']
         files = gist['files']
         if len(files) == 1 and not filename:
             filename = list(files.keys())[0]
@@ -457,7 +461,9 @@ class GistHandler(RenderingHandler):
                     path=filename,
                     url=quote('/%s/%s' % (gist_id, filename)),
                 ))
-            html = self.render_template('gistlist.html', entries=entries)
+            html = self.render_template('gistlist.html',
+                entries=entries, github_url=gist['html_url'],
+            )
             yield self.cache_and_finish(html)
 
 
@@ -507,7 +513,10 @@ class GitHubUserHandler(BaseHandler):
                 url=repo['name'],
                 name=repo['name'],
             ))
-        html = self.render_template("userview.html", entries=entries)
+        github_url = u"https://github.com/{user}".format(user=user)
+        html = self.render_template("userview.html",
+            entries=entries, github_url=github_url,
+        )
         yield self.cache_and_finish(html)
 
 
@@ -544,6 +553,10 @@ class GitHubTreeHandler(BaseHandler):
         base_url = u"/github/{user}/{repo}/tree/{ref}".format(
             user=user, repo=repo, ref=ref,
         )
+        github_url = u"https://github.com/{user}/{repo}/tree/{ref}/{path}".format(
+            user=user, repo=repo, ref=ref, path=path,
+        )
+
         path_list = [{
             'url' : base_url,
             'name' : repo,
@@ -590,7 +603,9 @@ class GitHubTreeHandler(BaseHandler):
         entries.extend(ipynbs)
         entries.extend(others)
 
-        html = self.render_template("treelist.html", entries=entries, path_list=path_list)
+        html = self.render_template("treelist.html",
+            entries=entries, path_list=path_list, github_url=github_url,
+        )
         yield self.cache_and_finish(html)
     
 
