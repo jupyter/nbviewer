@@ -125,6 +125,9 @@
     .rendered_html p {
       text-align: inherit;
     }
+    .container {
+      height: inherit;
+    }
     </style>
 
     <style type="text/css" media='screen and (min-width:980px)'>
@@ -187,6 +190,9 @@
     
     theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
     transition: Reveal.getQueryHash().transition || 'linear', // default/cube/page/concave/zoom/linear/none
+
+    minScale: 1,
+    maxScale: 1,
     
     // Optional libraries used to extend on reveal.js
     dependencies: [
