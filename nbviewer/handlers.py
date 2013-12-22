@@ -250,12 +250,12 @@ class Custom404(BaseHandler):
 this_dir, this_filename = os.path.split(__file__)
 DATA_PATH = os.path.join(this_dir , "frontpage.json")
 with io.open(DATA_PATH, 'r') as datafile:
-    links = json.load(datafile)
+    sections = json.load(datafile)
 
 class IndexHandler(BaseHandler):
     """Render the index"""
     def get(self):
-        self.finish(self.render_template('index.html',links=links))
+        self.finish(self.render_template('index.html',sections=sections))
 
 
 class FAQHandler(BaseHandler):
