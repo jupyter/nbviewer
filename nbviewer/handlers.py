@@ -245,11 +245,19 @@ class Custom404(BaseHandler):
     def prepare(self):
         raise web.HTTPError(404)
 
+import json 
+import os
+import io
+this_dir, this_filename = os.path.split(__file__)
+DATA_PATH = os.path.join(this_dir , "frontpage.json")
+with io.open(DATA_PATH, 'r') as datafile:
+    links = json.load(datafile)
 
 class IndexHandler(BaseHandler):
     """Render the index"""
     def get(self):
-        self.finish(self.render_template('index.html'))
+        #links= [{'text':'text', 'target':'target','img':'img'}]
+        self.finish(self.render_template('index.html',links=links))
 
 
 class FAQHandler(BaseHandler):
