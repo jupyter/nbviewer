@@ -18,18 +18,19 @@ You can also directly browse collections of notebooks through github repositorie
 ### I've got a 5xx/4xx error on a notebook.
 
 Nbviewer tries to get notebooks from the url given. If the remote location
-doesn't respond or the file nbviewer receivesis not valid, you will get an
+doesn't respond or the file nbviewer receives is not valid, you will get an
 error (4xx). Check that the remote file still exists and that you can convert
 it locally with nbconvert.
 
 
 ### How do you render notebooks?
 
-Nbviewer is based on `nbconvert` which is part of IPython. `nbconvert` is used to
-export `.ipynb` files to an increasing number of other formats. If you have
-IPython installed you can have access to the same functionality by invoking
-`ipython nbconvert` at a command line. Starting to IPython 2.0 you should be
-able to get static export of notebook using the `file` menu in the IPython
+Nbviewer uses IPython's `nbconvert` to export `.ipynb` to HTML.
+
+If you have IPython installed you can have access to the same functionality
+and many more formats by invoking
+`ipython nbconvert` at a command line. Starting in IPython 2.0 you should be
+able to export notebooks in other formats using the `file` menu in the IPython
 notebook application.
 
 ### Where is nbviewer hosted?
