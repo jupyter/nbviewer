@@ -35,12 +35,8 @@ notebook application.
 
 ### Where is nbviewer hosted?
 
-Nbviewer is hosted on [Rackspace](http://rackspace.com) that kindly offered us
-hosting as we are an open source project. Thanks to them we are able to offer
-nbconvert as a service for free. In the current architecture nbviewer is a
-python app deployed with salt with 1 master process and 2 minions each get 15GB
-Ram, 4vCPUs, and a bandwidht of 1Gbps. Rendered pages are cached using memcached,
-and asynchronous handeling of requests is done through tornado.
+Nbviewer is hosted on [Rackspace](http://rackspace.com) who kindly gives the IPython open source
+project hosting. Thanks to them we are able to offer nbconvert as a service for free.
 
 ### I want to remove/update a notebook on nbviewer.
 
