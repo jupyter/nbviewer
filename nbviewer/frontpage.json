@@ -33,6 +33,11 @@
     "header":"Misc",
     "links":[
       {
+        "text": "Interactive plots with Plotly",
+        "target": "github/plotly/IPython-plotly/tree/master/",
+        "img": "/static/img/example-nb/plotly.png"
+      },
+      {
         "text": "XKCD Plot With Matplotlib",
         "target": "url/jakevdp.github.com/downloads/notebooks/XKCD_plots.ipynb",
         "img": "/static/img/example-nb/XKCD-Matplotlib.png"
