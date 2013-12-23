@@ -70,14 +70,14 @@ Please visit the [nbviewer github repository](https://github.com/ipython/nbviewe
 
 ### Can I access nbviewer over https?
 
-You can, but you will probably get a warning that the website has not a valid
-certificat.  We are not sure it is worth having to pay a SSL certificat as
-nbviewer should not expose any sensible information. If you need to embed html
+You can, but you will probably get a warning that the website does not have a valid
+certificate.  We are not sure it is worth paying for an SSL certificate as
+nbviewer should not expose any sensitive information. If you need to embed an html notebook
 on another site, please use local export with nbconvert.
 
 ### There is a broken link.
 
-Is the broken link on a notebook? If so, I suggest you contact the original author.
+Is the broken link on a notebook? If so, we suggest you contact the original author.
 Otherwise, please open an issue on [our issue tracker](https://github.com/ipython/nbviewer/issues)
 with the link to the broken page, and tell us which link is broken.
 We'll do our best to fix it.
@@ -90,19 +90,18 @@ The best way would be to directly submit a pull request on GitHub.
 
 ### How can I contribute?
 
-You can submit pull request to [nbviewer github repository](https://github.com/ipython/nbviewer),
-or [make a donation to ipython] so that we can and work on more awesome features.
+You can submit a pull request to [the nbviewer github repository](https://github.com/ipython/nbviewer),
+or [make a donation to ipython] so that we can work on more awesome features.
 
 ### Can I use nbviewer to convert my notebook to something else than html?
 
-For the time beeing, no. We woudl like to allow that in the future, but the
-current architecture is already showing its limits with only html. You can
-already use local version of nbconvert to export to most format. You can still help
-us by making a donation, or contribute with your time.
+For the time being, no. We would like to allow that in the future. You can
+already use a `ipython nbconvert` to export to most formats. You can still help
+us by making a donation or contributing with your time.
 
-## I have more questions ...
+## I have more questions...
 
-If something was not clear or not present, do not hesitate to [check issues on github](http://github.com/ipython/nbviewer/issues).
+If something was not clear or not present, do not hesitate to reach out to the [IPython mailing list](http://mail.scipy.org/mailman/listinfo/ipython-dev) or [make an issue on github](http://github.com/ipython/nbviewer/issues).
 
 {% endfilter %}
 {% endblock %}
