@@ -23,9 +23,14 @@
         "img": "/static/img/example-nb/bayesian-chap1.png"
       },
       {
+        "text": "Python for Signal Processing",
+        "target": "http://nbviewer.ipython.org/github/unpingco/Python-for-Signal-Processing/",
+        "img": "/static/img/example-nb/python-signal.png"
+      },
+      {
         "text": "O'Reilly Book",
         "target": "github/ptwobrussell/Mining-the-Social-Web-2nd-Edition/tree/master/ipynb",
-        "img": "/static/img/example-nb/social-web.jpg"
+        "img": "/static/img/example-nb/mining-slice.png"
       }
     ]
   },
