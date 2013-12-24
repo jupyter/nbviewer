@@ -8,6 +8,11 @@
         "img": "/static/img/example-nb/ip-examples-list.png"
       },
       {
+        "text": "IRuby Notebook",
+        "target": "github/minad/iruby/blob/master/IRuby-Example.ipynb",
+        "img": "/static/img/example-nb/iruby-nb.png"
+      },
+      {
         "text": "An IJulia Preview",
         "target": "url/jdj.mit.edu/~stevenj/IJulia%20Preview.ipynb",
         "img": "/static/img/example-nb/ijulia-preview.png"
