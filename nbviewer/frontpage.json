@@ -1,11 +1,11 @@
 [
   {
-    "header":"Kernels",
+    "header":"Programming Languages",
     "links":[
       {
         "text": "IPython Examples",
         "target": "github/ipython/ipython/tree/master/examples/notebooks",
-        "img": "/static/img/example-nb/ip-examples-list.png"
+        "img": "/static/img/example-nb/ipython-thumb.png"
       },
       {
         "text": "IRuby Notebook",
@@ -28,7 +28,7 @@
         "img": "/static/img/example-nb/bayesian-chap1.png"
       },
       {
-        "text": "Python for Signal Processing",
+        "text": "Python for Signal Processing",
         "target": "http://nbviewer.ipython.org/github/unpingco/Python-for-Signal-Processing/",
         "img": "/static/img/example-nb/python-signal.png"
       },
@@ -68,11 +68,6 @@
         "img": "/static/img/example-nb/nose_testing.png"
       },
       {
-        "text": "Pandas timeseries",
-        "target": "github/changhiskhan/talks/blob/master/pydata2012/pandas_timeseries.ipynb",
-        "img": "/static/img/example-nb/pandas_timeseries.png"
-      },
-      {
         "text": "Working with pandas",
         "target": "gist/twiecki/3962843",
         "img": "/static/img/example-nb/working_with_pandas.png"
@@ -86,11 +81,6 @@
         "text": "Analysis of current events",
         "target": "gist/darribas/4121857",
         "img": "/static/img/example-nb/gaza.png"
-      },
-      {
-        "text": "Cython extension",
-        "target": "github/ipython/ipython/blob/master/examples/notebooks/Cython Magics.ipynb",
-        "img": "/static/img/example-nb/cython.png"
       },
       {
         "text": "Jaynes-Cummings model",
