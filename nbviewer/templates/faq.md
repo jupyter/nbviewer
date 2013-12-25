@@ -88,7 +88,7 @@ The best way would be to directly submit a pull request on GitHub.
 ### How can I contribute?
 
 You can submit a pull request to [the nbviewer github repository](https://github.com/ipython/nbviewer),
-or [make a donation to ipython] so that we can work on more awesome features.
+or [make a donation to ipython](http://ipython.org/donate.html) so that we can work on more awesome features.
 
 ### Can I use nbviewer to convert my notebook to something else than html?
 
