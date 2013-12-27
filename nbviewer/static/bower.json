@@ -1,0 +1,9 @@
+{
+  "name": "static",
+  "version": "0.0.0",
+  "dependencies": {
+    "Font-Awesome": "~4.0.3",
+    "animate.css": "~3.0.0",
+    "headroom.js": "~0.3.9"
+  }
+}

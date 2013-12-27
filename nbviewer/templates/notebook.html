@@ -16,18 +16,7 @@
     <link href="/static/ipython.min.css" rel="stylesheet">
     <link href="/static/css/pygments.css" rel="stylesheet">
     <style type="text/css" media='screen and (min-width:980px)'>
-    .navbar-inner {
-        opacity: 0.5;
-        transition: opacity 0.5s ease-in-out;
-        -webkit-transition: opacity 0.5s ease-in-out;
-    }
-
-    .navbar-inner ul{
-        opacity: 0.5;
-        transition: opacity 0.5s ease-in-out;
-        -webkit-transition: opacity 0.5s ease-in-out;
-    }
-
+   
     body{
         padding-top:50px;
     }
@@ -44,14 +33,6 @@
         margin: 0px;
         padding: 0px;
         border: none;
-    }
-
-    .navbar-inner:hover {
-        opacity: 1.0;
-    }
-
-    .navbar-inner:hover ul{
-        opacity: 1.0;
     }
 
     .highlight pre {
@@ -88,3 +69,22 @@
 {% block body %}
     {{ body | safe}}
 {% endblock %}
+
+{% block extra_script %}
+    {{super()}}
+    <script>
+    $(document).ready(
+                function(){
+                    $("#menubar").headroom({
+                        "tolerance": 5,
+                        "offset": 205,
+                        "classes": {
+                            "initial": "animated",
+                            "pinned": "fadeInDown",
+                            "unpinned": "fadeOutUp"
+                        }
+                    })
+                }
+            );
+    </script>
+{% endblock extra_script %}
