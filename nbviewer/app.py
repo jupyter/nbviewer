@@ -24,7 +24,7 @@ from jinja2 import Environment, FileSystemLoader
 from IPython.config import Config
 from IPython.nbconvert.exporters import HTMLExporter
 
-from .handlers import handlers
+from .handlers import handlers, LocalFileHandler
 from .cache import DummyAsyncCache, AsyncMultipartMemcache, MockCache, pylibmc
 try:
     from .client import LoggingCurlAsyncHTTPClient as HTTPClientClass
@@ -61,6 +61,7 @@ def main():
     # command-line options
     define("debug", default=False, help="run in debug mode", type=bool)
     define("no_cache", default=False, help="Do not cache results", type=bool)
+    define("localfile", default=False, help="Allow to serve localfile under /localfile/* this can be a security risk", type=bool)
     define("port", default=5000, help="run on the given port", type=int)
     define("cache_expiry_min", default=10*60, help="minimum cache expiry (seconds)", type=int)
     define("cache_expiry_max", default=2*60*60, help="maximum cache expiry (seconds)", type=int)
@@ -148,6 +149,10 @@ def main():
     )
     
     # create and start the app
+    if options.localfile:
+        log.app_log.warning("Serving local files, this can be a security risk")
+        handlers.insert(0, (r'/localfile/(.*)', LocalFileHandler))
+
     app = web.Application(handlers, debug=options.debug, **settings)
     http_server = httpserver.HTTPServer(app, xheaders=True)
     log.app_log.info("Listening on port %i", options.port)

@@ -684,7 +684,28 @@ class RemoveSlashHandler(BaseHandler):
     def get(self, *args, **kwargs):
         self.redirect(self.request.uri.rstrip('/'))
 
-
+class LocalFileHandler(RenderingHandler):
+    """Renderer for /localfile """
+    @cached
+    @gen.coroutine
+    def get(self, path):
+        
+        #remote_url = u"{}://{}".format(proto, quote(url))
+        #if not url.endswith('.ipynb'):
+            # this is how we handle relative links (files/ URLs) in notebooks
+            # if it's not a .ipynb URL and it is a link from a notebook,
+            # redirect to the original URL rather than trying to render it as a notebook
+        #    refer_url = self.request.headers.get('Referer', '').split('://')[-1]
+        #    if refer_url.startswith(self.request.host + '/url'):
+        #        self.redirect(remote_url)
+        #        return
+        
+        #with self.catch_client_error():
+        abspath = os.path.join(os.path.abspath(os.curdir),path)
+        with io.open(abspath) as f:
+            response = f.read()
+        
+        yield self.finish_notebook(response, download_url=abspath, msg="file from localfile: %s" % abspath)
 #-----------------------------------------------------------------------------
 # Default handler URL mapping
 #-----------------------------------------------------------------------------
@@ -701,7 +722,7 @@ handlers = [
     (r'/url[s]?/github\.com/([^\/]+)/([^\/]+)/(tree|blob|raw)/([^\/]+)/(.*)', GitHubRedirectHandler),
     (r'/url[s]?/raw\.?github\.com/([^\/]+)/([^\/]+)/(.*)', RawGitHubURLHandler),
     (r'/url([s]?)/(.*)', URLHandler),
-
+    
     (r'/github/([\w\-]+)', AddSlashHandler),
     (r'/github/([\w\-]+)/', GitHubUserHandler),
     (r'/github/([\w\-]+)/([\w\-]+)', AddSlashHandler),
