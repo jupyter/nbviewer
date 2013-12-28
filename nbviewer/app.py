@@ -139,6 +139,7 @@ def main():
         cache_expiry_min=options.cache_expiry_min,
         cache_expiry_max=options.cache_expiry_max,
         pool=pool,
+        gzip=True,
         render_timeout=20,
     )
     
