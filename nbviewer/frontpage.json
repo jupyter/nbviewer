@@ -23,7 +23,7 @@
     "header":"Books",
     "links":[
       {
-        "text": "Python for Signal Processing",
+        "text": "Python for Signal Processing",
         "target": "http://nbviewer.ipython.org/github/unpingco/Python-for-Signal-Processing/",
         "img": "/static/img/example-nb/python-signal.png"
       },
