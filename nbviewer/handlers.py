@@ -442,16 +442,26 @@ class GistHandler(RenderingHandler):
         
         github_url = gist['html_url']
         files = gist['files']
-        if len(files) == 1 and not filename:
+        many_files_gist = (len(files) > 1)
+        
+        if not many_files_gist and not filename:
             filename = list(files.keys())[0]
         
         if filename and filename in files:
-            file = files[filename]
-            nbjson = file['content']
-            yield self.finish_notebook(nbjson, file['raw_url'],
-                home_url=gist['html_url'],
-                msg="gist: %s" % gist_id,
-            )
+
+            if not many_files_gist or filename.endswith('.ipynb'):
+                file = files[filename]
+                nbjson = file['content']
+                yield self.finish_notebook(nbjson, file['raw_url'],
+                    home_url=gist['html_url'],
+                    msg="gist: %s" % gist_id,
+                )
+            else:
+                file = files[filename]
+                # cannot redirect because of X-Frame-Content
+                self.finish(file['content'])
+                return
+
         elif filename:
             raise web.HTTPError(404, "No such file in gist: %s (%s)", filename, list(files.keys()))
         else:
@@ -653,7 +663,7 @@ class GitHubBlobHandler(RenderingHandler):
                 msg="file from GitHub: %s" % raw_url,
             )
         else:
-            self.set_header("Content-Type", "text/plain")
+            self.set_header("Content-Type", response.headers.get('Content-Type', 'text/plain'))
             self.cache_and_finish(filedata)
 
 
@@ -706,7 +716,7 @@ handlers = [
     (r'/github/([\w\-]+)/([^\/]+)/tree/([^\/]+)/(.*)', GitHubTreeHandler),
     
     (r'/gist/([\w\-]+/)?([0-9]+|[0-9a-f]{20})', GistHandler),
-    (r'/gist/([\w\-]+/)?([0-9]+|[0-9a-f]{20})/(.*)', GistHandler),
+    (r'/gist/([\w\-]+/)?([0-9]+|[0-9a-f]{20})/(?:files/)?(.*)', GistHandler),
     (r'/([0-9]+|[0-9a-f]{20})', GistRedirectHandler),
     (r'/([0-9]+|[0-9a-f]{20})/(.*)', GistRedirectHandler),
     (r'/gist/([\w\-]+)/?', UserGistsHandler),
