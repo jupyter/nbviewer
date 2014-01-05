@@ -3,5 +3,6 @@ pycurl
 pylibmc
 futures
 newrelic
+markdown
 
 ipython[nbconvert]>=1.1.0

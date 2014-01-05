@@ -8,6 +8,8 @@
 import base64
 import hashlib
 import json
+import os
+import io
 import socket
 import time
 
@@ -245,11 +247,15 @@ class Custom404(BaseHandler):
     def prepare(self):
         raise web.HTTPError(404)
 
+this_dir, this_filename = os.path.split(__file__)
+DATA_PATH = os.path.join(this_dir , "frontpage.json")
+with io.open(DATA_PATH, 'r') as datafile:
+    sections = json.load(datafile)
 
 class IndexHandler(BaseHandler):
     """Render the index"""
     def get(self):
-        self.finish(self.render_template('index.html'))
+        self.finish(self.render_template('index.html',sections=sections))
 
 
 class FAQHandler(BaseHandler):

@@ -1,0 +1,107 @@
+[
+  {
+    "header":"Programming Languages",
+    "links":[
+      {
+        "text": "IPython Examples",
+        "target": "github/ipython/ipython/tree/master/examples/notebooks",
+        "img": "/static/img/example-nb/ipython-thumb.png"
+      },
+      {
+        "text": "IRuby Notebook",
+        "target": "github/minad/iruby/blob/master/IRuby-Example.ipynb",
+        "img": "/static/img/example-nb/iruby-nb.png"
+      },
+      {
+        "text": "An IJulia Preview",
+        "target": "url/jdj.mit.edu/~stevenj/IJulia%20Preview.ipynb",
+        "img": "/static/img/example-nb/ijulia-preview.png"
+      }
+    ]
+  },
+  {
+    "header":"Books",
+    "links":[
+      {
+        "text": "Python for Signal Processing",
+        "target": "http://nbviewer.ipython.org/github/unpingco/Python-for-Signal-Processing/",
+        "img": "/static/img/example-nb/python-signal.png"
+      },
+      {
+        "text": "O'Reilly Book",
+        "target": "github/ptwobrussell/Mining-the-Social-Web-2nd-Edition/tree/master/ipynb",
+        "img": "/static/img/example-nb/mining-slice.png"
+      },
+      {
+        "text": "Probabilistic Programming",
+        "target": "github/CamDavidsonPilon/Probabilistic-Programming-and-Bayesian-Methods-for-Hackers/blob/master/Chapter1_Introduction/Chapter1_Introduction.ipynb",
+        "img": "/static/img/example-nb/probabilistic-bayesian.png"
+      }
+    ]
+  },
+  {
+    "header":"Misc",
+    "links":[
+      {
+        "text": "Interactive plots with Plotly",
+        "target": "github/plotly/IPython-plotly/tree/master/",
+        "img": "/static/img/example-nb/plotly.png"
+      },
+      {
+        "text": "XKCD Plot With Matplotlib",
+        "target": "url/jakevdp.github.com/downloads/notebooks/XKCD_plots.ipynb",
+        "img": "/static/img/example-nb/XKCD-Matplotlib.png"
+      },
+      {
+        "text": "Non Parametric Regression",
+        "target": "gist/fonnesbeck/2352771",
+        "img": "/static/img/example-nb/covariance.png"
+      },
+      {
+        "text": "Exploring R formula",
+        "target": "github/fperez/nipy-notebooks/blob/master/exploring_r_formula.ipynb",
+        "img": "/static/img/example-nb/exploring_r_formula.png"
+      },
+      {
+        "text": "Nose testing",
+        "target": "github/swcarpentry/2012-11-scripps/blob/master/python/testing-with-nose.ipynb",
+        "img": "/static/img/example-nb/nose_testing.png"
+      },
+      {
+        "text": "Working with pandas",
+        "target": "gist/twiecki/3962843",
+        "img": "/static/img/example-nb/working_with_pandas.png"
+      },
+      {
+        "text": "Fitting",
+        "target": "gist/keflavich/4042018",
+        "img": "/static/img/example-nb/fitting.png"
+      },
+      {
+        "text": "Analysis of current events",
+        "target": "gist/darribas/4121857",
+        "img": "/static/img/example-nb/gaza.png"
+      },
+      {
+        "text": "Jaynes-Cummings model",
+        "target": "github/jrjohansson/qutip-lectures/blob/master/Lecture-1-Jaynes-Cumming-model.ipynb",
+        "img": "/static/img/example-nb/jaynes-cummings.png"
+      },
+      {
+        "text": "SymPy notebook",
+        "target": "github/ipython/ipython/blob/master/examples/notebooks/SymPy Examples.ipynb",
+        "img": "/static/img/example-nb/sympy.png"
+      },
+      {
+        "text": "Numpy tests",
+        "target": "gist/Juanlu001/3914904",
+        "img": "/static/img/example-nb/numpy_tests.png"
+      },
+      {
+        "text": "R magic extension",
+        "target": "github/ipython/ipython/blob/master/examples/notebooks/R Magics.ipynb",
+        "img": "/static/img/example-nb/r_magic.png"
+      }
+    ]
+  }
+]

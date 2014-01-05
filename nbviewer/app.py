@@ -8,6 +8,8 @@
 import os
 
 import logging
+import markdown 
+
 from cgi import escape
 from concurrent.futures import ThreadPoolExecutor
 
@@ -21,7 +23,6 @@ from jinja2 import Environment, FileSystemLoader
 
 from IPython.config import Config
 from IPython.nbconvert.exporters import HTMLExporter
-from IPython.nbconvert.filters import markdown2html
 
 from .handlers import handlers
 from .cache import DummyAsyncCache, AsyncMultipartMemcache, pylibmc
@@ -109,7 +110,7 @@ def main():
     template_path = pjoin(here, 'templates')
     static_path = pjoin(here, 'static')
     env = Environment(loader=FileSystemLoader(template_path))
-    env.filters['markdown'] = markdown2html
+    env.filters['markdown'] = markdown.markdown
     try:
         git_data = git_info(here)
     except Exception as e:
