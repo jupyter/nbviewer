@@ -122,6 +122,10 @@ def main():
         git_data = {}
     else:
         git_data['msg'] = escape(git_data['msg'])
+
+    if options.no_cache :
+        # force jinja to recompile template every time
+        env.globals.update(cache_size=0)
     env.globals.update(nrhead=nrhead, nrfoot=nrfoot, git_data=git_data)
     AsyncHTTPClient.configure(HTTPClientClass)
     client = AsyncHTTPClient()
