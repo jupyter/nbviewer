@@ -25,7 +25,7 @@ from IPython.config import Config
 from IPython.nbconvert.exporters import HTMLExporter
 
 from .handlers import handlers
-from .cache import DummyAsyncCache, AsyncMultipartMemcache, pylibmc
+from .cache import DummyAsyncCache, AsyncMultipartMemcache, MockCache, pylibmc
 try:
     from .client import LoggingCurlAsyncHTTPClient as HTTPClientClass
 except ImportError:
@@ -60,6 +60,7 @@ def nrfoot():
 def main():
     # command-line options
     define("debug", default=False, help="run in debug mode", type=bool)
+    define("no_cache", default=False, help="Do not cache results", type=bool)
     define("port", default=5000, help="run on the given port", type=int)
     define("cache_expiry_min", default=10*60, help="minimum cache expiry (seconds)", type=int)
     define("cache_expiry_max", default=2*60*60, help="maximum cache expiry (seconds)", type=int)
@@ -88,7 +89,10 @@ def main():
     memcache_urls = os.environ.get('MEMCACHIER_SERVERS',
         os.environ.get('MEMCACHE_SERVERS')
     )
-    if pylibmc and memcache_urls:
+    if options.no_cache :
+        log.app_log.info("Not using cache")
+        cache = MockCache()
+    elif pylibmc and memcache_urls:
         kwargs = dict(pool=mc_pool)
         username = os.environ.get('MEMCACHIER_USERNAME', '')
         password = os.environ.get('MEMCACHIER_PASSWORD', '')
@@ -118,6 +122,10 @@ def main():
         git_data = {}
     else:
         git_data['msg'] = escape(git_data['msg'])
+
+    if options.no_cache :
+        # force jinja to recompile template every time
+        env.globals.update(cache_size=0)
     env.globals.update(nrhead=nrhead, nrfoot=nrfoot, git_data=git_data)
     AsyncHTTPClient.configure(HTTPClientClass)
     client = AsyncHTTPClient()
@@ -135,6 +143,7 @@ def main():
         cache_expiry_min=options.cache_expiry_min,
         cache_expiry_max=options.cache_expiry_max,
         pool=pool,
+        gzip=True,
         render_timeout=20,
     )
     

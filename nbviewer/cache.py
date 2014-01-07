@@ -25,6 +25,21 @@ except ImportError:
 # Code
 #-----------------------------------------------------------------------------
 
+class MockCache(object):
+    """Mock Cache. Just stores nothing and alway return None on get."""
+    def __init__(self, *args, **kwargs):
+        pass
+    
+    def get(self, key):
+        f = Future()
+        f.set_result(None)
+        return f
+
+    def set(self, key, value, *args, **kwargs):
+        f = Future()
+        f.set_result(None)
+        return f
+
 class DummyAsyncCache(object):
     """Dummy Async Cache. Just stores things in a dict of fixed size."""
     def __init__(self, limit=10):
