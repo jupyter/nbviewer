@@ -61,7 +61,7 @@ Local installation of nbviewer requires several binary packages to be installed 
 
 If they are installed, you can install the required Python packages via pip.
 
-`pip install -r requirements`
+`pip install -r requirements.txt`
 
 ## Running Locally
 
