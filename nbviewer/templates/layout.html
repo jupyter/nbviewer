@@ -13,8 +13,24 @@
     <!-- Le styles -->
     <!--<link href="/static/css/bootstrap.css" rel="stylesheet">-->
     <link href="/static/css/docs.css" rel="stylesheet">
-    <link href="/static/css/bootstrap.css" rel="stylesheet">
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
     <link href="/static/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/static/components/animate.css/animate.css" rel="stylesheet">
+    <link href="/static/components/Font-Awesome/css/font-awesome.min.css" rel="stylesheet">
+    <style>
+        // get fixed navbar on mobiles
+        @media (max-width: 767px) /* @grid-float-breakpoint -1 */
+        {
+            .navbar-fixed-top
+            {
+            position: fixed;
+            top: 0;
+            margin-left:0;
+            margin-right:0;
+            }
+        }
+    </style>
+
 
     <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!--[if lt IE 9]>
@@ -36,7 +52,7 @@
 
   <!-- Navbar
   ================================================== -->
-    <div class="navbar navbar-fixed-top">
+    <div id='menubar' class="navbar navbar-fixed-top">
       <div class="navbar-inner">
         <div class="container">
           <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
@@ -88,7 +104,8 @@
       <p class="pull-right"><a href="#">Back to top</a></p>
       <p>More info on <a href='http://ipython.org'> IPython website</a>.
       <a href="https://github.com/ipython/nbviewer">The code for this site</a> is licensed under <a href="https://github.com/ipython/nbviewer/blob/master/LICENSE.txt" target="_blank">BSD</a>.
-      Some icons from <a href="http://glyphicons.com">Glyphicons Free</a>, built thanks to <a href="http://twitter.github.com/bootstrap/"> Twitter Bootstrap</a></p>
+      built thanks to <a href="http://twitter.github.com/bootstrap/"> Twitter Bootstrap</a>
+      </p>
       <p>This web site does not host notebooks, it only renders notebooks available on other websites.
       Thanks to all our <a href="https://github.com/ipython/nbviewer/contributors">contributors</a> and to <a href="http://www.rackspace.com">Rackspace</a> for hosting.</p>
       {% if git_data %}
@@ -108,7 +125,7 @@
     <!-- Placed at the end of the document so the pages load faster -->
 
     <!--<script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>-->
-    <script src="/static/js/jquery.js"></script>
+    <script src="/static/js/jquery.min.js"></script>
     <!--<script src="/static/js/google-code-prettify/prettify.js"></script>-->
     <!--<script src="/static/js/bootstrap-transition.js"></script>-->
     <!--<script src="/static/js/bootstrap-alert.js"></script>-->
@@ -123,6 +140,12 @@
     <!--<script src="/static/js/bootstrap-carousel.js"></script>-->
     <!--<script src="/static/js/bootstrap-typeahead.js"></script>-->
     <!--<script src="/static/js/application.js"></script>-->
+    <script src="/static/components/headroom.js/dist/headroom.min.js"></script>
+    <script src="/static/components/headroom.js/dist/jQuery.headroom.min.js"></script>
+
+
+    {% block extra_script %}
+    {% endblock %}
 
 
     <!-- Analytics
