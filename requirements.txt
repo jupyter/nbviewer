@@ -4,5 +4,7 @@ pylibmc
 futures
 newrelic
 markdown
+jinja2
+pygments
 
 ipython[nbconvert]>=1.1.0
