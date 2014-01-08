@@ -55,6 +55,14 @@ This will increase the maximum number of requests you can do to github/hour.
 
 you can use `heroku config:set KEY1=VALUE1` to do so.
 
+## Install Locally
+
+Local installation of nbviewer requires several binary packages to be installed on your system. The primary ones are `libmemcached-dev libcurl4-gnutls-dev pandoc libevent-dev`. Package names may differ on your system, see [salt-states](https://github.com/rgbkrk/salt-states-nbviewer/blob/master/nbviewer/init.sls) for more details.
+
+If they are installed, you can install the required Python packages via pip.
+
+`pip install -r requirements.txt`
+
 ## Running Locally
 
 run with 
