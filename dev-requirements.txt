@@ -1,0 +1,6 @@
+coverage
+flake8
+invoke
+nose
+requests
+-r requirements.txt
