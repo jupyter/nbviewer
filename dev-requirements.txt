@@ -3,4 +3,4 @@ flake8
 invoke
 nose
 requests
--r requirements.txt
+-e .
