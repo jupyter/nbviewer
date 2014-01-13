@@ -3,11 +3,17 @@
     {% block otherlinks %}
       {% if home_url %}
       <li class="{{index}}">
-          <a href="{{home_url}}">Notebook Home</a>
+        <a href="{{home_url}}">
+            <span class='fa fa-github fa-2x menu-icon'></span>
+            <span class='menu-text'>Notebook Home</span>
+        </a>
       </li>
       {% endif %}
       <li class="{{index}}">
-          <a href="{{download_url}}" download="{{download_name}}">Download Notebook</a>
+          <a href="{{download_url}}" download="{{download_name}}">
+              <span class='fa fa-download fa-2x menu-icon'></span>
+              <span class='menu-text'>Download Notebook</span>
+          </a>
       </li>
     {% endblock %}
 
@@ -73,13 +79,30 @@
     }
 
     @media (max-width: 767px){
+
         div.input, div.output_area {
             -webkit-box-orient: vertical;
             -moz-box-orient: vertical;
             box-orient: vertical;
         }
 
+        div.prompt {
+            text-align:left;
+        }
+
     }
+
+    .menu-icon{
+        line-height: 8px;
+        margin-right: 5px;
+    }
+    
+    @media (min-width: 980px){
+        .menu-text{
+            display:none
+        }
+    }
+
     </style>
     {% if css_theme %}
         <link href="/static/css/theme/{{css_theme}}.css" rel="stylesheet">
