@@ -3,9 +3,21 @@
   <head>
     <meta charset="utf-8">
     <title>{{title}}</title>
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    {% if description %}
+    <meta name="description" content="{{ description }}">
+    {% else %}
     <meta name="description" content="">
+    {% endif %}
+
+    {% if author %}
+    <meta name="author" content="{{ author }}">
+    {% else %}
     <meta name="author" content="">
+    {% endif %}
+
     <!--NEW RELIC Start Perf Measurement-->
     {{ nrhead() | safe}}
     <!--NREND-->

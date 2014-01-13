@@ -14,15 +14,6 @@
     {% block extra_head %}
     {{ super() }}
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    {% if description %}
-    <meta name="description" content="{{ description }}">
-    {% endif %}
-    {% if author %}
-    <meta name="author" content="{{ author }}">
-    {% endif %}
-
     {# Twitter Card #}
 
     {# Required fields #}
@@ -30,7 +21,7 @@
     {% if notebook_title %}
     <meta name="twitter:title" content="{{ notebook_title }}">
     {% else %}
-    <meta name="twitter:title" content="IPython Notebook Viewer">
+    <meta name="twitter:title" content="{{ title }}">
     {% endif %}
     {% if description %}
     <meta name="twitter:description" content="{{ description }}">
