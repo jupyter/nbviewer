@@ -5,7 +5,7 @@ python:
 before_install:
   - sudo apt-get install -qq libzmq3-dev pandoc libcurl4-gnutls-dev libmemcached-dev
   - pip install -U setuptools
-  - pip install -r dev_requirements.txt
+  - pip install -r dev-requirements.txt
 
 install:
   - pip install -r requirements.txt
