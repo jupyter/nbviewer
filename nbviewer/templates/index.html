@@ -1,4 +1,15 @@
 {% extends "layout.html" %}
+
+{% block extra_head %}
+<style>
+    
+.marketing p {
+    white-space: nowrap;
+}
+
+</style>
+{% endblock %}
+
 {% block body %}
 
 <!-- Masthead
@@ -24,8 +35,8 @@
             </div>
       </form>
   </div>
-
 </header>
+
   {% for section in sections %}
     <h3>{{section.header}}</h3>
     <div class="marketing">

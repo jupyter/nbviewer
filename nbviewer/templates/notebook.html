@@ -39,6 +39,14 @@
         background-color: transparent;
     }
 
+    @media (max-width: 767px){
+        div.input, div.output_area {
+            -webkit-box-orient: vertical;
+            -moz-box-orient: vertical;
+            box-orient: vertical;
+        }
+
+    }
     </style>
     {% if css_theme %}
         <link href="/static/css/theme/{{css_theme}}.css" rel="stylesheet">
