@@ -13,6 +13,45 @@
 
     {% block extra_head %}
     {{ super() }}
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    {% if description %}
+    <meta name="description" content="{{ description }}">
+    {% endif %}
+    {% if author %}
+    <meta name="author" content="{{ author }}">
+    {% endif %}
+
+    {# Twitter Card #}
+
+    {# Required fields #}
+    <meta name="twitter:card" content="summary">
+    {% if notebook_title %}
+    <meta name="twitter:title" content="{{ notebook_title }}">
+    {% else %}
+    <meta name="twitter:title" content="IPython Notebook Viewer">
+    {% endif %}
+    {% if description %}
+    <meta name="twitter:description" content="{{ description }}">
+    {% else %}
+    <meta name="twitter:description" content="Check out this IPython notebook!">
+    {% endif %}
+
+    {# Optional fields #}
+    <meta name="twitter:domain" content="nbviewer.ipython.org">
+    {% if thumbnail %}
+    <meta name="twitter:image:src" content="{{ thumbnail }}">
+    {% else %}
+    <meta name="twitter:image:src" content="https://raw.github.com/ipython/ipython/master/docs/resources/ipynb_icon_256x256.png">
+    {% endif %}
+    {# <meta name="twitter:site" content="@IPythonDev"> #}
+    {# Creator of the notebook can't be directly inferred from the notebook
+    {% if creator %}
+    <meta name="twitter:creator" content="{{ creator }}">
+    {% endif %}
+    #}
+
     <link href="/static/ipython.min.css" rel="stylesheet">
     <link href="/static/css/pygments.css" rel="stylesheet">
     <style type="text/css" media='screen and (min-width:980px)'>
