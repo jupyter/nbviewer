@@ -18,10 +18,11 @@
 
     {# Required fields #}
     <meta name="twitter:card" content="summary">
+
     {% if notebook_title %}
     <meta name="twitter:title" content="{{ notebook_title }}">
     {% else %}
-    <meta name="twitter:title" content="{{ Notebook on nbviewer }}">
+    <meta name="twitter:title" content="Notebook on nbviewer">
     {% endif %}
 
     {% if description %}
