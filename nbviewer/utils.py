@@ -49,6 +49,7 @@ GIST_RGX = re.compile(r'^([a-f0-9]+)/?$')
 GIST_URL_RGX = re.compile(r'^https?://gist.github.com/(\w+/)?([a-f0-9]+)/?$')
 GITHUB_URL_RGX = re.compile(r'^https?://github.com/(\w+)/(\w+)/blob/(.*)$')
 RAW_GITHUB_URL_RGX = re.compile(r'^https?://raw.?github.com/(\w+)/(\w+)/(.*)$')
+DROPBOX_URL_RGX = re.compile(r'^https?://www.dropbox.com/(\w)/(\w+)/(.+)$')
 
 def transform_ipynb_uri(value):
     """Transform a given value (an ipynb 'URI') into an app URL"""
@@ -69,6 +70,12 @@ def transform_ipynb_uri(value):
     if raw_github_url:
         user, repo, path = raw_github_url.groups()
         return u'/github/%s/%s/blob/%s' % (user, repo, path)
+
+    dropbox_url = DROPBOX_URL_RGX.match(value)
+    if dropbox_url:
+        share, drop_dir, filename = dropbox_url.groups()
+        value = u'https://dl.dropbox.com/%s/%s/%s' % (share, drop_dir, filename)
+        # Drop back down to URL handler
 
     if value.startswith('https://'):
         return u'/urls/%s' % value[8:]
@@ -115,4 +122,3 @@ def git_info(path):
         date=date,
         msg=msg,
     )
-    
