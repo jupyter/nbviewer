@@ -49,33 +49,34 @@ GIST_RGX = re.compile(r'^([a-f0-9]+)/?$')
 GIST_URL_RGX = re.compile(r'^https?://gist.github.com/(\w+/)?([a-f0-9]+)/?$')
 GITHUB_URL_RGX = re.compile(r'^https?://github.com/(\w+)/(\w+)/blob/(.*)$')
 RAW_GITHUB_URL_RGX = re.compile(r'^https?://raw.?github.com/(\w+)/(\w+)/(.*)$')
-DROPBOX_URL_RGX = re.compile(r'^https?://www.dropbox.com/(\w)/(\w+)/(.+)$')
+DROPBOX_URL_RGX = re.compile(r'^http(s?)://www.dropbox.com/(\w)/(\w+)/(.+)$')
+
+
+#def url_rewrite(value):
+#
+#    for reg,template in regs_dict:
+#        matches = reg.match(value)
+#        if matches: 
+#            return template.format(matches.groups)
+
+from collections import OrderedDict
+
+url_rewrite_dict = OrderedDict({
+        GIST_RGX           : u'/{0}',
+        GIST_URL_RGX       : u'/{1}',
+        GITHUB_URL_RGX     : u'/github/{0}/{1}/blob/{2}',
+        RAW_GITHUB_URL_RGX : u'/github/{0}/{1}/blob/{2}',
+        DROPBOX_URL_RGX    : u'/url{0}/dl.dropbox.com/{1}/{2}/{3}',
+    })
+
 
 def transform_ipynb_uri(value):
     """Transform a given value (an ipynb 'URI') into an app URL"""
-    gist_n = GIST_RGX.match(value)
-    if gist_n:
-        return u'/%s' % gist_n.groups()[0]
 
-    gist_url = GIST_URL_RGX.match(value)
-    if gist_url:
-        return u'/%s' % gist_url.group(2)
-
-    github_url = GITHUB_URL_RGX.match(value)
-    if github_url:
-        user, repo, path = github_url.groups()
-        return u'/github/%s/%s/blob/%s' % (user, repo, path)
-    
-    raw_github_url = GITHUB_URL_RGX.match(value)
-    if raw_github_url:
-        user, repo, path = raw_github_url.groups()
-        return u'/github/%s/%s/blob/%s' % (user, repo, path)
-
-    dropbox_url = DROPBOX_URL_RGX.match(value)
-    if dropbox_url:
-        share, drop_dir, filename = dropbox_url.groups()
-        value = u'https://dl.dropbox.com/%s/%s/%s' % (share, drop_dir, filename)
-        # Drop back down to URL handler
+    for reg,rewrite in url_rewrite_dict.iteritems() :
+        matches = reg.match(value)
+        if matches :
+            return rewrite.format(*matches.groups())
 
     if value.startswith('https://'):
         return u'/urls/%s' % value[8:]
