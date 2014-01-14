@@ -7,6 +7,7 @@
 #-----------------------------------------------------------------------------
 
 from nbviewer import utils
+import nose.tools as nt
 
 def test_transform_ipynb_uri():
     test_data = (
@@ -25,6 +26,11 @@ def test_transform_ipynb_uri():
         u'/github/user/repo/blob/master/path/file.ipynb'),
         ('http://github.com/user/repo/blob/master/path/file.ipynb',
         u'/github/user/repo/blob/master/path/file.ipynb'),
+        #DropBox Urls
+        ( u'http://www.dropbox.com/u/bar/baz.qux',
+          u'/url/dl.dropbox.com/u/bar/baz.qux'),
+        ( u'https://www.dropbox.com/u/zip/baz.qux',
+          u'/urls/dl.dropbox.com/u/zip/baz.qux'),
         # URL
         ('https://example.org/ipynb',
         u'/urls/example.org/ipynb'),
@@ -39,7 +45,7 @@ def test_transform_ipynb_uri():
     )
     for (ipynb_uri, expected_output) in test_data:
         output = utils.transform_ipynb_uri(ipynb_uri)
-        assert output == expected_output
+        nt.assert_equal(output, expected_output)
     
 
 def test_quote():
