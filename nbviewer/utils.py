@@ -49,7 +49,7 @@ GIST_RGX = re.compile(r'^([a-f0-9]+)/?$')
 GIST_URL_RGX = re.compile(r'^https?://gist.github.com/(\w+/)?([a-f0-9]+)/?$')
 GITHUB_URL_RGX = re.compile(r'^https?://github.com/(\w+)/(\w+)/blob/(.*)$')
 RAW_GITHUB_URL_RGX = re.compile(r'^https?://raw.?github.com/(\w+)/(\w+)/(.*)$')
-DROPBOX_URL_RGX = re.compile(r'^http(s?)://www.dropbox.com/(\w)/(\w+)/(.+)$')
+DROPBOX_URL_RGX = re.compile(r'^http(s?)://www.dropbox.com/(sh?)/(.+)$')
 
 
 #def url_rewrite(value):
@@ -66,7 +66,7 @@ url_rewrite_dict = OrderedDict({
         GIST_URL_RGX       : u'/{1}',
         GITHUB_URL_RGX     : u'/github/{0}/{1}/blob/{2}',
         RAW_GITHUB_URL_RGX : u'/github/{0}/{1}/blob/{2}',
-        DROPBOX_URL_RGX    : u'/url{0}/dl.dropbox.com/{1}/{2}/{3}',
+        DROPBOX_URL_RGX    : u'/url{0}/dl.dropbox.com/{1}/{2}',
     })
 
 
