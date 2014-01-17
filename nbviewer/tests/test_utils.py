@@ -27,10 +27,12 @@ def test_transform_ipynb_uri():
         ('http://github.com/user/repo/blob/master/path/file.ipynb',
         u'/github/user/repo/blob/master/path/file.ipynb'),
         #DropBox Urls
-        ( u'http://www.dropbox.com/u/bar/baz.qux',
-          u'/url/dl.dropbox.com/u/bar/baz.qux'),
-        ( u'https://www.dropbox.com/u/zip/baz.qux',
-          u'/urls/dl.dropbox.com/u/zip/baz.qux'),
+        ( u'http://www.dropbox.com/s/bar/baz.qux',
+          u'/url/dl.dropbox.com/s/bar/baz.qux'),
+        ( u'https://www.dropbox.com/s/zip/baz.qux',
+          u'/urls/dl.dropbox.com/s/zip/baz.qux'),
+        ( u'https://www.dropbox.com/sh/mhviow274da2wly/CZKwRRcA0k/nested/furthernested/User%2520Interface.ipynb',
+          u'/urls/dl.dropbox.com/sh/mhviow274da2wly/CZKwRRcA0k/nested/furthernested/User%2520Interface.ipynb'),
         # URL
         ('https://example.org/ipynb',
         u'/urls/example.org/ipynb'),
