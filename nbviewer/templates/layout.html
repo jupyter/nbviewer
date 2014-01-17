@@ -1,3 +1,16 @@
+{% macro head_link(url, name, icon=None) -%}
+   <li>
+        <a href="{{url}}" title="{{name}}">
+           {% if icon %}
+               <span class='fa fa-{{icon}} fa-2x menu-icon'></span>
+               <span class='menu-text'>{{name}}</span>
+           {% else %}
+               <span>{{name}}</span>
+           {% endif %}
+       </a>
+   </li>
+{%- endmacro %}
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -41,6 +54,18 @@
             margin-right:0;
             }
         }
+
+        .menu-icon{
+            line-height: 8px;
+            margin-right: 5px;
+        }
+        
+        @media (min-width: 980px){
+            .menu-text{
+                display:none
+            }
+        }
+
     </style>
 
 
@@ -74,24 +99,16 @@
           </button>
           <div class="nav-collapse collapse">
             <ul class="nav">
-              <li>
-                <a href="/">Home</a>
-              </li>
-              <li>
-                <a href="/faq">FAQ</a>
-              </li>
+
+                {{ head_link('/'    , "Home"    , "home"    ) }}
+                {{ head_link('/faq'    , "FAQ" ) }}
+
               <li class="{{index}}">
                 <a href="http://www.ipython.org">IPython</a>
               </li>
               <li>
               <a href="http://jiffyclub.github.io/open-in-nbviewer/">Open-in-nbviewer</a>
               </li>
-              {% if betauser %}
-                  <li class="{{index}}">
-                    <a href="http://nbviewer-dev.herokuapp.com">Try the beta</a>
-                  </li>
-              {% endif %}
-
             </ul>
             <ul class="nav pull-right"> 
               {% if github_url %}
