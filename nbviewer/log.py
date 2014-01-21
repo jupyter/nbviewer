@@ -19,7 +19,7 @@ def log_request(handler):
     """
     status = handler.get_status()
     request = handler.request
-    if status < 300 or status == 304 and isinstance(handler, StaticFileHandler):
+    if (status < 300 or status == 304) and isinstance(handler, StaticFileHandler):
         # static-file get successes (or 304 FOUND) are debug-level
         log_method = access_log.debug
     elif status < 400:
