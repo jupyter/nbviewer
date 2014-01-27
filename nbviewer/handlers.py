@@ -476,6 +476,7 @@ class GistHandler(RenderingHandler):
                 # If we find an index while iterating, bail and display the
                 # index file instead
                 if filename.lower() == 'index.ipynb':
+                    user = user.strip('/')
                     index_url = ('/gist/{user}/{gist_id}/{filename}'
                                     .format(user=user, gist_id=gist_id,
                                             filename=filename))
