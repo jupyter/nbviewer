@@ -473,6 +473,15 @@ class GistHandler(RenderingHandler):
         else:
             entries = []
             for filename, file in files.items():
+                # If we find an index while iterating, bail and display the
+                # index file instead
+                if filename.lower() == 'index.ipynb':
+                    index_url = ('/gist/{user}/{gist_id}/{filename}'
+                                    .format(user=user, gist_id=gist_id,
+                                            filename=filename))
+                    index_url = quote(index_url)
+                    self.redirect(index_url)
+
                 entries.append(dict(
                     path=filename,
                     url=quote('/%s/%s' % (gist_id, filename)),
@@ -598,6 +607,13 @@ class GitHubTreeHandler(BaseHandler):
                 )
                 e['class'] = 'icon-folder-open'
                 dirs.append(e)
+            elif file['name'].lower() == 'index.ipynb':
+                # We redirect based on having an index file
+                index_url = u'/github/{user}/{repo}/blob/{ref}/{path}'.format(
+                user=user, repo=repo, ref=ref, path=file['path']
+                )
+                self.redirect(index_url)
+                return
             elif file['name'].endswith('.ipynb'):
                 e['url'] = u'/github/{user}/{repo}/blob/{ref}/{path}'.format(
                 user=user, repo=repo, ref=ref, path=file['path']
