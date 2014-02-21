@@ -5,4 +5,4 @@ futures
 newrelic
 markdown
 
-ipython[nbconvert]>=1.1.0
+-e git+https://github.com/ipython/ipython.git#egg=ipython[nbconvert]
