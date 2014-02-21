@@ -98,11 +98,14 @@
             MathJax.Hub.Config({
                 tex2jax: {
                     inlineMath: [ ['$','$'], ["\\(","\\)"] ],
-                    displayMath: [ ['$$','$$'], ["\\[","\\]"] ]
+                    displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+                    processEscapes: true,
+                    processEnvironments: true
                 },
-                displayAlign: 'left', // Change this to 'center' to center equations.
+                displayAlign: 'center',
                 "HTML-CSS": {
                     styles: {'.MathJax_Display': {"margin": 0}}
+                    linebreaks: { automatic: true }
                 }
             });
             MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
