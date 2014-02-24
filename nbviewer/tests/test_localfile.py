@@ -17,28 +17,12 @@ class LocalFileDefaultTestCase(NBViewerTestCase):
         return [
             sys.executable, '-m', 'nbviewer',
             '--port=%d' % cls.port,
-            '--localfile=True',
+            '--localfiles=.',
             ]
 
     def test_url(self):
         ## assumes being run from base of this repo
         url = self.url('localfile/nbviewer/tests/notebook.ipynb')
-        r = requests.get(url)
-        self.assertEqual(r.status_code, 200)
-
-class LocalFileURITestCase(NBViewerTestCase):
-    @classmethod
-    def get_server_cmd(cls): 
-        return [
-            sys.executable, '-m', 'nbviewer',
-            '--port=%d' % cls.port,
-            '--localfile=True',
-            '--localfile_uri=/TEST/',
-            ]
-
-    def test_url(self):
-        ## assumes being run from base of this repo
-        url = self.url('TEST/nbviewer/tests/notebook.ipynb')
         r = requests.get(url)
         self.assertEqual(r.status_code, 200)
 
@@ -48,8 +32,7 @@ class LocalFileRelativePathTestCase(NBViewerTestCase):
         return [
             sys.executable, '-m', 'nbviewer',
             '--port=%d' % cls.port,
-            '--localfile=True',
-            '--localfile_path=nbviewer/',
+            '--localfiles=nbviewer',
             ]
 
     def test_url(self):
@@ -57,4 +40,10 @@ class LocalFileRelativePathTestCase(NBViewerTestCase):
         url = self.url('localfile/tests/notebook.ipynb')
         r = requests.get(url)
         self.assertEqual(r.status_code, 200)
+
+    def test_404(self):
+        ## assumes being run from base of this repo
+        url = self.url('localfile/doesntexist')
+        r = requests.get(url)
+        self.assertEqual(r.status_code, 404)
 
