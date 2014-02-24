@@ -63,7 +63,7 @@ def main():
     define("no_cache", default=False, help="Do not cache results", type=bool)
     define("localfile", default=False, help="Allow to serve localfile under /localfile/* this can be a security risk", type=bool)
     define("localfile_path", default="", help="Allow to serve local files under relative or absolute path; this can be a security risk", type=str)
-    define("localfile_url", default="/localfile/", help="Allow to serve local files under url; this can be a security risk", type=str)
+    define("localfile_uri", default="/localfile/", help="Allow to serve local files under url; this can be a security risk", type=str)
     define("port", default=5000, help="run on the given port", type=int)
     define("cache_expiry_min", default=10*60, help="minimum cache expiry (seconds)", type=int)
     define("cache_expiry_max", default=2*60*60, help="maximum cache expiry (seconds)", type=int)
@@ -155,7 +155,7 @@ def main():
     if options.localfile:
         log.app_log.warning("Serving local files, this can be a security risk")
         # use absolute or relative paths:
-        handlers.insert(0, (r'%s(.*)' % options.localfile_url, LocalFileHandler))
+        handlers.insert(0, (r'%s(.*)' % options.localfile_uri, LocalFileHandler))
 
     app = web.Application(handlers, debug=options.debug, **settings)
     http_server = httpserver.HTTPServer(app, xheaders=True)

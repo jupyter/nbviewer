@@ -712,15 +712,11 @@ class LocalFileHandler(RenderingHandler):
         
         #with self.catch_client_error():
         #abspath = os.path.join(os.path.abspath(os.curdir),path)
-        if self.settings["localfile_path"].startswith("/"):
-            # absolute:
-            abspath = os.path.join(self.settings["localfile_path"], path)
-        else:                    
-            # relative to current directory:
-            abspath = os.path.join(os.path.abspath(os.curdir),
-                                   self.settings["localfile_path"],
-                                   path)
-
+        abspath = os.path.join(
+            os.path.abspath(os.curdir),
+            self.settings.get('localfile_path', ''),
+            path,
+        )
         app_log.info("looking for file: '%s'" % abspath)
         with io.open(abspath) as f:
             response = f.read()
