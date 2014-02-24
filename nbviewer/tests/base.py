@@ -46,14 +46,18 @@ class NBViewerTestCase(TestCase):
                 break
             else:
                 time.sleep(.1)
-    
+
     @classmethod
-    def setup_class(cls):
-        server_cmd = [
+    def get_server_cmd(cls):
+        return [
             sys.executable, '-m', 'nbviewer',
             '--port=%d' % cls.port,
             # '--logging=debug',
         ]
+    
+    @classmethod
+    def setup_class(cls):
+        server_cmd = cls.get_server_cmd()
         devnull = open(os.devnull, 'w')
         cls.server = Popen(server_cmd,
             stdout=devnull,
