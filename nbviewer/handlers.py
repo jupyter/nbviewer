@@ -694,28 +694,30 @@ class RemoveSlashHandler(BaseHandler):
     def get(self, *args, **kwargs):
         self.redirect(self.request.uri.rstrip('/'))
 
+
 class LocalFileHandler(RenderingHandler):
-    """Renderer for /localfile """
+    """Renderer for /localfile
+    
+    Serving notebooks from the local filesystem
+    """
     @cached
     @gen.coroutine
     def get(self, path):
+        abspath = os.path.join(
+            self.settings.get('localfile_path', ''),
+            path,
+        )
         
-        #remote_url = u"{}://{}".format(proto, quote(url))
-        #if not url.endswith('.ipynb'):
-            # this is how we handle relative links (files/ URLs) in notebooks
-            # if it's not a .ipynb URL and it is a link from a notebook,
-            # redirect to the original URL rather than trying to render it as a notebook
-        #    refer_url = self.request.headers.get('Referer', '').split('://')[-1]
-        #    if refer_url.startswith(self.request.host + '/url'):
-        #        self.redirect(remote_url)
-        #        return
+        app_log.info("looking for file: '%s'" % abspath)
+        if not os.path.exists(abspath):
+            raise web.HTTPError(404)
         
-        #with self.catch_client_error():
-        abspath = os.path.join(os.path.abspath(os.curdir),path)
-        with io.open(abspath) as f:
-            response = f.read()
+        with io.open(abspath, encoding='utf-8') as f:
+            nbdata = f.read()
         
-        yield self.finish_notebook(response, download_url=abspath, msg="file from localfile: %s" % abspath)
+        yield self.finish_notebook(nbdata, download_url=path, msg="file from localfile: %s" % path)
+
+
 #-----------------------------------------------------------------------------
 # Default handler URL mapping
 #-----------------------------------------------------------------------------
