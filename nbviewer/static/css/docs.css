@@ -720,7 +720,7 @@ form.well {
 }
 
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
 
   /* Remove any padding from the body */
   body {
@@ -784,7 +784,7 @@ form.well {
 }
 
 
-@media (min-width: 480px) and (max-width: 768px) {
+@media (min-width: 480px) and (max-width: 767px) {
 
   /* Scale down the jumbotron content */
   .jumbotron h1 {
@@ -798,12 +798,7 @@ form.well {
 }
 
 
-@media (min-width: 768px) and (max-width: 980px) {
-
-  /* Remove any padding from the body */
-  body {
-    padding-top: 0;
-  }
+@media (min-width: 768px) and (max-width: 979px) {
 
   /* Scale down the jumbotron content */
   .jumbotron h1 {
@@ -813,7 +808,7 @@ form.well {
 }
 
 
-@media (max-width: 980px) {
+@media (max-width: 979px) {
 
   /* Unfloat brand */
   .navbar-fixed-top .brand {
