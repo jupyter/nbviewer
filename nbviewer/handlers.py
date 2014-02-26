@@ -33,6 +33,7 @@ except ImportError:
     pycurl = None
     class CurlError(Exception): pass
 
+from IPython.html import DEFAULT_STATIC_FILES_PATH as ipython_static_path
 
 from .render import render_notebook, NbFormatError
 from .utils import transform_ipynb_uri, quote, response_text
@@ -727,6 +728,7 @@ handlers = [
     ('/index.html', IndexHandler),
     (r'/faq/?', FAQHandler),
     (r'/create/?', CreateHandler),
+    (r'/ipython-static/(.*)', web.StaticFileHandler, dict(path=ipython_static_path)),
     
     # don't let super old browsers request data-uris
     (r'.*/data:.*;base64,.*', Custom404),
