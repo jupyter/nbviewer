@@ -6,7 +6,7 @@
       {% if home_url %}
         {{ layout.head_link(home_url    , "Notebook Home"    , "github"  ) }}
       {% endif %}
-        {{ layout.head_link(download_url, "Download Notebook", "download") }}
+        {{ layout.head_link(download_url, "Download Notebook", "download", True) }}
     {% endblock %}
 
     {% block extra_head %}

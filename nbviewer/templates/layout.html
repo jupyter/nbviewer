@@ -1,6 +1,6 @@
-{% macro head_link(url, name, icon=None) -%}
+{% macro head_link(url, name, icon=None, download=False) -%}
    <li>
-        <a href="{{url}}" title="{{name}}">
+        <a href="{{url}}" title="{{name}}" {%if download %}download{% endif %}>
            {% if icon %}
                <span class='fa fa-{{icon}} fa-2x menu-icon'></span>
                <span class='menu-text'>{{name}}</span>
