@@ -5,4 +5,7 @@ futures
 newrelic
 markdown
 
-ipython[nbconvert]==1.2.0
+pygments
+jinja2
+Sphinx>=0.3
+http://archive.ipython.org/testing/2.0.0/ipython-2.0.0-b1.tar.gz
