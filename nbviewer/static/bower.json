@@ -4,6 +4,7 @@
   "dependencies": {
     "Font-Awesome": "~4.0.3",
     "animate.css": "~3.0.0",
-    "headroom.js": "~0.3.9"
+    "headroom.js": "~0.3.9",
+    "requirejs": "~2.1"
   }
 }

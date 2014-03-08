@@ -88,6 +88,10 @@
 
   <body data-spy="scroll" data-target=".subnav" data-offset="50">
 
+  <!-- These are loaded at the top of the body so they are available to notebook
+  cells when they are loaded below. -->
+  <script src="/static/js/jquery.min.js"></script>
+  <script src="/static/components/requirejs/require.js"></script>
 
   <!-- Navbar
   ================================================== -->
@@ -156,7 +160,6 @@
     <!-- Placed at the end of the document so the pages load faster -->
 
     <!--<script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>-->
-    <script src="/static/js/jquery.min.js"></script>
     <!--<script src="/static/js/google-code-prettify/prettify.js"></script>-->
     <!--<script src="/static/js/bootstrap-transition.js"></script>-->
     <!--<script src="/static/js/bootstrap-alert.js"></script>-->
