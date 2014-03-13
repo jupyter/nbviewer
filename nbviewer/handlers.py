@@ -14,6 +14,7 @@ import socket
 import time
 
 from contextlib import contextmanager
+from datetime import datetime
 
 try:
     # py3
@@ -37,6 +38,8 @@ from IPython.html import DEFAULT_STATIC_FILES_PATH as ipython_static_path
 
 from .render import render_notebook, NbFormatError
 from .utils import transform_ipynb_uri, quote, response_text
+
+date_fmt = "%a, %d %h %Y %H:%M:%S UTC"
 
 #-----------------------------------------------------------------------------
 # Handler classes
@@ -351,6 +354,7 @@ class RenderingHandler(BaseHandler):
             body=nbhtml,
             download_url=download_url,
             home_url=home_url,
+            date=datetime.utcnow().strftime(date_fmt),
             **config)
         yield self.cache_and_finish(html)
 

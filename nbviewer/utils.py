@@ -116,10 +116,19 @@ def response_text(response):
 
 def git_info(path):
     """Return some git info"""
-    command = ['git', 'log', '-1', '--format=%H\n%s\n%aD']
+    command = ['git', 'log', '-1', '--format=%H\n%s\n%cD']
     sha, msg, date = check_output(command, cwd=path).decode('utf8').splitlines()
     return dict(
         sha=sha,
         date=date,
         msg=msg,
     )
+
+def ipython_info():
+    """Get IPython info dict"""
+    from IPython.utils import sysinfo
+    try:
+        return sysinfo.get_sys_info()
+    except AttributeError:
+        # IPython < 2.0
+        return eval(sysinfo.sys_info())
