@@ -125,3 +125,18 @@
             );
     </script>
 {% endblock extra_script %}
+
+{% block version_info %}
+{{super()}}
+{% if ipython_info %}
+<p class="text-muted">
+    IPython version: {{ipython_info['ipython_version']}}
+    {% if 'dev' in ipython_info['ipython_version'] %}
+    (<a href="https://github.com/ipython/ipython/commit/{{ipython_info['commit_hash']}}">
+      {{ipython_info['commit_hash']}}
+    </a>)
+    {% endif %}
+</p>
+{% endif %}
+{% endblock version_info %}
+

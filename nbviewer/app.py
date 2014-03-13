@@ -32,7 +32,7 @@ except ImportError:
     from .client import LoggingSimpleAsyncHTTPClient as HTTPClientClass
 from .github import AsyncGitHubClient
 from .log import log_request
-from .utils import git_info
+from .utils import git_info, ipython_info
 
 #-----------------------------------------------------------------------------
 # Code
@@ -124,10 +124,13 @@ def main():
     else:
         git_data['msg'] = escape(git_data['msg'])
 
-    if options.no_cache :
+
+    if options.no_cache:
         # force jinja to recompile template every time
         env.globals.update(cache_size=0)
-    env.globals.update(nrhead=nrhead, nrfoot=nrfoot, git_data=git_data)
+    env.globals.update(nrhead=nrhead, nrfoot=nrfoot, git_data=git_data,
+        ipython_info=ipython_info()
+    )
     AsyncHTTPClient.configure(HTTPClientClass)
     client = AsyncHTTPClient()
     github_client = AsyncGitHubClient(client)
