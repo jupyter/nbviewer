@@ -135,6 +135,7 @@
 
      <!-- Footer
      ================================================== -->
+      {% block footer %}
       <footer class="footer">
       <p class="pull-right"><a href="#">Back to top</a></p>
       <p>More info on <a href='http://ipython.org'> IPython website</a>.
@@ -152,37 +153,20 @@
       </p>
       {% endif %}
       {% endblock version_info %}
+      {% block extra_footer %}
+      {% endblock extra_footer %}
       </footer>
+      {% endblock footer %}
+
     </div><!-- /container -->
 
-
-
-    <!-- Le javascript
-    ================================================== -->
-    <!-- Placed at the end of the document so the pages load faster -->
-
-    <!--<script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>-->
-    <!--<script src="/static/js/google-code-prettify/prettify.js"></script>-->
-    <!--<script src="/static/js/bootstrap-transition.js"></script>-->
-    <!--<script src="/static/js/bootstrap-alert.js"></script>-->
-    <!--<script src="/static/js/bootstrap-modal.js"></script>-->
-    <!--<script src="/static/js/bootstrap-dropdown.js"></script>-->
-    <!--<script src="/static/js/bootstrap-scrollspy.js"></script>-->
-    <!--<script src="/static/js/bootstrap-tab.js"></script>-->
-    <!--<script src="/static/js/bootstrap-tooltip.js"></script>-->
-    <!--<script src="/static/js/bootstrap-popover.js"></script>-->
-    <!--<script src="/static/js/bootstrap-button.js"></script>-->
     <script src="/static/js/bootstrap-collapse.js"></script>
-    <!--<script src="/static/js/bootstrap-carousel.js"></script>-->
-    <!--<script src="/static/js/bootstrap-typeahead.js"></script>-->
-    <!--<script src="/static/js/application.js"></script>-->
     <script src="/static/components/headroom.js/dist/headroom.min.js"></script>
     <script src="/static/components/headroom.js/dist/jQuery.headroom.min.js"></script>
 
 
     {% block extra_script %}
     {% endblock %}
-
 
     <!-- Analytics
     ================================================== -->

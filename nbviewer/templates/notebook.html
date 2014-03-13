@@ -140,3 +140,11 @@
 {% endif %}
 {% endblock version_info %}
 
+{% block extra_footer %}
+{{super()}}
+{% if date %}
+<p class="text-muted">
+    Rendered on: {{date}}
+</p>
+{% endif %}
+{% endblock extra_footer %}
