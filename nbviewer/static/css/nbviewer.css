@@ -1,0 +1,28 @@
+// get fixed navbar on mobiles
+@media (max-width: 767px) /* @grid-float-breakpoint -1 */
+{
+    .navbar-fixed-top
+    {
+    position: fixed;
+    top: 0;
+    margin-left:0;
+    margin-right:0;
+    }
+}
+
+.menu-icon{
+    line-height: 8px;
+    margin-right: 5px;
+    position:relative;
+    top:5px;
+}
+
+@media (min-width: 768px){
+    .menu-text{
+        display:none
+    }
+}
+pre, code {
+    /* restore default mono font */
+    font-family: monospace;
+}
