@@ -277,6 +277,13 @@ def cached(method):
     @gen.coroutine
     def cached_method(self, *args, **kwargs):
         short_url = self.truncate(self.request.uri)
+        
+        if self.get_argument("flush_cache", False):
+            app_log.info("flushing cache %s", short_url)
+            # call the wrapped method
+            yield method(self, *args, **kwargs)
+            return
+        
         try:
             with self.time_block("cache get %s" % short_url):
                 cached_response = yield self.cache.get(self.cache_key)
