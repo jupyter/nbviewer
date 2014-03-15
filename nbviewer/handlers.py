@@ -191,12 +191,12 @@ class BaseHandler(web.RequestHandler):
     _cache_key = None
     @property
     def cache_key(self):
-        """Use checksum of uri, not uri itself, in the cache
+        """Use checksum of path (no url params), not uri itself, in the cache
         
         cache has size limit on keys
         """
         if self._cache_key is None:
-            self._cache_key = hashlib.sha1(utf8(self.request.uri)).hexdigest()
+            self._cache_key = hashlib.sha1(utf8(self.request.path)).hexdigest()
         return self._cache_key
     
     def truncate(self, s, limit=256):
@@ -219,7 +219,7 @@ class BaseHandler(web.RequestHandler):
         - custom headers are not used
         """
         self.write(content)
-        short_url = self.truncate(self.request.uri)
+        short_url = self.truncate(self.request.path)
         bcontent = utf8(content)
         request_time = self.request.request_time()
         # set cache expiry to 120x request time
@@ -276,7 +276,14 @@ def cached(method):
     """
     @gen.coroutine
     def cached_method(self, *args, **kwargs):
-        short_url = self.truncate(self.request.uri)
+        short_url = self.truncate(self.request.path)
+        
+        if self.get_argument("flush_cache", False):
+            app_log.info("flushing cache %s", short_url)
+            # call the wrapped method
+            yield method(self, *args, **kwargs)
+            return
+        
         try:
             with self.time_block("cache get %s" % short_url):
                 cached_response = yield self.cache.get(self.cache_key)
