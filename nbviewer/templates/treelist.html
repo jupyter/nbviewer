@@ -1,4 +1,4 @@
-{% extends "layout.html" %}
+{% extends "notebook.html" %}
 {% block body %}
 <ul class="breadcrumb">
     {% for part in path_list %}
@@ -28,4 +28,13 @@
                 {% endfor %}
             </tbody>
         </table>
+    {% if index_html %}
+    <div id="index-ipynb">
+        <div class="index-header">
+            <i class="icon-book"></i>
+            <a href="{{index_name}}">{{index_name}}</a>
+        </div>
+        {{index_html | safe }}
+    </div>
+    {% endif %}
 {% endblock %}
