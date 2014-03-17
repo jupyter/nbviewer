@@ -22,7 +22,7 @@ from tornado.options import define, options
 from jinja2 import Environment, FileSystemLoader
 
 from IPython.config import Config
-from IPython.nbconvert.exporters import HTMLExporter
+from IPython.nbconvert.exporters import SlidesExporter
 
 from .handlers import handlers, LocalFileHandler
 from .cache import DummyAsyncCache, AsyncMultipartMemcache, MockCache, pylibmc
@@ -71,13 +71,13 @@ def main():
     
     # NBConvert config
     config = Config()
-    config.HTMLExporter.template_file = 'basic'
-    config.NbconvertApp.fileext = 'html'
+    config.SlidesExporter.template_file = 'reveal_internals/slides'
+    config.NbconvertApp.fileext = 'slides.html'
     config.CSSHTMLHeaderTransformer.enabled = False
     # don't strip the files prefix - we use it for redirects
     # config.Exporter.filters = {'strip_files_prefix': lambda s: s}
     
-    exporter = HTMLExporter(config=config, log=log.app_log)
+    exporter = SlidesExporter(config=config, log=log.app_log)
     
     # DEBUG env implies both autoreload and log-level
     if os.environ.get("DEBUG"):

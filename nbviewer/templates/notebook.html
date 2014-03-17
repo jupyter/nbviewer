@@ -44,8 +44,110 @@
     {% endif %}
     #}
 
+    <!-- General and theme style sheets -->
+    <link rel="stylesheet" href="/static/reveal.js/css/reveal.css">
+    <link rel="stylesheet" href="/static/reveal.js/css/theme/simple.css" id="theme">
+    
+    <!-- For syntax highlighting -->
+    <link rel="stylesheet" href="/static/reveal.js/lib/css/zenburn.css">
+    
+    <!-- If the query includes 'print-pdf', use the PDF print sheet -->
+    <script>
+    document.write( '<link rel="stylesheet" href="/static/reveal.js/css/print/' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
+    </script>
+    
+    <!--[if lt IE 9]>
+    <script src="/static/reveal.js/lib/js/html5shiv.js"></script>
+    <![endif]-->
+    
+    <!-- Get Font-awesome from cdn -->
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css">
+    
     <link href="/ipython-static/style/ipython.min.css" rel="stylesheet">
     <link href="/static/css/pygments.css" rel="stylesheet">
+    
+    <style type="text/css">
+    /* Overrides of notebook CSS for static HTML export */
+    body {
+      overflow-x: hidden;
+      // overflow-y modified at reveal.css
+      line-height: inherit;
+    }
+    .reveal {
+      font-size: 160%;
+    }
+    .reveal pre {
+      width: inherit;
+      padding: 0.4em;
+      margin: 0px;
+      font-family: monospace, sans-serif;
+      font-size: 80%;
+      box-shadow: 0px 0px 0px rgba(0, 0, 0, 0);
+    }
+    .reveal section img {
+      border: 0px solid black;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0);
+    }
+    .reveal i {
+      font-style: normal;
+      font-family: FontAwesome;
+      font-size: 2em;
+    }
+    .reveal .slides {
+      text-align: left;
+    }
+    .reveal.fade {
+      opacity: 1;
+    }
+    .reveal .progress {
+      position: static;
+    }
+    div.input_area {
+      padding: 0.06em;
+    }
+    div.code_cell {
+      background-color: transparent;
+    }
+    div.prompt {
+      width: 11ex;
+      padding: 0.4em;
+      margin: 0px;
+      font-family: monospace, sans-serif;
+      font-size: 80%;
+      text-align: right;
+    }
+    div.output_area pre {
+      font-family: monospace, sans-serif;
+      font-size: 80%;
+    }
+    div.output_prompt {
+      /* 5px right shift to account for margin in parent container */
+      margin: 5px 5px 0 0;
+    }
+    .rendered_html p {
+      text-align: inherit;
+    }
+    #menubar .navbar-inner {
+      margin-top: 5px;
+    }
+    .container {
+      height: inherit;
+    }
+    .footer{
+      display: none;
+    }
+    </style>
+
+    <!-- Custom stylesheet, it must be in the same directory as the html file -->
+    <link rel="stylesheet" href="custom.css">
+
+    <style type="text/css" media='screen and (min-width:980px)'>
+    .navbar-inner {
+        opacity: 0.5;
+        transition: opacity 0.5s ease-in-out;
+        -webkit-transition: opacity 0.5s ease-in-out;
+    }
+
     <style type="text/css" media='screen and (min-width:980px)'>
    
     body{
@@ -74,37 +176,78 @@
 
     
     </style>
-    {% if css_theme %}
-        <link href="/static/css/theme/{{css_theme}}.css" rel="stylesheet">
-    {% endif %}
-    <script src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS_HTML"type="text/javascript">
-    </script>
-    <script type="text/javascript">
-    init_mathjax = function() {
-        if (window.MathJax) {
-            // MathJax loaded
-            MathJax.Hub.Config({
-                tex2jax: {
-                    inlineMath: [ ['$','$'], ["\\(","\\)"] ],
-                    displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
-                    processEscapes: true,
-                    processEnvironments: true
-                },
-                displayAlign: 'center',
-                "HTML-CSS": {
-                    styles: {'.MathJax_Display': {"margin": 0}},
-                    linebreaks: { automatic: true }
-                }
-            });
-            MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
-        }
-    }
-    init_mathjax();
-    </script>
     {% endblock extra_head %}
 
 {% block body %}
+    <div class="reveal">
+    <div class="slides">
     {{ body | safe}}
+    </div>
+    </div>
+    
+    <script src="/static/reveal.js/lib/js/head.min.js"></script>
+    
+    <script src="/static/reveal.js/js/reveal.js"></script>
+    
+    <script>
+    
+    // Full list of configuration options available here: https://github.com/hakimel/reveal.js#configuration
+    Reveal.initialize({
+    controls: true,
+    progress: true,
+    history: true,
+    
+    theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+    transition: Reveal.getQueryHash().transition || 'linear', // default/cube/page/concave/zoom/linear/none
+
+    //minScale: 1,
+    //maxScale: 1,
+    
+    // Optional libraries used to extend on reveal.js
+    dependencies: [
+    { src: "/static/reveal.js/lib/js/classList.js", condition: function() { return !document.body.classList; } },
+    { src: "/static/reveal.js/plugin/highlight/highlight.js", async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+    { src: "/static/reveal.js/plugin/notes/notes.js", async: true, condition: function() { return !!document.body.classList; } }
+    ]
+    });
+    </script>
+    
+    <!-- MathJax configuration -->
+    <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ]
+      },
+      displayAlign: 'left', // Change this to 'center' to center equations.
+      "HTML-CSS": {
+        styles: {'.MathJax_Display': {"margin": 0}}
+      }
+    });
+    </script>
+    <!-- End of mathjax configuration -->
+    
+    <script>
+    //  We wait for the onload function to load MathJax after the page is completely loaded.
+    //  MathJax is loaded 1 unit of time after the page is ready.
+    //  This hack prevent problems when you load multiple js files.
+    
+    window.onload = function () {
+      setTimeout(function () {
+        var script = document.createElement("script");
+        script.type = "text/javascript";
+        script.src  = "https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS_HTML";
+        document.getElementsByTagName("head")[0].appendChild(script);
+      },1)
+    }
+    </script>
+    
+    <script>
+    Reveal.addEventListener( 'slidechanged', function( event ) {
+      window.scrollTo(0,0);
+      MathJax.Hub.Rerender(event.currentSlide);
+    });
+    </script>
 {% endblock %}
 
 {% block extra_script %}
