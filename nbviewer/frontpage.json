@@ -3,11 +3,6 @@
     "header":"Some IPython Slides",
     "links":[
       {
-        "text": "IPython-powered Slideshow Reveal-ed",
-        "target": "github/damianavila/scipy2013_talks/blob/gh-pages/IPython-powered_Slideshow_Reveal-ed.ipynb",
-        "img": "/static/img/example-nb/ipython-reveal.png"
-      },
-      {
         "text": "Features and Scope",
         "target": "github/ellisonbg/talk-scipy2013/blob/master/FeaturesAndScope.ipynb",
         "img": "/static/img/example-nb/bryantalk.png"
@@ -16,6 +11,11 @@
         "text": "Volatility Tutorial",
         "target": "url/www.hilpisch.com/YH_FPQ_Volatility_Tutorial.ipynb",
         "img": "/static/img/example-nb/yvestalk.png"
+      },
+      {
+        "text": "IPython-fu: el camino de la nbconversión",
+        "target": "github/damianavila/pyconar2013_talks/blob/master/IPython_fu_talk.ipynb",
+        "img": "/static/img/example-nb/nbconversion.png"
       }
     ]
   }
