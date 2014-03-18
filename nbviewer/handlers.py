@@ -385,6 +385,11 @@ class URLHandler(RenderingHandler):
     def get(self, secure, url):
         proto = 'http' + secure
         
+        if url.startswith(self.request.host):
+            # notebooks don't live on nbviewer
+            # recursive requests can cause problems
+            raise web.HTTPError(404)
+        
         remote_url = u"{}://{}".format(proto, quote(url))
         if not url.endswith('.ipynb'):
             # this is how we handle relative links (files/ URLs) in notebooks
