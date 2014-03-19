@@ -302,8 +302,6 @@ def cached(method):
                  tic-tic, short_url
             )
         
-        self.pending.add(uri)
-        
         try:
             with self.time_block("cache get %s" % short_url):
                 cached_response = yield self.cache.get(self.cache_key)
@@ -316,12 +314,14 @@ def cached(method):
             self.write(cached_response)
         else:
             app_log.debug("cache miss %s", short_url)
-            # call the wrapped method
-            yield method(self, *args, **kwargs)
-        
-        if uri in self.pending:
-            # protect against double-remove
-            self.pending.remove(uri)
+            self.pending.add(uri)
+            try:
+                # call the wrapped method
+                yield method(self, *args, **kwargs)
+            finally:
+                if uri in self.pending:
+                    # protect against double-remove
+                    self.pending.remove(uri)
     
     return cached_method
 
