@@ -49,6 +49,10 @@ class BaseHandler(web.RequestHandler):
     """Base Handler class with common utilities"""
     
     @property
+    def pending(self):
+        return self.settings.setdefault('pending', set())
+    
+    @property
     def exporter(self):
         return self.settings['exporter']
     
@@ -276,13 +280,27 @@ def cached(method):
     """
     @gen.coroutine
     def cached_method(self, *args, **kwargs):
-        short_url = self.truncate(self.request.path)
+        uri = self.request.path
+        short_url = self.truncate(uri)
         
         if self.get_argument("flush_cache", False):
             app_log.info("flushing cache %s", short_url)
             # call the wrapped method
             yield method(self, *args, **kwargs)
             return
+        
+        if uri in self.pending:
+            loop = IOLoop.current()
+            app_log.info("Waiting for concurrent request at %s", short_url)
+            tic = loop.time()
+            while uri in self.pending:
+                # another request is already rendering this request,
+                # wait for it
+                yield gen.Task(loop.add_timeout, loop.time() + 1)
+            toc = loop.time()
+            app_log.info("Waited %.3fs for concurrent request at %s",
+                 tic-tic, short_url
+            )
         
         try:
             with self.time_block("cache get %s" % short_url):
@@ -296,8 +314,14 @@ def cached(method):
             self.write(cached_response)
         else:
             app_log.debug("cache miss %s", short_url)
-            # call the wrapped method
-            yield method(self, *args, **kwargs)
+            self.pending.add(uri)
+            try:
+                # call the wrapped method
+                yield method(self, *args, **kwargs)
+            finally:
+                if uri in self.pending:
+                    # protect against double-remove
+                    self.pending.remove(uri)
     
     return cached_method
 
