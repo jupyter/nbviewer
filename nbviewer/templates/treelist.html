@@ -6,11 +6,13 @@
                 <tr><th>Name</th></tr>
             </thead>
             <tbody>
-                    <tr><td><a href='../'><i class='icon-backward'></i> ..
-                    {% if not path_list %}
-                    (list of repository)
-                    {% endif %}
-                    </a></td></tr>
+                <tr><td>
+                {% if len(breadcrumbs) > 1 %}
+                    <a href='../'><i class='icon-backward'></i> ..</a>
+                {% else %}
+                    <a href='/github/{{user}}'><i class='icon-backward'></i> {{user}}'s repositories</a>
+                {% endif %}
+                </td></tr>
                 {% for entry in entries %}
                   <tr><td><i class='{{entry.class}}'></i>
                   {% if entry.url %}
