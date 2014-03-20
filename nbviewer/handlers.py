@@ -97,6 +97,19 @@ class BaseHandler(web.RequestHandler):
     def template_namespace(self):
         return {}
     
+    def breadcrumbs(self, path, base_url):
+        """Generate a list of breadcrumbs"""
+        breadcrumbs = []
+        if not path:
+            return breadcrumbs
+        for name in path.split('/'):
+            href = base_url = "%s/%s" % (base_url, name)
+            breadcrumbs.append({
+                'url' : base_url,
+                'name' : name,
+            })
+        return breadcrumbs
+    
     #---------------------------------------------------------------
     # error handling
     #---------------------------------------------------------------
@@ -608,18 +621,12 @@ class GitHubTreeHandler(BaseHandler):
         github_url = u"https://github.com/{user}/{repo}/tree/{ref}/{path}".format(
             user=user, repo=repo, ref=ref, path=path,
         )
-
-        path_list = [{
+        
+        breadcrumbs = [{
             'url' : base_url,
             'name' : repo,
         }]
-        if path:
-            for name in path.split('/'):
-                href = base_url = "%s/%s" % (base_url, name)
-                path_list.append({
-                    'url' : base_url,
-                    'name' : name,
-                })
+        breadcrumbs.extend(self.breadcrumbs(path, base_url))
         
         entries = []
         dirs = []
@@ -656,7 +663,7 @@ class GitHubTreeHandler(BaseHandler):
         entries.extend(others)
 
         html = self.render_template("treelist.html",
-            entries=entries, path_list=path_list, github_url=github_url,
+            entries=entries, breadcrumbs=breadcrumbs, github_url=github_url,
         )
         yield self.cache_and_finish(html)
     
