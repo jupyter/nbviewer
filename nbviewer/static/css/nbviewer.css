@@ -26,3 +26,15 @@ pre, code {
     /* restore default mono font */
     font-family: monospace;
 }
+
+div#index-ipynb {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+div.index-header {
+    background-color: #f9f9f9;
+    border-bottom: 1px solid #ccc;
+    padding: 4px 5px;
+    
+}

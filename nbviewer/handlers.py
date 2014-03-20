@@ -355,15 +355,9 @@ class RenderingHandler(BaseHandler):
         # short circuit some methods because the rest of the rendering will still happen
         self.write = self.finish = self.redirect = lambda chunk=None: None
     
-    
     @gen.coroutine
-    def finish_notebook(self, nbjson, download_url, home_url=None, msg=None):
-        """render a notebook from its JSON body.
-        
-        download_url is required, home_url is not.
-        
-        msg is extra information for the log message when rendering fails.
-        """
+    def render_notebook(self, nbjson, download_url, msg=None):
+        """Wrap the render_notebook function in logging / HTTPErrors"""
         if msg is None:
             msg = download_url
         try:
@@ -380,7 +374,17 @@ class RenderingHandler(BaseHandler):
             raise web.HTTPError(400, str(e))
         else:
             app_log.debug("Finished render of %s", download_url)
+            raise gen.Return((nbhtml, config))
+    
+    @gen.coroutine
+    def finish_notebook(self, nbjson, download_url, home_url=None, msg=None):
+        """render a notebook from its JSON body.
         
+        download_url is required, home_url is not.
+        
+        msg is extra information for the log message when rendering fails.
+        """
+        nbhtml, config = yield self.render_notebook(nbjson, download_url, msg)
         html = self.render_template('notebook.html',
             body=nbhtml,
             download_url=download_url,
@@ -578,8 +582,30 @@ class GitHubRepoHandler(BaseHandler):
         self.redirect("/github/%s/%s/tree/master/" % (user, repo))
 
 
-class GitHubTreeHandler(BaseHandler):
+class GitHubTreeHandler(RenderingHandler):
     """list files in a github repo (like github tree)"""
+    
+    @gen.coroutine
+    def render_index(self, user, repo, ref, path, name):
+        raw_url = u"https://raw.github.com/{user}/{repo}/{ref}/{path}/{name}".format(
+            user=user, repo=repo, ref=ref, path=quote(path), name=name,
+        )
+        with self.catch_client_error():
+            response = yield self.client.fetch(raw_url)
+        
+        filedata = response.body
+        
+        try:
+            nbjson = response_text(response)
+        except Exception as e:
+            app_log.error("Failed to decode notebook: %s", raw_url, exc_info=True)
+            raise web.HTTPError(400)
+        try:
+            nbhtml, config = yield self.render_notebook(nbjson, raw_url, msg="file from GitHub: %s" % raw_url)
+        except Exception:
+            nbhtml = ''
+        raise gen.Return(nbhtml)
+    
     @cached
     @gen.coroutine
     def get(self, user, repo, ref, path):
@@ -625,6 +651,8 @@ class GitHubTreeHandler(BaseHandler):
         dirs = []
         ipynbs = []
         others = []
+        index_name = ''
+        
         for file in contents:
             e = {}
             e['name'] = file['name']
@@ -640,6 +668,8 @@ class GitHubTreeHandler(BaseHandler):
                 )
                 e['class'] = 'icon-book'
                 ipynbs.append(e)
+                if file['name'].lower() == 'index.ipynb':
+                    index_name = file['name']
             elif file['html_url']:
                 e['url'] = file['html_url']
                 e['class'] = 'icon-share'
@@ -654,9 +684,14 @@ class GitHubTreeHandler(BaseHandler):
         entries.extend(dirs)
         entries.extend(ipynbs)
         entries.extend(others)
+        if index_name:
+            index_html = yield self.render_index(user, repo, ref, path, index_name)
+        else:
+            index_html = ''
 
         html = self.render_template("treelist.html",
             entries=entries, path_list=path_list, github_url=github_url,
+            index_html=index_html, index_name=index_name,
         )
         yield self.cache_and_finish(html)
     
