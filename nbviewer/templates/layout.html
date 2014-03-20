@@ -11,6 +11,15 @@
    </li>
 {%- endmacro %}
 
+{% macro link_breadcrumbs(crumbs) -%}
+<ul class="breadcrumb">
+    {% for crumb in crumbs %}
+    <li><a href="{{crumb['url']}}">{{crumb['name']}}</a> <span class="divider">/</span></li>
+    {% endfor %}
+</ul>
+{%- endmacro %}
+
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
