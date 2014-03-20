@@ -370,7 +370,7 @@ class RenderingHandler(BaseHandler):
     
     
     @gen.coroutine
-    def finish_notebook(self, nbjson, download_url, home_url=None, msg=None):
+    def finish_notebook(self, nbjson, download_url, home_url=None, msg=None, breadcrumbs=None):
         """render a notebook from its JSON body.
         
         download_url is required, home_url is not.
@@ -399,6 +399,7 @@ class RenderingHandler(BaseHandler):
             download_url=download_url,
             home_url=home_url,
             date=datetime.utcnow().strftime(date_fmt),
+            breadcrumbs=breadcrumbs,
             **config)
         yield self.cache_and_finish(html)
 
@@ -664,6 +665,7 @@ class GitHubTreeHandler(BaseHandler):
 
         html = self.render_template("treelist.html",
             entries=entries, breadcrumbs=breadcrumbs, github_url=github_url,
+            user=user, repo=repo, ref=ref,
         )
         yield self.cache_and_finish(html)
     
@@ -702,6 +704,16 @@ class GitHubBlobHandler(RenderingHandler):
         filedata = response.body
         
         if path.endswith('.ipynb'):
+            dir_path = path.rsplit('/', 1)[0]
+            base_url = "/github/{user}/{repo}/tree/{ref}".format(
+                user=user, repo=repo, ref=ref,
+            )
+            breadcrumbs = [{
+                'url' : base_url,
+                'name' : repo,
+            }]
+            breadcrumbs.extend(self.breadcrumbs(dir_path, base_url))
+            
             try:
                 nbjson = response_text(response)
             except Exception as e:
@@ -709,6 +721,7 @@ class GitHubBlobHandler(RenderingHandler):
                 raise web.HTTPError(400)
             yield self.finish_notebook(nbjson, raw_url,
                 home_url=blob_url,
+                breadcrumbs=breadcrumbs,
                 msg="file from GitHub: %s" % raw_url,
             )
         else:

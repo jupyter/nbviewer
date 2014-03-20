@@ -48,8 +48,8 @@
     <link href="/static/css/pygments.css" rel="stylesheet">
     <style type="text/css" media='screen and (min-width:980px)'>
    
-    body{
-        padding-top:50px;
+    body {
+        padding-top: 40px;
     }
 
     </style>
@@ -104,6 +104,7 @@
     {% endblock extra_head %}
 
 {% block body %}
+    {{ link_breadcrumbs(breadcrumbs) }}
     {{ body | safe}}
 {% endblock %}
 
