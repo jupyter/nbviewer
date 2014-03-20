@@ -632,12 +632,14 @@ class GitHubTreeHandler(BaseHandler):
                 e['url'] = u'/github/{user}/{repo}/tree/{ref}/{path}'.format(
                 user=user, repo=repo, ref=ref, path=file['path']
                 )
+                e['url'] = quote(e['url'])
                 e['class'] = 'icon-folder-open'
                 dirs.append(e)
             elif file['name'].endswith('.ipynb'):
                 e['url'] = u'/github/{user}/{repo}/blob/{ref}/{path}'.format(
                 user=user, repo=repo, ref=ref, path=file['path']
                 )
+                e['url'] = quote(e['url'])
                 e['class'] = 'icon-book'
                 ipynbs.append(e)
             elif file['html_url']:
@@ -649,7 +651,7 @@ class GitHubTreeHandler(BaseHandler):
                 e['url'] = ''
                 e['class'] = 'icon-folder-close'
                 others.append(e)
-            e['url'] = quote(e['url'])
+            
         
         entries.extend(dirs)
         entries.extend(ipynbs)
