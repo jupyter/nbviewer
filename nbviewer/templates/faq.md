@@ -29,6 +29,9 @@ able to view it.
 
 You can also directly browse collections of notebooks through github repositories directly on nbviewer
 
+### Bookmarklets, browser extension
+
+Access bookmarklets, chrome extension and more [here](http://jiffyclub.github.io/open-in-nbviewer/).
 
 ### I've got a 5xx/4xx error on a notebook.
 
