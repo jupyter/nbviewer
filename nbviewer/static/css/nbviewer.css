@@ -30,3 +30,13 @@ pre, code {
     /* restore default mono font */
     font-family: monospace;
 }
+
+.footer {
+    opacity: 0.5;
+    transition: opacity;
+    transition-duration:1s;
+}
+
+.footer:hover{
+    opacity: 1.0;
+}
