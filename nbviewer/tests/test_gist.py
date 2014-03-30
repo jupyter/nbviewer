@@ -11,7 +11,7 @@ from .base import NBViewerTestCase
 
 class GistTestCase(NBViewerTestCase):
     def test_gist(self):
-        url = self.url('2352771')
+        url = self.url('5122140')
         r = requests.get(url)
         self.assertEqual(r.status_code, 200)
 
