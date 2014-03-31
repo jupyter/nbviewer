@@ -810,6 +810,7 @@ handlers = [
     (r'/([0-9]+|[0-9a-f]{20})', GistRedirectHandler),
     (r'/([0-9]+|[0-9a-f]{20})/(.*)', GistRedirectHandler),
     (r'/gist/([\w\-]+)/?', UserGistsHandler),
+    (r'/(robots\.txt|favicon\.ico)', web.StaticFileHandler),
 
     (r'.*', Custom404),
 ]
