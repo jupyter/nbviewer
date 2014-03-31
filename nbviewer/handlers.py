@@ -165,8 +165,9 @@ class BaseHandler(web.RequestHandler):
         """
         tic = time.time()
         yield
-        toc = time.time()
-        app_log.info("%s in %.2f ms", message, 1e3*(toc-tic))
+        dt = time.time() - tic
+        log = app_log.info if dt > 1 else app_log.debug
+        log("%s in %.2f ms", message, 1e3 * dt)
         
     def get_error_html(self, status_code, **kwargs):
         """render custom error pages"""
@@ -251,7 +252,8 @@ class BaseHandler(web.RequestHandler):
             # if it's a link from the front page, cache for a long time
             expiry = self.cache_expiry_max
         
-        app_log.info("caching (expiry=%is) %s", expiry, short_url)
+        log = app_log.info if expiry > self.cache_expiry_min else app_log.debug
+        log("caching (expiry=%is) %s", expiry, short_url)
         try:
             with self.time_block("cache set %s" % short_url):
                 yield self.cache.set(
@@ -312,7 +314,7 @@ def cached(method):
                 yield gen.Task(loop.add_timeout, loop.time() + 1)
             toc = loop.time()
             app_log.info("Waited %.3fs for concurrent request at %s",
-                 tic-tic, short_url
+                 toc-tic, short_url
             )
         
         try:
@@ -808,6 +810,7 @@ handlers = [
     (r'/([0-9]+|[0-9a-f]{20})', GistRedirectHandler),
     (r'/([0-9]+|[0-9a-f]{20})/(.*)', GistRedirectHandler),
     (r'/gist/([\w\-]+)/?', UserGistsHandler),
+    (r'/(robots\.txt|favicon\.ico)', web.StaticFileHandler),
 
     (r'.*', Custom404),
 ]
