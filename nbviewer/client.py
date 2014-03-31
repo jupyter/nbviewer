@@ -19,14 +19,15 @@ class LoggingAsyncHTTPClient(object):
     
     def fetch_impl(self, request, callback):
         without_params = request.url.split('?')[0]
-        app_log.info("Fetching %s", without_params)
+        app_log.debug("Fetching %s", without_params)
         tic = time.time()
         if request.user_agent is None:
             request.user_agent = 'Tornado-Async-Client'
 
         def log_callback(result):
-            toc = time.time()
-            app_log.info("Fetched  %s in %.2f ms", without_params, toc-tic)
+            dt = time.time() - tic
+            log = app_log.info if dt > 1 else app_log.debug
+            log("Fetched  %s in %.2f ms", without_params, 1e3 * dt)
             callback(result)
         return super(LoggingAsyncHTTPClient, self).fetch_impl(request, log_callback)
     
