@@ -18,21 +18,42 @@
   <div class="inner">
     <h1>IPython Notebook Viewer</h1>
     <p>A simple way to share IPython Notebooks</p>
-    <form class='well' method="post" action='create/'>
+    <form class='well form-inline' method="post" action='create/'>
             <div class="" style='text-align:center'>
               <div class="">
-                <input style="width:98%" 
+                <input style="width:90%" class="input-medium"
                           id="appendedInputButton" 
                         size="16" 
                         type="text"  
                         name="gistnorurl"
                         autofocus="autofocus"
-                        placeholder="Enter a gist number or url"/>
-                <br/>
+                        placeholder="Enter a URL or shortcut that points to a notebook"/>
                 <button class="btn" type="submit" style='margin:auto'>Go!</button>
               </div>
             </div>
       </form>
+      <table class="table table-bordered table-condensed">
+        <thead>
+          <tr>
+            <th>Shortcut</th>
+            <th>Meaning</th>
+          </tr>
+        </thead>
+        </tbody>
+          <tr>
+            <td>http://norvig.com/ipython/xkcd1313.ipynb</td><td>Any public URL of a notebook</td>
+          </tr>
+          <tr>
+            <td>ipython</td><td>GitHub username</td>
+          </tr>
+          <tr>
+            <td>ipython/ipython</td><td>GitHub username/repo</td>
+          </tr>
+          <tr>
+            <td>4121857</td><td>Gist ID</td>
+          </tr>
+        </tbody>
+      </table>
   </div>
 </header>
 
