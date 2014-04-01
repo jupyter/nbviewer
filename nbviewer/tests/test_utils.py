@@ -26,6 +26,12 @@ def test_transform_ipynb_uri():
         u'/github/user/repo/blob/master/path/file.ipynb'),
         ('http://github.com/user/repo/blob/master/path/file.ipynb',
         u'/github/user/repo/blob/master/path/file.ipynb'),
+        # GITHUB_USER_RGX
+        ('ipython',
+        u'/github/ipython/'),
+        # GITHUB_USERREPO_RGX
+        ('ipython/ipython',
+        u'/github/ipython/ipython/tree/master/'),
         #DropBox Urls
         ( u'http://www.dropbox.com/s/bar/baz.qux',
           u'/url/dl.dropbox.com/s/bar/baz.qux'),
