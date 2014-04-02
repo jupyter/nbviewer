@@ -4,7 +4,7 @@
     "links":[
       {
         "text": "IPython Examples",
-        "target": "github/ipython/ipython/tree/master/examples/notebooks",
+        "target": "github/ipython/ipython/tree/master/examples/Index.ipynb",
         "img": "/static/img/example-nb/ipython-thumb.png"
       },
       {
