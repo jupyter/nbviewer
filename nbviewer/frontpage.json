@@ -99,7 +99,7 @@
       },
       {
         "text": "R magic extension",
-        "target": "github/ipython/ipython/blob/master/examples/notebooks/R Magics.ipynb",
+        "target": "github/ipython/ipython/blob/master/examples/Builtin%20Extensions/R%20Magics.ipynb",
         "img": "/static/img/example-nb/r_magic.png"
       }
     ]
