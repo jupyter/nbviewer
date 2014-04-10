@@ -1,15 +1,22 @@
-{% macro head_link(url, name, icon=None, download=False) -%}
-   <li>
+{% macro head_text(url, name, bold=False) -%}
+    <li>
         <a href="{{url}}" title="{{name}}" {%if download %}download{% endif %}>
-           {% if icon %}
-               <span class='fa fa-{{icon}} fa-2x menu-icon'></span>
-               <span class='menu-text'>{{name}}</span>
-           {% else %}
-               <span>{{name}}</span>
-           {% endif %}
-       </a>
-   </li>
+            {% if bold %}<strong>{% endif %}
+            <span>{{name}}</span>
+            {% if bold %}</strong>{% endif %}
+        </a>
+    </li>
 {%- endmacro %}
+
+{% macro head_icon(url, name, icon, download=False) -%}
+    <li>
+        <a href="{{url}}" title="{{name}}" {%if download %}download{% endif %}>
+            <span class='fa fa-{{icon}} fa-2x menu-icon'></span>
+            <span class='menu-text'>{{name}}</span>
+        </a>
+    </li>
+{%- endmacro %}
+
 
 {% macro link_breadcrumbs(crumbs) -%}
 {% if crumbs %}
@@ -91,8 +98,8 @@
           <div class="nav-collapse collapse">
             <ul class="nav">
 
-                {{ head_link('/'    , "Home"    , "home"    ) }}
-                {{ head_link('/faq'    , "FAQ" ) }}
+                {{ head_text('/', "Notebook Viewer", True) }}
+                {{ head_text('/faq', "FAQ") }}
 
               <li class="{{index}}">
                 <a href="http://www.ipython.org">IPython</a>
