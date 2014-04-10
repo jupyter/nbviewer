@@ -11,7 +11,7 @@ import logging
 import markdown 
 
 from cgi import escape
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 
 from tornado import web, httpserver, ioloop, log
 from tornado.httpclient import AsyncHTTPClient
@@ -66,7 +66,8 @@ def main():
     define("cache_expiry_min", default=10*60, help="minimum cache expiry (seconds)", type=int)
     define("cache_expiry_max", default=2*60*60, help="maximum cache expiry (seconds)", type=int)
     define("mc_threads", default=1, help="number of threads to use for Async Memcache", type=int)
-    define("threads", default=1, help="number of threads to use for background IO", type=int)
+    define("threads", default=1, help="number of threads to use for rendering", type=int)
+    define("processes", default=0, help="use processes instead of threads for rendering", type=int)
     tornado.options.parse_command_line()
     
     # NBConvert config
@@ -77,8 +78,6 @@ def main():
     # don't strip the files prefix - we use it for redirects
     # config.Exporter.filters = {'strip_files_prefix': lambda s: s}
     
-    exporter = HTMLExporter(config=config, log=log.app_log)
-    
     # DEBUG env implies both autoreload and log-level
     if os.environ.get("DEBUG"):
         options.debug = True
@@ -86,7 +85,14 @@ def main():
     
     # setup memcache
     mc_pool = ThreadPoolExecutor(options.mc_threads)
-    pool = ThreadPoolExecutor(options.threads)
+    if options.processes:
+        # can't pickle exporter instances,
+        exporter = HTMLExporter
+        pool = ProcessPoolExecutor(options.processes)
+    else:
+        exporter = HTMLExporter(config=config, log=log.app_log)
+        pool = ThreadPoolExecutor(options.threads)
+        
     memcache_urls = os.environ.get('MEMCACHIER_SERVERS',
         os.environ.get('MEMCACHE_SERVERS')
     )
@@ -143,6 +149,7 @@ def main():
         client=client,
         github_client=github_client,
         exporter=exporter,
+        config=config,
         cache=cache,
         cache_expiry_min=options.cache_expiry_min,
         cache_expiry_max=options.cache_expiry_max,

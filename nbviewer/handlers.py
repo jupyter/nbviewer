@@ -61,6 +61,10 @@ class BaseHandler(web.RequestHandler):
         return self.settings['github_client']
     
     @property
+    def config(self):
+        return self.settings['config']
+    
+    @property
     def client(self):
         return self.settings['client']
     
@@ -386,6 +390,7 @@ class RenderingHandler(BaseHandler):
             with self.time_block("Rendered %s" % download_url):
                 nbhtml, config = yield self.pool.submit(
                     render_notebook, self.exporter, nbjson, download_url,
+                    config=self.config,
                 )
         except NbFormatError as e:
             app_log.error("Invalid notebook %s: %s", msg, e)
