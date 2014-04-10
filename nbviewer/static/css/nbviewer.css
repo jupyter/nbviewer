@@ -14,11 +14,16 @@
   margin-bottom: 30px;
 }
 
-.menu-icon{
+.menu-icon {
     line-height: 8px;
     margin-right: 5px;
     position:relative;
     top:5px;
+}
+
+input#main-input {
+    /* This matches the width of the Go button to properly center things */
+    margin-left: -47px;
 }
 
 @media (min-width: 768px){

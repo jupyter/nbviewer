@@ -18,20 +18,20 @@
   <div class="inner">
     <h1>IPython Notebook Viewer</h1>
     <p>A simple way to share IPython Notebooks</p>
-    <form class='well form-inline' method="post" action='create/'>
-            <div class="" style='text-align:center'>
-              <div class="">
-                <input style="width:90%" class="input-medium"
-                          id="appendedInputButton" 
-                        size="16" 
-                        type="text"  
-                        name="gistnorurl"
-                        autofocus="autofocus"
-                        placeholder="Enter a URL or shortcut that points to a notebook"/>
-                <button class="btn" type="submit" style='margin:auto'>Go!</button>
-              </div>
+    <div class="span10 offset1">
+        <form class='form-inline' method="post" action='create/'>
+            <div class="input-append">
+            <input class="span10"
+                   id="main-input"
+                   size="16"
+                   type="text"
+                   name="gistnorurl"
+                   autofocus="autofocus"
+                   placeholder="Enter a URL or shortcut that points to a notebook"/>
+            <button class="btn" type="submit" type="button">Go!</button>
             </div>
-      </form>
+        </form>
+    </div>
       <table class="table table-bordered table-condensed">
         <thead>
           <tr>
@@ -42,6 +42,9 @@
         </tbody>
           <tr>
             <td>http://norvig.com/ipython/xkcd1313.ipynb</td><td>Any public URL of a notebook</td>
+          </tr>
+          <tr>
+            <td>https://github.com/ipython/ipython/blob/master/examples/Index.ipynb</td><td>The GitHub page for a notebook</td>
           </tr>
           <tr>
             <td>ipython</td><td>GitHub username</td>
