@@ -20,7 +20,7 @@ exporters = {}
 
 def render_notebook(exporter, json_notebook, url=None, forced_theme=None, config=None):
     app_log.info("rendering %d B notebook from %s", len(json_notebook), url)
-    if issubclass(exporter, Exporter):
+    if not isinstance(exporter, Exporter):
         # allow exporter to be passed as a class, rather than instance
         # because Exporter instances cannot be passed across multiprocessing boundaries
         # instances are cached by class to avoid repeated instantiation of duplicates
