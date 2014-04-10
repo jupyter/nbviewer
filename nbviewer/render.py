@@ -7,6 +7,7 @@
 
 from tornado.log import app_log
 from IPython.nbformat.current import reads_json
+from IPython.nbconvert.exporters import Exporter
 
 #-----------------------------------------------------------------------------
 # 
@@ -15,8 +16,19 @@ from IPython.nbformat.current import reads_json
 class NbFormatError(Exception):
     pass
 
-def render_notebook(exporter, json_notebook, url=None, forced_theme=None):
+exporters = {}
+
+def render_notebook(exporter, json_notebook, url=None, forced_theme=None, config=None):
     app_log.info("rendering %d B notebook from %s", len(json_notebook), url)
+    if issubclass(exporter, Exporter):
+        # allow exporter to be passed as a class, rather than instance
+        # because Exporter instances cannot be passed across multiprocessing boundaries
+        # instances are cached by class to avoid repeated instantiation of duplicates
+        exporter_cls = exporter
+        if exporter_cls not in exporters:
+            app_log.info("instantiating %s" % exporter_cls.__name__)
+            exporters[exporter_cls] = exporter_cls(config=config, log=app_log)
+        exporter = exporters[exporter_cls]
     
     try:
         nb = reads_json(json_notebook)
