@@ -49,13 +49,13 @@ class GitHubTestCase(NBViewerTestCase):
         self.assertIn('/github/tlapicka/IPythonNotebooks/blob/', r.request.url)
 
     def test_github_tag(self):
-        url = self.ipython_example('Index.ipynb', ref='rel-1.0.0')
+        url = self.ipython_example('Index.ipynb', ref='rel-2.0.0')
         r = requests.get(url)
         self.assertEqual(r.status_code, 200)
     
     def test_github_commit(self):
         url = self.ipython_example('Index.ipynb',
-            ref='02da31ca5a6576dfe9a95ecd9497c1df9a63533d'
+            ref='7f5cbd622058396f1f33c4b26c8d205a8dd26d16'
         )
         r = requests.get(url)
         self.assertEqual(r.status_code, 200)
@@ -68,11 +68,11 @@ class GitHubTestCase(NBViewerTestCase):
         r = requests.get(url)
         self.assertEqual(r.status_code, 200)
         # verify redirect
-        self.assertIn('/github/ipython/ipython/blob/rel-2.0.0', r.request.url)
+        self.assertIn('/github/ipython/ipython/blob/master', r.request.url)
     
     def test_github_raw_redirect(self):
         url = self.url(
-            'urls/raw.github.com/ipython/ipython/blob/rel-2.0.0/examples',
+            'urls/raw.github.com/ipython/ipython/rel-2.0.0/examples',
             'Index.ipynb',
         )
         r = requests.get(url)
@@ -89,14 +89,14 @@ class GitHubTestCase(NBViewerTestCase):
         r = requests.get(url)
         self.assertEqual(r.status_code, 200)
         # verify redirect
-        self.assertIn('/github/ipython/ipython/blob/rel-2.0.0/examples', r.request.url)
+        self.assertIn('/github/ipython/ipython/blob/rel-2.0.0', r.request.url)
     
     def test_github_repo_redirect(self):
         url = self.url("github/ipython/ipython")
         r = requests.get(url)
         self.assertEqual(r.status_code, 200)
         # verify redirect
-        self.assertIn('/github/ipython/ipython/tree/rel-2.0.0', r.request.url)
+        self.assertIn('/github/ipython/ipython/tree/master', r.request.url)
 
     def test_github_tree(self):
         url = self.url("github/ipython/ipython/tree/rel-2.0.0/IPython/")
