@@ -3,8 +3,8 @@
     "header":"Programming Languages",
     "links":[
       {
-        "text": "IPython Examples",
-        "target": "github/ipython/ipython/tree/master/examples/Index.ipynb",
+        "text": "IPython 2.0",
+        "target": "github/ipython/ipython/blob/2.x/examples/Index.ipynb",
         "img": "/static/img/example-nb/ipython-thumb.png"
       },
       {
