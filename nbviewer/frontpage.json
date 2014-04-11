@@ -89,7 +89,7 @@
       },
       {
         "text": "SymPy notebook",
-        "target": "github/ipython/ipython/blob/master/examples/notebooks/SymPy Examples.ipynb",
+        "target": "github/ipython/ipython/blob/2.x/examples/Notebook/SymPy.ipynb",
         "img": "/static/img/example-nb/sympy.png"
       },
       {
