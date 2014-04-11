@@ -161,6 +161,23 @@ class BaseHandler(web.RequestHandler):
         except socket.error as e:
             raise web.HTTPError(404, str(e))
     
+    @property
+    def fetch_kwargs(self):
+        return self.settings.setdefault('fetch_kwargs', {})
+    
+    @gen.coroutine
+    def fetch(self, url, **overrides):
+        """fetch a url with our async client
+        
+        handle default arguments and wrapping exceptions
+        """
+        kw = {}
+        kw.update(self.fetch_kwargs)
+        kw.update(overrides)
+        with self.catch_client_error():
+            response = yield self.client.fetch(url, **kw)
+        raise gen.Return(response)
+    
     @contextmanager
     def time_block(self, message):
         """context manager for timing a block
@@ -369,6 +386,7 @@ class RenderingHandler(BaseHandler):
             return
         app_log.info("finishing early %s", self.request.uri)
         html = self.render_template('slow_notebook.html')
+        self.set_status(202) # Accepted
         self.finish(html)
         
         # short circuit some methods because the rest of the rendering will still happen
@@ -440,8 +458,7 @@ class URLHandler(RenderingHandler):
                 self.redirect(remote_url)
                 return
         
-        with self.catch_client_error():
-            response = yield self.client.fetch(remote_url)
+        response = yield self.fetch(remote_url)
         
         try:
             nbjson = response_text(response)
@@ -697,8 +714,8 @@ class GitHubBlobHandler(RenderingHandler):
         blob_url = u"https://github.com/{user}/{repo}/blob/{ref}/{path}".format(
             user=user, repo=repo, ref=ref, path=quote(path),
         )
-        with self.catch_client_error():
-            response = yield self.client.fetch(raw_url)
+        
+        response = yield self.fetch(raw_url)
         
         if response.effective_url.startswith("https://github.com/{user}/{repo}/tree".format(
             user=user, repo=repo

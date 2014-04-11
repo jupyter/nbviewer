@@ -157,6 +157,9 @@ def main():
         gzip=True,
         render_timeout=20,
         localfile_path=os.path.abspath(options.localfiles),
+        fetch_kwargs=dict(
+            connect_timeout=10,
+        ),
     )
     
     # create and start the app
