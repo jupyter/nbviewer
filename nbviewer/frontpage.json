@@ -3,17 +3,17 @@
     "header":"Programming Languages",
     "links":[
       {
-        "text": "IPython 2.0",
+        "text": "IPython",
         "target": "github/ipython/ipython/blob/2.x/examples/Index.ipynb",
         "img": "/static/img/example-nb/ipython-thumb.png"
       },
       {
-        "text": "IRuby Notebook",
+        "text": "IRuby",
         "target": "github/minad/iruby/blob/master/IRuby-Example.ipynb",
         "img": "/static/img/example-nb/iruby-nb.png"
       },
       {
-        "text": "An IJulia Preview",
+        "text": "IJulia",
         "target": "url/jdj.mit.edu/~stevenj/IJulia%20Preview.ipynb",
         "img": "/static/img/example-nb/ijulia-preview.png"
       }
