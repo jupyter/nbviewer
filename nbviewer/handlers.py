@@ -121,7 +121,7 @@ class BaseHandler(web.RequestHandler):
     def reraise_client_error(self, exc):
         """Remote fetch raised an error"""
         try:
-            url = exc.response.request.url
+            url = exc.response.request.url.split('?')[0]
         except AttributeError:
             url = 'url'
         app_log.warn("Fetching %s failed with %s", url, exc)
