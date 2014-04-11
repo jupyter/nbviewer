@@ -18,9 +18,10 @@
   <div class="inner">
     <h1>IPython Notebook Viewer</h1>
     <p>A simple way to share IPython Notebooks</p>
-    <div class="span10 offset1">
+    <div class="row">
+      <div class="span10 offset1">
         <form class='form-inline' method="post" action='create/'>
-            <div class="input-append">
+          <div class="input-append controls controls-row">
             <input class="span10"
                    id="main-input"
                    size="16"
@@ -29,34 +30,30 @@
                    autofocus="autofocus"
                    placeholder="Enter a URL or shortcut that points to a notebook"/>
             <button class="btn" type="submit" type="button">Go!</button>
-            </div>
+          </div>
         </form>
+      </div>
     </div>
-      <table class="table table-bordered table-condensed">
-        <thead>
-          <tr>
-            <th>Shortcut</th>
-            <th>Meaning</th>
-          </tr>
-        </thead>
-        </tbody>
-          <tr>
-            <td>http://norvig.com/ipython/xkcd1313.ipynb</td><td>Any public URL of a notebook</td>
-          </tr>
-          <tr>
-            <td>https://github.com/ipython/ipython/blob/master/examples/Index.ipynb</td><td>The GitHub page for a notebook</td>
-          </tr>
-          <tr>
-            <td>ipython</td><td>GitHub username</td>
-          </tr>
-          <tr>
-            <td>ipython/ipython</td><td>GitHub username/repo</td>
-          </tr>
-          <tr>
-            <td>4121857</td><td>Gist ID</td>
-          </tr>
-        </tbody>
-      </table>
+    <div class="row">
+      <div class="span10 offset1">
+        <table id="shortcut-table" class="table table-bordered table-condensed">
+          </tbody>
+            <tr>
+              <td>http://norvig.com/ipython/xkcd1313.ipynb</td><td>Public URL of a notebook</td>
+            </tr>
+            <tr>
+              <td>ipython</td><td>GitHub username</td>
+            </tr>
+            <tr>
+              <td>ipython/ipython</td><td>GitHub username/repo</td>
+            </tr>
+            <tr>
+              <td>4121857</td><td>Gist ID</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </header>
 

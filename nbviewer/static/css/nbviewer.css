@@ -21,9 +21,13 @@
     top:5px;
 }
 
+table#shortcut-table {
+  margin-bottom: 0px;
+}
+
 input#main-input {
     /* This matches the width of the Go button to properly center things */
-    margin-left: -47px;
+    margin-left: -25px;
 }
 
 @media (min-width: 768px){
