@@ -290,6 +290,10 @@ class FAQHandler(BaseHandler):
     def get(self):
         self.finish(self.render_template('faq.md'))
 
+class AboutHandler(BaseHandler):
+    """Render the markdown FAQ page"""
+    def get(self):
+        self.finish(self.render_template('about.md'))
 
 def cached(method):
     """decorator for a cached page.
@@ -791,6 +795,7 @@ handlers = [
     ('/', IndexHandler),
     ('/index.html', IndexHandler),
     (r'/faq/?', FAQHandler),
+    (r'/about/?', AboutHandler),
     (r'/create/?', CreateHandler),
     (r'/ipython-static/(.*)', web.StaticFileHandler, dict(path=ipython_static_path)),
     
