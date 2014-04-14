@@ -80,6 +80,18 @@ class GitHubTestCase(NBViewerTestCase):
         # verify redirect
         self.assertIn('/github/ipython/ipython/blob/rel-2.0.0/examples', r.request.url)
     
+
+    def test_github_rawusercontent_redirect(self):
+        """Test GitHub's new raw domain"""
+        url = self.url(
+            'urls/raw.githubusercontent.com/ipython/ipython/rel-2.0.0/examples',
+            'Index.ipynb',
+        )
+        r = requests.get(url)
+        self.assertEqual(r.status_code, 200)
+        # verify redirect
+        self.assertIn('/github/ipython/ipython/blob/rel-2.0.0/examples', r.request.url)
+    
     def test_github_raw_redirect_2(self):
         """test /url/github.com/u/r/raw/ redirects"""
         url = self.url(
