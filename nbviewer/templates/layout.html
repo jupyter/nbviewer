@@ -120,31 +120,43 @@
     </div>
     <div class="container">
 
-{% block body %}{% endblock %}
+     {% block body %}{% endblock %}
+
+      <div class="span12 text-center">
+        <a href="#">Back to top</a>
+      </div>
 
      <!-- Footer
      ================================================== -->
       {% block footer %}
-      <footer class="footer hidden-print">
-      <p class="pull-right"><a href="#">Back to top</a></p>
-      <p>More info on <a href='http://ipython.org'> IPython website</a>.
-      <a href="https://github.com/ipython/nbviewer">The code for this site</a> is licensed under <a href="https://github.com/ipython/nbviewer/blob/master/LICENSE.txt" target="_blank">BSD</a>.
-      Built thanks to <a href="http://twitter.github.com/bootstrap/"> Twitter Bootstrap</a>
-      </p>
-      <p>This web site does not host notebooks, it only renders notebooks available on other websites.
-      Thanks to all our <a href="https://github.com/ipython/nbviewer/contributors">contributors</a> and to <a href="http://www.rackspace.com">Rackspace</a> for hosting.</p>
-      {% block version_info %}
-      {% if git_data %}
-      <p class="text-muted">
-          nbviewer version:
-          <a href="https://github.com/ipython/nbviewer/commit/{{git_data['sha']}}">{{git_data['sha'][:7]}}</a>
-          ({{git_data['date']}})
-      </p>
-      {% endif %}
-      {% endblock version_info %}
-      {% block extra_footer %}
-      {% endblock extra_footer %}
-      </footer>
+      <div class="span12 row-fluid">
+        <footer class="footer hidden-print">
+          <div class="span8">
+            <p>
+            This web site does not host notebooks, it only renders notebooks available on other websites.
+            
+            Thanks to <a href="http://www.rackspace.com">Rackspace</a> for hosting.
+            
+            <a href="https://github.com/ipython/nbviewer">More Info</a>,
+            <a href="https://github.com/ipython/nbviewer/blob/master/LICENSE.txt" target="_blank">License</a>.
+            
+            </p>
+          </div>
+
+          <div class="span4">
+            {% block version_info %}
+              {% if git_data %}
+                <p>
+                    nbviewer version:
+                    <a href="https://github.com/ipython/nbviewer/commit/{{git_data['sha']}}">{{git_data['sha'][:7]}}</a>
+                </p>
+              {% endif %}
+            {% endblock version_info %}
+            {% block extra_footer %}
+            {% endblock extra_footer %}
+          </div>
+        </footer>
+      </div>
       {% endblock footer %}
 
     </div><!-- /container -->
