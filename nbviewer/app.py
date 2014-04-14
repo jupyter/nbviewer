@@ -140,7 +140,6 @@ def main():
     AsyncHTTPClient.configure(HTTPClientClass)
     client = AsyncHTTPClient()
     github_client = AsyncGitHubClient(client)
-    github_client.authenticate()
     
     settings = dict(
         log_function=log_request,
