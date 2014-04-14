@@ -798,7 +798,7 @@ handlers = [
     (r'.*/data:.*;base64,.*', Custom404),
     
     (r'/url[s]?/github\.com/([^\/]+)/([^\/]+)/(tree|blob|raw)/([^\/]+)/(.*)', GitHubRedirectHandler),
-    (r'/url[s]?/raw\.?github(?:usercontent)\.com/([^\/]+)/([^\/]+)/(.*)', RawGitHubURLHandler),
+    (r'/url[s]?/raw\.?github(?:usercontent)?\.com/([^\/]+)/([^\/]+)/(.*)', RawGitHubURLHandler),
     (r'/url([s]?)/(.*)', URLHandler),
     
     (r'/github/([\w\-]+)', AddSlashHandler),
