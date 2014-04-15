@@ -439,8 +439,10 @@ class SearchHandler(BaseHandler):
         app_log.info('search %s', value)
         
         # do some searching
-        results = self.google_client.search(value)
-        app_log.info(results)
+        results = []
+        if value:
+            results = self.google_client.search(value)
+            app_log.info(results)
 
         self.finish(self.render_template('search.html',
             search_value=value,

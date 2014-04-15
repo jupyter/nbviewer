@@ -31,15 +31,17 @@
         <li class="media">
             <div class="media-body">
                 <h3 class="media-heading">
-                    <a href="{{ result.link }}">{{ result.title }}</a>
+                    <a href="{{ result.link }}">{{ result.title|striptags }}</a>
                 </h3>
-                {{ result.summary }}
+                {{ result.summary|striptags }}
             </div>
         </li>
     {% endfor %}
 </ul>
 {% else %}
-No results found.  Please try again.
+    {% if not is_get %}
+    No results found.  Please try again.
+    {% endif %}
 {% endif %}
 
 {% endblock %}

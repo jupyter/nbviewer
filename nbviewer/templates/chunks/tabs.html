@@ -1,7 +1,7 @@
     <!-- Nav tabs -->
     <ul id="search-tabs" class="nav nav-tabs">
         <li {% if not is_search %}class="active"{% endif %}><a href="/" data-toggle="tab">View url or gist</a></li>
-        <li {% if is_search %}class="active"{% endif %}><a href="search/" data-toggle="tab">Search for notebooks</a></li>
+        <li {% if is_search %}class="active"{% endif %}><a href="/search/" data-toggle="tab">Search for notebooks</a></li>
     </ul>
 
     <!-- Tab Panes -->
@@ -19,7 +19,7 @@
                             autofocus="autofocus"
                             placeholder="Enter a search term"/>
                     <br/>
-                    <button class="btn" type="submit" style='margin:auto'>Go!</button>
+                    <button class="btn" type="submit" style='margin:auto'>Search!</button>
                 </div>
             </form>
         </div>
