@@ -25,9 +25,21 @@
   </div>
 </header>
 
-{% if not results and not is_get %}
-No results found.  Please try again.
+{% if results %}
+    <ul class="media-list">
+    {% for result in results %}
+        <li class="media">
+            <div class="media-body">
+                <h3 class="media-heading">
+                    <a href="{{ result.link }}">{{ result.title }}</a>
+                </h3>
+                {{ result.summary }}
+            </div>
+        </li>
+    {% endfor %}
+</ul>
 {% else %}
+No results found.  Please try again.
 {% endif %}
 
 {% endblock %}
