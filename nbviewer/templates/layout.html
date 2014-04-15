@@ -129,17 +129,14 @@
      <!-- Footer
      ================================================== -->
       {% block footer %}
-      <div class="span12 row-fluid">
-        <footer class="footer hidden-print">
+      <footer class="footer">
+      <div class="span12 row-fluid footer">
           <div class="span8">
             <p>
             This web site does not host notebooks, it only renders notebooks available on other websites.
-            
             Thanks to <a href="http://www.rackspace.com">Rackspace</a> for hosting.
-            
             <a href="https://github.com/ipython/nbviewer">More Info</a>,
             <a href="https://github.com/ipython/nbviewer/blob/master/LICENSE.txt" target="_blank">License</a>.
-            
             </p>
           </div>
 
@@ -155,8 +152,8 @@
             {% block extra_footer %}
             {% endblock extra_footer %}
           </div>
-        </footer>
       </div>
+      </footer>
       {% endblock footer %}
 
     </div><!-- /container -->
