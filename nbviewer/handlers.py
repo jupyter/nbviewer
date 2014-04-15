@@ -422,6 +422,22 @@ class CreateHandler(BaseHandler):
         app_log.info("create %s => %s", value, redirect_url)
         self.redirect(url_concat(redirect_url, {'create': 1}))
 
+class SearchHandler(BaseHandler):
+    """handle search via the search form on the frontpage
+    """
+    def get(self):
+        self.finish(self.render_template('search.html', is_get=True))
+
+    def post(self):
+        value = self.get_argument('search', '')
+        app_log.info('search %s', value)
+        
+        # do some searching
+        results = {}
+
+        self.finish(self.render_template('search.html',
+            search_value=value,
+            results=results))
 
 class URLHandler(RenderingHandler):
     """Renderer for /url or /urls"""
@@ -792,6 +808,7 @@ handlers = [
     ('/index.html', IndexHandler),
     (r'/faq/?', FAQHandler),
     (r'/create/?', CreateHandler),
+    (r'/search/?', SearchHandler),
     (r'/ipython-static/(.*)', web.StaticFileHandler, dict(path=ipython_static_path)),
     
     # don't let super old browsers request data-uris

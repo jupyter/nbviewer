@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+
+{% block extra_head %}
+<style>
+    
+.marketing p {
+    white-space: nowrap;
+}
+
+</style>
+{% endblock %}
+
+{% block body %}
+
+<!-- Masthead
+================================================== -->
+<header class="jumbotron masthead">
+  <div class="inner">
+    <h1>IPython Notebook Viewer</h1>
+    <p>A simple way to share IPython Notebooks</p>
+
+    {% set is_search=True %}
+    {% include "chunks/tabs.html" %}
+
+  </div>
+</header>
+
+{% if not results and not is_get %}
+No results found.  Please try again.
+{% else %}
+{% endif %}
+
+{% endblock %}
