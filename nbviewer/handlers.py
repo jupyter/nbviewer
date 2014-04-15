@@ -39,6 +39,8 @@ from IPython.html import DEFAULT_STATIC_FILES_PATH as ipython_static_path
 from .render import render_notebook, NbFormatError
 from .utils import transform_ipynb_uri, quote, response_text
 
+import requests
+
 date_fmt = "%a, %d %h %Y %H:%M:%S UTC"
 
 #-----------------------------------------------------------------------------
@@ -59,6 +61,10 @@ class BaseHandler(web.RequestHandler):
     @property
     def github_client(self):
         return self.settings['github_client']
+
+    @property
+    def google_client(self):
+        return self.settings['google_client']
     
     @property
     def config(self):
@@ -429,11 +435,12 @@ class SearchHandler(BaseHandler):
         self.finish(self.render_template('search.html', is_get=True))
 
     def post(self):
-        value = self.get_argument('search', '')
+        value = self.get_argument('gistnorurl', '')
         app_log.info('search %s', value)
         
         # do some searching
-        results = {}
+        results = self.google_client.search(value)
+        app_log.info(results)
 
         self.finish(self.render_template('search.html',
             search_value=value,
