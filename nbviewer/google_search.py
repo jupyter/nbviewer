@@ -16,11 +16,10 @@ class GoogleSearchClient:
         """ Queries google for all the notebooks
 
         """
-        query = u'filetype:ipynb ' + search_phrase
         search_params = {'key' : self.search_auth_key,
                         'cx'  : self.search_auth_cx,
-                        'q'   : query}
-        app_log.info("Searching google with query: %s", query)
+                        'q'   : search_phrase}
+        app_log.info("Searching google with query: %s", search_phrase)
         results = requests.get(self.google_api_url, verify = False, params = search_params).json()
 
         app_log.info(results)
