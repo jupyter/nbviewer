@@ -10,21 +10,30 @@ import requests
 from .base import NBViewerTestCase
 
 class SearchTestCase(NBViewerTestCase):
-    
+
     def test_search_page(self):
-        # GET request on search page
-        self.assertTrue(False)
+        urllink = self.url('search')
+        r = requests.get(urllink)
+        self.assertEqual(r.status_code, 200)
 
     def test_search_results_no_res(self):
         # no results search
-        self.assertTrue(False)
+        urllink = self.url('search')
+        post_data = {'searchphrase' : ""}
+        r = requests.post(urllink, params = post_data)
+        self.assertEquals(r.status_code, 200)
+        html = r.text
+        self.assertIn("No results found", html)
 
     def test_search_results_paging_single(self):
         # single results page
-        self.assertTrue(False)
+        urllink = self.url('search')
+        post_data = {'searchphrase' : 'physics'}
+        r = requests.post(urllink, params = post_data)
+        print(r, post_data)
+        self.assertEquals(r.status_code, 200)
+        html = r.text
+        self.assertIn("physics", html.lower())
 
-    def test_search_results_paging_multi(self):
-        # multiple results pages
-        self.assertTrue(False)
 
 

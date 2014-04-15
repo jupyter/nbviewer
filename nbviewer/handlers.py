@@ -426,7 +426,8 @@ class CreateHandler(BaseHandler):
         value = self.get_argument('gistnorurl', '')
         redirect_url = transform_ipynb_uri(value)
         app_log.info("create %s => %s", value, redirect_url)
-        self.redirect(url_concat(redirect_url, {'create': 1}))
+        self_redirect = self.redirect(url_concat(redirect_url, {'create': 1}))
+
 
 class SearchHandler(BaseHandler):
     """handle search via the search form on the frontpage
@@ -435,14 +436,11 @@ class SearchHandler(BaseHandler):
         self.finish(self.render_template('search.html', is_get=True))
 
     def post(self):
-        value = self.get_argument('gistnorurl', '')
+        value = self.get_argument('searchphrase', '')
         app_log.info('search %s', value)
-        
+
         # do some searching
-        results = []
-        if value:
-            results = self.google_client.search(value)
-            app_log.info(results)
+        results = self.google_client.search(value)
 
         self.finish(self.render_template('search.html',
             search_value=value,
