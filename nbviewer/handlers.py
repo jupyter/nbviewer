@@ -434,6 +434,7 @@ class SearchHandler(BaseHandler):
     def get(self):
         self.finish(self.render_template('search.html', is_get=True))
 
+    @gen.coroutine
     def post(self):
         value = self.get_argument('gistnorurl', '')
         app_log.info('search %s', value)
@@ -441,8 +442,9 @@ class SearchHandler(BaseHandler):
         # do some searching
         results = []
         if value:
-            results = self.google_client.search(value)
-            app_log.info(results)
+            with self.catch_client_error():
+                results = yield self.google_client.search(value)
+            results = self.google_client.parse_results(json.loads(response_text(results)))
 
         self.finish(self.render_template('search.html',
             search_value=value,

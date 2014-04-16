@@ -1,9 +1,9 @@
 __author__ = 'mt'
 
 import os
-import requests
 from tornado.log import app_log
-
+from tornado.httpclient import AsyncHTTPClient
+from tornado.httputil import url_concat
 class GoogleSearchClient:
 
     google_api_url = 'https://www.googleapis.com/customsearch/v1'
@@ -21,10 +21,13 @@ class GoogleSearchClient:
                         'cx'  : self.search_auth_cx,
                         'q'   : query}
         app_log.info("Searching google with query: %s", query)
-        results = requests.get(self.google_api_url, verify = False, params = search_params).json()
+        client = AsyncHTTPClient()
+        url = url_concat(self.google_api_url, search_params)
+        app_log.info("Search url: %s", url)
+        future = client.fetch(url)
+        return future
 
-        app_log.info(results)
-
+    def parse_results(self, results):
         parsed_links = []
         if results.has_key(u'items'):
             for item in results[u'items']:
