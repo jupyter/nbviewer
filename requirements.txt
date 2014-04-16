@@ -4,6 +4,7 @@ pylibmc
 futures
 newrelic
 markdown
+requests
 
 pygments
 jinja2
