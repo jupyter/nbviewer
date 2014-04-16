@@ -4,6 +4,7 @@ import os
 from tornado.log import app_log
 from tornado.httpclient import AsyncHTTPClient
 from tornado.httputil import url_concat
+
 class GoogleSearchClient:
 
     google_api_url = 'https://www.googleapis.com/customsearch/v1'
@@ -16,16 +17,18 @@ class GoogleSearchClient:
         """ Queries google for all the notebooks
 
         """
-        query = u'filetype:ipynb ' + search_phrase
         search_params = {'key' : self.search_auth_key,
                         'cx'  : self.search_auth_cx,
-                        'q'   : query}
-        app_log.info("Searching google with query: %s", query)
-        client = AsyncHTTPClient()
+                        'q'   : search_phrase}
+        app_log.info("Searching google with query: %s", search_phrase)
         url = url_concat(self.google_api_url, search_params)
         app_log.info("Search url: %s", url)
-        future = client.fetch(url)
+        future = self._fetch_results(url)
         return future
+
+    def _fetch_results(self, url):
+        client = AsyncHTTPClient()
+        return client.fetch(url)
 
     def parse_results(self, results):
         parsed_links = []

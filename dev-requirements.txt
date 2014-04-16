@@ -3,4 +3,5 @@ flake8
 invoke
 nose
 requests
+mock
 -e .
