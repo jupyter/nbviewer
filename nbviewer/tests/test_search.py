@@ -22,8 +22,8 @@ class SearchTestCase(NBViewerTestCase):
     def test_search_results_no_res(self):
         # no results search
         urllink = self.url('search')
-        post_data = {'searchphrase' : ""}
-        r = requests.post(urllink, params = post_data)
+        post_data = {'s' : ""}
+        r = requests.get(urllink, params = post_data)
         self.assertEquals(r.status_code, 200)
         html = r.text
         self.assertIn("No results found", html)
@@ -49,18 +49,32 @@ class SearchTestCase(NBViewerTestCase):
         mock_method.assert_called_once_with(url)
 
         parsed = client.parse_results(results)
-        self.assertEquals(len(parsed), 1)
-        self.assertEquals(parsed[0]['title'], 'test')
-        self.assertEquals(parsed[0]['summary'], 'test summary')
-        self.assertEquals(parsed[0]['link'], 'somewhere')
+        self.assertEquals(len(parsed), 4)
+        self.assertEquals(parsed['count'], 10)
+        self.assertEquals(parsed['index'], 1)
+        self.assertEquals(parsed['total'], 100)
+        self.assertEquals(parsed['items'][0]['title'], 'test')
+        self.assertEquals(parsed['items'][0]['summary'], 'test summary')
+        self.assertEquals(parsed['items'][0]['link'], 'somewhere')
 
     def _get_client_info(self, value):
         c = GoogleSearchClient()
-        u = url_concat(c.google_api_url, {'key':'','cx':'','q':value})
+        u = url_concat(c.google_api_url, {
+            'key':'',
+            'cx':'',
+            'q':value,
+            'start':1})
         return value, c, u
 
 
 result_set_1 = {
+    'queries': {
+        'request': [{
+            'totalResults': '100',
+            'count': 10,
+            'startIndex': 1
+        }]
+    },
     'items': [
         {'title':'test','snippet':'test summary','link':'somewhere'}
     ]

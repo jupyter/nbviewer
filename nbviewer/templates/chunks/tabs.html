@@ -8,13 +8,13 @@
     <div class="tab-content">
         {% if is_search %}
         <div id="tab-search" class="tab-pane active">
-            <form class='well' method="post" action='/search/'>
+            <form class='well' method="get" action='/search/'>
                 <div class="">
                     <input style="width:98%" 
                             id="appendedInputButton" 
                             size="16" 
                             type="text"  
-                            name="searchphrase"
+                            name="s"
                             value="{{search_value}}"
                             autofocus="autofocus"
                             placeholder="Enter a search term"/>

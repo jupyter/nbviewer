@@ -12,6 +12,7 @@ import os
 import io
 import socket
 import time
+import math
 
 from contextlib import contextmanager
 from datetime import datetime
@@ -432,24 +433,50 @@ class CreateHandler(BaseHandler):
 class SearchHandler(BaseHandler):
     """handle search via the search form on the frontpage
     """
-    def get(self):
-        self.finish(self.render_template('search.html', is_get=True))
 
     @gen.coroutine
-    def post(self):
-        value = self.get_argument('searchphrase', '')
-        app_log.info('search %s', value)
+    def get(self):
+        if self.request.arguments.has_key('s'):
+            value = self.get_argument('s', '')
+            start = self.get_argument('p', 1)
+            app_log.info('search %s', value)
 
-        # do some searching
-        results = []
-        if value:
-            with self.catch_client_error():
-                results = yield self.google_client.search(value)
-            results = self.google_client.parse_results(json.loads(response_text(results)))
+            # do some searching
+            results = []
+            if value:
+                with self.catch_client_error():
+                    results = yield self.google_client.search(value, start)
+                results = self.google_client.parse_results(
+                    json.loads(response_text(results))
+                )
 
-        self.finish(self.render_template('search.html',
-            search_value=value,
-            results=results))
+            self.finish(self.render_template('search.html',
+                search_value=value,
+                results=results,
+                pagination=self._get_pagination(results)))
+        else:
+            self.finish(self.render_template('search.html', is_get=True))
+
+    def _get_pagination(self, results):
+        page = 1
+        pages = 0
+        next = None
+        previous = None
+        total = 0
+        if results:
+            page = results['index']
+            pages = int(math.ceil(results['total'] / results['count'])) if results['total'] else 0
+            next = page + 1 if page < pages else None
+            previous = page - 1 if page > 1 else None
+            total = results['total']
+
+        return {
+            'page': page,
+            'pages': xrange(1, pages  + 1),
+            'total': total,
+            'next': next,
+            'previous': previous
+        }
 
 class URLHandler(RenderingHandler):
     """Renderer for /url or /urls"""
