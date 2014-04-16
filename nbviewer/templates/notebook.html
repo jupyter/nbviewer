@@ -145,7 +145,7 @@
 {{super()}}
 {% if date %}
 <p class="text-muted">
-    Rendered on: {{date}}
+Rendered <span class='date' data-date='{{date}}' title='{{date}}'>({{date}})</span>
 </p>
 {% endif %}
 {% endblock extra_footer %}

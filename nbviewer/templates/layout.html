@@ -84,6 +84,7 @@
   cells when they are loaded below. -->
   <script src="/static/js/jquery.min.js"></script>
   <script src="/static/components/requirejs/require.js"></script>
+  <script src="/static/components/moment/min/moment.min.js"></script>
 
   <!-- Navbar
   ================================================== -->
@@ -179,6 +180,14 @@
         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
       })();
 
+    </script>
+    <script>
+        var update_date  = function(){
+            var str = window.moment($('.date').data('date')).fromNow();
+            $('.date').text(str);
+        }
+        setInterval(update_date , 61*1000);
+        $(update_date);
     </script>
     <!--NEW RELIC Stop Perf Measurement-->
     {{ nrfoot()| safe }}
