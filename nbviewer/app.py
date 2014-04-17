@@ -162,6 +162,9 @@ def main():
         render_timeout=20,
         localfile_path=os.path.abspath(options.localfiles),
         google_client=google_client,
+        fetch_kwargs=dict(
+            connect_timeout=10,
+        ),
     )
     
     # create and start the app
