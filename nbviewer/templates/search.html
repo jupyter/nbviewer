@@ -1,0 +1,63 @@
+{% extends "layout.html" %}
+
+{% block extra_head %}
+<style>
+    
+.marketing p {
+    white-space: nowrap;
+}
+
+</style>
+{% endblock %}
+
+{% block body %}
+
+<!-- Masthead
+================================================== -->
+<header class="jumbotron masthead">
+  <div class="inner">
+    <h1>IPython Notebook Viewer</h1>
+    <p>A simple way to share IPython Notebooks</p>
+
+    {% set is_search=True %}
+    {% include "chunks/tabs.html" %}
+
+  </div>
+</header>
+
+{% if results %}
+{% if len(pagination['pages']) > 1 %}
+<p class="text-muted">Page {{ pagination['page'] }} of about {{ results['total'] }} results.</p>
+<br>
+{% endif %}
+    <ul class="media-list">
+    {% for result in results['items'] %}
+        <li class="media">
+            <div class="media-body">
+                <h3 class="media-heading">
+                    <a href="{{ result.link }}">{{ result.title|striptags }}</a>
+                </h3>
+                {{ result.summary|striptags }}
+            </div>
+        </li>
+    {% endfor %}
+    </ul>
+    {% if results['total'] > results['count'] %}
+    <hr class="soften">
+    <div class="pagination pagination-centered ">
+    <ul>
+        <li {% if not pagination['previous'] %}class="disabled"{% endif %}><a href="/search/?s={{ search_value }}&p={{ previous }}">&laquo;</a></li>
+        {% for p in pagination['pages'] %}
+        <li {% if p == pagination['page'] %}class="active"{% endif %}><a href="/search/?s={{ search_value }}&p={{ p }}">{{ p }}</a></li>
+        {% endfor %}
+        <li {% if not pagination['next'] %}class="disabled"{% endif %}><a href="/search/?s={{ search_value }}&p={{ next }}">&raquo;</a></li>
+    </ul>
+    </div>
+    {% endif %}
+{% else %}
+    {% if not is_get %}
+    No results found.  Please try again.
+    {% endif %}
+{% endif %}
+
+{% endblock %}

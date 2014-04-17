@@ -31,6 +31,7 @@ try:
 except ImportError:
     from .client import LoggingSimpleAsyncHTTPClient as HTTPClientClass
 from .github import AsyncGitHubClient
+from .google_search import GoogleSearchClient
 from .log import log_request
 from .utils import git_info, ipython_info
 
@@ -140,6 +141,10 @@ def main():
     AsyncHTTPClient.configure(HTTPClientClass)
     client = AsyncHTTPClient()
     github_client = AsyncGitHubClient(client)
+    github_client.authenticate()
+
+    # initialize the google search client
+    google_client = GoogleSearchClient()
     
     settings = dict(
         log_function=log_request,
@@ -156,6 +161,7 @@ def main():
         gzip=True,
         render_timeout=20,
         localfile_path=os.path.abspath(options.localfiles),
+        google_client=google_client,
         fetch_kwargs=dict(
             connect_timeout=10,
         ),

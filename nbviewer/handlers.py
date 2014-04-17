@@ -12,6 +12,7 @@ import os
 import io
 import socket
 import time
+import math
 
 from contextlib import contextmanager
 from datetime import datetime
@@ -39,6 +40,8 @@ from IPython.html import DEFAULT_STATIC_FILES_PATH as ipython_static_path
 from .render import render_notebook, NbFormatError
 from .utils import transform_ipynb_uri, quote, response_text
 
+import requests
+
 date_fmt = "%a, %d %h %Y %H:%M:%S UTC"
 
 #-----------------------------------------------------------------------------
@@ -59,6 +62,10 @@ class BaseHandler(web.RequestHandler):
     @property
     def github_client(self):
         return self.settings['github_client']
+
+    @property
+    def google_client(self):
+        return self.settings['google_client']
     
     @property
     def config(self):
@@ -438,8 +445,56 @@ class CreateHandler(BaseHandler):
         value = self.get_argument('gistnorurl', '')
         redirect_url = transform_ipynb_uri(value)
         app_log.info("create %s => %s", value, redirect_url)
-        self.redirect(url_concat(redirect_url, {'create': 1}))
+        self_redirect = self.redirect(url_concat(redirect_url, {'create': 1}))
 
+
+class SearchHandler(BaseHandler):
+    """handle search via the search form on the frontpage
+    """
+
+    @gen.coroutine
+    def get(self):
+        if self.request.arguments.has_key('s'):
+            value = self.get_argument('s', '')
+            start = self.get_argument('p', 1)
+            app_log.info('search %s', value)
+
+            # do some searching
+            results = []
+            if value:
+                with self.catch_client_error():
+                    results = yield self.google_client.search(value, start)
+                results = self.google_client.parse_results(
+                    json.loads(response_text(results))
+                )
+
+            self.finish(self.render_template('search.html',
+                search_value=value,
+                results=results,
+                pagination=self._get_pagination(results)))
+        else:
+            self.finish(self.render_template('search.html', is_get=True))
+
+    def _get_pagination(self, results):
+        page = 1
+        pages = 0
+        next = None
+        previous = None
+        total = 0
+        if results:
+            page = results['index']
+            pages = int(math.ceil(results['total'] / results['count'])) if results['total'] else 0
+            next = page + 1 if page < pages else None
+            previous = page - 1 if page > 1 else None
+            total = results['total']
+
+        return {
+            'page': page,
+            'pages': xrange(1, pages  + 1),
+            'total': total,
+            'next': next,
+            'previous': previous
+        }
 
 class URLHandler(RenderingHandler):
     """Renderer for /url or /urls"""
@@ -809,6 +864,7 @@ handlers = [
     ('/index.html', IndexHandler),
     (r'/faq/?', FAQHandler),
     (r'/create/?', CreateHandler),
+    (r'/search/?', SearchHandler),
     (r'/ipython-static/(.*)', web.StaticFileHandler, dict(path=ipython_static_path)),
     
     # don't let super old browsers request data-uris
