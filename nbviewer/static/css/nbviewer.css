@@ -10,9 +10,18 @@
     }
 }
 
-.jumbotron {
-  margin-bottom: 30px;
+.masthead {
+  margin: 30px 0px;
 }
+
+.masthead p {
+  margin-bottom: 25px;
+}
+
+.masthead h1 {
+  margin-bottom: 10px;
+}
+
 
 .menu-icon {
     line-height: 8px;
@@ -21,9 +30,11 @@
     top:5px;
 }
 
-table#shortcut-table {
-  margin-bottom: 0px;
+h3.section-heading {
+  text-align: center;
 }
+
+
 
 input#main-input {
     /* This matches the width of the Go button to properly center things */

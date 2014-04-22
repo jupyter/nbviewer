@@ -16,49 +16,31 @@
 ================================================== -->
 <header class="jumbotron masthead">
   <div class="inner">
-    <h1>NbViewer</h1>
+    <h1>nbviewer</h1>
     <p>A simple way to share IPython Notebooks</p>
     <div class="row">
-      <div class="span10 offset1">
+      <div class="span8 offset2">
         <form class='form-inline' method="post" action='create/'>
           <div class="input-append controls controls-row">
-            <input class="span10"
+            <input class="span8"
                    id="main-input"
                    size="16"
                    type="text"
                    name="gistnorurl"
                    autofocus="autofocus"
-                   placeholder="Enter a URL or shortcut that points to a notebook"/>
+                   placeholder="URL | GitHub username | GitHub username/repo | Gist ID"/>
             <button class="btn" type="submit" type="button">Go!</button>
           </div>
         </form>
       </div>
     </div>
-    <div class="row">
-      <div class="span10 offset1">
-        <table id="shortcut-table" class="table table-bordered table-condensed">
-          </tbody>
-            <tr>
-              <td>http://norvig.com/ipython/xkcd1313.ipynb</td><td>Public URL of a notebook</td>
-            </tr>
-            <tr>
-              <td>ipython</td><td>GitHub username</td>
-            </tr>
-            <tr>
-              <td>ipython/ipython</td><td>GitHub username/repo</td>
-            </tr>
-            <tr>
-              <td>4121857</td><td>Gist ID</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
   </div>
 </header>
 
+<hr/>
+
   {% for section in sections %}
-    <h3>{{section.header}}</h3>
+    <h3 class="section-heading">{{section.header}}</h3>
     <div class="marketing">
       <ul class="thumbnails example-sites">
         {% for link in section.links %}
@@ -72,7 +54,6 @@
       </ul>
     </div><!-- /.marketing -->
   {% endfor %}
-<hr class="soften">
 
 
 
