@@ -123,22 +123,26 @@
 
      {% block body %}{% endblock %}
 
+     <!-- <hr/> -->
+     <div class="row">
       <div class="span12 text-center">
         <a href="#">Back to top</a>
       </div>
+    </div>
 
      <!-- Footer
      ================================================== -->
       {% block footer %}
       <footer class="footer">
-      <div class="span12 row-fluid footer">
-          <div class="span8">
-            <p>
-            This web site does not host notebooks, it only renders notebooks available on other websites.
-            Thanks to <a href="http://www.rackspace.com">Rackspace</a> for hosting.
-            <a href="https://github.com/ipython/nbviewer">More Info</a>,
-            <a href="https://github.com/ipython/nbviewer/blob/master/LICENSE.txt" target="_blank">License</a>.
-            </p>
+      <div class="span12 row-fluid footer-row">
+          <div class="span4">
+            <p>This web site does not host notebooks, it only renders notebooks available on other websites.</p>
+          </div>
+
+          <div class="span4">
+            <p>Thanks to <a href="http://www.rackspace.com">Rackspace</a> for hosting.</p>
+            <p>nbviewer GitHub <a href="https://github.com/ipython/nbviewer">repository</a>.</p>
+            <p>nbviewer <a href="https://github.com/ipython/nbviewer/blob/master/LICENSE.txt" target="_blank">license</a>.</p>
           </div>
 
           <div class="span4">
