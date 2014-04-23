@@ -10,15 +10,35 @@
     }
 }
 
-.jumbotron {
-  margin-bottom: 30px;
+.masthead {
+  margin: 30px 0px;
 }
 
-.menu-icon{
+.masthead p {
+  margin-bottom: 25px;
+}
+
+.masthead h1 {
+  margin-bottom: 10px;
+}
+
+
+.menu-icon {
     line-height: 8px;
     margin-right: 5px;
     position:relative;
     top:5px;
+}
+
+h3.section-heading {
+  text-align: center;
+}
+
+
+
+input#main-input {
+    /* This matches the width of the Go button to properly center things */
+    margin-left: -25px;
 }
 
 @media (min-width: 768px){

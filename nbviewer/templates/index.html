@@ -16,28 +16,31 @@
 ================================================== -->
 <header class="jumbotron masthead">
   <div class="inner">
-    <h1>IPython Notebook Viewer</h1>
+    <h1>nbviewer</h1>
     <p>A simple way to share IPython Notebooks</p>
-    <form class='well' method="post" action='create/'>
-            <div class="" style='text-align:center'>
-              <div class="">
-                <input style="width:98%" 
-                          id="appendedInputButton" 
-                        size="16" 
-                        type="text"  
-                        name="gistnorurl"
-                        autofocus="autofocus"
-                        placeholder="Enter a gist number or url"/>
-                <br/>
-                <button class="btn" type="submit" style='margin:auto'>Go!</button>
-              </div>
-            </div>
-      </form>
+    <div class="row">
+      <div class="span8 offset2">
+        <form class='form-inline' method="post" action='create/'>
+          <div class="input-append controls controls-row">
+            <input class="span8"
+                   id="main-input"
+                   size="16"
+                   type="text"
+                   name="gistnorurl"
+                   autofocus="autofocus"
+                   placeholder="URL | GitHub username | GitHub username/repo | Gist ID"/>
+            <button class="btn" type="submit" type="button">Go!</button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 </header>
 
+<hr/>
+
   {% for section in sections %}
-    <h3>{{section.header}}</h3>
+    <h3 class="section-heading">{{section.header}}</h3>
     <div class="marketing">
       <ul class="thumbnails example-sites">
         {% for link in section.links %}

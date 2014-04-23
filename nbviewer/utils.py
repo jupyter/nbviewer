@@ -48,7 +48,9 @@ def url_path_join(*pieces):
 GIST_RGX = re.compile(r'^([a-f0-9]+)/?$')
 GIST_URL_RGX = re.compile(r'^https?://gist.github.com/(\w+/)?([a-f0-9]+)/?$')
 GITHUB_URL_RGX = re.compile(r'^https?://github.com/(\w+)/(\w+)/blob/(.*)$')
-RAW_GITHUB_URL_RGX = re.compile(r'^https?://raw.?github.com/(\w+)/(\w+)/(.*)$')
+GITHUB_RAW_URL_RGX = re.compile(r'^https?://raw.?github.com/(\w+)/(\w+)/(.*)$')
+GITHUB_USER_RGX = re.compile(r'^(\w+)$')
+GITHUB_USERREPO_RGX = re.compile(r'^(\w+)/(\w+)$')
 DROPBOX_URL_RGX = re.compile(r'^http(s?)://www.dropbox.com/(sh?)/(.+)$')
 
 
@@ -65,7 +67,9 @@ url_rewrite_dict = OrderedDict({
         GIST_RGX           : u'/{0}',
         GIST_URL_RGX       : u'/{1}',
         GITHUB_URL_RGX     : u'/github/{0}/{1}/blob/{2}',
-        RAW_GITHUB_URL_RGX : u'/github/{0}/{1}/blob/{2}',
+        GITHUB_RAW_URL_RGX : u'/github/{0}/{1}/blob/{2}',
+        GITHUB_USERREPO_RGX : u'/github/{0}/{1}/tree/master/',
+        GITHUB_USER_RGX    : u'/github/{0}/',
         DROPBOX_URL_RGX    : u'/url{0}/dl.dropbox.com/{1}/{2}',
     })
 
