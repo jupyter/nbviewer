@@ -50,3 +50,14 @@ pre, code {
     /* restore default mono font */
     font-family: monospace;
 }
+
+.footer {
+  padding-top: 0px;
+  padding-bottom: 0px;
+  margin-top: 15px;
+}
+
+.footer-row {
+  margin-top: 25px;
+  margin-bottom: 25px;
+}
