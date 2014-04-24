@@ -68,7 +68,15 @@ class GitHubTestCase(NBViewerTestCase):
         r = requests.get(url)
         self.assertEqual(r.status_code, 200)
         # verify redirect
-        self.assertIn('/github/ipython/ipython/blob/master', r.request.url)
+        self.assertIn('/github/ipython/ipython/blob/rel-2.0.0', r.request.url)
+
+    def test_github_blob_redirect2(self):
+        url = self.url("github/ipython/ipython/blob/rel-2.0.0/IPython")
+        r = requests.get(url)
+        self.assertEqual(r.status_code, 200)
+        # verify redirect
+        self.assertIn('/github/ipython/ipython/tree/rel-2.0.0/IPython', r.request.url)
+        self.assertIn('__init__.py', r.text)
     
     def test_github_raw_redirect(self):
         url = self.url(
@@ -124,12 +132,4 @@ class GitHubTestCase(NBViewerTestCase):
         # verify redirect
         self.assertIn('/github/ipython/ipython/blob/rel-2.0.0', r.request.url)
         self.assertIn('global-exclude', r.text)
-
-    def test_github_blob_redirect(self):
-        url = self.url("github/ipython/ipython/blob/rel-2.0.0/IPython")
-        r = requests.get(url)
-        self.assertEqual(r.status_code, 200)
-        # verify redirect
-        self.assertIn('/github/ipython/ipython/tree/rel-2.0.0/IPython', r.request.url)
-        self.assertIn('__init__.py', r.text)
 
