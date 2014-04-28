@@ -708,7 +708,7 @@ class GitHubBlobHandler(RenderingHandler):
     @cached
     @gen.coroutine
     def get(self, user, repo, ref, path):
-        raw_url = u"https://raw.github.com/{user}/{repo}/{ref}/{path}".format(
+        raw_url = u"https://raw.githubusercontent.com/{user}/{repo}/{ref}/{path}".format(
             user=user, repo=repo, ref=ref, path=quote(path)
         )
         blob_url = u"https://github.com/{user}/{repo}/blob/{ref}/{path}".format(
@@ -815,7 +815,7 @@ handlers = [
     (r'.*/data:.*;base64,.*', Custom404),
     
     (r'/url[s]?/github\.com/([^\/]+)/([^\/]+)/(tree|blob|raw)/([^\/]+)/(.*)', GitHubRedirectHandler),
-    (r'/url[s]?/raw\.?github\.com/([^\/]+)/([^\/]+)/(.*)', RawGitHubURLHandler),
+    (r'/url[s]?/raw\.?github(?:usercontent)?\.com/([^\/]+)/([^\/]+)/(.*)', RawGitHubURLHandler),
     (r'/url([s]?)/(.*)', URLHandler),
     
     (r'/github/([\w\-]+)', AddSlashHandler),
