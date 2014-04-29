@@ -509,9 +509,9 @@ class GistHandler(RenderingHandler):
         gist_id=gist['id']
         if user is None:
             # redirect to /gist/user/gist_id if no user given
-            user_dict = gist['user']
-            if user_dict:
-                user = user_dict['login']
+            owner_dict = gist.get('owner', {})
+            if owner_dict:
+                user = owner_dict['login']
             else:
                 user = 'anonymous'
             new_url = u"/gist/{user}/{gist_id}".format(user=user, gist_id=gist_id)
