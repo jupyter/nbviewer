@@ -658,7 +658,7 @@ class GitHubUserHandler(BaseHandler):
     @gen.coroutine
     def get(self, user):
         page = self.get_argument("page", None)
-        params = {}
+        params = {'sort' : 'updated'}
         if page:
             params['page'] = page
         with self.catch_client_error():
