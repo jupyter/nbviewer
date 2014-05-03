@@ -1,12 +1,1 @@
-{% extends "layout.html" %}
-{% block body %}
-    <table class='table table-condensed table-bordered table-striped '>
-            <thead>
-                <tr><th>Name</th></tr>
-            </thead>
-            {% for entry in entries %}
-                <tr><td><i class='{{entry.class}}'></i> <a href='{{entry.url}}'>{{entry.path}}</a></td></tr>
-            {% endfor %}
-            </tbody>
-        </table>
-{% endblock %}
+{% extends "tabular.html" %}

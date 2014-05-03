@@ -20,8 +20,10 @@ from datetime import datetime
 try:
     # py3
     from http.client import responses
+    from urllib.parse import urlparse
 except ImportError:
     from httplib import responses
+    from urlparse import urlparse
 
 from tornado import web, gen, httpclient
 from tornado.escape import utf8
@@ -38,7 +40,7 @@ except ImportError:
 from IPython.html import DEFAULT_STATIC_FILES_PATH as ipython_static_path
 
 from .render import render_notebook, NbFormatError
-from .utils import transform_ipynb_uri, quote, response_text, base64_decode
+from .utils import transform_ipynb_uri, quote, response_text, base64_decode, parse_header_links
 
 date_fmt = "%a, %d %h %Y %H:%M:%S UTC"
 
@@ -122,6 +124,21 @@ class BaseHandler(web.RequestHandler):
                 'name' : name,
             })
         return breadcrumbs
+    
+    def get_page_links(self, response):
+        """return prev_url, next_url for pagination
+        
+        Response must be an HTTPResponse from a paginated GitHub API request.
+        
+        Each will be None if there no such link.
+        """
+        links = parse_header_links(response.headers.get('Link', ''))
+        next_url = prev_url = None
+        if 'next' in links:
+            next_url = '?' + urlparse(links['next']['url']).query
+        if 'prev' in links:
+            prev_url = '?' + urlparse(links['prev']['url']).query
+        return prev_url, next_url
     
     #---------------------------------------------------------------
     # error handling
@@ -246,14 +263,15 @@ class BaseHandler(web.RequestHandler):
         return h
     
     _cache_key = None
+    _cache_key_attr = 'uri'
     @property
     def cache_key(self):
-        """Use checksum of path (no url params), not uri itself, in the cache
-        
-        cache has size limit on keys
+        """Use checksum for cache key because cache has size limit on keys
         """
+        
         if self._cache_key is None:
-            self._cache_key = hashlib.sha1(utf8(self.request.path)).hexdigest()
+            to_hash = utf8(getattr(self.request, self._cache_key_attr))
+            self._cache_key = hashlib.sha1(to_hash).hexdigest()
         return self._cache_key
     
     def truncate(self, s, limit=256):
@@ -387,6 +405,10 @@ def cached(method):
 
 class RenderingHandler(BaseHandler):
     """Base for handlers that render notebooks"""
+    
+    # notebook caches based on path (no url params)
+    _cache_key_attr = 'path'
+    
     @property
     def render_timeout(self):
         """0 render_timeout means never finish early"""
@@ -507,8 +529,15 @@ class UserGistsHandler(BaseHandler):
     @cached
     @gen.coroutine
     def get(self, user):
+        page = self.get_argument("page", None)
+        params = {}
+        if page:
+            params['page'] = page
+        
         with self.catch_client_error():
-            response = yield self.github_client.get_gists(user)
+            response = yield self.github_client.get_gists(user, params=params)
+        
+        prev_url, next_url = self.get_page_links(response)
         
         gists = json.loads(response_text(response))
         entries = []
@@ -523,6 +552,7 @@ class UserGistsHandler(BaseHandler):
         github_url = u"https://gist.github.com/{user}".format(user=user)
         html = self.render_template("usergists.html",
             entries=entries, user=user, github_url=github_url,
+            prev_url=prev_url, next_url=next_url,
         )
         yield self.cache_and_finish(html)
 
@@ -627,10 +657,16 @@ class GitHubUserHandler(BaseHandler):
     @cached
     @gen.coroutine
     def get(self, user):
+        page = self.get_argument("page", None)
+        params = {}
+        if page:
+            params['page'] = page
         with self.catch_client_error():
-            response = yield self.github_client.get_repos(user)
+            response = yield self.github_client.get_repos(user, params=params)
         
+        prev_url, next_url = self.get_page_links(response)
         repos = json.loads(response_text(response))
+        
         entries = []
         for repo in repos:
             entries.append(dict(
@@ -640,6 +676,7 @@ class GitHubUserHandler(BaseHandler):
         github_url = u"https://github.com/{user}".format(user=user)
         html = self.render_template("userview.html",
             entries=entries, github_url=github_url,
+            next_url=next_url, prev_url=prev_url,
         )
         yield self.cache_and_finish(html)
 

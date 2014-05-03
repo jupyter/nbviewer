@@ -1,23 +1,11 @@
-{% extends "layout.html" %}
-{% block body %}
-
-<table class='table table-condensed table-bordered table-striped'>
-            <thead>
-                <tr><th>{{user}}'s Gists</th></tr>
-            </thead>
-            <tbody>
-
-        {% for entry in entries %}
-        <tr><td>
-            <i class='icon-book'></i>
-            <a href='{{entry.id}}'>{{entry.id}}</a>
-            {% for notebook in entry.notebooks %}
-            <a href='{{entry.id}}/{{notebook}}'>{{notebook}}</a>
-            {% endfor %}
-            <span class='gist-description'>{{entry.description}}</span>
-        </td></tr>
-        {% endfor %}
-        </tbody>
-        </table>
-
-{% endblock %}
+{% extends "tabular.html" %}
+{% block entry scoped %}
+<tr><td>
+    <i class='icon-book'></i>
+    <a href='{{entry.id}}'>{{entry.id}}</a>
+    {% for notebook in entry.notebooks %}
+    <a href='{{entry.id}}/{{notebook}}'>{{notebook}}</a>
+    {% endfor %}
+    <span class='gist-description'>{{entry.description}}</span>
+</td></tr>
+{% endblock entry %}

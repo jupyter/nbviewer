@@ -1,0 +1,35 @@
+{% extends "layout.html" %}
+{% block body %}
+
+<table class='table table-condensed table-bordered table-striped'>
+<thead>
+  {% block header_row %}
+  <tr><th>Name</th></tr>
+  {% endblock header_row %}
+</thead>
+<tbody>
+
+{% block entries %}
+{% for entry in entries %}
+  {% block entry scoped %}
+  <tr><td><i class='{{entry.class}}'></i> <a href='{{entry.url}}'>{{entry.name}}</a></td></tr>
+  {% endblock entry %}
+{% endfor %}
+{% endblock entries %}
+{% block page_links %}
+  <tr><td>
+    {% if prev_url %}
+    <a href="{{prev_url}}">&lt; prev </a>
+    {% endif %}
+    {% if next_url and prev_url %}
+    ...
+    {% endif %}
+    {% if next_url %}
+    <a href="{{next_url}}">next &gt;</a>
+    {% endif %}
+  </td></tr>
+{% endblock page_links %}
+</tbody>
+</table>
+
+{% endblock %}
