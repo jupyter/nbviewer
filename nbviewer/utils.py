@@ -124,6 +124,43 @@ def response_text(response):
     encoding = get_encoding_from_headers(response.headers) or 'utf-8'
     return response.body.decode(encoding, 'replace')
 
+# parse_header_links from requests.util
+# modified to actually return a dict, like the docstring says.
+
+def parse_header_links(value):
+    """Return a dict of parsed link headers proxies.
+
+    i.e. Link: <http:/.../front.jpeg>; rel=front; type="image/jpeg",<http://.../back.jpeg>; rel=back;type="image/jpeg"
+
+    """
+
+    links = {}
+
+    replace_chars = " '\""
+
+    for val in value.split(","):
+        try:
+            url, params = val.split(";", 1)
+        except ValueError:
+            url, params = val, ''
+
+        link = {}
+
+        link["url"] = url.strip("<> '\"")
+
+        for param in params.split(";"):
+            try:
+                key, value = param.split("=")
+            except ValueError:
+                break
+
+            link[key.strip(replace_chars)] = value.strip(replace_chars)
+        
+        if 'rel' in link:
+            links[link['rel']] = link
+
+    return links
+
 def git_info(path):
     """Return some git info"""
     command = ['git', 'log', '-1', '--format=%H\n%s\n%cD']
