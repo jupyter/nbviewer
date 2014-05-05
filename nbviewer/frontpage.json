@@ -44,7 +44,7 @@
     "links":[
       {
         "text": "Interactive plots with Plotly",
-        "target": "github/plotly/IPython-plotly/tree/master/",
+        "target": "github/plotly/python-user-guide/blob/master/Index.ipynb",
         "img": "/static/img/example-nb/plotly.png"
       },
       {
