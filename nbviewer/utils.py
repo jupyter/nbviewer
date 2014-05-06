@@ -46,11 +46,11 @@ def url_path_join(*pieces):
     return result
 
 GIST_RGX = re.compile(r'^([a-f0-9]+)/?$')
-GIST_URL_RGX = re.compile(r'^https?://gist.github.com/(\w+/)?([a-f0-9]+)/?$')
-GITHUB_URL_RGX = re.compile(r'^https?://github.com/(\w+)/(\w+)/blob/(.*)$')
-GITHUB_RAW_URL_RGX = re.compile(r'^https?://raw.?github.com/(\w+)/(\w+)/(.*)$')
-GITHUB_USER_RGX = re.compile(r'^(\w+)$')
-GITHUB_USERREPO_RGX = re.compile(r'^(\w+)/(\w+)$')
+GIST_URL_RGX = re.compile(r'^https?://gist.github.com/([\w\-]+/)?([a-f0-9]+)/?$')
+GITHUB_URL_RGX = re.compile(r'^https?://github.com/([\w\-]+)/([\w\-]+)/(blob|tree)/(.*)$')
+GITHUB_RAW_URL_RGX = re.compile(r'^https?://raw.?github.com/([\w\-]+)/([\w\-]+)/(.*)$')
+GITHUB_USER_RGX = re.compile(r'^([\w\-]+)$')
+GITHUB_USER_REPO_RGX = re.compile(r'^([\w\-]+)/([\w\-]+)$')
 DROPBOX_URL_RGX = re.compile(r'^http(s?)://www.dropbox.com/(sh?)/(.+)$')
 
 
@@ -63,23 +63,23 @@ DROPBOX_URL_RGX = re.compile(r'^http(s?)://www.dropbox.com/(sh?)/(.+)$')
 
 from collections import OrderedDict
 
-url_rewrite_dict = OrderedDict({
-        GIST_RGX           : u'/{0}',
-        GIST_URL_RGX       : u'/{1}',
-        GITHUB_URL_RGX     : u'/github/{0}/{1}/blob/{2}',
-        GITHUB_RAW_URL_RGX : u'/github/{0}/{1}/blob/{2}',
-        GITHUB_USERREPO_RGX : u'/github/{0}/{1}/tree/master/',
-        GITHUB_USER_RGX    : u'/github/{0}/',
-        DROPBOX_URL_RGX    : u'/url{0}/dl.dropbox.com/{1}/{2}',
-    })
+url_rewrite_dict = OrderedDict([
+        (GIST_RGX,              u'/{0}'),
+        (GIST_URL_RGX,          u'/{1}'),
+        (GITHUB_URL_RGX,        u'/github/{0}/{1}/{2}/{3}'),
+        (GITHUB_RAW_URL_RGX,    u'/github/{0}/{1}/blob/{2}'),
+        (GITHUB_USER_REPO_RGX,  u'/github/{0}/{1}/tree/master/'),
+        (GITHUB_USER_RGX,       u'/github/{0}/'),
+        (DROPBOX_URL_RGX,       u'/url{0}/dl.dropbox.com/{1}/{2}'),
+])
 
 
 def transform_ipynb_uri(value):
     """Transform a given value (an ipynb 'URI') into an app URL"""
 
-    for reg,rewrite in url_rewrite_dict.iteritems() :
+    for reg,rewrite in url_rewrite_dict.iteritems():
         matches = reg.match(value)
-        if matches :
+        if matches:
             return rewrite.format(*matches.groups())
 
     if value.startswith('https://'):

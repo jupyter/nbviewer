@@ -17,21 +17,23 @@ def test_transform_ipynb_uri():
         ('1234/',
         u'/1234'),
         # GIST_URL_RGX
-        ('https://gist.github.com/username/1234',
+        ('https://gist.github.com/user-name/1234',
         u'/1234'),
-        ('https://gist.github.com/username/1234/',
+        ('https://gist.github.com/user-name/1234/',
         u'/1234'),
         # GITHUB_URL_RGX
-        ('https://github.com/user/repo/blob/master/path/file.ipynb',
-        u'/github/user/repo/blob/master/path/file.ipynb'),
-        ('http://github.com/user/repo/blob/master/path/file.ipynb',
-        u'/github/user/repo/blob/master/path/file.ipynb'),
+        ('https://github.com/user-name_/repo-name_/blob/master/path/file.ipynb',
+        u'/github/user-name_/repo-name_/blob/master/path/file.ipynb'),
+        ('http://github.com/user-name_/repo-name_/blob/master/path/file.ipynb',
+        u'/github/user-name_/repo-name_/blob/master/path/file.ipynb'),
+        ('https://github.com/user-name_/repo-name_/tree/master/path/',
+        u'/github/user-name_/repo-name_/tree/master/path/'),
         # GITHUB_USER_RGX
-        ('ipython',
-        u'/github/ipython/'),
-        # GITHUB_USERREPO_RGX
-        ('ipython/ipython',
-        u'/github/ipython/ipython/tree/master/'),
+        ('ipy-thon',
+        u'/github/ipy-thon/'),
+        # GITHUB_USER_REPO_RGX
+        ('ipy-thon/ipy-thon',
+        u'/github/ipy-thon/ipy-thon/tree/master/'),
         #DropBox Urls
         ( u'http://www.dropbox.com/s/bar/baz.qux',
           u'/url/dl.dropbox.com/s/bar/baz.qux'),
@@ -53,7 +55,9 @@ def test_transform_ipynb_uri():
     )
     for (ipynb_uri, expected_output) in test_data:
         output = utils.transform_ipynb_uri(ipynb_uri)
-        nt.assert_equal(output, expected_output)
+        nt.assert_equal(output, expected_output, "%s => %s != %s" % (
+            ipynb_uri, output, expected_output
+        ))
     
 
 def test_quote():
