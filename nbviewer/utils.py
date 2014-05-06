@@ -46,11 +46,11 @@ def url_path_join(*pieces):
     return result
 
 GIST_RGX = re.compile(r'^([a-f0-9]+)/?$')
-GIST_URL_RGX = re.compile(r'^https?://gist.github.com/(\w+/)?([a-f0-9]+)/?$')
-GITHUB_URL_RGX = re.compile(r'^https?://github.com/(\w+)/(\w+)/blob/(.*)$')
-GITHUB_RAW_URL_RGX = re.compile(r'^https?://raw.?github.com/(\w+)/(\w+)/(.*)$')
-GITHUB_USER_RGX = re.compile(r'^(\w+)$')
-GITHUB_USERREPO_RGX = re.compile(r'^(\w+)/(\w+)$')
+GIST_URL_RGX = re.compile(r'^https?://gist.github.com/([\w\-]+/)?([a-f0-9]+)/?$')
+GITHUB_URL_RGX = re.compile(r'^https?://github.com/([\w\-]+)/([\w\-]+)/blob/(.*)$')
+GITHUB_RAW_URL_RGX = re.compile(r'^https?://raw.?github.com/([\w\-]+)/([\w\-]+)/(.*)$')
+GITHUB_USER_RGX = re.compile(r'^([\w\-]+)$')
+GITHUB_USER_REPO_RGX = re.compile(r'^([\w\-]+)/([\w\-]+)$')
 DROPBOX_URL_RGX = re.compile(r'^http(s?)://www.dropbox.com/(sh?)/(.+)$')
 
 
