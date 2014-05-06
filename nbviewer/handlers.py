@@ -768,13 +768,19 @@ class FilesRedirectHandler(BaseHandler):
 class AddSlashHandler(BaseHandler):
     """redirector for URLs that should always have trailing slash"""
     def get(self, *args, **kwargs):
-        self.redirect(self.request.uri + '/')
+        uri = self.request.path + '/'
+        if self.request.query:
+            uri = '%s?%s' % (uri, self.request.query)
+        self.redirect(uri)
 
 
 class RemoveSlashHandler(BaseHandler):
     """redirector for URLs that should never have trailing slash"""
     def get(self, *args, **kwargs):
-        self.redirect(self.request.uri.rstrip('/'))
+        uri = self.request.path.rstrip('/')
+        if self.request.query:
+            uri = '%s?%s' % (uri, self.request.query)
+        self.redirect(uri)
 
 
 class LocalFileHandler(RenderingHandler):
