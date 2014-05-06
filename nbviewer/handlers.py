@@ -528,18 +528,22 @@ class GistHandler(RenderingHandler):
             filename = list(files.keys())[0]
         
         if filename and filename in files:
-
+            file = files[filename]
+            if file['truncated']:
+                app_log.debug("Gist %s/%s truncated, fetching %s", gist_id, filename, file['raw_url'])
+                response = yield self.fetch(file['raw_url'])
+                content = response_text(response)
+            else:
+                content = file['content']
+            
             if not many_files_gist or filename.endswith('.ipynb'):
-                file = files[filename]
-                nbjson = file['content']
-                yield self.finish_notebook(nbjson, file['raw_url'],
+                yield self.finish_notebook(content, file['raw_url'],
                     home_url=gist['html_url'],
                     msg="gist: %s" % gist_id,
                 )
             else:
-                file = files[filename]
                 # cannot redirect because of X-Frame-Content
-                self.finish(file['content'])
+                self.finish(content)
                 return
 
         elif filename:
