@@ -8,6 +8,8 @@
 
 import requests
 
+from unittest import SkipTest
+
 from .base import NBViewerTestCase
 
 class GitHubTestCase(NBViewerTestCase):
@@ -126,6 +128,7 @@ class GitHubTestCase(NBViewerTestCase):
         self.assertIn('global-exclude', r.text)
 
     def test_github_blob_redirect(self):
+        raise SkipTest("raw github no longer redirects to tree views")
         url = self.url("github/ipython/ipython/blob/rel-2.0.0/IPython")
         r = requests.get(url)
         self.assertEqual(r.status_code, 200)
