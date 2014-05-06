@@ -26,6 +26,8 @@ def test_transform_ipynb_uri():
         u'/github/user-name_/repo-name_/blob/master/path/file.ipynb'),
         ('http://github.com/user-name_/repo-name_/blob/master/path/file.ipynb',
         u'/github/user-name_/repo-name_/blob/master/path/file.ipynb'),
+        ('https://github.com/user-name_/repo-name_/tree/master/path/',
+        u'/github/user-name_/repo-name_/tree/master/path/'),
         # GITHUB_USER_RGX
         ('ipy-thon',
         u'/github/ipy-thon/'),

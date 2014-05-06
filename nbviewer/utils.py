@@ -47,7 +47,7 @@ def url_path_join(*pieces):
 
 GIST_RGX = re.compile(r'^([a-f0-9]+)/?$')
 GIST_URL_RGX = re.compile(r'^https?://gist.github.com/([\w\-]+/)?([a-f0-9]+)/?$')
-GITHUB_URL_RGX = re.compile(r'^https?://github.com/([\w\-]+)/([\w\-]+)/blob/(.*)$')
+GITHUB_URL_RGX = re.compile(r'^https?://github.com/([\w\-]+)/([\w\-]+)/(blob|tree)/(.*)$')
 GITHUB_RAW_URL_RGX = re.compile(r'^https?://raw.?github.com/([\w\-]+)/([\w\-]+)/(.*)$')
 GITHUB_USER_RGX = re.compile(r'^([\w\-]+)$')
 GITHUB_USER_REPO_RGX = re.compile(r'^([\w\-]+)/([\w\-]+)$')
@@ -66,7 +66,7 @@ from collections import OrderedDict
 url_rewrite_dict = OrderedDict([
         (GIST_RGX,              u'/{0}'),
         (GIST_URL_RGX,          u'/{1}'),
-        (GITHUB_URL_RGX,        u'/github/{0}/{1}/blob/{2}'),
+        (GITHUB_URL_RGX,        u'/github/{0}/{1}/{2}/{3}'),
         (GITHUB_RAW_URL_RGX,    u'/github/{0}/{1}/blob/{2}'),
         (GITHUB_USER_REPO_RGX,  u'/github/{0}/{1}/tree/master/'),
         (GITHUB_USER_RGX,       u'/github/{0}/'),
