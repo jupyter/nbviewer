@@ -5,7 +5,6 @@
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
-import base64
 import hashlib
 import json
 import os
@@ -37,7 +36,7 @@ except ImportError:
 from IPython.html import DEFAULT_STATIC_FILES_PATH as ipython_static_path
 
 from .render import render_notebook, NbFormatError
-from .utils import transform_ipynb_uri, quote, response_text
+from .utils import transform_ipynb_uri, quote, response_text, base64_decode
 
 date_fmt = "%a, %d %h %Y %H:%M:%S UTC"
 
@@ -718,20 +717,31 @@ class GitHubBlobHandler(RenderingHandler):
         blob_url = u"https://github.com/{user}/{repo}/blob/{ref}/{path}".format(
             user=user, repo=repo, ref=ref, path=quote(path),
         )
+        with self.catch_client_error():
+            tree_entry = yield self.github_client.get_tree_entry(
+                user, repo, path=path, ref=ref
+            )
         
-        response = yield self.fetch(raw_url)
-        
-        if response.effective_url.startswith("https://github.com/{user}/{repo}/tree".format(
-            user=user, repo=repo
-        )):
+        if tree_entry['type'] == 'tree':
             tree_url = "/github/{user}/{repo}/tree/{ref}/{path}/".format(
                 user=user, repo=repo, ref=ref, path=quote(path),
             )
-            app_log.info("%s is a directory, redirecting to %s", raw_url, tree_url)
+            app_log.info("%s is a directory, redirecting to %s", self.request.path, tree_url)
             self.redirect(tree_url)
             return
         
-        filedata = response.body
+        # fetch file data from the blobs API
+        with self.catch_client_error():
+            response = yield self.fetch(tree_entry['url'])
+        
+        data = json.loads(response_text(response))
+        contents = data['content']
+        if data['encoding'] == 'base64':
+            # filedata will be bytes
+            filedata = base64_decode(contents)
+        else:
+            # filedata will be unicode
+            filedata = contents
         
         if path.endswith('.ipynb'):
             dir_path = path.rsplit('/', 1)[0]
@@ -745,7 +755,11 @@ class GitHubBlobHandler(RenderingHandler):
             breadcrumbs.extend(self.breadcrumbs(dir_path, base_url))
             
             try:
-                nbjson = response_text(response)
+                # filedata may be bytes, but we need text
+                if isinstance(filedata, bytes):
+                    nbjson = filedata.decode('ascii')
+                else:
+                    nbjson = filedata
             except Exception as e:
                 app_log.error("Failed to decode notebook: %s", raw_url, exc_info=True)
                 raise web.HTTPError(400)

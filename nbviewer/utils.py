@@ -5,6 +5,7 @@
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
+import base64
 import cgi
 import re
 from subprocess import check_output
@@ -136,3 +137,21 @@ def ipython_info():
     except AttributeError:
         # IPython < 2.0
         return eval(sysinfo.sys_info())
+
+def base64_decode(s):
+    """unicode-safe base64
+    
+    base64 API only talks bytes
+    """
+    s = py3compat.cast_bytes(s)
+    decoded = base64.decodestring(s)
+    return decoded
+
+def base64_encode(s):
+    """unicode-safe base64
+    
+    base64 API only talks bytes
+    """
+    s = py3compat.cast_bytes(s)
+    encoded = base64.encodestring(s)
+    return encoded.decode('ascii')
