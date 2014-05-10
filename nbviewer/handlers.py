@@ -7,7 +7,9 @@
 
 import hashlib
 import json
+import mimetypes
 import os
+import pickle
 import io
 import socket
 import time
@@ -226,6 +228,15 @@ class BaseHandler(web.RequestHandler):
     # response caching
     #---------------------------------------------------------------
     
+    @property
+    def cache_headers(self):
+        # are there other headers to cache?
+        h = {}
+        for key in ('Content-Type',):
+            if key in self._headers:
+                h[key] = self._headers[key]
+        return h
+    
     _cache_key = None
     @property
     def cache_key(self):
@@ -258,7 +269,10 @@ class BaseHandler(web.RequestHandler):
         """
         self.write(content)
         short_url = self.truncate(self.request.path)
-        bcontent = utf8(content)
+        cache_data = pickle.dumps({
+            'headers' : self.cache_headers,
+            'body' : content,
+        }, pickle.HIGHEST_PROTOCOL)
         request_time = self.request.request_time()
         # set cache expiry to 120x request time
         # bounded by cache_expiry_min,max
@@ -277,7 +291,7 @@ class BaseHandler(web.RequestHandler):
         try:
             with self.time_block("cache set %s" % short_url):
                 yield self.cache.set(
-                    self.cache_key, bcontent, int(time.time() + expiry),
+                    self.cache_key, cache_data, int(time.time() + expiry),
                 )
         except Exception:
             app_log.error("cache set for %s failed", short_url, exc_info=True)
@@ -339,14 +353,20 @@ def cached(method):
         
         try:
             with self.time_block("cache get %s" % short_url):
-                cached_response = yield self.cache.get(self.cache_key)
+                cached_pickle = yield self.cache.get(self.cache_key)
+            if cached_pickle is not None:
+                cached = pickle.loads(cached_pickle)
+            else:
+                cached = None
         except Exception as e:
             app_log.error("Exception getting %s from cache", short_url, exc_info=True)
-            cached_response = None
+            cached = None
         
-        if cached_response is not None:
+        if cached is not None:
             app_log.debug("cache hit %s", short_url)
-            self.write(cached_response)
+            for key, value in cached['headers'].items():
+                self.set_header(key, value)
+            self.write(cached['body'])
         else:
             app_log.debug("cache miss %s", short_url)
             self.pending.add(uri)
@@ -769,7 +789,8 @@ class GitHubBlobHandler(RenderingHandler):
                 msg="file from GitHub: %s" % raw_url,
             )
         else:
-            self.set_header("Content-Type", response.headers.get('Content-Type', 'text/plain'))
+            mime, enc = mimetypes.guess_type(path)
+            self.set_header("Content-Type", mime or 'text/plain')
             self.cache_and_finish(filedata)
 
 
