@@ -16,6 +16,12 @@ from contextlib import contextmanager
 from datetime import datetime
 
 try:
+    # py 3
+    from urllib.parse import urlencode
+except ImportError:
+    from urllib import urlencode
+
+try:
     # py3
     from http.client import responses
 except ImportError:
@@ -448,6 +454,10 @@ class URLHandler(RenderingHandler):
         proto = 'http' + secure
         
         remote_url = u"{}://{}".format(proto, quote(url))
+        query_dict = self.request.query_arguments.copy()
+        query_dict.pop('create', None)
+        if query_dict:
+            remote_url = remote_url + '?' + urlencode(query_dict, True)
         if not url.endswith('.ipynb'):
             # this is how we handle relative links (files/ URLs) in notebooks
             # if it's not a .ipynb URL and it is a link from a notebook,
