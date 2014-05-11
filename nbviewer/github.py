@@ -37,7 +37,7 @@ class AsyncGitHubClient(object):
         self.auth = {
             'client_id': os.environ.get('GITHUB_OAUTH_KEY', ''),
             'client_secret': os.environ.get('GITHUB_OAUTH_SECRET', ''),
-            'token' : os.environ.get('GITHUB_API_TOKEN', ''),
+            'access_token' : os.environ.get('GITHUB_API_TOKEN', ''),
         }
         self.auth = {k:v for k,v in self.auth.items() if v}
     
