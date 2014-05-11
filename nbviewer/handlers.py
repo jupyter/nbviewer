@@ -732,7 +732,7 @@ class GitHubBlobHandler(RenderingHandler):
         
         # fetch file data from the blobs API
         with self.catch_client_error():
-            response = yield self.fetch(tree_entry['url'])
+            response = yield self.github_client.fetch(tree_entry['url'])
         
         data = json.loads(response_text(response))
         contents = data['content']
