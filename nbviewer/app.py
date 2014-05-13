@@ -5,10 +5,12 @@
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
+import json
+import io
 import os
 
 import logging
-import markdown 
+import markdown
 
 from cgi import escape
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
@@ -57,6 +59,9 @@ def nrfoot():
         return ''
     return newrelic.agent.get_browser_timing_footer()
 
+this_dir, this_filename = os.path.split(__file__)
+FRONTPAGE_JSON = os.path.join(this_dir, "frontpage.json")
+
 def main():
     # command-line options
     define("debug", default=False, help="run in debug mode", type=bool)
@@ -68,6 +73,7 @@ def main():
     define("mc_threads", default=1, help="number of threads to use for Async Memcache", type=int)
     define("threads", default=1, help="number of threads to use for rendering", type=int)
     define("processes", default=0, help="use processes instead of threads for rendering", type=int)
+    define("frontpage", default=FRONTPAGE_JSON, help="path to json file containing frontpage content", type=str)
     tornado.options.parse_command_line()
     
     # NBConvert config
@@ -96,7 +102,7 @@ def main():
     memcache_urls = os.environ.get('MEMCACHIER_SERVERS',
         os.environ.get('MEMCACHE_SERVERS')
     )
-    if options.no_cache :
+    if options.no_cache:
         log.app_log.info("Not using cache")
         cache = MockCache()
     elif pylibmc and memcache_urls:
@@ -141,6 +147,16 @@ def main():
     client = AsyncHTTPClient()
     github_client = AsyncGitHubClient(client)
     
+    # load frontpage sections
+    with io.open(options.frontpage, 'r') as f:
+        frontpage_sections = json.load(f)
+    
+    # cache frontpage links for the maximum allowed time
+    max_cache_uris = {''}
+    for section in frontpage_sections:
+        for link in section['links']:
+            max_cache_uris.add('/' + link['target'])
+
     settings = dict(
         log_function=log_request,
         jinja2_env=env,
@@ -152,6 +168,8 @@ def main():
         cache=cache,
         cache_expiry_min=options.cache_expiry_min,
         cache_expiry_max=options.cache_expiry_max,
+        max_cache_uris=max_cache_uris,
+        frontpage_sections=frontpage_sections,
         pool=pool,
         gzip=True,
         render_timeout=20,
