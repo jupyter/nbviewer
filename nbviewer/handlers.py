@@ -471,7 +471,14 @@ class URLHandler(RenderingHandler):
     def get(self, secure, url):
         proto = 'http' + secure
         
+        if '/?' in url:
+            url, query = url.rsplit('/?', 1)
+        else:
+            query = None
+        
         remote_url = u"{}://{}".format(proto, quote(url))
+        if query:
+            remote_url = remote_url + '?' + query
         if not url.endswith('.ipynb'):
             # this is how we handle relative links (files/ URLs) in notebooks
             # if it's not a .ipynb URL and it is a link from a notebook,

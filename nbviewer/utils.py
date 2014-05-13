@@ -78,11 +78,16 @@ url_rewrite_dict = OrderedDict([
 def transform_ipynb_uri(value):
     """Transform a given value (an ipynb 'URI') into an app URL"""
 
-    for reg,rewrite in url_rewrite_dict.iteritems():
+    for reg,rewrite in url_rewrite_dict.items():
         matches = reg.match(value)
         if matches:
             return rewrite.format(*matches.groups())
-
+    
+    # encode query parameters as last url part
+    if '?' in value:
+        value, query = value.split('?', 1)
+        value = '%s/%s' % (value, quote('?' + query))
+    
     if value.startswith('https://'):
         return u'/urls/%s' % value[8:]
 
