@@ -24,7 +24,7 @@
     "links":[
       {
         "text": "Python for Signal Processing",
-        "target": "http://nbviewer.ipython.org/github/unpingco/Python-for-Signal-Processing/",
+        "target": "github/unpingco/Python-for-Signal-Processing/",
         "img": "/static/img/example-nb/python-signal.png"
       },
       {

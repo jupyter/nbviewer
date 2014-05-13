@@ -83,6 +83,14 @@ class BaseHandler(web.RequestHandler):
     def pool(self):
         return self.settings['pool']
     
+    @property
+    def max_cache_uris(self):
+        return self.settings.setdefault('max_cache_uris', set())
+    
+    @property
+    def frontpage_sections(self):
+        return self.settings.setdefault('frontpage_sections', {})
+    
     #---------------------------------------------------------------
     # template rendering
     #---------------------------------------------------------------
@@ -267,8 +275,8 @@ class BaseHandler(web.RequestHandler):
             min(120 * request_time, self.cache_expiry_max),
             self.cache_expiry_min,
         )
-        refer_url = self.request.headers.get('Referer', '').split('://')[-1]
-        if refer_url == self.request.host + '/' and not self.get_argument('create', ''):
+        
+        if self.request.uri in self.max_cache_uris:
             # if it's a link from the front page, cache for a long time
             expiry = self.cache_expiry_max
         
@@ -290,15 +298,11 @@ class Custom404(BaseHandler):
     def prepare(self):
         raise web.HTTPError(404)
 
-this_dir, this_filename = os.path.split(__file__)
-DATA_PATH = os.path.join(this_dir , "frontpage.json")
-with io.open(DATA_PATH, 'r') as datafile:
-    sections = json.load(datafile)
 
 class IndexHandler(BaseHandler):
     """Render the index"""
     def get(self):
-        self.finish(self.render_template('index.html',sections=sections))
+        self.finish(self.render_template('index.html', sections=self.frontpage_sections))
 
 
 class FAQHandler(BaseHandler):
@@ -437,7 +441,7 @@ class CreateHandler(BaseHandler):
         value = self.get_argument('gistnorurl', '')
         redirect_url = transform_ipynb_uri(value)
         app_log.info("create %s => %s", value, redirect_url)
-        self.redirect(url_concat(redirect_url, {'create': 1}))
+        self.redirect(redirect_url)
 
 
 class URLHandler(RenderingHandler):
