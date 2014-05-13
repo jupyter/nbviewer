@@ -14,6 +14,7 @@ import io
 import socket
 import time
 
+from cgi import escape
 from contextlib import contextmanager
 from datetime import datetime
 
@@ -123,31 +124,43 @@ class BaseHandler(web.RequestHandler):
         """Remote fetch raised an error"""
         try:
             url = exc.response.request.url.split('?')[0]
+            body = exc.response.body.decode('utf8', 'replace').strip()
         except AttributeError:
             url = 'url'
-        app_log.warn("Fetching %s failed with %s", url, exc)
+            body = ''
+        
+        str_exc = str(exc)
+        # strip the unhelpful 599 prefix
+        if str_exc.startswith('HTTP 599: '):
+            str_exc = str_exc[10:]
+        
+        if exc.code == 403 and 'too big' in body and 'gist' in url:
+            msg = "GitHub will not serve raw gists larger than 10MB"
+        elif body and len(body) < 100:
+            # if it's a short plain-text error message, include it
+            msg = "%s (%s)" % (str_exc, escape(body))
+        else:
+            msg = str(exc)
+        
+        app_log.warn("Fetching %s failed with %s", url, exc, msg)
         if exc.code == 599:
-            str_exc = str(exc)
-            # strip the unhelpful 599 prefix
-            if str_exc.startswith('HTTP 599: '):
-                str_exc = str_exc[10:]
             if isinstance(exc, CurlError):
                 en = getattr(exc, 'errno', -1)
                 # can't connect to server should be 404
                 # possibly more here
                 if en in (pycurl.E_COULDNT_CONNECT, pycurl.E_COULDNT_RESOLVE_HOST):
-                    raise web.HTTPError(404, str_exc)
+                    raise web.HTTPError(404, msg)
             # otherwise, raise 400 with informative message:
-            raise web.HTTPError(400, str_exc)
+            raise web.HTTPError(400, msg)
         if exc.code >= 500:
             # 5XX, server error, but not this server
-            raise web.HTTPError(502, str(exc))
+            raise web.HTTPError(502, msg)
         else:
+            # client-side error, blame our client
             if exc.code == 404:
-                raise web.HTTPError(404, "Remote %s" % exc)
+                raise web.HTTPError(404, "Remote %s" % msg)
             else:
-                # client-side error, blame our client
-                raise web.HTTPError(400, str(exc))
+                raise web.HTTPError(400, msg)
     
     @contextmanager
     def catch_client_error(self):
