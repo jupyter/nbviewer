@@ -8,6 +8,11 @@
 import json
 import os
 
+try: # py3
+    from urllib.parse import urlparse
+except ImportError:
+    from urlparse import urlparse
+
 from tornado.concurrent import Future
 from tornado.httpclient import AsyncHTTPClient, HTTPError
 from tornado.httputil import url_concat
@@ -32,18 +37,17 @@ class AsyncGitHubClient(object):
         self.auth = {
             'client_id': os.environ.get('GITHUB_OAUTH_KEY', ''),
             'client_secret': os.environ.get('GITHUB_OAUTH_SECRET', ''),
-            'token' : os.environ.get('GITHUB_API_TOKEN', ''),
+            'access_token' : os.environ.get('GITHUB_API_TOKEN', ''),
         }
         self.auth = {k:v for k,v in self.auth.items() if v}
     
-    def github_api_request(self, path, callback=None, params=None, **kwargs):
-        """Make a GitHub API request to URL
-        
-        URL is constructed from url and params, if specified.
-        callback and **kwargs are passed to client.fetch unmodified.
-        """
-        url = url_path_join(self.github_api_url, path)
-        
+    def fetch(self, url, callback=None, params=None, **kwargs):
+        """Add GitHub auth to self.client.fetch"""
+        host = urlparse(url).hostname
+        if not ('.' + host).endswith('.github.com'):
+            raise ValueError(
+                "Only fetch GitHub urls with GitHub auth (%s)" % url
+            )
         params = {} if params is None else params
         kwargs.setdefault('user_agent', 'Tornado-Async-GitHub-Client')
         if self.auth:
@@ -51,7 +55,16 @@ class AsyncGitHubClient(object):
         url = url_concat(url, params)
         future = self.client.fetch(url, callback, **kwargs)
         return future
+
+    def github_api_request(self, path, callback=None, **kwargs):
+        """Make a GitHub API request to URL
         
+        URL is constructed from url and params, if specified.
+        callback and **kwargs are passed to client.fetch unmodified.
+        """
+        url = url_path_join(self.github_api_url, path)
+        return self.fetch(url, callback, **kwargs)
+
     def get_gist(self, gist_id, callback=None, **kwargs):
         """Get a gist"""
         path = u'gists/{}'.format(gist_id)
