@@ -148,9 +148,9 @@ class BaseHandler(web.RequestHandler):
             # if it's a short plain-text error message, include it
             msg = "%s (%s)" % (str_exc, escape(body))
         else:
-            msg = str(exc)
+            msg = str_exc
         
-        app_log.warn("Fetching %s failed with %s", url, exc, msg)
+        app_log.warn("Fetching %s failed with %s", url, msg)
         if exc.code == 599:
             if isinstance(exc, CurlError):
                 en = getattr(exc, 'errno', -1)
