@@ -104,6 +104,7 @@ class AsyncGitHubClient(object):
         For use as a callback in get_tree_entry
         raises 404 if not found
         """
+        tree_response.rethrow()
         jsondata = response_text(tree_response)
         data = json.loads(jsondata)
         for entry in data['tree']:
