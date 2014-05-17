@@ -61,3 +61,7 @@ pre, code {
   margin-top: 25px;
   margin-bottom: 25px;
 }
+
+td.page_links {
+  text-align: center;
+}
