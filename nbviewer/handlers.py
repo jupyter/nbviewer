@@ -306,12 +306,6 @@ class BaseHandler(web.RequestHandler):
         - result is not written in multiple chunks
         - custom headers are not used
         """
-        self.write(content)
-        short_url = self.truncate(self.request.path)
-        cache_data = pickle.dumps({
-            'headers' : self.cache_headers,
-            'body' : content,
-        }, pickle.HIGHEST_PROTOCOL)
         request_time = self.request.request_time()
         # set cache expiry to 120x request time
         # bounded by cache_expiry_min,max
@@ -320,6 +314,15 @@ class BaseHandler(web.RequestHandler):
             min(120 * request_time, self.cache_expiry_max),
             self.cache_expiry_min,
         )
+        if expiry > 0:
+            self.set_header("Cache-Control", "max-age=%i" % expiry)
+        
+        self.write(content)
+        short_url = self.truncate(self.request.path)
+        cache_data = pickle.dumps({
+            'headers' : self.cache_headers,
+            'body' : content,
+        }, pickle.HIGHEST_PROTOCOL)
         
         if self.request.uri in self.max_cache_uris:
             # if it's a link from the front page, cache for a long time
