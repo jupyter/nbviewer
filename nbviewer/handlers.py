@@ -314,6 +314,11 @@ class BaseHandler(web.RequestHandler):
             min(120 * request_time, self.cache_expiry_max),
             self.cache_expiry_min,
         )
+        
+        if self.request.uri in self.max_cache_uris:
+            # if it's a link from the front page, cache for a long time
+            expiry = self.cache_expiry_max
+        
         if expiry > 0:
             self.set_header("Cache-Control", "max-age=%i" % expiry)
         
@@ -323,11 +328,6 @@ class BaseHandler(web.RequestHandler):
             'headers' : self.cache_headers,
             'body' : content,
         }, pickle.HIGHEST_PROTOCOL)
-        
-        if self.request.uri in self.max_cache_uris:
-            # if it's a link from the front page, cache for a long time
-            expiry = self.cache_expiry_max
-        
         log = app_log.info if expiry > self.cache_expiry_min else app_log.debug
         log("caching (expiry=%is) %s", expiry, short_url)
         try:
