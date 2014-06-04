@@ -508,13 +508,18 @@ class URLHandler(RenderingHandler):
     @gen.coroutine
     def get(self, secure, url):
         proto = 'http' + secure
-        
+
         if '/?' in url:
             url, query = url.rsplit('/?', 1)
         else:
             query = None
+
+        try:
+            netloc, path = url.split('/', 1)
+        except:
+            netloc, path = url, ''
         
-        remote_url = u"{}://{}".format(proto, quote(url))
+        remote_url = u"{}://{}/{}".format(proto, netloc, quote(path))
         if query:
             remote_url = remote_url + '?' + query
         if not url.endswith('.ipynb'):
