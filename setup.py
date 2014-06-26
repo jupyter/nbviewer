@@ -13,14 +13,15 @@ from distutils.core import setup
 
 def walk_subpkg(name):
     data_files = []
-    for parent, dirs, files in os.walk(os.path.join('nbviewer', name)):
+    package_dir = 'nbviewer'
+    for parent, dirs, files in os.walk(os.path.join(package_dir, name)):
+        sub_dir = os.sep.join(parent.split(os.sep)[1:]) # remove package_dir from the path
         for f in files:
-            data_files.append(os.path.join(parent, f))
+            data_files.append(os.path.join(sub_dir, f))
     return data_files
 
 pkg_data = {
-    "nbconvert.static" : walk_subpkg('static'),
-    "nbconvert.templates" : walk_subpkg('templates'),
+    "nbviewer": ['frontpage.json'] + walk_subpkg('static') + walk_subpkg('templates')
 }
 
 setup_args = dict(
