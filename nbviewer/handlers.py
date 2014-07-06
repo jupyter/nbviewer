@@ -43,7 +43,7 @@ from IPython.html import DEFAULT_STATIC_FILES_PATH as ipython_static_path
 from .render import render_notebook, NbFormatError
 from .utils import transform_ipynb_uri, quote, response_text, base64_decode, parse_header_links
 
-date_fmt = "%a, %d %h %Y %H:%M:%S UTC"
+date_fmt = "%a, %d %b %Y %H:%M:%S UTC"
 
 #-----------------------------------------------------------------------------
 # Handler classes
