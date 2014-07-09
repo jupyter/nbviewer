@@ -53,6 +53,11 @@
         "img": "/static/img/example-nb/XKCD-Matplotlib.png"
       },
       {
+        "text": "Interactive data visualization with Bokeh",
+        "target": "github/ContinuumIO/bokeh-notebooks/blob/master/index.ipynb",
+        "img": "/static/img/example-nb/bokeh.png"
+      },
+      {
         "text": "Non Parametric Regression",
         "target": "gist/fonnesbeck/2352771",
         "img": "/static/img/example-nb/covariance.png"
