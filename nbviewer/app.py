@@ -74,6 +74,8 @@ def main():
     define("threads", default=1, help="number of threads to use for rendering", type=int)
     define("processes", default=0, help="use processes instead of threads for rendering", type=int)
     define("frontpage", default=FRONTPAGE_JSON, help="path to json file containing frontpage content", type=str)
+    define("sslcert", help="path to ssl .crt file", type=str)
+    define("sslkey", help="path to ssl .key file", type=str)
     tornado.options.parse_command_line()
     
     # NBConvert config
@@ -185,8 +187,16 @@ def main():
         # use absolute or relative paths:
         handlers.insert(0, (r'/localfile/(.*)', LocalFileHandler))
 
+    # load ssl options
+    ssl_options = None
+    if options.sslcert:
+        ssl_options = {
+            'certfile' : options.sslcert,
+            'keyfile' : options.sslkey,
+        }
+
     app = web.Application(handlers, debug=options.debug, **settings)
-    http_server = httpserver.HTTPServer(app, xheaders=True)
+    http_server = httpserver.HTTPServer(app, xheaders=True, ssl_options=ssl_options)
     log.app_log.info("Listening on port %i", options.port)
     http_server.listen(options.port)
     ioloop.IOLoop.instance().start()
