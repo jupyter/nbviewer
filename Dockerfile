@@ -1,7 +1,7 @@
 # Using the Ubuntu image
 FROM ubuntu:14.04
 
-MAINTAINER IPython team <ipython@gmail.com>
+MAINTAINER IPython Project <ipython-dev@scipy.org>
  
 # Make sure apt is up to date
 RUN apt-get update
