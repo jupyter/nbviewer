@@ -100,10 +100,16 @@ def main():
     else:
         exporter = HTMLExporter(config=config, log=log.app_log)
         pool = ThreadPoolExecutor(options.threads)
-        
+
     memcache_urls = os.environ.get('MEMCACHIER_SERVERS',
         os.environ.get('MEMCACHE_SERVERS')
     )
+
+    # Handle linked Docker containers
+    if(os.environ.get('NBCACHE_PORT')):
+      tcp_memcache = os.environ.get('NBCACHE_PORT')
+      memcache_urls = tcp_memcache.split('tcp://')[1]
+
     if options.no_cache:
         log.app_log.info("Not using cache")
         cache = MockCache()
