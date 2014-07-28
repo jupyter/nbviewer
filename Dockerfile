@@ -31,7 +31,7 @@ RUN pip install -r requirements.txt
 EXPOSE 8080
  
 # To change the number of threads use
-# docker run -d -p 80:8080 nbviewer -e NBVIEWER_THREADS=4
+# docker run -d -e NBVIEWER_THREADS=4 -p 80:8080 nbviewer
 ENV NBVIEWER_THREADS 2
  
-ENTRYPOINT python -m nbviewer --port=8080 --threads=$NBVIEWER_THREADS
+CMD ["python","-m","nbviewer","--port=8080"]
