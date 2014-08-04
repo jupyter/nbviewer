@@ -599,9 +599,15 @@ class GistHandler(RenderingHandler):
         github_url = gist['html_url']
         files = gist['files']
         many_files_gist = (len(files) > 1)
+        notebooks = [f for f in files if f.endswith('.ipynb')]
         
-        if not many_files_gist and not filename:
-            filename = list(files.keys())[0]
+        if not filename:
+            if len(notebooks) == 1:
+                # no filename specified, but there's only one notebook
+                filename = notebooks[0]
+            elif not many_files_gist:
+                # only one file, assume it's a notebook (?)
+                filename = list(files)[0]
         
         if filename and filename in files:
             file = files[filename]
@@ -627,10 +633,15 @@ class GistHandler(RenderingHandler):
         else:
             entries = []
             for filename, file in files.items():
-                entries.append(dict(
-                    path=filename,
-                    url=quote('/%s/%s' % (gist_id, filename)),
-                ))
+                e = {'name': filename}
+                # print(file.keys())
+                if filename.endswith('.ipynb'):
+                    e['url'] = "%s/%s" % (self.request.uri, quote(filename))
+                    e['class'] = 'icon-book'
+                else:
+                    e['url'] = gist['html_url']
+                    e['class'] = 'icon-share'
+                entries.append(e)
             html = self.render_template('gistlist.html',
                 entries=entries, github_url=gist['html_url'],
             )
