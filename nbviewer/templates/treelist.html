@@ -10,7 +10,10 @@
                 {% if len(breadcrumbs) > 1 %}
                     <a href='../'><i class='icon-backward'></i> ..</a>
                 {% else %}
-                    <a href='/github/{{user}}'><i class='icon-backward'></i> {{user}}'s repositories</a>
+                  <a href='/{{ tree_type | default('github') }}/{{user}}'>
+                    <i class='icon-backward'></i>
+                    {{user}}'s {{ tree_type | default('repositorie')}}s
+                  </a>
                 {% endif %}
                 </td></tr>
                 {% for entry in entries %}
