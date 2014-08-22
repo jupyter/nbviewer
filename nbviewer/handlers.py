@@ -41,7 +41,8 @@ except ImportError:
 from IPython.html import DEFAULT_STATIC_FILES_PATH as ipython_static_path
 
 from .render import render_notebook, NbFormatError
-from .utils import transform_ipynb_uri, quote, response_text, base64_decode, parse_header_links
+from .utils import (transform_ipynb_uri, quote, response_text, base64_decode,
+                    parse_header_links, clean_filename)
 
 date_fmt = "%a, %d %b %Y %H:%M:%S UTC"
 
@@ -596,7 +597,6 @@ class GistHandler(RenderingHandler):
             self.redirect(new_url)
             return
         
-        github_url = gist['html_url']
         files = gist['files']
         many_files_gist = (len(files) > 1)
         
@@ -613,7 +613,9 @@ class GistHandler(RenderingHandler):
                 content = file['content']
             
             if not many_files_gist or filename.endswith('.ipynb'):
-                yield self.finish_notebook(content, file['raw_url'],
+                yield self.finish_notebook(
+                    content,
+                    file['raw_url'],
                     home_url=gist['html_url'],
                     msg="gist: %s" % gist_id,
                 )
@@ -626,13 +628,35 @@ class GistHandler(RenderingHandler):
             raise web.HTTPError(404, "No such file in gist: %s (%s)", filename, list(files.keys()))
         else:
             entries = []
-            for filename, file in files.items():
-                entries.append(dict(
-                    path=filename,
-                    url=quote('/%s/%s' % (gist_id, filename)),
-                ))
-            html = self.render_template('gistlist.html',
-                entries=entries, github_url=gist['html_url'],
+            ipynbs = []
+            others = []
+
+            for file in files.itervalues():
+                e = {}
+                e['name'] = file['filename']
+                if file['filename'].endswith('.ipynb'):
+                    e['url'] = quote('/%s/%s' % (gist_id, file['filename']))
+                    e['class'] = 'icon-book'
+                    ipynbs.append(e)
+                else:
+                    github_url = u"https://gist.github.com/{user}/{gist_id}#file-{clean_name}".format(
+                        user=user,
+                        gist_id=gist_id,
+                        clean_name=clean_filename(file['filename']),
+                    )
+                    e['url'] = github_url
+                    e['class'] = 'icon-share'
+                    others.append(e)
+
+            entries.extend(ipynbs)
+            entries.extend(others)
+
+            html = self.render_template(
+                'treelist.html',
+                entries=entries,
+                tree_type='gist',
+                user=user.rstrip('/'),
+                github_url=gist['html_url'],
             )
             yield self.cache_and_finish(html)
 

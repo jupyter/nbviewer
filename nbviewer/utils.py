@@ -17,6 +17,7 @@ except ImportError:
 
 from IPython.utils import py3compat
 
+
 def quote(s):
     """unicode-safe quote
     
@@ -26,6 +27,12 @@ def quote(s):
     s = py3compat.cast_bytes_py2(s)
     quoted = stdlib_quote(s)
     return py3compat.str_to_unicode(quoted)
+
+
+def clean_filename(fn):
+    """ Github url sanitizes gist filenames to produce their permalink. This is
+    not provided over API, so we recreate it here. """
+    return re.sub('[^0-9a-zA-Z]+', '-', fn)
 
 
 def url_path_join(*pieces):

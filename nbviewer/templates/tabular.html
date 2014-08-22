@@ -17,6 +17,7 @@
 {% endfor %}
 {% endblock entries %}
 {% block page_links %}
+  {% if prev_url or next_url %}
   <tr><td class="page_links">
     {% if prev_url %}
     <a href="{{prev_url}}">&lt; prev </a>
@@ -28,6 +29,7 @@
     <a href="{{next_url}}">next &gt;</a>
     {% endif %}
   </td></tr>
+  {% endif %}
 {% endblock page_links %}
 </tbody>
 </table>
