@@ -22,7 +22,7 @@ $ docker run -p 8080:8080 ipython/nbviewer -e 'GITHUB_OAUTH_KEY=YOURKEY' \
                                            -e 'GITHUB_OAUTH_SECRET=YOURSECRET'
 ```
 
-Or to use you GitHub personal access token, you can set just `GITHUB_API_TOKEN`.
+Or to use your GitHub personal access token, you can set just `GITHUB_API_TOKEN`.
 
 ## Local Development
 
