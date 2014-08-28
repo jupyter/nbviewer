@@ -18,8 +18,9 @@ It automatically gets built with each push to `master`, so you'll always be able
 For speed and friendliness to GitHub, be sure to set `GITHUB_OAUTH_KEY` and `GITHUB_OAUTH_SECRET`:
 
 ```
-$ docker run -p 8080:8080 ipython/nbviewer -e 'GITHUB_OAUTH_KEY=YOURKEY' \
-                                           -e 'GITHUB_OAUTH_SECRET=YOURSECRET'
+$ docker run -p 8080:8080 -e 'GITHUB_OAUTH_KEY=YOURKEY' \
+                          -e 'GITHUB_OAUTH_SECRET=YOURSECRET' \
+                          ipython/nbviewer 
 ```
 
 Or to use your GitHub personal access token, you can set just `GITHUB_API_TOKEN`.
