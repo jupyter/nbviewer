@@ -33,5 +33,7 @@ EXPOSE 8080
 # To change the number of threads use
 # docker run -d -e NBVIEWER_THREADS=4 -p 80:8080 nbviewer
 ENV NBVIEWER_THREADS 2
+
+USER nobody
  
 CMD ["python","-m","nbviewer","--port=8080"]
