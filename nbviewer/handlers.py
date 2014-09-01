@@ -865,10 +865,7 @@ class GitHubBlobHandler(RenderingHandler):
             try:
                 # filedata may be bytes, but we need text
                 if isinstance(filedata, bytes):
-                    try:
-                        nbjson = filedata.decode('ascii')
-                    except Exception as e:
-                        nbjson = filedata.decode('utf-8')
+                    nbjson = filedata.decode('utf-8')
                 else:
                     nbjson = filedata
             except Exception as e:
