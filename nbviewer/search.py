@@ -27,7 +27,7 @@ class NoSearch():
     pass
 
   def index_notebook(self, notebook_url, notebook_contents):
-    app_log.info("Totally not indexing \"{}\"".format(notebook_url))
+    app_log.debug("Totally not indexing \"{}\"".format(notebook_url))
     pass
   
 class ElasticSearch():

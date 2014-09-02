@@ -72,6 +72,10 @@ class BaseHandler(web.RequestHandler):
     @property
     def client(self):
         return self.settings['client']
+        
+    @property
+    def search(self):
+        return self.settings['search']
     
     @property
     def cache(self):
