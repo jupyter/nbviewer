@@ -35,6 +35,8 @@ class ElasticSearch():
       self.elasticsearch = Elasticsearch([{'host':host, 'port':port}])
   
     def index_notebook(self, notebook_url, notebook_contents):
+        app_log.debug("Indexing {}".format(notebook_url))
+        
         notebook_url = notebook_url.encode('utf-8')
         notebook_id = uuid.uuid5(uuid.NAMESPACE_URL, notebook_url)
         resp = self.elasticsearch.index(index='notebooks',
