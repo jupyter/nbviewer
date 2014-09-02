@@ -31,7 +31,7 @@ class NBViewerTestCase(TestCase):
         while True:
             try:
                 requests.get(cls.url())
-            except requests.exceptions.ConnectionError:
+            except Exception:
                 time.sleep(.1)
             else:
                 break
@@ -42,7 +42,7 @@ class NBViewerTestCase(TestCase):
         while True:
             try:
                 requests.get(cls.url())
-            except requests.exceptions.ConnectionError:
+            except Exception:
                 break
             else:
                 time.sleep(.1)
