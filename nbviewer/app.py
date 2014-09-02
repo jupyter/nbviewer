@@ -109,19 +109,17 @@ def main():
 
     # Handle linked Docker containers
     if(os.environ.get('NBCACHE_PORT')):
-      tcp_memcache = os.environ.get('NBCACHE_PORT')
-      memcache_urls = tcp_memcache.split('tcp://')[1]
+        tcp_memcache = os.environ.get('NBCACHE_PORT')
+        memcache_urls = tcp_memcache.split('tcp://')[1]
       
     if(os.environ.get('NBSEARCH_PORT')):
-      tcp_search = os.environ('NBSEARCH_PORT')
-      search_url = tcp_search.split('tcp://')[1]
-      search_host, search_port = search_urls.split(":")
-    
-    if search_host and search_port:
-      search = ElasticSearch(search_host, search_port)
+        tcp_search = os.environ('NBSEARCH_PORT')
+        search_url = tcp_search.split('tcp://')[1]
+        search_host, search_port = search_urls.split(":")
+        search = ElasticSearch(search_host, search_port)
     else:
-      log.app_log.info("Not using search")
-      search = NoSearch()
+        log.app_log.info("Not using search")
+        search = NoSearch()
 
     if options.no_cache:
         log.app_log.info("Not using cache")
