@@ -113,7 +113,7 @@ def main():
         memcache_urls = tcp_memcache.split('tcp://')[1]
       
     if(os.environ.get('NBSEARCH_PORT')):
-        tcp_search = os.environ('NBSEARCH_PORT')
+        tcp_search = os.environ.get('NBSEARCH_PORT')
         search_url = tcp_search.split('tcp://')[1]
         search_host, search_port = search_urls.split(":")
         search = ElasticSearch(search_host, search_port)
