@@ -488,6 +488,10 @@ class RenderingHandler(BaseHandler):
             date=datetime.utcnow().strftime(date_fmt),
             breadcrumbs=breadcrumbs,
             **config)
+            
+        # Index notebook
+        self.search.index_notebook(download_url, nbjson)
+            
         yield self.cache_and_finish(html)
 
 

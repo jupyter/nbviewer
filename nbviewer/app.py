@@ -28,6 +28,8 @@ from IPython.nbconvert.exporters import HTMLExporter
 
 from .handlers import handlers, LocalFileHandler
 from .cache import DummyAsyncCache, AsyncMultipartMemcache, MockCache, pylibmc
+from .search import NoSearch, ElasticSearch
+
 try:
     from .client import LoggingCurlAsyncHTTPClient as HTTPClientClass
 except ImportError:
@@ -109,6 +111,17 @@ def main():
     if(os.environ.get('NBCACHE_PORT')):
       tcp_memcache = os.environ.get('NBCACHE_PORT')
       memcache_urls = tcp_memcache.split('tcp://')[1]
+      
+    if(os.environ.get('NBSEARCH_PORT')):
+      tcp_search = os.environ('NBSEARCH_PORT')
+      search_url = tcp_search.split('tcp://')[1]
+      search_host, search_port = search_urls.split(":")
+    
+    if search_host and search_port:
+      search = ElasticSearch(search_host, search_port)
+    else:
+      log.app_log.info("Not using search")
+      search = NoSearch()
 
     if options.no_cache:
         log.app_log.info("Not using cache")
@@ -173,6 +186,7 @@ def main():
         github_client=github_client,
         exporter=exporter,
         config=config,
+        search=search,
         cache=cache,
         cache_expiry_min=options.cache_expiry_min,
         cache_expiry_max=options.cache_expiry_max,
