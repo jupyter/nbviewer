@@ -115,7 +115,7 @@ def main():
     if(os.environ.get('NBSEARCH_PORT')):
         tcp_search = os.environ.get('NBSEARCH_PORT')
         search_url = tcp_search.split('tcp://')[1]
-        search_host, search_port = search_urls.split(":")
+        search_host, search_port = search_url.split(":")
         search = ElasticSearch(search_host, search_port)
     else:
         log.app_log.info("Not using search")
