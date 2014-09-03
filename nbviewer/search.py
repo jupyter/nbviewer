@@ -6,15 +6,7 @@
 #-----------------------------------------------------------------------------
 
 '''
-import os
-import requests
-from elasticsearch import Elasticsearch
-
-elasticsearch_endpoint = os.environ["ES_PORT_9200_TCP_ADDR"]
-es = Elasticsearch([{'host':elasticsearch_endpoint, 'port':9200}])
-
-notebook_request = requests.get("http://jakevdp.github.com/downloads/notebooks/XKCD_plots.ipynb")
-es.index(index='nbviewer', doc_type='ipynb', body=notebook_request.text)
+Classes for Indexing Notebooks
 '''
 
 from tornado.log import app_log
@@ -29,26 +21,27 @@ class NoSearch():
     def index_notebook(self, notebook_url, notebook_contents):
         app_log.debug("Totally not indexing \"{}\"".format(notebook_url))
         pass
-  
+
 class ElasticSearch():
     def __init__(self, host="127.0.0.1", port=9200):
       self.elasticsearch = Elasticsearch([{'host':host, 'port':port}])
-  
-    def index_notebook(self, notebook_url, notebook_contents, public=False):        
-        app_log.info("Indexing {}, public={}".format(notebook_url, public))
-        
+
+    def index_notebook(self, notebook_url, notebook_contents, public=False):
         notebook_url = notebook_url.encode('utf-8')
         notebook_id = uuid.uuid5(uuid.NAMESPACE_URL, notebook_url)
-        
+
         # Notebooks API Model
         # https://github.com/ipython/ipython/wiki/IPEP-16%3A-Notebook-multi-directory-dashboard-and-URL-mapping#notebooks-api
-        
         body = {
          "content": notebook_contents,
          "public": public
         }
-        
+
         resp = self.elasticsearch.index(index='notebooks',
                                         doc_type='ipynb',
                                         body=body,
                                         id=notebook_id.hex)
+        if(resp['created']):
+            app_log.info("Indexed {}, public={}".format(notebook_url, public))
+        else:
+            app_log.error("Failed to index {}, public={}".format(notebook_url, public))
