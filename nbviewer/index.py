@@ -14,15 +14,20 @@ from tornado.log import app_log
 import uuid
 from elasticsearch import Elasticsearch
 
-class NoSearch():
-    def __init__(self, host=None, port=None):
+class Indexer():
+    def index_notebook(self, notebook_url, notebook_contents):
+        raise NotImplementedException("index_notebook not implemented")
+
+
+class NoSearch(Indexer):
+    def __init__(self):
         pass
 
     def index_notebook(self, notebook_url, notebook_contents):
         app_log.debug("Totally not indexing \"{}\"".format(notebook_url))
         pass
 
-class ElasticSearch():
+class ElasticSearch(Indexer):
     def __init__(self, host="127.0.0.1", port=9200):
       self.elasticsearch = Elasticsearch([{'host':host, 'port':port}])
 
@@ -42,6 +47,6 @@ class ElasticSearch():
                                         body=body,
                                         id=notebook_id.hex)
         if(resp['created']):
-            app_log.info("Indexed {}, public={}".format(notebook_url, public))
+            app_log.info("Created new indexed notebook={}, public={}".format(notebook_url, public))
         else:
-            app_log.error("Failed to index {}, public={}".format(notebook_url, public))
+            app_log.error("Indexing old notebook={}, public={}".format(notebook_url, public, resp))

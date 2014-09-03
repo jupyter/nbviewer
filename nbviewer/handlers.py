@@ -75,8 +75,8 @@ class BaseHandler(web.RequestHandler):
         return self.settings['client']
 
     @property
-    def search(self):
-        return self.settings['search']
+    def index(self):
+        return self.settings['index']
 
     @property
     def cache(self):
@@ -509,7 +509,7 @@ class RenderingHandler(BaseHandler):
         yield self.cache_and_finish(html)
 
         # Index notebook
-        self.search.index_notebook(download_url, nb, public)
+        self.index.index_notebook(download_url, nb, public)
 
 
 class CreateHandler(BaseHandler):
