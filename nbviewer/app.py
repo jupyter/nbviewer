@@ -28,6 +28,8 @@ from IPython.nbconvert.exporters import HTMLExporter
 
 from .handlers import handlers, LocalFileHandler
 from .cache import DummyAsyncCache, AsyncMultipartMemcache, MockCache, pylibmc
+from .index import NoSearch, ElasticSearch
+
 try:
     from .client import LoggingCurlAsyncHTTPClient as HTTPClientClass
 except ImportError:
@@ -77,7 +79,7 @@ def main():
     define("sslcert", help="path to ssl .crt file", type=str)
     define("sslkey", help="path to ssl .key file", type=str)
     tornado.options.parse_command_line()
-    
+
     # NBConvert config
     config = Config()
     config.HTMLExporter.template_file = 'basic'
@@ -85,12 +87,12 @@ def main():
     config.CSSHTMLHeaderTransformer.enabled = False
     # don't strip the files prefix - we use it for redirects
     # config.Exporter.filters = {'strip_files_prefix': lambda s: s}
-    
+
     # DEBUG env implies both autoreload and log-level
     if os.environ.get("DEBUG"):
         options.debug = True
         logging.getLogger().setLevel(logging.DEBUG)
-    
+
     # setup memcache
     mc_pool = ThreadPoolExecutor(options.mc_threads)
     if options.processes:
@@ -107,8 +109,18 @@ def main():
 
     # Handle linked Docker containers
     if(os.environ.get('NBCACHE_PORT')):
-      tcp_memcache = os.environ.get('NBCACHE_PORT')
-      memcache_urls = tcp_memcache.split('tcp://')[1]
+        tcp_memcache = os.environ.get('NBCACHE_PORT')
+        memcache_urls = tcp_memcache.split('tcp://')[1]
+
+    if(os.environ.get('NBINDEX_PORT')):
+        log.app_log.info("Indexing notebooks")
+        tcp_index = os.environ.get('NBINDEX_PORT')
+        index_url = tcp_index.split('tcp://')[1]
+        index_host, index_port = index_url.split(":")
+        indexer = ElasticSearch(index_host, index_port)
+    else:
+        log.app_log.info("Not indexing notebooks")
+        indexer = index.NoSearch()
 
     if options.no_cache:
         log.app_log.info("Not using cache")
@@ -124,14 +136,14 @@ def main():
             log.app_log.info("Using SASL memcache")
         else:
             log.app_log.info("Using plain memecache")
-        
+
         cache = AsyncMultipartMemcache(memcache_urls.split(','), **kwargs)
     else:
         log.app_log.info("Using in-memory cache")
         cache = DummyAsyncCache()
-    
+
     # setup tornado handlers and settings
-    
+
     template_path = pjoin(here, 'templates')
     static_path = pjoin(here, 'static')
     env = Environment(loader=FileSystemLoader(template_path))
@@ -154,11 +166,11 @@ def main():
     AsyncHTTPClient.configure(HTTPClientClass)
     client = AsyncHTTPClient()
     github_client = AsyncGitHubClient(client)
-    
+
     # load frontpage sections
     with io.open(options.frontpage, 'r') as f:
         frontpage_sections = json.load(f)
-    
+
     # cache frontpage links for the maximum allowed time
     max_cache_uris = {''}
     for section in frontpage_sections:
@@ -173,6 +185,7 @@ def main():
         github_client=github_client,
         exporter=exporter,
         config=config,
+        index=indexer,
         cache=cache,
         cache_expiry_min=options.cache_expiry_min,
         cache_expiry_max=options.cache_expiry_max,
@@ -186,7 +199,7 @@ def main():
             connect_timeout=10,
         ),
     )
-    
+
     # create and start the app
     if options.localfiles:
         log.app_log.warning("Serving local notebooks in %s, this can be a security risk", options.localfiles)
@@ -206,7 +219,7 @@ def main():
     log.app_log.info("Listening on port %i", options.port)
     http_server.listen(options.port)
     ioloop.IOLoop.instance().start()
-    
+
 
 if __name__ == '__main__':
     main()

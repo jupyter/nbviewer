@@ -18,8 +18,7 @@ class NbFormatError(Exception):
 
 exporters = {}
 
-def render_notebook(exporter, json_notebook, url=None, forced_theme=None, config=None):
-    app_log.info("rendering %d B notebook from %s", len(json_notebook), url)
+def render_notebook(exporter, nb, url=None, forced_theme=None, config=None):
     if not isinstance(exporter, Exporter):
         # allow exporter to be passed as a class, rather than instance
         # because Exporter instances cannot be passed across multiprocessing boundaries
@@ -29,12 +28,6 @@ def render_notebook(exporter, json_notebook, url=None, forced_theme=None, config
             app_log.info("instantiating %s" % exporter_cls.__name__)
             exporters[exporter_cls] = exporter_cls(config=config, log=app_log)
         exporter = exporters[exporter_cls]
-    
-    try:
-        nb = reads_json(json_notebook)
-    except ValueError:
-        raise NbFormatError('Error reading JSON notebook')
-
 
     css_theme = nb.get('metadata', {}).get('_nbviewer', {}).get('css', None)
 

@@ -39,6 +39,7 @@ except ImportError:
     class CurlError(Exception): pass
 
 from IPython.html import DEFAULT_STATIC_FILES_PATH as ipython_static_path
+from IPython.nbformat.current import reads_json
 
 from .render import render_notebook, NbFormatError
 from .utils import (transform_ipynb_uri, quote, response_text, base64_decode,
@@ -52,68 +53,72 @@ date_fmt = "%a, %d %b %Y %H:%M:%S UTC"
 
 class BaseHandler(web.RequestHandler):
     """Base Handler class with common utilities"""
-    
+
     @property
     def pending(self):
         return self.settings.setdefault('pending', set())
-    
+
     @property
     def exporter(self):
         return self.settings['exporter']
-    
+
     @property
     def github_client(self):
         return self.settings['github_client']
-    
+
     @property
     def config(self):
         return self.settings['config']
-    
+
     @property
     def client(self):
         return self.settings['client']
-    
+
+    @property
+    def index(self):
+        return self.settings['index']
+
     @property
     def cache(self):
         return self.settings['cache']
-    
+
     @property
     def cache_expiry_min(self):
         return self.settings.setdefault('cache_expiry_min', 60)
-    
+
     @property
     def cache_expiry_max(self):
         return self.settings.setdefault('cache_expiry_max', 120)
-    
+
     @property
     def pool(self):
         return self.settings['pool']
-    
+
     @property
     def max_cache_uris(self):
         return self.settings.setdefault('max_cache_uris', set())
-    
+
     @property
     def frontpage_sections(self):
         return self.settings.setdefault('frontpage_sections', {})
-    
+
     #---------------------------------------------------------------
     # template rendering
     #---------------------------------------------------------------
-    
+
     def get_template(self, name):
         """Return the jinja template object for a given name"""
         return self.settings['jinja2_env'].get_template(name)
-    
+
     def render_template(self, name, **ns):
         ns.update(self.template_namespace)
         template = self.get_template(name)
         return template.render(**ns)
-    
+
     @property
     def template_namespace(self):
         return {}
-    
+
     def breadcrumbs(self, path, base_url):
         """Generate a list of breadcrumbs"""
         breadcrumbs = []
@@ -126,12 +131,12 @@ class BaseHandler(web.RequestHandler):
                 'name' : name,
             })
         return breadcrumbs
-    
+
     def get_page_links(self, response):
         """return prev_url, next_url for pagination
-        
+
         Response must be an HTTPResponse from a paginated GitHub API request.
-        
+
         Each will be None if there no such link.
         """
         links = parse_header_links(response.headers.get('Link', ''))
@@ -141,11 +146,11 @@ class BaseHandler(web.RequestHandler):
         if 'prev' in links:
             prev_url = '?' + urlparse(links['prev']['url']).query
         return prev_url, next_url
-    
+
     #---------------------------------------------------------------
     # error handling
     #---------------------------------------------------------------
-    
+
     def reraise_client_error(self, exc):
         """Remote fetch raised an error"""
         try:
@@ -154,12 +159,12 @@ class BaseHandler(web.RequestHandler):
         except AttributeError:
             url = 'url'
             body = ''
-        
+
         str_exc = str(exc)
         # strip the unhelpful 599 prefix
         if str_exc.startswith('HTTP 599: '):
             str_exc = str_exc[10:]
-        
+
         if exc.code == 403 and 'too big' in body and 'gist' in url:
             msg = "GitHub will not serve raw gists larger than 10MB"
         elif body and len(body) < 100:
@@ -167,7 +172,7 @@ class BaseHandler(web.RequestHandler):
             msg = "%s (%s)" % (str_exc, escape(body))
         else:
             msg = str_exc
-        
+
         app_log.warn("Fetching %s failed with %s", url, msg)
         if exc.code == 599:
             if isinstance(exc, CurlError):
@@ -187,11 +192,11 @@ class BaseHandler(web.RequestHandler):
                 raise web.HTTPError(404, "Remote %s" % msg)
             else:
                 raise web.HTTPError(400, msg)
-    
+
     @contextmanager
     def catch_client_error(self):
         """context manager for catching httpclient errors
-        
+
         they are transformed into appropriate web.HTTPErrors
         """
         try:
@@ -200,15 +205,15 @@ class BaseHandler(web.RequestHandler):
             self.reraise_client_error(e)
         except socket.error as e:
             raise web.HTTPError(404, str(e))
-    
+
     @property
     def fetch_kwargs(self):
         return self.settings.setdefault('fetch_kwargs', {})
-    
+
     @gen.coroutine
     def fetch(self, url, **overrides):
         """fetch a url with our async client
-        
+
         handle default arguments and wrapping exceptions
         """
         kw = {}
@@ -217,11 +222,11 @@ class BaseHandler(web.RequestHandler):
         with self.catch_client_error():
             response = yield self.client.fetch(url, **kw)
         raise gen.Return(response)
-    
+
     @contextmanager
     def time_block(self, message):
         """context manager for timing a block
-        
+
         logs millisecond timings of the block
         """
         tic = time.time()
@@ -229,7 +234,7 @@ class BaseHandler(web.RequestHandler):
         dt = time.time() - tic
         log = app_log.info if dt > 1 else app_log.debug
         log("%s in %.2f ms", message, 1e3 * dt)
-        
+
     def get_error_html(self, status_code, **kwargs):
         """render custom error pages"""
         exception = kwargs.get('exception')
@@ -241,12 +246,12 @@ class BaseHandler(web.RequestHandler):
                 message = exception.log_message % exception.args
             except Exception:
                 pass
-            
+
             # construct the custom reason, if defined
             reason = getattr(exception, 'reason', '')
             if reason:
                 status_message = reason
-        
+
         # build template namespace
         ns = dict(
             status_code=status_code,
@@ -254,7 +259,7 @@ class BaseHandler(web.RequestHandler):
             message=message,
             exception=exception,
         )
-        
+
         # render the template
         try:
             html = self.render_template('%d.html' % status_code, **ns)
@@ -266,7 +271,7 @@ class BaseHandler(web.RequestHandler):
     #---------------------------------------------------------------
     # response caching
     #---------------------------------------------------------------
-    
+
     @property
     def cache_headers(self):
         # are there other headers to cache?
@@ -275,35 +280,35 @@ class BaseHandler(web.RequestHandler):
             if key in self._headers:
                 h[key] = self._headers[key]
         return h
-    
+
     _cache_key = None
     _cache_key_attr = 'uri'
     @property
     def cache_key(self):
         """Use checksum for cache key because cache has size limit on keys
         """
-        
+
         if self._cache_key is None:
             to_hash = utf8(getattr(self.request, self._cache_key_attr))
             self._cache_key = hashlib.sha1(to_hash).hexdigest()
         return self._cache_key
-    
+
     def truncate(self, s, limit=256):
         """Truncate long strings"""
         if len(s) > limit:
             s = "%s...%s" % (s[:limit/2], s[limit/2:])
         return s
-    
+
     @gen.coroutine
     def cache_and_finish(self, content=''):
         """finish a request and cache the result
-        
+
         does not actually call finish - if used in @web.asynchronous,
         finish must be called separately. But we never use @web.asynchronous,
         because we are using gen.coroutine for async.
-        
+
         currently only works if:
-        
+
         - result is not written in multiple chunks
         - custom headers are not used
         """
@@ -315,15 +320,17 @@ class BaseHandler(web.RequestHandler):
             min(120 * request_time, self.cache_expiry_max),
             self.cache_expiry_min,
         )
-        
+
         if self.request.uri in self.max_cache_uris:
             # if it's a link from the front page, cache for a long time
             expiry = self.cache_expiry_max
-        
+
         if expiry > 0:
             self.set_header("Cache-Control", "max-age=%i" % expiry)
-        
+
         self.write(content)
+        self.finish()
+
         short_url = self.truncate(self.request.path)
         cache_data = pickle.dumps({
             'headers' : self.cache_headers,
@@ -362,7 +369,7 @@ class FAQHandler(BaseHandler):
 
 def cached(method):
     """decorator for a cached page.
-    
+
     This only handles getting from the cache, not writing to it.
     Writing to the cache must be handled in the decorated method.
     """
@@ -370,13 +377,13 @@ def cached(method):
     def cached_method(self, *args, **kwargs):
         uri = self.request.path
         short_url = self.truncate(uri)
-        
+
         if self.get_argument("flush_cache", False):
             app_log.info("flushing cache %s", short_url)
             # call the wrapped method
             yield method(self, *args, **kwargs)
             return
-        
+
         if uri in self.pending:
             loop = IOLoop.current()
             app_log.info("Waiting for concurrent request at %s", short_url)
@@ -389,7 +396,7 @@ def cached(method):
             app_log.info("Waited %.3fs for concurrent request at %s",
                  toc-tic, short_url
             )
-        
+
         try:
             with self.time_block("cache get %s" % short_url):
                 cached_pickle = yield self.cache.get(self.cache_key)
@@ -400,7 +407,7 @@ def cached(method):
         except Exception as e:
             app_log.error("Exception getting %s from cache", short_url, exc_info=True)
             cached = None
-        
+
         if cached is not None:
             app_log.debug("cache hit %s", short_url)
             for key, value in cached['headers'].items():
@@ -416,21 +423,21 @@ def cached(method):
                 if uri in self.pending:
                     # protect against double-remove
                     self.pending.remove(uri)
-    
+
     return cached_method
 
 
 class RenderingHandler(BaseHandler):
     """Base for handlers that render notebooks"""
-    
+
     # notebook caches based on path (no url params)
     _cache_key_attr = 'path'
-    
+
     @property
     def render_timeout(self):
         """0 render_timeout means never finish early"""
         return self.settings.setdefault('render_timeout', 0)
-    
+
     def initialize(self):
         loop = IOLoop.current()
         if self.render_timeout:
@@ -438,10 +445,10 @@ class RenderingHandler(BaseHandler):
                 loop.time() + self.render_timeout,
                 self.finish_early
             )
-        
+
     def finish_early(self):
         """When the render is slow, draw a 'waiting' page instead
-        
+
         rely on the cache to deliver the page to a future request.
         """
         if self._finished:
@@ -450,26 +457,36 @@ class RenderingHandler(BaseHandler):
         html = self.render_template('slow_notebook.html')
         self.set_status(202) # Accepted
         self.finish(html)
-        
+
         # short circuit some methods because the rest of the rendering will still happen
         self.write = self.finish = self.redirect = lambda chunk=None: None
-    
-    
+
+
     @gen.coroutine
-    def finish_notebook(self, nbjson, download_url, home_url=None, msg=None, breadcrumbs=None):
+    def finish_notebook(self, json_notebook, download_url, home_url=None, msg=None,
+                        breadcrumbs=None, public=False):
         """render a notebook from its JSON body.
-        
+
         download_url is required, home_url is not.
-        
+
         msg is extra information for the log message when rendering fails.
         """
+
         if msg is None:
             msg = download_url
+
+        try:
+            nb = reads_json(json_notebook)
+        except ValueError:
+            app_log.error("Failed to render %s", msg, exc_info=True)
+            raise web.HTTPError(400, "Error reading JSON notebook")
+
         try:
             app_log.debug("Requesting render of %s", download_url)
             with self.time_block("Rendered %s" % download_url):
+                app_log.info("rendering %d B notebook from %s", len(json_notebook), download_url)
                 nbhtml, config = yield self.pool.submit(
-                    render_notebook, self.exporter, nbjson, download_url,
+                    render_notebook, self.exporter, nb, download_url,
                     config=self.config,
                 )
         except NbFormatError as e:
@@ -480,7 +497,7 @@ class RenderingHandler(BaseHandler):
             raise web.HTTPError(400, str(e))
         else:
             app_log.debug("Finished render of %s", download_url)
-        
+
         html = self.render_template('notebook.html',
             body=nbhtml,
             download_url=download_url,
@@ -488,12 +505,16 @@ class RenderingHandler(BaseHandler):
             date=datetime.utcnow().strftime(date_fmt),
             breadcrumbs=breadcrumbs,
             **config)
+
         yield self.cache_and_finish(html)
+
+        # Index notebook
+        self.index.index_notebook(download_url, nb, public)
 
 
 class CreateHandler(BaseHandler):
     """handle creation via frontpage form
-    
+
     only redirects to the appropriate URL
     """
     def post(self):
@@ -509,12 +530,12 @@ class URLHandler(RenderingHandler):
     @gen.coroutine
     def get(self, secure, url):
         proto = 'http' + secure
-        
+
         if '/?' in url:
             url, query = url.rsplit('/?', 1)
         else:
             query = None
-        
+
         remote_url = u"{}://{}".format(proto, quote(url))
         if query:
             remote_url = remote_url + '?' + query
@@ -526,21 +547,23 @@ class URLHandler(RenderingHandler):
             if refer_url.startswith(self.request.host + '/url'):
                 self.redirect(remote_url)
                 return
-        
+
         response = yield self.fetch(remote_url)
-        
+
         try:
             nbjson = response_text(response)
         except UnicodeDecodeError:
             app_log.error("Notebook is not utf8: %s", remote_url, exc_info=True)
             raise web.HTTPError(400)
-        
-        yield self.finish_notebook(nbjson, download_url=remote_url, msg="file from url: %s" % remote_url)
+
+        yield self.finish_notebook(nbjson, download_url=remote_url,
+                                   msg="file from url: %s" % remote_url,
+                                   public=True)
 
 
 class UserGistsHandler(BaseHandler):
     """list a user's gists containing notebooks
-    
+
     .ipynb file extension is required for listing (not for rendering).
     """
     @cached
@@ -550,12 +573,12 @@ class UserGistsHandler(BaseHandler):
         params = {}
         if page:
             params['page'] = page
-        
+
         with self.catch_client_error():
             response = yield self.github_client.get_gists(user, params=params)
-        
+
         prev_url, next_url = self.get_page_links(response)
-        
+
         gists = json.loads(response_text(response))
         entries = []
         for gist in gists:
@@ -581,7 +604,7 @@ class GistHandler(RenderingHandler):
     def get(self, user, gist_id, filename=''):
         with self.catch_client_error():
             response = yield self.github_client.get_gist(gist_id)
-        
+
         gist = json.loads(response_text(response))
         gist_id=gist['id']
         if user is None:
@@ -596,13 +619,13 @@ class GistHandler(RenderingHandler):
                 new_url = new_url + "/" + filename
             self.redirect(new_url)
             return
-        
+
         files = gist['files']
         many_files_gist = (len(files) > 1)
-        
+
         if not many_files_gist and not filename:
             filename = list(files.keys())[0]
-        
+
         if filename and filename in files:
             file = files[filename]
             if file['truncated']:
@@ -611,13 +634,14 @@ class GistHandler(RenderingHandler):
                 content = response_text(response)
             else:
                 content = file['content']
-            
+
             if not many_files_gist or filename.endswith('.ipynb'):
                 yield self.finish_notebook(
                     content,
                     file['raw_url'],
                     home_url=gist['html_url'],
                     msg="gist: %s" % gist_id,
+                    public=gist['public']
                 )
             else:
                 # cannot redirect because of X-Frame-Content
@@ -667,7 +691,7 @@ class GistRedirectHandler(BaseHandler):
         new_url = '/gist/%s' % gist_id
         if file:
             new_url = "%s/%s" % (new_url, file)
-        
+
         app_log.info("Redirecting %s to %s", self.request.uri, new_url)
         self.redirect(new_url)
 
@@ -703,10 +727,10 @@ class GitHubUserHandler(BaseHandler):
             params['page'] = page
         with self.catch_client_error():
             response = yield self.github_client.get_repos(user, params=params)
-        
+
         prev_url, next_url = self.get_page_links(response)
         repos = json.loads(response_text(response))
-        
+
         entries = []
         for repo in repos:
             entries.append(dict(
@@ -738,7 +762,7 @@ class GitHubTreeHandler(BaseHandler):
         path = path.rstrip('/')
         with self.catch_client_error():
             response = yield self.github_client.get_contents(user, repo, path, ref=ref)
-        
+
         contents = json.loads(response_text(response))
         if not isinstance(contents, list):
             app_log.info("{user}/{repo}/{ref}/{path} not tree, redirecting to blob",
@@ -750,20 +774,20 @@ class GitHubTreeHandler(BaseHandler):
                 )
             )
             return
-        
+
         base_url = u"/github/{user}/{repo}/tree/{ref}".format(
             user=user, repo=repo, ref=ref,
         )
         github_url = u"https://github.com/{user}/{repo}/tree/{ref}/{path}".format(
             user=user, repo=repo, ref=ref, path=path,
         )
-        
+
         breadcrumbs = [{
             'url' : base_url,
             'name' : repo,
         }]
         breadcrumbs.extend(self.breadcrumbs(path, base_url))
-        
+
         entries = []
         dirs = []
         ipynbs = []
@@ -794,8 +818,8 @@ class GitHubTreeHandler(BaseHandler):
                 e['url'] = ''
                 e['class'] = 'icon-folder-close'
                 others.append(e)
-            
-        
+
+
         entries.extend(dirs)
         entries.extend(ipynbs)
         entries.extend(others)
@@ -805,13 +829,13 @@ class GitHubTreeHandler(BaseHandler):
             user=user, repo=repo, ref=ref,
         )
         yield self.cache_and_finish(html)
-    
+
 
 class GitHubBlobHandler(RenderingHandler):
     """handler for files on github
-    
+
     If it's a...
-    
+
     - notebook, render it
     - non-notebook file, serve file unmodified
     - directory, redirect to tree
@@ -829,7 +853,7 @@ class GitHubBlobHandler(RenderingHandler):
             tree_entry = yield self.github_client.get_tree_entry(
                 user, repo, path=path, ref=ref
             )
-        
+
         if tree_entry['type'] == 'tree':
             tree_url = "/github/{user}/{repo}/tree/{ref}/{path}/".format(
                 user=user, repo=repo, ref=ref, path=quote(path),
@@ -837,11 +861,11 @@ class GitHubBlobHandler(RenderingHandler):
             app_log.info("%s is a directory, redirecting to %s", self.request.path, tree_url)
             self.redirect(tree_url)
             return
-        
+
         # fetch file data from the blobs API
         with self.catch_client_error():
             response = yield self.github_client.fetch(tree_entry['url'])
-        
+
         data = json.loads(response_text(response))
         contents = data['content']
         if data['encoding'] == 'base64':
@@ -850,7 +874,7 @@ class GitHubBlobHandler(RenderingHandler):
         else:
             # filedata will be unicode
             filedata = contents
-        
+
         if path.endswith('.ipynb'):
             dir_path = path.rsplit('/', 1)[0]
             base_url = "/github/{user}/{repo}/tree/{ref}".format(
@@ -861,7 +885,7 @@ class GitHubBlobHandler(RenderingHandler):
                 'name' : repo,
             }]
             breadcrumbs.extend(self.breadcrumbs(dir_path, base_url))
-            
+
             try:
                 # filedata may be bytes, but we need text
                 if isinstance(filedata, bytes):
@@ -875,6 +899,7 @@ class GitHubBlobHandler(RenderingHandler):
                 home_url=blob_url,
                 breadcrumbs=breadcrumbs,
                 msg="file from GitHub: %s" % raw_url,
+                public=True
             )
         else:
             mime, enc = mimetypes.guess_type(path)
@@ -884,7 +909,7 @@ class GitHubBlobHandler(RenderingHandler):
 
 class FilesRedirectHandler(BaseHandler):
     """redirect files URLs without files prefix
-    
+
     matches behavior of old app, currently unused.
     """
     def get(self, before_files, after_files):
@@ -912,7 +937,7 @@ class RemoveSlashHandler(BaseHandler):
 
 class LocalFileHandler(RenderingHandler):
     """Renderer for /localfile
-    
+
     Serving notebooks from the local filesystem
     """
     @cached
@@ -922,15 +947,17 @@ class LocalFileHandler(RenderingHandler):
             self.settings.get('localfile_path', ''),
             path,
         )
-        
+
         app_log.info("looking for file: '%s'" % abspath)
         if not os.path.exists(abspath):
             raise web.HTTPError(404)
-        
+
         with io.open(abspath, encoding='utf-8') as f:
             nbdata = f.read()
-        
-        yield self.finish_notebook(nbdata, download_url=path, msg="file from localfile: %s" % path)
+
+        yield self.finish_notebook(nbdata, download_url=path,
+                                   msg="file from localfile: %s" % path,
+                                   public=False)
 
 
 #-----------------------------------------------------------------------------
@@ -943,14 +970,14 @@ handlers = [
     (r'/faq/?', FAQHandler),
     (r'/create/?', CreateHandler),
     (r'/ipython-static/(.*)', web.StaticFileHandler, dict(path=ipython_static_path)),
-    
+
     # don't let super old browsers request data-uris
     (r'.*/data:.*;base64,.*', Custom404),
-    
+
     (r'/url[s]?/github\.com/([^\/]+)/([^\/]+)/(tree|blob|raw)/([^\/]+)/(.*)', GitHubRedirectHandler),
     (r'/url[s]?/raw\.?github(?:usercontent)?\.com/([^\/]+)/([^\/]+)/(.*)', RawGitHubURLHandler),
     (r'/url([s]?)/(.*)', URLHandler),
-    
+
     (r'/github/([^\/]+)', AddSlashHandler),
     (r'/github/([^\/]+)/', GitHubUserHandler),
     (r'/github/([^\/]+)/([^\/]+)', AddSlashHandler),
@@ -959,7 +986,7 @@ handlers = [
     (r'/github/([^\/]+)/([^\/]+)/blob/([^\/]+)/(.*)', GitHubBlobHandler),
     (r'/github/([^\/]+)/([^\/]+)/tree/([^\/]+)', AddSlashHandler),
     (r'/github/([^\/]+)/([^\/]+)/tree/([^\/]+)/(.*)', GitHubTreeHandler),
-    
+
     (r'/gist/([^\/]+/)?([0-9]+|[0-9a-f]{20})', GistHandler),
     (r'/gist/([^\/]+/)?([0-9]+|[0-9a-f]{20})/(?:files/)?(.*)', GistHandler),
     (r'/([0-9]+|[0-9a-f]{20})', GistRedirectHandler),

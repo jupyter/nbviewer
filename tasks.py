@@ -5,4 +5,4 @@ import invoke
 
 @invoke.task
 def test():
-    invoke.run("nosetests")
+    invoke.run("nosetests -v")
