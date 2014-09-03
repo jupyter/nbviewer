@@ -230,13 +230,14 @@ class BaseHandler(web.RequestHandler):
         log = app_log.info if dt > 1 else app_log.debug
         log("%s in %.2f ms", message, 1e3 * dt)
         
-    def get_error_html(self, status_code, **kwargs):
+    def write_error(self, status_code, **kwargs):
         """render custom error pages"""
-        exception = kwargs.get('exception')
+        exc_info = kwargs.get('exc_info')
         message = ''
         status_message = responses.get(status_code, 'Unknown')
-        if exception:
+        if exc_info:
             # get the custom message, if defined
+            exception = exc_info[1]
             try:
                 message = exception.log_message % exception.args
             except Exception:
@@ -261,7 +262,8 @@ class BaseHandler(web.RequestHandler):
         except Exception as e:
             app_log.warn("No template for %d", status_code)
             html = self.render_template('error.html', **ns)
-        return html
+        self.set_header('Content-Type', 'text/html')
+        self.write(html)
 
     #---------------------------------------------------------------
     # response caching
