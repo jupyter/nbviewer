@@ -39,6 +39,7 @@ except ImportError:
     class CurlError(Exception): pass
 
 from IPython.html import DEFAULT_STATIC_FILES_PATH as ipython_static_path
+from IPython.nbformat.current import reads_json
 
 from .render import render_notebook, NbFormatError
 from .utils import (transform_ipynb_uri, quote, response_text, base64_decode,
@@ -462,7 +463,7 @@ class RenderingHandler(BaseHandler):
     
     
     @gen.coroutine
-    def finish_notebook(self, nbjson, download_url, home_url=None, msg=None,
+    def finish_notebook(self, json_notebook, download_url, home_url=None, msg=None,
                         breadcrumbs=None, public=False):
         """render a notebook from its JSON body.
         
@@ -470,13 +471,19 @@ class RenderingHandler(BaseHandler):
         
         msg is extra information for the log message when rendering fails.
         """
+        try:
+            nb = reads_json(json_notebook)
+        except ValueError:
+            raise NbFormatError('Error reading JSON notebook')
+        
         if msg is None:
             msg = download_url
         try:
             app_log.debug("Requesting render of %s", download_url)
             with self.time_block("Rendered %s" % download_url):
+                app_log.info("rendering %d B notebook from %s", len(json_notebook), download_url)
                 nbhtml, config = yield self.pool.submit(
-                    render_notebook, self.exporter, nbjson, download_url,
+                    render_notebook, self.exporter, nb, download_url,
                     config=self.config,
                 )
         except NbFormatError as e:
@@ -499,7 +506,7 @@ class RenderingHandler(BaseHandler):
         yield self.cache_and_finish(html)
         
         # Index notebook
-        self.search.index_notebook(download_url, nbjson, public)
+        self.search.index_notebook(download_url, nb, public)
 
 
 class CreateHandler(BaseHandler):
