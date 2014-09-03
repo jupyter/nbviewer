@@ -479,7 +479,7 @@ class RenderingHandler(BaseHandler):
             nb = reads_json(json_notebook)
         except ValueError:
             app_log.error("Failed to render %s", msg, exc_info=True)
-            raise web.HTTPError(400, str(e))
+            raise web.HTTPError(400, "Error reading JSON notebook")
 
         try:
             app_log.debug("Requesting render of %s", download_url)
