@@ -462,7 +462,8 @@ class RenderingHandler(BaseHandler):
     
     
     @gen.coroutine
-    def finish_notebook(self, nbjson, download_url, home_url=None, msg=None, breadcrumbs=None):
+    def finish_notebook(self, nbjson, download_url, home_url=None, msg=None,
+                        breadcrumbs=None, public=False):
         """render a notebook from its JSON body.
         
         download_url is required, home_url is not.
@@ -498,7 +499,7 @@ class RenderingHandler(BaseHandler):
         yield self.cache_and_finish(html)
         
         # Index notebook
-        self.search.index_notebook(download_url, nbjson)
+        self.search.index_notebook(download_url, nbjson, public)
 
 
 class CreateHandler(BaseHandler):
@@ -545,7 +546,9 @@ class URLHandler(RenderingHandler):
             app_log.error("Notebook is not utf8: %s", remote_url, exc_info=True)
             raise web.HTTPError(400)
         
-        yield self.finish_notebook(nbjson, download_url=remote_url, msg="file from url: %s" % remote_url)
+        yield self.finish_notebook(nbjson, download_url=remote_url,
+                                   msg="file from url: %s" % remote_url,
+                                   public=True)
 
 
 class UserGistsHandler(BaseHandler):
@@ -628,6 +631,7 @@ class GistHandler(RenderingHandler):
                     file['raw_url'],
                     home_url=gist['html_url'],
                     msg="gist: %s" % gist_id,
+                    public=gist['public']
                 )
             else:
                 # cannot redirect because of X-Frame-Content
@@ -885,6 +889,7 @@ class GitHubBlobHandler(RenderingHandler):
                 home_url=blob_url,
                 breadcrumbs=breadcrumbs,
                 msg="file from GitHub: %s" % raw_url,
+                public=True
             )
         else:
             mime, enc = mimetypes.guess_type(path)
@@ -940,7 +945,9 @@ class LocalFileHandler(RenderingHandler):
         with io.open(abspath, encoding='utf-8') as f:
             nbdata = f.read()
         
-        yield self.finish_notebook(nbdata, download_url=path, msg="file from localfile: %s" % path)
+        yield self.finish_notebook(nbdata, download_url=path,
+                                   msg="file from localfile: %s" % path,
+                                   public=False)
 
 
 #-----------------------------------------------------------------------------

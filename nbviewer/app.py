@@ -113,6 +113,7 @@ def main():
         memcache_urls = tcp_memcache.split('tcp://')[1]
       
     if(os.environ.get('NBSEARCH_PORT')):
+        log.app_log.info("Using search")
         tcp_search = os.environ.get('NBSEARCH_PORT')
         search_url = tcp_search.split('tcp://')[1]
         search_host, search_port = search_url.split(":")
