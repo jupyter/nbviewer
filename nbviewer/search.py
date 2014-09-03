@@ -42,6 +42,7 @@ class ElasticSearch():
         
         # Notebooks API Model
         # https://github.com/ipython/ipython/wiki/IPEP-16%3A-Notebook-multi-directory-dashboard-and-URL-mapping#notebooks-api
+        
         body = {
          "content": notebook_contents,
          "public": public
@@ -49,5 +50,5 @@ class ElasticSearch():
         
         resp = self.elasticsearch.index(index='notebooks',
                                         doc_type='ipynb',
-                                        body=notebook_contents,
+                                        body=body,
                                         id=notebook_id.hex)
