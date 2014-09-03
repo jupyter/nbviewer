@@ -34,11 +34,18 @@ class ElasticSearch():
     def __init__(self, host="127.0.0.1", port=9200):
       self.elasticsearch = Elasticsearch([{'host':host, 'port':port}])
   
-    def index_notebook(self, notebook_url, notebook_contents):
+    def index_notebook(self, notebook_url, notebook_contents):        
         app_log.debug("Indexing {}".format(notebook_url))
         
         notebook_url = notebook_url.encode('utf-8')
         notebook_id = uuid.uuid5(uuid.NAMESPACE_URL, notebook_url)
+        
+        # Notebooks API Model
+        # https://github.com/ipython/ipython/wiki/IPEP-16%3A-Notebook-multi-directory-dashboard-and-URL-mapping#notebooks-api
+        body = {
+         "content": notebook_contents
+        }
+        
         resp = self.elasticsearch.index(index='notebooks',
                                         doc_type='ipynb',
                                         body=notebook_contents,

@@ -328,6 +328,8 @@ class BaseHandler(web.RequestHandler):
             self.set_header("Cache-Control", "max-age=%i" % expiry)
         
         self.write(content)
+        self.finish()
+        
         short_url = self.truncate(self.request.path)
         cache_data = pickle.dumps({
             'headers' : self.cache_headers,
@@ -493,10 +495,10 @@ class RenderingHandler(BaseHandler):
             breadcrumbs=breadcrumbs,
             **config)
             
+        yield self.cache_and_finish(html)
+        
         # Index notebook
         self.search.index_notebook(download_url, nbjson)
-            
-        yield self.cache_and_finish(html)
 
 
 class CreateHandler(BaseHandler):
