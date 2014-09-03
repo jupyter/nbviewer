@@ -49,4 +49,4 @@ class ElasticSearch(Indexer):
         if(resp['created']):
             app_log.info("Created new indexed notebook={}, public={}".format(notebook_url, public))
         else:
-            app_log.error("Indexing old notebook={}, public={}".format(notebook_url, public, resp))
+            app_log.info("Indexing old notebook={}, public={}".format(notebook_url, public, resp))
