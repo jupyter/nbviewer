@@ -120,7 +120,7 @@ def main():
         indexer = ElasticSearch(index_host, index_port)
     else:
         log.app_log.info("Not indexing notebooks")
-        indexer = index.NoSearch()
+        indexer = NoSearch()
 
     if options.no_cache:
         log.app_log.info("Not using cache")
