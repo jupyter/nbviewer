@@ -16,7 +16,7 @@ from elasticsearch import Elasticsearch
 
 class Indexer():
     def index_notebook(self, notebook_url, notebook_contents):
-        raise NotImplementedException("index_notebook not implemented")
+        raise NotImplementedError("index_notebook not implemented")
 
 
 class NoSearch(Indexer):
