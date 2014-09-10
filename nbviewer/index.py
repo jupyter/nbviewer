@@ -23,9 +23,9 @@ class NoSearch(Indexer):
     def __init__(self):
         pass
 
-    def index_notebook(self, notebook_url, notebook_contents):
+    def index_notebook(self, notebook_url, notebook_contents, *args, **kwargs):
         app_log.debug("Totally not indexing \"{}\"".format(notebook_url))
-        pass
+
 
 class ElasticSearch(Indexer):
     def __init__(self, host="127.0.0.1", port=9200):
