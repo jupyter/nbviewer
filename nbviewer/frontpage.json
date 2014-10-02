@@ -63,11 +63,6 @@
         "img": "/static/img/example-nb/covariance.png"
       },
       {
-        "text": "Exploring R formula",
-        "target": "github/fperez/nipy-notebooks/blob/master/exploring_r_formula.ipynb",
-        "img": "/static/img/example-nb/exploring_r_formula.png"
-      },
-      {
         "text": "Nose testing",
         "target": "github/swcarpentry/2012-11-scripps/blob/master/python/testing-with-nose.ipynb",
         "img": "/static/img/example-nb/nose_testing.png"
@@ -101,11 +96,6 @@
         "text": "Numpy tests",
         "target": "gist/Juanlu001/3914904",
         "img": "/static/img/example-nb/numpy_tests.png"
-      },
-      {
-        "text": "R magic extension",
-        "target": "github/ipython/ipython/blob/master/examples/Builtin%20Extensions/R%20Magics.ipynb",
-        "img": "/static/img/example-nb/r_magic.png"
       },
       {
         "text": "Python for Vision Research",
