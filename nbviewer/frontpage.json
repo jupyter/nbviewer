@@ -43,6 +43,11 @@
     "header":"Misc",
     "links":[
       {
+        "text": "Python for Vision Research",
+        "target": "github/gestaltrevision/python_for_visres/blob/master/index.ipynb",
+        "img": "/static/img/example-nb/python_for_visres.png"
+      },
+      {
         "text": "Interactive plots with Plotly",
         "target": "github/plotly/python-user-guide/blob/master/Index.ipynb",
         "img": "/static/img/example-nb/plotly.png"
@@ -96,11 +101,6 @@
         "text": "Numpy tests",
         "target": "gist/Juanlu001/3914904",
         "img": "/static/img/example-nb/numpy_tests.png"
-      },
-      {
-        "text": "Python for Vision Research",
-        "target": "github/gestaltrevision/python_for_visres/blob/master/index.ipynb",
-        "img": "/static/img/example-nb/python_for_visres.png"
       }
     ]
   }

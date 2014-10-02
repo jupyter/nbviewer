@@ -40,10 +40,10 @@
 <hr/>
 
   {% for section in sections %}
-    <h3 class="section-heading">{{section.header}}</h3>
+    <h3 class="section-heading">{{section.header}} </h3>
     <div class="marketing">
       <ul class="thumbnails example-sites">
-        {% for link in section.links %}
+        {% for link in section.links[:3] %}
         <li class="span4">
         <p class="marketing-byline">{{link.text}}</p>
         <a class="thumbnail" href="{{link.target}}" target="_blank">
@@ -51,8 +51,10 @@
           </a>
         </li>
         {% endfor %}
-      </ul>
+    </ul>
+    <center><a href='featured#{{section.header}}'>(more)</a></center>
     </div><!-- /.marketing -->
+    <hr/>
   {% endfor %}
 
 
