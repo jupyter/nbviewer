@@ -24,7 +24,7 @@ from tornado.options import define, options
 from jinja2 import Environment, FileSystemLoader
 
 from IPython.config import Config
-from IPython.nbconvert.exporters import HTMLExporter
+from IPython.nbconvert.exporters import HTMLExporter, SlidesExporter
 
 from .handlers import handlers, LocalFileHandler
 from .cache import DummyAsyncCache, AsyncMultipartMemcache, MockCache, pylibmc
@@ -83,6 +83,7 @@ def main():
     # NBConvert config
     config = Config()
     config.HTMLExporter.template_file = 'basic'
+    config.SlidesExporter.template_file = 'slides_reveal'
     config.NbconvertApp.fileext = 'html'
     config.CSSHTMLHeaderTransformer.enabled = False
     # don't strip the files prefix - we use it for redirects
@@ -97,10 +98,16 @@ def main():
     mc_pool = ThreadPoolExecutor(options.mc_threads)
     if options.processes:
         # can't pickle exporter instances,
-        exporter = HTMLExporter
+        exporters = {
+            'html': HTMLExporter,
+            'slides': SlidesExporter
+        }
         pool = ProcessPoolExecutor(options.processes)
     else:
-        exporter = HTMLExporter(config=config, log=log.app_log)
+        exporters = {
+            'html': HTMLExporter(config=config, log=log.app_log),
+            'slides': SlidesExporter(config=config, log=log.app_log),
+        }
         pool = ThreadPoolExecutor(options.threads)
 
     memcache_urls = os.environ.get('MEMCACHIER_SERVERS',
@@ -183,7 +190,7 @@ def main():
         static_path=static_path,
         client=client,
         github_client=github_client,
-        exporter=exporter,
+        exporters=exporters,
         config=config,
         index=indexer,
         cache=cache,

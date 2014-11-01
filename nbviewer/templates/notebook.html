@@ -44,8 +44,12 @@
     {% endif %}
     #}
 
+    {% block style_base %}
     <link href="/ipython-static/style/ipython.min.css" rel="stylesheet">
     <link href="/static/css/pygments.css" rel="stylesheet">
+    {% endblock %}
+
+    {% block style_media %}
     <style type="text/css" media='screen and (min-width:980px)'>
    
     body {
@@ -71,9 +75,9 @@
         }
 
     }
-
-    
     </style>
+    {% endblock %}
+
     {% if css_theme %}
         <link href="/static/css/theme/{{css_theme}}.css" rel="stylesheet">
     {% endif %}
