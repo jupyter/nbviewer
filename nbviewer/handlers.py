@@ -639,7 +639,11 @@ class GistHandler(RenderingHandler):
                 user = owner_dict['login']
             else:
                 user = 'anonymous'
-            new_url = u"/gist/{user}/{gist_id}".format(user=user, gist_id=gist_id)
+            new_url = u"{exporter}/gist/{user}/{gist_id}".format(
+                exporter=('/' + exporter) if exporter else '',
+                user=user,
+                gist_id=gist_id
+            )
             if filename:
                 new_url = new_url + "/" + filename
             self.redirect(new_url)
