@@ -11,13 +11,13 @@
                     <a href='../'><i class='icon-backward'></i> ..</a>
                 {% else %}
                   <a href='/{{ tree_type | default('github') }}/{{user}}'>
-                    <i class='icon-backward'></i>
+                    <i class='fa fa-backward'></i>
                     {{user}}'s {{ tree_type | default('repositorie')}}s
                   </a>
                 {% endif %}
                 </td></tr>
                 {% for entry in entries %}
-                  <tr><td><i class='{{entry.class}}'></i>
+                  <tr><td><i class='fa {{entry.class}}'></i>
                   {% if entry.url %}
                     <a href='{{entry.url}}'>
                   {% endif %}
