@@ -466,7 +466,7 @@ class RenderingHandler(BaseHandler):
 
     @gen.coroutine
     def finish_notebook(self, json_notebook, download_url, home_url=None, msg=None,
-                        breadcrumbs=None, public=False, exporter=None):
+                        breadcrumbs=None, public=False, exporter=None, request=None):
         """render a notebook from its JSON body.
 
         download_url is required, home_url is not.
@@ -480,16 +480,11 @@ class RenderingHandler(BaseHandler):
         # html is the default
         if exporter is None:
             exporter = "html"
-            exporter_template = "notebook.html"
-        else:
-            exporter_template = "%s.html" % exporter
-
+        
         if exporter not in self.exporters:
             app_log.error("Invalid exporter %s", exporter)
             raise web.HTTPError(400, "Invalid exporter.")
         
-        exporter = self.exporters[exporter]
-
         try:
             nb = reads_json(json_notebook)
         except ValueError:
@@ -501,7 +496,7 @@ class RenderingHandler(BaseHandler):
             with self.time_block("Rendered %s" % download_url):
                 app_log.info("rendering %d B notebook from %s", len(json_notebook), download_url)
                 nbhtml, config = yield self.pool.submit(
-                    render_notebook, exporter, nb, download_url,
+                    render_notebook, self.exporters[exporter], nb, download_url,
                     config=self.config,
                 )
         except NbFormatError as e:
@@ -513,13 +508,35 @@ class RenderingHandler(BaseHandler):
         else:
             app_log.debug("Finished render of %s", download_url)
 
-        html = self.render_template(exporter_template,
+        # generate links to other formats
+        link_base = self.request.uri
+        if link_base.startswith("/%s/" % exporter):
+            link_base = link_base.replace("/%s/" % exporter, "")
+        
+        exporter_links = {
+            "html": {
+                "url": link_base,
+                "title": "View as Notebook",
+                "icon": "book"
+            },
+            "slides": {
+                "url": "/slides" + link_base,
+                "title": "View as Slides",
+                "icon": "th-large"
+            }
+        }
+        exporter_links.pop(exporter, None)
+
+        html = self.render_template(
+            "%s.html" % exporter,
             body=nbhtml,
             download_url=download_url,
             home_url=home_url,
+            exporter_links=exporter_links,
             date=datetime.utcnow().strftime(date_fmt),
             breadcrumbs=breadcrumbs,
-            **config)
+            **config
+        )
 
         yield self.cache_and_finish(html)
 
@@ -571,9 +588,14 @@ class URLHandler(RenderingHandler):
             app_log.error("Notebook is not utf8: %s", remote_url, exc_info=True)
             raise web.HTTPError(400)
 
-        yield self.finish_notebook(nbjson, download_url=remote_url,
-                                   msg="file from url: %s" % remote_url,
-                                   public=True)
+        yield self.finish_notebook(
+            nbjson,
+            download_url=remote_url,
+            msg="file from url: %s" % remote_url,
+            public=True,
+            request=self.request,
+            exporter=exporter
+        )
 
 
 class UserGistsHandler(BaseHandler):
@@ -657,7 +679,8 @@ class GistHandler(RenderingHandler):
                     home_url=gist['html_url'],
                     msg="gist: %s" % gist_id,
                     public=gist['public'],
-                    exporter=exporter
+                    exporter=exporter,
+                    request=self.request
                 )
             else:
                 # cannot redirect because of X-Frame-Content
@@ -715,8 +738,9 @@ class GistRedirectHandler(BaseHandler):
 class RawGitHubURLHandler(BaseHandler):
     """redirect old /urls/raw.github urls to /github/ API urls"""
     def get(self, exporter, user, repo, path):
-        new_url = u'/{exporter}github/{user}/{repo}/blob/{path}'.format(
-            exporter=exporter, user=user, repo=repo, path=path,
+        new_url = u'{exporter}/github/{user}/{repo}/blob/{path}'.format(
+            exporter=('/' + exporter) if exporter else "",
+            user=user, repo=repo, path=path
         )
         app_log.info("Redirecting %s to %s", self.request.uri, new_url)
         self.redirect(new_url)
@@ -727,7 +751,10 @@ class GitHubRedirectHandler(BaseHandler):
     def get(self, exporter, user, repo, app, ref, path):
         if app == 'raw':
             app = 'blob'
-        new_url = u'/{exporter}github/{user}/{repo}/{app}/{ref}/{path}'.format(**locals())
+        new_url = u'{exporter}/github/{user}/{repo}/{app}/{ref}/{path}'.format(
+            exporter=('/' + exporter) if exporter else "",
+            user=user, repo=repo, path=path, app=app, ref=ref
+        )
         app_log.info("Redirecting %s to %s", self.request.uri, new_url)
         self.redirect(new_url)
 
@@ -785,8 +812,9 @@ class GitHubTreeHandler(BaseHandler):
                 extra=dict(user=user, repo=repo, ref=ref, path=path)
             )
             self.redirect(
-                u"/{exporter}github/{user}/{repo}/blob/{ref}/{path}".format(
-                    exporter=exporter, user=user, repo=repo, ref=ref, path=path,
+                u"{exporter}/github/{user}/{repo}/blob/{ref}/{path}".format(
+                    exporter=('/' + exporter) if exporter else "",
+                    user=user, repo=repo, ref=ref, path=path
                 )
             )
             return
@@ -911,12 +939,15 @@ class GitHubBlobHandler(RenderingHandler):
             except Exception as e:
                 app_log.error("Failed to decode notebook: %s", raw_url, exc_info=True)
                 raise web.HTTPError(400)
-            yield self.finish_notebook(nbjson, raw_url,
+            yield self.finish_notebook(
+                nbjson,
+                raw_url,
                 home_url=blob_url,
                 breadcrumbs=breadcrumbs,
                 msg="file from GitHub: %s" % raw_url,
                 public=True,
-                exporter=exporter.replace("/","")
+                exporter=exporter,
+                request=self.request
             )
         else:
             mime, enc = mimetypes.guess_type(path)
@@ -959,7 +990,7 @@ class LocalFileHandler(RenderingHandler):
     """
     @cached
     @gen.coroutine
-    def get(self, path):
+    def get(self, exporter, path):
         abspath = os.path.join(
             self.settings.get('localfile_path', ''),
             path,
@@ -972,9 +1003,14 @@ class LocalFileHandler(RenderingHandler):
         with io.open(abspath, encoding='utf-8') as f:
             nbdata = f.read()
 
-        yield self.finish_notebook(nbdata, download_url=path,
-                                   msg="file from localfile: %s" % path,
-                                   public=False)
+        yield self.finish_notebook(
+            nbdata,
+            download_url=path,
+            msg="file from localfile: %s" % path,
+            public=False,
+            exporter=exporter,
+            request=self.request
+        )
 
 
 #-----------------------------------------------------------------------------
@@ -991,26 +1027,24 @@ handlers = [
     # don't let super old browsers request data-uris
     (r'.*/data:.*;base64,.*', Custom404),
 
+    (r'(?:(?:/)([^\/]+))?/url[s]?/github\.com/([^\/]+)/([^\/]+)/(tree|blob|raw)/([^\/]+)/(.*)', GitHubRedirectHandler),
+    (r'(?:(?:/)([^\/]+))?/url[s]?/raw\.?github(?:usercontent)?\.com/([^\/]+)/([^\/]+)/(.*)', RawGitHubURLHandler),
+    (r'(?:(?:/)([^\/]+))?/url([s]?)/(.*)', URLHandler),
 
+    (r'(?:(?:/)([^\/]+))?/github/([^\/]+)', AddSlashHandler),
+    (r'(?:(?:/)([^\/]+))?/github/([^\/]+)/', GitHubUserHandler),
+    (r'(?:(?:/)([^\/]+))?/github/([^\/]+)/([^\/]+)', AddSlashHandler),
+    (r'(?:(?:/)([^\/]+))?/github/([^\/]+)/([^\/]+)/', GitHubRepoHandler),
+    (r'(?:(?:/)([^\/]+))?/github/([^\/]+)/([^\/]+)/blob/([^\/]+)/(.*)/', RemoveSlashHandler),
+    (r'(?:(?:/)([^\/]+))?/github/([^\/]+)/([^\/]+)/blob/([^\/]+)/(.*)', GitHubBlobHandler),
+    (r'(?:(?:/)([^\/]+))?/github/([^\/]+)/([^\/]+)/tree/([^\/]+)', AddSlashHandler),
+    (r'(?:(?:/)([^\/]+))?/github/([^\/]+)/([^\/]+)/tree/([^\/]+)/(.*)', GitHubTreeHandler),
 
-    (r'/([^\/]+/|)url[s]?/github\.com/([^\/]+)/([^\/]+)/(tree|blob|raw)/([^\/]+)/(.*)', GitHubRedirectHandler),
-    (r'/([^\/]+/|)url[s]?/raw\.?github(?:usercontent)?\.com/([^\/]+)/([^\/]+)/(.*)', RawGitHubURLHandler),
-    (r'/([^\/]+/|)url([s]?)/(.*)', URLHandler),
-
-    (r'/([^\/]+/|)github/([^\/]+)', AddSlashHandler),
-    (r'/([^\/]+/|)github/([^\/]+)/', GitHubUserHandler),
-    (r'/([^\/]+/|)github/([^\/]+)/([^\/]+)', AddSlashHandler),
-    (r'/([^\/]+/|)github/([^\/]+)/([^\/]+)/', GitHubRepoHandler),
-    (r'/([^\/]+/|)github/([^\/]+)/([^\/]+)/blob/([^\/]+)/(.*)/', RemoveSlashHandler),
-    (r'/([^\/]+/|)github/([^\/]+)/([^\/]+)/blob/([^\/]+)/(.*)', GitHubBlobHandler),
-    (r'/([^\/]+/|)github/([^\/]+)/([^\/]+)/tree/([^\/]+)', AddSlashHandler),
-    (r'/([^\/]+/|)github/([^\/]+)/([^\/]+)/tree/([^\/]+)/(.*)', GitHubTreeHandler),
-
-    (r'/([^\/]+/|)gist/([^\/]+/)?([0-9]+|[0-9a-f]{20})', GistHandler),
-    (r'/([^\/]+/|)gist/([^\/]+/)?([0-9]+|[0-9a-f]{20})/(?:files/)?(.*)', GistHandler),
-    (r'/([^\/]+/|)([0-9]+|[0-9a-f]{20})', GistRedirectHandler),
-    (r'/([^\/]+/|)([0-9]+|[0-9a-f]{20})/(.*)', GistRedirectHandler),
-    (r'/([^\/]+/|)gist/([^\/]+)/?', UserGistsHandler),
+    (r'(?:(?:/)([^\/]+))?/gist/([^\/]+/)?([0-9]+|[0-9a-f]{20})', GistHandler),
+    (r'(?:(?:/)([^\/]+))?/gist/([^\/]+/)?([0-9]+|[0-9a-f]{20})/(?:files/)?(.*)', GistHandler),
+    (r'(?:(?:/)([^\/]+))?/([0-9]+|[0-9a-f]{20})', GistRedirectHandler),
+    (r'(?:(?:/)([^\/]+))?/([0-9]+|[0-9a-f]{20})/(.*)', GistRedirectHandler),
+    (r'(?:(?:/)([^\/]+))?/gist/([^\/]+)/?', UserGistsHandler),
 
     (r'/(robots\.txt|favicon\.ico)', web.StaticFileHandler),
 

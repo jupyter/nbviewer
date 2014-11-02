@@ -1,15 +1,22 @@
 {% extends "layout.html" %}
 
-    {% import 'layout.html' as layout %}
+{% import 'layout.html' as layout %}
 
-    {% block otherlinks %}
-      {% if home_url %}
+
+{% block otherlinks %}
+    {% for ex_name, ex in exporter_links.items() %}
+        {{ layout.head_icon(ex.url, ex.title, ex.icon) }}
+    {% endfor %}
+    
+    {% if home_url %}
         {{ layout.head_icon(home_url, "Notebook Home", "github") }}
-      {% endif %}
-        {{ layout.head_icon(download_url, "Download Notebook", "download", True) }}
-    {% endblock %}
+    {% endif %}
+    
+    {{ layout.head_icon(download_url, "Download Notebook", "download", True) }}
+{% endblock %}
 
-    {% block extra_head %}
+
+{% block extra_head %}
     {{ super() }}
 
     {# Twitter Card #}
@@ -45,111 +52,115 @@
     #}
 
     {% block style_base %}
-    <link href="/ipython-static/style/ipython.min.css" rel="stylesheet">
-    <link href="/static/css/pygments.css" rel="stylesheet">
+        <link href="/ipython-static/style/ipython.min.css" rel="stylesheet">
+        <link href="/static/css/pygments.css" rel="stylesheet">
     {% endblock %}
 
     {% block style_media %}
-    <style type="text/css" media='screen and (min-width:980px)'>
-   
-    body {
-        padding-top: 40px;
-    }
+        <style type="text/css" media='screen and (min-width:980px)'>
 
-    </style>
-    <style type="text/css" >
-    .imgwrap {
-        text-align: center;
-    }
-
-    @media (max-width: 767px){
-
-        div.input, div.output_area {
-            -webkit-box-orient: vertical;
-            -moz-box-orient: vertical;
-            box-orient: vertical;
+        body {
+            padding-top: 40px;
         }
 
-        div.prompt {
-            text-align:left;
+        </style>
+        <style type="text/css" >
+        .imgwrap {
+            text-align: center;
         }
 
-    }
-    </style>
+        @media (max-width: 767px){
+
+            div.input, div.output_area {
+                -webkit-box-orient: vertical;
+                -moz-box-orient: vertical;
+                box-orient: vertical;
+            }
+
+            div.prompt {
+                text-align:left;
+            }
+
+        }
+        </style>
     {% endblock %}
 
     {% if css_theme %}
         <link href="/static/css/theme/{{css_theme}}.css" rel="stylesheet">
     {% endif %}
-    <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML"type="text/javascript">
+    <script src="{%block mathjax_url %}https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML{% endblock %}"type="text/javascript">
     </script>
     <script type="text/javascript">
-    init_mathjax = function() {
-        if (window.MathJax) {
-            // MathJax loaded
-            MathJax.Hub.Config({
-                tex2jax: {
-                    inlineMath: [ ['$','$'], ["\\(","\\)"] ],
-                    displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
-                    processEscapes: true,
-                    processEnvironments: true
-                },
-                displayAlign: 'center',
-                "HTML-CSS": {
-                    styles: {'.MathJax_Display': {"margin": 0}},
-                    linebreaks: { automatic: true }
-                }
-            });
-            MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+        init_mathjax = function() {
+            if (window.MathJax) {
+                // MathJax loaded
+                MathJax.Hub.Config({
+                    tex2jax: {
+                        inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+                        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+                        processEscapes: true,
+                        processEnvironments: true
+                    },
+                    displayAlign: 'center',
+                    "HTML-CSS": {
+                        styles: {'.MathJax_Display': {"margin": 0}},
+                        linebreaks: { automatic: true }
+                    }
+                });
+                MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+            }
         }
-    }
-    init_mathjax();
+        init_mathjax();
     </script>
-    {% endblock extra_head %}
+{% endblock extra_head %}
+
 
 {% block body %}
     {{ link_breadcrumbs(breadcrumbs) }}
     {{ body | safe}}
 {% endblock %}
 
+
 {% block extra_script %}
     {{super()}}
     <script>
-    $(document).ready(
-                function(){
-                    $("#menubar").headroom({
-                        "tolerance": 5,
-                        "offset": 205,
-                        "classes": {
-                            "initial": "animated",
-                            "pinned": "slideInDown",
-                            "unpinned": "slideOutUp"
-                        }
-                    })
-                }
-            );
+        $(document).ready(
+            function(){
+                $("#menubar").headroom({
+                    "tolerance": 5,
+                    "offset": 205,
+                    "classes": {
+                        "initial": "animated",
+                        "pinned": "slideInDown",
+                        "unpinned": "slideOutUp"
+                    }
+                })
+            }
+        );
     </script>
 {% endblock extra_script %}
 
+
 {% block version_info %}
-{{super()}}
-{% if ipython_info %}
-<p class="text-muted">
-    IPython version: {{ipython_info['ipython_version']}}
-    {% if 'dev' in ipython_info['ipython_version'] %}
-    (<a href="https://github.com/ipython/ipython/commit/{{ipython_info['commit_hash']}}">
-      {{ipython_info['commit_hash']}}
-    </a>)
+    {{super()}}
+    {% if ipython_info %}
+    <p class="text-muted">
+        IPython version: {{ipython_info['ipython_version']}}
+        {% if 'dev' in ipython_info['ipython_version'] %}
+        (<a href="https://github.com/ipython/ipython/commit/{{ipython_info['commit_hash']}}">
+          {{ipython_info['commit_hash']}}
+        </a>)
+        {% endif %}
+    </p>
     {% endif %}
-</p>
-{% endif %}
 {% endblock version_info %}
 
+
 {% block extra_footer %}
-{{super()}}
-{% if date %}
-<p class="text-muted">
-Rendered <span class='date' data-date='{{date}}' title='{{date}}'>({{date}})</span>
-</p>
-{% endif %}
+    {{super()}}
+    {% if date %}
+        <p class="text-muted">
+        Rendered <span class='date' data-date='{{date}}' title='{{date}}'>({{date}})</span>
+        </p>
+    {% endif %}
 {% endblock extra_footer %}

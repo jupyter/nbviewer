@@ -211,7 +211,7 @@ def main():
     if options.localfiles:
         log.app_log.warning("Serving local notebooks in %s, this can be a security risk", options.localfiles)
         # use absolute or relative paths:
-        handlers.insert(0, (r'/localfile/(.*)', LocalFileHandler))
+        handlers.insert(0, (r'(?:(?:/)([^\/]+))?/localfile/(.*)', LocalFileHandler))
 
     # load ssl options
     ssl_options = None

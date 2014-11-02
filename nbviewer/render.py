@@ -22,8 +22,6 @@ exporters = {}
 
 reveal_body = re.compile(r'.*<body>(.*)<script[^>]+head.min.*', flags=re.MULTILINE | re.DOTALL)
 
-# <script src="{{resources.reveal.url_prefix}}/lib/js/head.min.js"></script>
-
 def render_notebook(exporter, nb, url=None, forced_theme=None, config=None):
     if not isinstance(exporter, Exporter):
         # allow exporter to be passed as a class, rather than instance
@@ -62,7 +60,7 @@ def render_notebook(exporter, nb, url=None, forced_theme=None, config=None):
         html = reveal_body.sub('\\1', html)
 
     config = {
-            'download_name': name,
-            'css_theme': css_theme,
-            }
+        'download_name': name,
+        'css_theme': css_theme,
+    }
     return html, config
