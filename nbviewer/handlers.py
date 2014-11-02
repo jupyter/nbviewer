@@ -726,10 +726,16 @@ class GistHandler(RenderingHandler):
 
 class GistRedirectHandler(BaseHandler):
     """redirect old /<gist-id> to new /gist/<gist-id>"""
-    def get(self, exporter, gist_id, file=''):
-        new_url = '/%sgist/%s' % (exporter, gist_id)
-        if file:
-            new_url = "%s/%s" % (new_url, file)
+    def get(self, exporter, gist_id, path=''):
+        new_url = '{exporter}/gist/{gist}'.format(
+            exporter=('/' + exporter) if exporter else '',
+            gist=gist_id
+        )
+        if path:
+            new_url = u'{url}/{path}'.format(
+                url=new_url,
+                path=path
+            )
 
         app_log.info("Redirecting %s to %s", self.request.uri, new_url)
         self.redirect(new_url)
@@ -740,7 +746,9 @@ class RawGitHubURLHandler(BaseHandler):
     def get(self, exporter, user, repo, path):
         new_url = u'{exporter}/github/{user}/{repo}/blob/{path}'.format(
             exporter=('/' + exporter) if exporter else "",
-            user=user, repo=repo, path=path
+            user=user,
+            repo=repo,
+            path=path
         )
         app_log.info("Redirecting %s to %s", self.request.uri, new_url)
         self.redirect(new_url)
@@ -753,7 +761,11 @@ class GitHubRedirectHandler(BaseHandler):
             app = 'blob'
         new_url = u'{exporter}/github/{user}/{repo}/{app}/{ref}/{path}'.format(
             exporter=('/' + exporter) if exporter else "",
-            user=user, repo=repo, path=path, app=app, ref=ref
+            user=user,
+            repo=repo,
+            app=app,
+            ref=ref,
+            path=path
         )
         app_log.info("Redirecting %s to %s", self.request.uri, new_url)
         self.redirect(new_url)
@@ -791,7 +803,11 @@ class GitHubUserHandler(BaseHandler):
 class GitHubRepoHandler(BaseHandler):
     """redirect /github/user/repo to .../tree/master"""
     def get(self, exporter, user, repo):
-        self.redirect("/%sgithub/%s/%s/tree/master/" % (exporter, user, repo))
+        self.redirect(u"{exporter}/github/{user}/{repo}/tree/master/".format(
+            exporter=('/' + exporter) if exporter else "",
+            user=user,
+            repo=repo)
+        )
 
 
 class GitHubTreeHandler(BaseHandler):
@@ -814,16 +830,24 @@ class GitHubTreeHandler(BaseHandler):
             self.redirect(
                 u"{exporter}/github/{user}/{repo}/blob/{ref}/{path}".format(
                     exporter=('/' + exporter) if exporter else "",
-                    user=user, repo=repo, ref=ref, path=path
+                    user=user,
+                    repo=repo,
+                    ref=ref,
+                    path=path
                 )
             )
             return
 
         base_url = u"/github/{user}/{repo}/tree/{ref}".format(
-            user=user, repo=repo, ref=ref,
+            user=user,
+            repo=repo,
+            ref=ref,
         )
         github_url = u"https://github.com/{user}/{repo}/tree/{ref}/{path}".format(
-            user=user, repo=repo, ref=ref, path=path,
+            user=user,
+            repo=repo,
+            ref=ref,
+            path=path,
         )
 
         breadcrumbs = [{
