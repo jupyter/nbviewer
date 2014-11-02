@@ -83,7 +83,7 @@
         .footer{
           display: none;
         }
-        #menubar .navbar-inner {
+        #menubar{
           font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
           font-size: 14px;
         }
@@ -100,6 +100,11 @@
         }
     </style>
     {{ super() }}
+{% endblock %}
+
+
+{% block menu_extra %}
+    <div class="container">{{ link_breadcrumbs(breadcrumbs) }}</div>
 {% endblock %}
 
 

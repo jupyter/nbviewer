@@ -4,8 +4,14 @@
 
 
 {% block otherlinks %}
-    {% for ex_name, ex in exporter_links.items() %}
-        {{ layout.head_icon(ex.url, ex.title, ex.icon) }}
+    {% for ex_name, ex in exporters.items() %}
+        {% if exporter != ex_name %}
+            {% if ex_name == "html" %}
+                {{ layout.head_icon(exporter_link_base, "View as Notebook", "book") }}
+            {% elif ex_name == "slides" %}
+                {{ layout.head_icon("/" ~ ex_name ~ exporter_link_base, "View as Slides", "th-large") }}
+            {% endif %}
+        {% endif %}
     {% endfor %}
     
     {% if home_url %}

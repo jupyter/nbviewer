@@ -509,30 +509,18 @@ class RenderingHandler(BaseHandler):
             app_log.debug("Finished render of %s", download_url)
 
         # generate links to other formats
-        link_base = self.request.uri
-        if link_base.startswith("/%s/" % exporter):
-            link_base = link_base.replace("/%s/" % exporter, "")
-        
-        exporter_links = {
-            "html": {
-                "url": link_base,
-                "title": "View as Notebook",
-                "icon": "book"
-            },
-            "slides": {
-                "url": "/slides" + link_base,
-                "title": "View as Slides",
-                "icon": "th-large"
-            }
-        }
-        exporter_links.pop(exporter, None)
+        exporter_link_base = self.request.uri
+        if exporter_link_base.startswith("/%s/" % exporter):
+            exporter_link_base = exporter_link_base.replace("/%s/" % exporter, "/")
 
         html = self.render_template(
             "%s.html" % exporter,
             body=nbhtml,
             download_url=download_url,
             home_url=home_url,
-            exporter_links=exporter_links,
+            exporter=exporter,
+            exporters=self.exporters,
+            exporter_link_base=exporter_link_base,
             date=datetime.utcnow().strftime(date_fmt),
             breadcrumbs=breadcrumbs,
             **config

@@ -22,7 +22,10 @@
 {% if crumbs %}
 <ul class="breadcrumb">
     {% for crumb in crumbs %}
-    <li><a href="{{crumb['url']}}">{{crumb['name']}}</a> <span class="divider">/</span></li>
+    <li>
+        <a href="{{crumb['url']}}">{{crumb['name']}}</a>
+        {% if loop.last != True %}<span class="divider">/</span>{% endif %}
+    </li>
     {% endfor %}
 </ul>
 {% endif %}
@@ -118,6 +121,7 @@
           </div>
         </div>
       </div>
+      {% block menu_extra %}{% endblock %}
     </div>
     <div class="container">
 
