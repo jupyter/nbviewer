@@ -65,3 +65,8 @@ pre, code {
 td.page_links {
   text-align: center;
 }
+
+.dropdown-ref .row-fluid{
+  white-space: nowrap;
+  width: 300px;
+}

@@ -766,6 +766,17 @@ class GitHubTreeHandler(BaseHandler):
             response = yield self.github_client.get_contents(user, repo, path, ref=ref)
 
         contents = json.loads(response_text(response))
+
+        with self.catch_client_error():
+            branch_response = yield self.github_client.get_branches(user, repo)
+
+        branches = json.loads(response_text(branch_response))
+
+        with self.catch_client_error():
+            tag_response = yield self.github_client.get_tags(user, repo)
+
+        tags = json.loads(response_text(tag_response))
+
         if not isinstance(contents, list):
             app_log.info("{user}/{repo}/{ref}/{path} not tree, redirecting to blob",
                 extra=dict(user=user, repo=repo, ref=ref, path=path)
@@ -828,7 +839,8 @@ class GitHubTreeHandler(BaseHandler):
 
         html = self.render_template("treelist.html",
             entries=entries, breadcrumbs=breadcrumbs, github_url=github_url,
-            user=user, repo=repo, ref=ref,
+            user=user, repo=repo, ref=ref, path=path,
+            branches=branches, tags=tags
         )
         yield self.cache_and_finish(html)
 

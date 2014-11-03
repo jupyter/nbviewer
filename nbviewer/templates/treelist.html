@@ -1,6 +1,50 @@
 {% extends "layout.html" %}
+
+{% block extra_script %}
+    {{ super() }}
+    <script src="/static/js/bootstrap-dropdown.js"></script>
+{% endblock %}
+
 {% block body %}
-{{ link_breadcrumbs(breadcrumbs) }}
+    <div>
+        {% if branches|length + tags|length > 1 %}
+        <div class="breadcrumb pull-right">
+            <div class="pull-right dropdown dropdown-ref">
+                <a class="dropdown-toggle" data-toggle="dropdown">
+                    {{ ref }}
+                </a>
+                <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+                    <li>
+                        <div class="row-fluid">
+                            <ul class="unstyled span5 offset1">
+                                <li role="presentation" class="nav-header">
+                                    <i class="fa fa-code-fork fa-2x"></i> BRANCHES
+                                </li>
+                                {% for branch in branches %}
+                                    <li><a href="/github/{{user}}/{{repo}}/tree/{{branch.name}}/{{path}}">
+                                        {{ branch.name }}
+                                    </a></li>
+                                {% endfor %}
+                            </ul>
+                            <ul class="unstyled span5 offset1">
+                                <li role="presentation" class="nav-header">
+                                    <i class="fa fa-tags fa-2x"></i> TAGS
+                                </li>
+                                {% for tag in tags %}
+                                    <li><a href="/github/{{user}}/{{repo}}/tree/{{tag.name}}/{{path}}">
+                                        {{ tag.name }}
+                                    </a></li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+        {{ link_breadcrumbs(breadcrumbs) }}
+    </div>
+
     <table class='table table-condensed table-bordered table-striped'>
             <thead>
                 <tr><th>Name</th></tr>

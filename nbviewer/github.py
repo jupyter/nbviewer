@@ -98,6 +98,16 @@ class AsyncGitHubClient(object):
             params['recursive'] = True
         return self.github_api_request(path, callback, **kwargs)
     
+    def get_branches(self, user, repo, callback=None, **kwargs):
+        """List a repo's branches"""
+        path = u"repos/{user}/{repo}/branches".format(user=user, repo=repo)
+        return self.github_api_request(path, callback, **kwargs)
+    
+    def get_tags(self, user, repo, callback=None, **kwargs):
+        """List a repo's branches"""
+        path = u"repos/{user}/{repo}/tags".format(user=user, repo=repo)
+        return self.github_api_request(path, callback, **kwargs)
+    
     def _extract_tree_entry(self, path, tree_response):
         """extract a single tree entry from a file list
         
