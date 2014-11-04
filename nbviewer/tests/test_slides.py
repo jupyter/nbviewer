@@ -13,31 +13,31 @@ from .test_localfile import LocalFileDefaultTestCase
 
 class SlidesGistTestCase(NBViewerTestCase):
     def test_gist(self):
-        url = self.url('slides', '7518294', 'Untitled0.ipynb')
+        url = self.url('/as/slides/7518294/Untitled0.ipynb')
         r = requests.get(url)
         self.assertEqual(r.status_code, 200)
         html = r.content
         self.assertIn('reveal.js', html)
-    
+
     def test_html_exporter_link(self):
-        url = self.url('slides', '7518294', 'Untitled0.ipynb')
+        url = self.url('/as/slides/7518294/Untitled0.ipynb')
         r = requests.get(url)
         self.assertEqual(r.status_code, 200)
         html = r.content
-        self.assertIn('href="/gist/minrk/7518294/Untitled0.ipynb"', html)
-    
-    def test_slides_exporter_link(self):
-        url = self.url('7518294', 'Untitled0.ipynb')
+        self.assertIn('/gist/minrk/7518294/Untitled0.ipynb', html)
+
+    def test_no_slides_exporter_link(self):
+        url = self.url('/7518294/Untitled0.ipynb')
         r = requests.get(url)
         self.assertEqual(r.status_code, 200)
         html = r.content
-        self.assertIn('href="/slides/gist/minrk/7518294/Untitled0.ipynb"', html)
+        self.assertNotIn('/as/slides/gist/minrk/7518294/Untitled0.ipynb', html)
 
 
 class SlideLocalFileDefaultTestCase(LocalFileDefaultTestCase):
     def test_slides_local(self):
         ## assumes being run from base of this repo
-        url = self.url('slides/localfile/nbviewer/tests/notebook.ipynb')
+        url = self.url('as/slides/localfile/nbviewer/tests/notebook.ipynb')
         r = requests.get(url)
         self.assertEqual(r.status_code, 200)
         html = r.content
@@ -47,7 +47,8 @@ class SlideLocalFileDefaultTestCase(LocalFileDefaultTestCase):
 class SlidesGitHubTestCase(NBViewerTestCase):
     def ipython_example(self, *parts, **kwargs):
         ref = kwargs.get('ref', 'rel-2.0.0')
-        return self.url('slides/github/ipython/ipython/blob/%s/examples' % ref, *parts)
+        return self.url(
+            '/as/slides/github/ipython/ipython/blob/%s/examples' % ref, *parts)
 
     def test_github(self):
         url = self.ipython_example('Index.ipynb')

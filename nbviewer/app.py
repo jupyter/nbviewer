@@ -26,7 +26,7 @@ from jinja2 import Environment, FileSystemLoader
 from IPython.config import Config
 from IPython.nbconvert.exporters import HTMLExporter, SlidesExporter
 
-from .handlers import handlers, LocalFileHandler
+from .handlers import handlers, exporter_handler, LocalFileHandler
 from .cache import DummyAsyncCache, AsyncMultipartMemcache, MockCache, pylibmc
 from .index import NoSearch, ElasticSearch
 
@@ -96,18 +96,21 @@ def main():
 
     # setup memcache
     mc_pool = ThreadPoolExecutor(options.mc_threads)
+    exporters = {
+        'html': {
+            'class': HTMLExporter
+        },
+        'slides': {
+            'class': SlidesExporter,
+            'test': lambda ipynb, raw: '"slideshow": ' in raw
+        }
+    }
     if options.processes:
         # can't pickle exporter instances,
-        exporters = {
-            'html': HTMLExporter,
-            'slides': SlidesExporter
-        }
         pool = ProcessPoolExecutor(options.processes)
     else:
-        exporters = {
-            'html': HTMLExporter(config=config, log=log.app_log),
-            'slides': SlidesExporter(config=config, log=log.app_log),
-        }
+        for exp_name, exporter in exporters.items():
+            exporter['class'] = exporter['class'](config=config, log=log.app_log)
         pool = ThreadPoolExecutor(options.threads)
 
     memcache_urls = os.environ.get('MEMCACHIER_SERVERS',
@@ -211,7 +214,7 @@ def main():
     if options.localfiles:
         log.app_log.warning("Serving local notebooks in %s, this can be a security risk", options.localfiles)
         # use absolute or relative paths:
-        handlers.insert(0, (r'(?:(?:/)([^\/]+))?/localfile/(.*)', LocalFileHandler))
+        handlers.insert(0, exporter_handler(r'/localfile/(.*)', LocalFileHandler))
 
     # load ssl options
     ssl_options = None

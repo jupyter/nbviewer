@@ -46,6 +46,12 @@ from .utils import (transform_ipynb_uri, quote, response_text, base64_decode,
                     parse_header_links, clean_filename)
 
 date_fmt = "%a, %d %b %Y %H:%M:%S UTC"
+exporter_prefix = "as/"
+
+def slash_exp(exporter):
+    if exporter:
+        return "/%s%s" % (exporter_prefix, exporter)
+    return ""
 
 #-----------------------------------------------------------------------------
 # Handler classes
@@ -463,6 +469,14 @@ class RenderingHandler(BaseHandler):
         # short circuit some methods because the rest of the rendering will still happen
         self.write = self.finish = self.redirect = lambda chunk=None: None
 
+    def filter_exporters(self, nb, raw):
+        for exp_name, exporter in self.exporters.items():
+            test = exporter.get("test", None)
+            try:
+                if (not test) or test(nb, raw):
+                    yield (exp_name, exporter)
+            except Exception as err:
+                app_log.info("failed to test %s: %s", self.request.uri, exp_name)
 
     @gen.coroutine
     def finish_notebook(self, json_notebook, download_url, home_url=None, msg=None,
@@ -476,15 +490,15 @@ class RenderingHandler(BaseHandler):
 
         if msg is None:
             msg = download_url
-        
+
         # html is the default
         if exporter is None:
             exporter = "html"
-        
+
         if exporter not in self.exporters:
             app_log.error("Invalid exporter %s", exporter)
             raise web.HTTPError(400, "Invalid exporter.")
-        
+
         try:
             nb = reads_json(json_notebook)
         except ValueError:
@@ -496,7 +510,7 @@ class RenderingHandler(BaseHandler):
             with self.time_block("Rendered %s" % download_url):
                 app_log.info("rendering %d B notebook from %s", len(json_notebook), download_url)
                 nbhtml, config = yield self.pool.submit(
-                    render_notebook, self.exporters[exporter], nb, download_url,
+                    render_notebook, self.exporters[exporter]["class"], nb, download_url,
                     config=self.config,
                 )
         except NbFormatError as e:
@@ -510,8 +524,10 @@ class RenderingHandler(BaseHandler):
 
         # generate links to other formats
         exporter_link_base = self.request.uri
-        if exporter_link_base.startswith("/%s/" % exporter):
-            exporter_link_base = exporter_link_base.replace("/%s/" % exporter, "/")
+        if exporter_link_base.startswith(slash_exp(exporter)):
+            exporter_link_base = exporter_link_base.replace(slash_exp(exporter), "/")
+
+        filtered_exporters = dict(self.filter_exporters(nb, json_notebook))
 
         html = self.render_template(
             "%s.html" % exporter,
@@ -519,7 +535,8 @@ class RenderingHandler(BaseHandler):
             download_url=download_url,
             home_url=home_url,
             exporter=exporter,
-            exporters=self.exporters,
+            exporters=filtered_exporters,
+            exporter_prefix=exporter_prefix,
             exporter_link_base=exporter_link_base,
             date=datetime.utcnow().strftime(date_fmt),
             breadcrumbs=breadcrumbs,
@@ -640,7 +657,7 @@ class GistHandler(RenderingHandler):
             else:
                 user = 'anonymous'
             new_url = u"{exporter}/gist/{user}/{gist_id}".format(
-                exporter=('/' + exporter) if exporter else '',
+                exporter=slash_exp(exporter),
                 user=user,
                 gist_id=gist_id
             )
@@ -720,7 +737,7 @@ class GistRedirectHandler(BaseHandler):
     """redirect old /<gist-id> to new /gist/<gist-id>"""
     def get(self, exporter, gist_id, path=''):
         new_url = '{exporter}/gist/{gist}'.format(
-            exporter=('/' + exporter) if exporter else '',
+            exporter=slash_exp(exporter),
             gist=gist_id
         )
         if path:
@@ -737,7 +754,7 @@ class RawGitHubURLHandler(BaseHandler):
     """redirect old /urls/raw.github urls to /github/ API urls"""
     def get(self, exporter, user, repo, path):
         new_url = u'{exporter}/github/{user}/{repo}/blob/{path}'.format(
-            exporter=('/' + exporter) if exporter else "",
+            exporter=slash_exp(exporter),
             user=user,
             repo=repo,
             path=path
@@ -752,7 +769,7 @@ class GitHubRedirectHandler(BaseHandler):
         if app == 'raw':
             app = 'blob'
         new_url = u'{exporter}/github/{user}/{repo}/{app}/{ref}/{path}'.format(
-            exporter=('/' + exporter) if exporter else "",
+            exporter=slash_exp(exporter),
             user=user,
             repo=repo,
             app=app,
@@ -796,7 +813,7 @@ class GitHubRepoHandler(BaseHandler):
     """redirect /github/user/repo to .../tree/master"""
     def get(self, exporter, user, repo):
         self.redirect(u"{exporter}/github/{user}/{repo}/tree/master/".format(
-            exporter=('/' + exporter) if exporter else "",
+            exporter=slash_exp(exporter),
             user=user,
             repo=repo)
         )
@@ -821,7 +838,7 @@ class GitHubTreeHandler(BaseHandler):
             )
             self.redirect(
                 u"{exporter}/github/{user}/{repo}/blob/{ref}/{path}".format(
-                    exporter=('/' + exporter) if exporter else "",
+                    exporter=slash_exp(exporter),
                     user=user,
                     repo=repo,
                     ref=ref,
@@ -1033,6 +1050,9 @@ class LocalFileHandler(RenderingHandler):
 # Default handler URL mapping
 #-----------------------------------------------------------------------------
 
+def exporter_handler(url, cls):
+    return ('(?:(?:/' + exporter_prefix + ')([^\/]+))?' + url, cls)
+
 handlers = [
     ('/', IndexHandler),
     ('/index.html', IndexHandler),
@@ -1042,27 +1062,32 @@ handlers = [
 
     # don't let super old browsers request data-uris
     (r'.*/data:.*;base64,.*', Custom404),
+]
 
-    (r'(?:(?:/)([^\/]+))?/url[s]?/github\.com/([^\/]+)/([^\/]+)/(tree|blob|raw)/([^\/]+)/(.*)', GitHubRedirectHandler),
-    (r'(?:(?:/)([^\/]+))?/url[s]?/raw\.?github(?:usercontent)?\.com/([^\/]+)/([^\/]+)/(.*)', RawGitHubURLHandler),
-    (r'(?:(?:/)([^\/]+))?/url([s]?)/(.*)', URLHandler),
+handlers.extend([
+    exporter_handler(*handler) for handler in [
+        (r'/url[s]?/github\.com/([^\/]+)/([^\/]+)/(tree|blob|raw)/([^\/]+)/(.*)', GitHubRedirectHandler),
+        (r'/url[s]?/raw\.?github(?:usercontent)?\.com/([^\/]+)/([^\/]+)/(.*)', RawGitHubURLHandler),
+        (r'/url([s]?)/(.*)', URLHandler),
 
-    (r'(?:(?:/)([^\/]+))?/github/([^\/]+)', AddSlashHandler),
-    (r'(?:(?:/)([^\/]+))?/github/([^\/]+)/', GitHubUserHandler),
-    (r'(?:(?:/)([^\/]+))?/github/([^\/]+)/([^\/]+)', AddSlashHandler),
-    (r'(?:(?:/)([^\/]+))?/github/([^\/]+)/([^\/]+)/', GitHubRepoHandler),
-    (r'(?:(?:/)([^\/]+))?/github/([^\/]+)/([^\/]+)/blob/([^\/]+)/(.*)/', RemoveSlashHandler),
-    (r'(?:(?:/)([^\/]+))?/github/([^\/]+)/([^\/]+)/blob/([^\/]+)/(.*)', GitHubBlobHandler),
-    (r'(?:(?:/)([^\/]+))?/github/([^\/]+)/([^\/]+)/tree/([^\/]+)', AddSlashHandler),
-    (r'(?:(?:/)([^\/]+))?/github/([^\/]+)/([^\/]+)/tree/([^\/]+)/(.*)', GitHubTreeHandler),
+        (r'/github/([^\/]+)', AddSlashHandler),
+        (r'/github/([^\/]+)/', GitHubUserHandler),
+        (r'/github/([^\/]+)/([^\/]+)', AddSlashHandler),
+        (r'/github/([^\/]+)/([^\/]+)/', GitHubRepoHandler),
+        (r'/github/([^\/]+)/([^\/]+)/blob/([^\/]+)/(.*)/', RemoveSlashHandler),
+        (r'/github/([^\/]+)/([^\/]+)/blob/([^\/]+)/(.*)', GitHubBlobHandler),
+        (r'/github/([^\/]+)/([^\/]+)/tree/([^\/]+)', AddSlashHandler),
+        (r'/github/([^\/]+)/([^\/]+)/tree/([^\/]+)/(.*)', GitHubTreeHandler),
 
-    (r'(?:(?:/)([^\/]+))?/gist/([^\/]+/)?([0-9]+|[0-9a-f]{20})', GistHandler),
-    (r'(?:(?:/)([^\/]+))?/gist/([^\/]+/)?([0-9]+|[0-9a-f]{20})/(?:files/)?(.*)', GistHandler),
-    (r'(?:(?:/)([^\/]+))?/([0-9]+|[0-9a-f]{20})', GistRedirectHandler),
-    (r'(?:(?:/)([^\/]+))?/([0-9]+|[0-9a-f]{20})/(.*)', GistRedirectHandler),
-    (r'(?:(?:/)([^\/]+))?/gist/([^\/]+)/?', UserGistsHandler),
+        (r'/gist/([^\/]+/)?([0-9]+|[0-9a-f]{20})', GistHandler),
+        (r'/gist/([^\/]+/)?([0-9]+|[0-9a-f]{20})/(?:files/)?(.*)', GistHandler),
+        (r'/([0-9]+|[0-9a-f]{20})', GistRedirectHandler),
+        (r'/([0-9]+|[0-9a-f]{20})/(.*)', GistRedirectHandler),
+        (r'/gist/([^\/]+)/?', UserGistsHandler),
+]])
 
+handlers.extend([
     (r'/(robots\.txt|favicon\.ico)', web.StaticFileHandler),
 
     (r'.*', Custom404),
-]
+])
