@@ -135,3 +135,12 @@ class GitHubTestCase(NBViewerTestCase):
         self.assertIn('/github/ipython/ipython/tree/rel-2.0.0/IPython', r.request.url)
         self.assertIn('__init__.py', r.text)
 
+    def test_github_ref_list(self):
+        url = self.url('github/ipython/ipython/tree/master')
+        r = requests.get(url)
+        self.assertEqual(r.status_code, 200)
+        html = r.text
+        # verify branch is linked
+        self.assertIn('/github/ipython/ipython/tree/2.x/', html)
+        # verify tag is linked
+        self.assertIn('/github/ipython/ipython/tree/rel-2.3.0/', html)

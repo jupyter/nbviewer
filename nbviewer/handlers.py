@@ -767,15 +767,7 @@ class GitHubTreeHandler(BaseHandler):
 
         contents = json.loads(response_text(response))
 
-        with self.catch_client_error():
-            branch_response = yield self.github_client.get_branches(user, repo)
-
-        branches = json.loads(response_text(branch_response))
-
-        with self.catch_client_error():
-            tag_response = yield self.github_client.get_tags(user, repo)
-
-        tags = json.loads(response_text(tag_response))
+        branches, tags = yield self.refs(user, repo)
 
         if not isinstance(contents, list):
             app_log.info("{user}/{repo}/{ref}/{path} not tree, redirecting to blob",
@@ -843,6 +835,53 @@ class GitHubTreeHandler(BaseHandler):
             branches=branches, tags=tags
         )
         yield self.cache_and_finish(html)
+
+    @gen.coroutine
+    def refs(self, user, repo):
+        """get (cached) branches and tags for this user/repo"""
+        short_url = self.truncate("github/%s/%s/refs" % (user, repo))
+        ref_types = ("branches", "tags")
+        ref_data = [None, None]
+        cached_pickle = None
+
+        try:
+            with self.time_block("cache get %s" % short_url):
+                cached_pickle = yield self.cache.get(short_url)
+            if cached_pickle is not None:
+                ref_data = pickle.loads(cached_pickle)
+        except Exception as e:
+            app_log.error("Exception getting %s from cache", short_url, exc_info=True)
+
+        if cached_pickle is None:
+            for i, ref_type in enumerate(ref_types):
+                with self.catch_client_error():
+                    response = yield getattr(self.github_client, "get_%s" % ref_type)(user, repo)
+                ref_data[i] = json.loads(response_text(response))
+
+            cache_data = pickle.dumps(ref_data, pickle.HIGHEST_PROTOCOL)
+
+            request_time = self.request.request_time()
+            # set cache expiry to 120x request time
+            # bounded by cache_expiry_min,max
+            # a 30 second render will be cached for an hour
+            expiry = max(
+                min(120 * request_time, self.cache_expiry_max),
+                self.cache_expiry_min,
+            )
+
+            log = app_log.info if expiry > self.cache_expiry_min else app_log.debug
+            log("caching (expiry=%is) %s", expiry, short_url)
+            try:
+                with self.time_block("cache set %s" % short_url):
+                    yield self.cache.set(
+                        short_url, cache_data, int(time.time() + expiry),
+                    )
+            except Exception:
+                app_log.error("cache set for %s failed", short_url, exc_info=True)
+            else:
+                app_log.debug("cache set finished %s", short_url)
+
+        raise gen.Return(ref_data)
 
 
 class GitHubBlobHandler(RenderingHandler):
