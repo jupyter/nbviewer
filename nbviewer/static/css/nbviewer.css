@@ -66,7 +66,28 @@ td.page_links {
   text-align: center;
 }
 
-.dropdown-ref .row-fluid{
+@media (min-width: 768px){
+  .dropdown-ref .dropdown-menu {
+    width: 300px;
+  }
+}
+
+.dropdown-ref a{
+  cursor: pointer;
+}
+.dropdown-ref ul a {
   white-space: nowrap;
-  width: 300px;
+}
+
+.dropdown-ref ul {
+  max-height: 300px;
+  overflow-y: auto;
+  margin-top: 28px;
+  padding: 0 10px;
+}
+
+.dropdown-ref.dropdown .dropdown-menu ul .nav-header {
+  position: absolute;
+  top: 7px;
+  padding-left: 0;
 }
