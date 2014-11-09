@@ -22,12 +22,17 @@ RUN apt-get install -y -q python python-dev python-pip
  
 # nbviewer binary dependencies
 RUN apt-get install -y -q libzmq3-dev sqlite3 libsqlite3-dev pandoc libevent-dev libcurl4-openssl-dev libmemcached-dev nodejs
- 
+
+# install IPython 2.x branch
+WORKDIR /srv
+RUN git clone --depth 1 -b 2.x https://github.com/ipython/ipython.git
+WORKDIR /srv/ipython
+RUN git submodule init && git submodule update
+RUN pip install .
+
 ADD . /srv/nbviewer/
 
 WORKDIR /srv/nbviewer
-# install IPython 2.x branch
-RUN pip install git+https://github.com/ipython/ipython.git@2.x
 RUN pip install -r requirements.txt
 
 EXPOSE 8080
