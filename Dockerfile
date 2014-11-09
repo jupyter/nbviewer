@@ -26,6 +26,8 @@ RUN apt-get install -y -q libzmq3-dev sqlite3 libsqlite3-dev pandoc libevent-dev
 ADD . /srv/nbviewer/
 
 WORKDIR /srv/nbviewer
+# install IPython 2.x branch
+pip install git+https://github.com/ipython/ipython.git@2.x
 RUN pip install -r requirements.txt
 
 EXPOSE 8080
