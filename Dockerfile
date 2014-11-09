@@ -27,7 +27,7 @@ ADD . /srv/nbviewer/
 
 WORKDIR /srv/nbviewer
 # install IPython 2.x branch
-pip install git+https://github.com/ipython/ipython.git@2.x
+RUN pip install git+https://github.com/ipython/ipython.git@2.x
 RUN pip install -r requirements.txt
 
 EXPOSE 8080
