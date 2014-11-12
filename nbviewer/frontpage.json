@@ -63,6 +63,11 @@
         "img": "/static/img/example-nb/covariance.png"
       },
       {
+        "text": "Partial Differential Equations Solver",
+        "target": "github/waltherg/notebooks/blob/master/2013-12-03-Crank_Nicolson.ipynb",
+        "img": "/static/img/example-nb/pde_solver_with_numpy.png"
+      },
+      {
         "text": "Nose testing",
         "target": "github/swcarpentry/2012-11-scripps/blob/master/python/testing-with-nose.ipynb",
         "img": "/static/img/example-nb/nose_testing.png"
