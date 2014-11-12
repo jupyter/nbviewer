@@ -1,6 +1,6 @@
 # IPython Notebook Viewer
 
-IPython nbviewer is the web application behind [IPython Notebook Viewer](http://nbviewer.ipython.org), which is graciously hosted by [Rackspace](http://www.rackspace.com).
+IPython nbviewer is the web application behind [IPython Notebook Viewer](http://nbviewer.ipython.org), which is graciously hosted by [Rackspace](https://developer.rackspace.com/?nbviewer=awesome).
 
 Run this locally to get most of the features of nbviewer on your own network.
 

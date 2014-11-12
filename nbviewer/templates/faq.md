@@ -56,8 +56,7 @@ notebook application.
 
 ### Where is this Notebook Viewer hosted?
 
-This Notebook Viewer instance is hosted on [Rackspace](http://rackspace.com), who kindly provide hosting for the IPython open source project.
-Thanks to Rackspace, we are able to operate nbconvert as a free service.
+This Notebook Viewer instance is hosted on [Rackspace](https://developer.rackspace.com/?nbviewer=awesome), who kindly provide hosting for the IPython open source project. Thanks to Rackspace, we are able to operate nbconvert as a free service.
 
 ### I want to remove/update a notebook from Notebook Viewer.
 
