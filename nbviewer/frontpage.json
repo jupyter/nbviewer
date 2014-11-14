@@ -54,7 +54,7 @@
       },
       {
         "text": "Interactive data visualization with Bokeh",
-        "target": "github/ContinuumIO/bokeh-notebooks/blob/master/index.ipynb",
+        "target": "github/bokeh/bokeh-notebooks/blob/master/index.ipynb",
         "img": "/static/img/example-nb/bokeh.png"
       },
       {
