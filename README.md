@@ -1,4 +1,5 @@
 # IPython Notebook Viewer
+[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/jupyter/nbviewer?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 IPython nbviewer is the web application behind [IPython Notebook Viewer](http://nbviewer.ipython.org), which is graciously hosted by [Rackspace](https://developer.rackspace.com/?nbviewer=awesome).
 
