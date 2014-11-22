@@ -525,7 +525,7 @@ class RenderingHandler(BaseHandler):
         # generate links to other formats
         exporter_link_base = self.request.uri
         if exporter_link_base.startswith(slash_exp(exporter)):
-            exporter_link_base = exporter_link_base.replace(slash_exp(exporter), "/")
+            exporter_link_base = exporter_link_base.replace(slash_exp(exporter), "")
 
         filtered_exporters = dict(self.filter_exporters(nb, json_notebook))
 
