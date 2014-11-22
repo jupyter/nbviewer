@@ -25,6 +25,7 @@ class SlidesGistTestCase(NBViewerTestCase):
         self.assertEqual(r.status_code, 200)
         html = r.content
         self.assertIn('/gist/minrk/7518294/Untitled0.ipynb', html)
+        self.assertNotIn('//gist/minrk/7518294/Untitled0.ipynb', html)
 
     def test_no_slides_exporter_link(self):
         url = self.url('/7518294/Untitled0.ipynb')
