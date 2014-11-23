@@ -769,13 +769,15 @@ class GitHubTreeHandler(BaseHandler):
 
         branches, tags = yield self.refs(user, repo)
 
-        for thing in branches + tags:
-            thing["url"] = "/github/{user}/{repo}/tree/{ref}/{path}".format(
-                ref=thing["name"], user=user, repo=repo, path=path
-            )
+        for nav_ref in branches + tags:
+            nav_ref["url"] = (u"/github/{user}/{repo}/tree/{ref}/{path}"
+                .format(
+                    ref=nav_ref["name"], user=user, repo=repo, path=path
+                ))
 
         if not isinstance(contents, list):
-            app_log.info("{user}/{repo}/{ref}/{path} not tree, redirecting to blob",
+            app_log.info(
+                "{user}/{repo}/{ref}/{path} not tree, redirecting to blob",
                 extra=dict(user=user, repo=repo, ref=ref, path=path)
             )
             self.redirect(
