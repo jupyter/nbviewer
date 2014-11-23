@@ -105,6 +105,15 @@
             -webkit-transition: opacity 0.5s ease-in-out;
         }
     </style>
+    <style media="screen and (max-width:767px)">
+      #menubar {
+        position: fixed;
+        opacity: 0.9;
+      }
+      #menubar .container{
+        padding: 0px 20px;
+      }
+    </style>
     {{ super() }}
 {% endblock %}
 
