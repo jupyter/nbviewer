@@ -766,8 +766,18 @@ class GitHubTreeHandler(BaseHandler):
             response = yield self.github_client.get_contents(user, repo, path, ref=ref)
 
         contents = json.loads(response_text(response))
+
+        branches, tags = yield self.refs(user, repo)
+
+        for nav_ref in branches + tags:
+            nav_ref["url"] = (u"/github/{user}/{repo}/tree/{ref}/{path}"
+                .format(
+                    ref=nav_ref["name"], user=user, repo=repo, path=path
+                ))
+
         if not isinstance(contents, list):
-            app_log.info("{user}/{repo}/{ref}/{path} not tree, redirecting to blob",
+            app_log.info(
+                "{user}/{repo}/{ref}/{path} not tree, redirecting to blob",
                 extra=dict(user=user, repo=repo, ref=ref, path=path)
             )
             self.redirect(
@@ -828,9 +838,23 @@ class GitHubTreeHandler(BaseHandler):
 
         html = self.render_template("treelist.html",
             entries=entries, breadcrumbs=breadcrumbs, github_url=github_url,
-            user=user, repo=repo, ref=ref,
+            user=user, repo=repo, ref=ref, path=path,
+            branches=branches, tags=tags
         )
         yield self.cache_and_finish(html)
+
+    @gen.coroutine
+    def refs(self, user, repo):
+        """get branches and tags for this user/repo"""
+        ref_types = ("branches", "tags")
+        ref_data = [None, None]
+
+        for i, ref_type in enumerate(ref_types):
+            with self.catch_client_error():
+                response = yield getattr(self.github_client, "get_%s" % ref_type)(user, repo)
+            ref_data[i] = json.loads(response_text(response))
+
+        raise gen.Return(ref_data)
 
 
 class GitHubBlobHandler(RenderingHandler):

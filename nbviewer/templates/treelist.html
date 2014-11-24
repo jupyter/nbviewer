@@ -1,6 +1,49 @@
 {% extends "layout.html" %}
+
+
+{% macro ref_list(ref_type, refs) %}
+    <ul class="unstyled span6">
+        <li role="presentation" class="nav-header">
+            {{ ref_type }}
+        </li>
+        {% for ref in refs %}
+            <li><a href="{{ ref.url }}">{{ ref.name }}</a></li>
+        {% endfor %}
+    </ul>
+{% endmacro %}
+
+
+{% macro ref_dropdown(current, branches, tags) -%}
+    <div class="pull-right dropdown dropdown-ref">
+        <a class="dropdown-toggle" data-toggle="dropdown">
+            {{ current }}
+        </a>
+        <div class="dropdown-menu" role="menu">
+            <div class="row-fluid">
+                {{ ref_list("branch", branches)  }}
+                {{ ref_list("tag", tags)  }}
+            </div>
+        </div>
+    </div>
+{%- endmacro %}
+
+
+{% block extra_script %}
+    {{ super() }}
+    <script src="/static/js/bootstrap-dropdown.js"></script>
+{% endblock %}
+
+
 {% block body %}
-{{ link_breadcrumbs(breadcrumbs) }}
+    <div>
+        {% if branches|length + tags|length > 1 %}
+            <div class="breadcrumb pull-right">
+                {{ ref_dropdown(ref, branches, tags) }}
+            </div>
+        {% endif %}
+        {{ link_breadcrumbs(breadcrumbs) }}
+    </div>
+
     <table class='table table-condensed table-bordered table-striped'>
             <thead>
                 <tr><th>Name</th></tr>
