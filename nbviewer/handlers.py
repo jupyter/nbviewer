@@ -770,7 +770,10 @@ class GitHubRedirectHandler(BaseHandler):
     def get(self, exporter, user, repo, app, ref, path):
         if app == 'raw':
             app = 'blob'
-        new_url = u'{exporter}/github/{user}/{repo}/{app}/{ref}/{path}'.format(**locals())
+        new_url = u'{exporter}/github/{user}/{repo}/{app}/{ref}/{path}'.format(
+            exporter=slash_exp(exporter), user=user, repo=repo, app=app,
+            ref=ref, path=path,
+        )
         app_log.info("Redirecting %s to %s", self.request.uri, new_url)
         self.redirect(new_url)
 
