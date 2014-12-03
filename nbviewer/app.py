@@ -24,9 +24,9 @@ from tornado.options import define, options
 from jinja2 import Environment, FileSystemLoader
 
 from IPython.config import Config
-from IPython.nbconvert.exporters import HTMLExporter
+from IPython.nbconvert.exporters import HTMLExporter, SlidesExporter
 
-from .handlers import handlers, LocalFileHandler
+from .handlers import handlers, exporter_handler, LocalFileHandler
 from .cache import DummyAsyncCache, AsyncMultipartMemcache, MockCache, pylibmc
 from .index import NoSearch, ElasticSearch
 
@@ -83,6 +83,7 @@ def main():
     # NBConvert config
     config = Config()
     config.HTMLExporter.template_file = 'basic'
+    config.SlidesExporter.template_file = 'slides_reveal'
     config.NbconvertApp.fileext = 'html'
     config.CSSHTMLHeaderTransformer.enabled = False
     # don't strip the files prefix - we use it for redirects
@@ -95,12 +96,21 @@ def main():
 
     # setup memcache
     mc_pool = ThreadPoolExecutor(options.mc_threads)
+    exporters = {
+        'html': {
+            'class': HTMLExporter
+        },
+        'slides': {
+            'class': SlidesExporter,
+            'test': lambda ipynb, raw: '"slideshow": ' in raw
+        }
+    }
     if options.processes:
         # can't pickle exporter instances,
-        exporter = HTMLExporter
         pool = ProcessPoolExecutor(options.processes)
     else:
-        exporter = HTMLExporter(config=config, log=log.app_log)
+        for exp_name, exporter in exporters.items():
+            exporter['class'] = exporter['class'](config=config, log=log.app_log)
         pool = ThreadPoolExecutor(options.threads)
 
     memcache_urls = os.environ.get('MEMCACHIER_SERVERS',
@@ -183,7 +193,7 @@ def main():
         static_path=static_path,
         client=client,
         github_client=github_client,
-        exporter=exporter,
+        exporters=exporters,
         config=config,
         index=indexer,
         cache=cache,
@@ -204,7 +214,7 @@ def main():
     if options.localfiles:
         log.app_log.warning("Serving local notebooks in %s, this can be a security risk", options.localfiles)
         # use absolute or relative paths:
-        handlers.insert(0, (r'/localfile/(.*)', LocalFileHandler))
+        handlers.insert(0, exporter_handler(r'/localfile/(.*)', LocalFileHandler))
 
     # load ssl options
     ssl_options = None

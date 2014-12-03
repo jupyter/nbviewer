@@ -5,9 +5,11 @@
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
+import re
+
 from tornado.log import app_log
 from IPython.nbformat.current import reads_json
-from IPython.nbconvert.exporters import Exporter
+from IPython.nbconvert.exporters import Exporter, SlidesExporter
 
 #-----------------------------------------------------------------------------
 # 
@@ -17,6 +19,8 @@ class NbFormatError(Exception):
     pass
 
 exporters = {}
+
+reveal_body = re.compile(r'.*<body>(.*)<script[^>]+head.min.*', flags=re.MULTILINE | re.DOTALL)
 
 def render_notebook(exporter, nb, url=None, forced_theme=None, config=None):
     if not isinstance(exporter, Exporter):
@@ -51,9 +55,12 @@ def render_notebook(exporter, nb, url=None, forced_theme=None, config=None):
         name = name + ".ipynb"
     
     html, resources = exporter.from_notebook_node(nb)
+    
+    if isinstance(exporter, SlidesExporter):
+        html = reveal_body.sub('\\1', html)
 
     config = {
-            'download_name': name,
-            'css_theme': css_theme,
-            }
+        'download_name': name,
+        'css_theme': css_theme,
+    }
     return html, config
