@@ -92,9 +92,7 @@
       <div class="navbar-inner">
         <div class="container">
           <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
+            <span class="fa fa-bars"></span>
           </button>
           <div class="nav-collapse collapse">
             <ul class="nav">
@@ -109,7 +107,9 @@
             <ul class="nav pull-right"> 
               {% if github_url %}
               <li>
-                  <a href="{{github_url}}">View on GitHub</a>
+                  <a href="{{github_url}}" title="View on GitHub">
+                    <i class="fa fa-github fa-2x menu-icon"></i>
+                  </a>
               </li>
               {% endif %}
               {% block otherlinks %}

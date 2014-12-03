@@ -51,20 +51,22 @@
             <tbody>
                 <tr><td>
                 {% if len(breadcrumbs) > 1 %}
-                    <a href='../'><i class='icon-backward'></i> ..</a>
+                    <a href='../'>
+                      <i class='fa fa-backward fa-fw'></i> ..
+                    </a>
                 {% else %}
                   <a href='/{{ tree_type | default('github') }}/{{user}}'>
-                    <i class='icon-backward'></i>
-                    {{user}}'s {{ tree_type | default('repositorie')}}s
+                    <i class='fa fa-backward fa-fw'></i> {{user}}'s 
+                    {{ tree_type | default('repositorie')}}s
                   </a>
                 {% endif %}
                 </td></tr>
                 {% for entry in entries %}
-                  <tr><td><i class='{{entry.class}}'></i>
+                  <tr><td>
                   {% if entry.url %}
                     <a href='{{entry.url}}'>
                   {% endif %}
-                      {{entry.name}}
+                    <i class='fa fa-fw {{entry.class}}'></i> {{entry.name}}
                   {% if entry.url %}
                     </a>
                   {% endif %}
