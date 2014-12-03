@@ -26,11 +26,11 @@ from .utils import url_path_join, quote, response_text
 
 class AsyncGitHubClient(object):
     """AsyncHTTPClient wrapper with methods for common requests"""
-    github_api_url = 'https://api.github.com/'
     auth = None
     
     def __init__(self, client=None):
         self.client = client or AsyncHTTPClient()
+        self.github_api_url = os.environ.get('GITHUB_API_URL', 'https://api.github.com/')
         self.authenticate()
     
     def authenticate(self):
@@ -44,7 +44,8 @@ class AsyncGitHubClient(object):
     def fetch(self, url, callback=None, params=None, **kwargs):
         """Add GitHub auth to self.client.fetch"""
         host = urlparse(url).hostname
-        if not ('.' + host).endswith('.github.com'):
+
+        if not url.startswith(self.github_api_url):
             raise ValueError(
                 "Only fetch GitHub urls with GitHub auth (%s)" % url
             )

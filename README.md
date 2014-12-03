@@ -21,10 +21,25 @@ For speed and friendliness to GitHub, be sure to set `GITHUB_OAUTH_KEY` and `GIT
 ```
 $ docker run -p 8080:8080 -e 'GITHUB_OAUTH_KEY=YOURKEY' \
                           -e 'GITHUB_OAUTH_SECRET=YOURSECRET' \
-                          ipython/nbviewer 
+                          ipython/nbviewer
 ```
 
 Or to use your GitHub personal access token, you can set just `GITHUB_API_TOKEN`.
+
+## GitHub Enterprise
+
+To use nbviewer on against your own GitHub Enterprise instance you need to set `GITHUB_API_URL`.
+The relevant [API endpoints for GitHub Enterprise](https://developer.github.com/v3/enterprise/) are prefixed with `http://hostname/api/v3`.
+You must also specify your `OAUTH` or `API_TOKEN` as explained above.  For example:
+
+```
+$ docker run -p 8080:8080 -e 'GITHUB_OAUTH_KEY=YOURKEY' \
+                          -e 'GITHUB_OAUTH_SECRET=YOURSECRET' \
+                          -e 'GITHUB_API_URL=https://ghe.example.com/api/v3/' \
+                          ipython/nbviewer
+```
+
+With this configured all GitHub API requests will go to you Enterprise instance so you can view all of your internal notebooks.
 
 ## Local Development
 
@@ -60,4 +75,3 @@ $ python -m nbviewer --debug --no-cache
 ```
 
 This will automatically relaunch the server if a change is detected on a python file, and not cache any results. You can then just do the modifications you like to the source code and/or the templates then refresh the pages.
-
