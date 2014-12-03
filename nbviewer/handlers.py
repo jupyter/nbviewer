@@ -662,7 +662,7 @@ class GistHandler(RenderingHandler):
                 e['name'] = file['filename']
                 if file['filename'].endswith('.ipynb'):
                     e['url'] = quote('/%s/%s' % (gist_id, file['filename']))
-                    e['class'] = 'icon-book'
+                    e['class'] = 'fa-book'
                     ipynbs.append(e)
                 else:
                     github_url = u"https://gist.github.com/{user}/{gist_id}#file-{clean_name}".format(
@@ -671,7 +671,7 @@ class GistHandler(RenderingHandler):
                         clean_name=clean_filename(file['filename']),
                     )
                     e['url'] = github_url
-                    e['class'] = 'icon-share'
+                    e['class'] = 'fa-share'
                     others.append(e)
 
             entries.extend(ipynbs)
@@ -812,23 +812,23 @@ class GitHubTreeHandler(BaseHandler):
                 user=user, repo=repo, ref=ref, path=file['path']
                 )
                 e['url'] = quote(e['url'])
-                e['class'] = 'icon-folder-open'
+                e['class'] = 'fa-folder-open'
                 dirs.append(e)
             elif file['name'].endswith('.ipynb'):
                 e['url'] = u'/github/{user}/{repo}/blob/{ref}/{path}'.format(
                 user=user, repo=repo, ref=ref, path=file['path']
                 )
                 e['url'] = quote(e['url'])
-                e['class'] = 'icon-book'
+                e['class'] = 'fa-book'
                 ipynbs.append(e)
             elif file['html_url']:
                 e['url'] = file['html_url']
-                e['class'] = 'icon-share'
+                e['class'] = 'fa-share'
                 others.append(e)
             else:
                 # submodules don't have html_url
                 e['url'] = ''
-                e['class'] = 'icon-folder-close'
+                e['class'] = 'fa-folder-close'
                 others.append(e)
 
 

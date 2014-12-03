@@ -12,21 +12,21 @@
 {% block entries %}
 {% for entry in entries %}
   {% block entry scoped %}
-  <tr><td><i class='{{entry.class}}'></i> <a href='{{entry.url}}'>{{entry.name}}</a></td></tr>
+  <tr><td><a href='{{entry.url}}'><i class='fa {{entry.class}} fa-fw'></i> {{entry.name}}</a></td></tr>
   {% endblock entry %}
 {% endfor %}
 {% endblock entries %}
 {% block page_links %}
   {% if prev_url or next_url %}
-  <tr><td class="page_links">
+  <tr><td class="page_links" colspan="4">
     {% if prev_url %}
-    <a href="{{prev_url}}">&lt; prev </a>
+    <a href="{{prev_url}}"><i class="fa fa-fw fa-angle-left"></i> prev</a>
     {% endif %}
     {% if next_url and prev_url %}
-    ...
+    &nbsp;...&nbsp;
     {% endif %}
     {% if next_url %}
-    <a href="{{next_url}}">next &gt;</a>
+    <a href="{{next_url}}">next <i class="fa fa-fw fa-angle-right"></i></a>
     {% endif %}
   </td></tr>
   {% endif %}

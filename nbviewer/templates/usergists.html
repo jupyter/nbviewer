@@ -8,10 +8,12 @@
 {% endblock header_row %}
 {% block entry scoped %}
 <tr>
-  <td><i class='icon-book'></i> &nbsp;<a href='{{entry.id}}'>{{entry.id}}</a></td>
+  <td><a href='{{entry.id}}'>{{entry.id}}</a></td>
   <td>
     {% for notebook in entry.notebooks %}
-    <a href='{{entry.id}}/{{notebook}}'>{{notebook}}</a>
+    <a href='{{entry.id}}/{{notebook}}'>
+      <i class='fa fa-fw fa-book'></i> {{notebook}}
+    </a>
     {% endfor %}
   </td>
   <td>
