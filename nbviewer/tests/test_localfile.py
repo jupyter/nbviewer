@@ -9,7 +9,7 @@ import requests
 import sys
 from nbviewer.utils import url_path_join
 
-from .base import NBViewerTestCase
+from .base import NBViewerTestCase, FormatHTMLMixin
 
 class LocalFileDefaultTestCase(NBViewerTestCase):
     @classmethod
@@ -25,6 +25,12 @@ class LocalFileDefaultTestCase(NBViewerTestCase):
         url = self.url('localfile/nbviewer/tests/notebook.ipynb')
         r = requests.get(url)
         self.assertEqual(r.status_code, 200)
+
+
+class FormatHTMLLocalFileDefaultTestCase(LocalFileDefaultTestCase, 
+                                         FormatHTMLMixin):
+    pass
+
 
 class LocalFileRelativePathTestCase(NBViewerTestCase):
     @classmethod
@@ -47,3 +53,7 @@ class LocalFileRelativePathTestCase(NBViewerTestCase):
         r = requests.get(url)
         self.assertEqual(r.status_code, 404)
 
+
+class FormatHTMLLocalFileRelativePathTestCase(LocalFileRelativePathTestCase,
+                                           FormatHTMLMixin):
+    pass

@@ -26,7 +26,7 @@ from jinja2 import Environment, FileSystemLoader
 from IPython.config import Config
 from IPython.nbconvert.exporters import HTMLExporter
 
-from .handlers import handlers, LocalFileHandler
+from .handlers import handlers, LocalFileHandler, exp_re
 from .cache import DummyAsyncCache, AsyncMultipartMemcache, MockCache, pylibmc
 from .index import NoSearch, ElasticSearch
 
@@ -78,6 +78,7 @@ def main():
     define("frontpage", default=FRONTPAGE_JSON, help="path to json file containing frontpage content", type=str)
     define("sslcert", help="path to ssl .crt file", type=str)
     define("sslkey", help="path to ssl .key file", type=str)
+    define("default_exporter", default="html", help="exporter to use for legacy / URLs", type=str)
     tornado.options.parse_command_line()
 
     # NBConvert config
@@ -95,12 +96,17 @@ def main():
 
     # setup memcache
     mc_pool = ThreadPoolExecutor(options.mc_threads)
+    exporters = {
+        'html': {
+            'class': HTMLExporter
+        }
+    }
     if options.processes:
         # can't pickle exporter instances,
-        exporter = HTMLExporter
         pool = ProcessPoolExecutor(options.processes)
     else:
-        exporter = HTMLExporter(config=config, log=log.app_log)
+        for exp_name, exporter in exporters.items():
+            exporter['class'] = exporter['class'](config=config, log=log.app_log)
         pool = ThreadPoolExecutor(options.threads)
 
     memcache_urls = os.environ.get('MEMCACHIER_SERVERS',
@@ -183,7 +189,8 @@ def main():
         static_path=static_path,
         client=client,
         github_client=github_client,
-        exporter=exporter,
+        exporters=exporters,
+        default_exporter=options.default_exporter,
         config=config,
         index=indexer,
         cache=cache,
@@ -204,7 +211,7 @@ def main():
     if options.localfiles:
         log.app_log.warning("Serving local notebooks in %s, this can be a security risk", options.localfiles)
         # use absolute or relative paths:
-        handlers.insert(0, (r'/localfile/(.*)', LocalFileHandler))
+        handlers.insert(0, (exp_re + r'/localfile/(.*)', LocalFileHandler))
 
     # load ssl options
     ssl_options = None

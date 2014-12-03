@@ -7,7 +7,7 @@
 
 import requests
 
-from .base import NBViewerTestCase
+from .base import NBViewerTestCase, FormatHTMLMixin
 
 class URLTestCase(NBViewerTestCase):
     def test_url(self):
@@ -16,3 +16,6 @@ class URLTestCase(NBViewerTestCase):
         self.assertEqual(r.status_code, 200)
         self.assertIn('Download Notebook', r.text)
 
+
+class FormatHTMLURLTestCase(URLTestCase, FormatHTMLMixin):
+    pass
