@@ -1,0 +1,34 @@
+{% extends "layout.html" %}
+
+{% block extra_head %}
+<style>
+    
+.marketing p {
+    white-space: nowrap;
+}
+
+</style>
+{% endblock %}
+
+{% block body %}
+
+
+  {% for section in sections %}
+  <h3 id="{{section.header}}" class="section-heading">{{section.header}}</h3>
+    <div class="marketing">
+      <ul class="thumbnails example-sites">
+        {% for link in section.links %}
+        <li class="span4">
+        <p class="marketing-byline">{{link.text}}</p>
+        <a class="thumbnail" href="{{link.target}}" target="_blank">
+            <img src="{{link.img}}" >
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endfor %}
+
+
+
+{% endblock %}

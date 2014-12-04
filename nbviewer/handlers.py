@@ -362,6 +362,11 @@ class IndexHandler(BaseHandler):
     def get(self):
         self.finish(self.render_template('index.html', sections=self.frontpage_sections))
 
+class FeaturedHandler(BaseHandler):
+    """Render all the featured notebooks thumbnais"""
+    def get(self):
+        self.finish(self.render_template('featured.html', sections=self.frontpage_sections))
+
 
 class FAQHandler(BaseHandler):
     """Render the markdown FAQ page"""
@@ -993,6 +998,7 @@ class LocalFileHandler(RenderingHandler):
 handlers = [
     ('/', IndexHandler),
     ('/index.html', IndexHandler),
+    ('/featured', FeaturedHandler),
     (r'/faq/?', FAQHandler),
     (r'/create/?', CreateHandler),
     (r'/ipython-static/(.*)', web.StaticFileHandler, dict(path=ipython_static_path)),
