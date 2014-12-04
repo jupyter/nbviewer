@@ -98,20 +98,24 @@ def main():
     mc_pool = ThreadPoolExecutor(options.mc_threads)
 
     """
-    add a key from `exporter_map` to enable. exporter will be added.
-    - test: conditionally offer a format based on content,
-             see `RenderingHandler.filter_exporters`
+    - exporter: an Exporter subclass.
+        if using one of nbconvert.export.exporter_map, 
+        it will be added automatically
+    - test: a function(notebook_object, notebook_json)
+        conditionally offer a format based on content if truthy. see
+        `RenderingHandler.filter_exporters`
     """
     formats = {
-        'html': {}
+        'html': {},
     }
     
     for key, format in formats.items():
+        exporter_cls = format.get("exporter", exporter_map[key])
         if options.processes:
             # can't pickle exporter instances,
-            formats[key]["exporter"] = exporter_map[key]
+            formats[key]["exporter"] = exporter_cls
         else:
-            formats[key]["exporter"] = exporter_map[key](
+            formats[key]["exporter"] = exporter_cls(
                 config=config,
                 log=log.app_log
             )
