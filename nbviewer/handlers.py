@@ -723,7 +723,7 @@ class GistHandler(RenderingHandler):
 class GistRedirectHandler(BaseHandler):
     """redirect old /<gist-id> to new /gist/<gist-id>"""
     def get(self, gist_id, file=''):
-        new_url = '%s/gist/%s' % (self.exp_prefix, gist_id)
+        new_url = '%s/gist/%s' % (self.format_prefix, gist_id)
         if file:
             new_url = "%s/%s" % (new_url, file)
 
@@ -786,7 +786,7 @@ class GitHubUserHandler(BaseHandler):
 class GitHubRepoHandler(BaseHandler):
     """redirect /github/user/repo to .../tree/master"""
     def get(self, user, repo):
-        self.redirect("%s/github/%s/%s/tree/master/" % (self.exp_prefix, user, repo))
+        self.redirect("%s/github/%s/%s/tree/master/" % (self.format_prefix, user, repo))
 
 
 class GitHubTreeHandler(BaseHandler):
