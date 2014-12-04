@@ -207,13 +207,12 @@ def main():
         ),
     )
 
+    # handle handlers
     handlers = init_handlers(exporters)
-
-    # create and start the app
     if options.localfiles:
         log.app_log.warning("Serving local notebooks in %s, this can be a security risk", options.localfiles)
         # use absolute or relative paths:
-        local_handlers = (r'/localfile/(.*)', LocalFileHandler)
+        local_handlers = [(r'/localfile/(.*)', LocalFileHandler)]
         handlers = (
             local_handlers +
             format_providers(exporters, local_handlers) +
@@ -228,6 +227,7 @@ def main():
             'keyfile' : options.sslkey,
         }
 
+    # create and start the app
     app = web.Application(handlers, debug=options.debug, **settings)
     http_server = httpserver.HTTPServer(app, xheaders=True, ssl_options=ssl_options)
     log.app_log.info("Listening on port %i", options.port)
