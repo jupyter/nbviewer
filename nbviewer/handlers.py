@@ -48,31 +48,16 @@ from .utils import (transform_ipynb_uri, quote, response_text, base64_decode,
 date_fmt = "%a, %d %b %Y %H:%M:%S UTC"
 exporter_prefix = "format/"
 
-
-def slash_exp(exporter):
-    """
-    prefix an URL with the given exporter
-    """
-    if exporter:
-        return "/%s%s" % (exporter_prefix, exporter)
-    return ""
-
-
-def remove_exp(url, exporter):
-    """
-    remove an exporter prefix from a url
-    """
-    prefix = slash_exp(exporter)
-    if url.startswith(prefix):
-        url = url.replace(prefix, "")
-    return url
-
 #-----------------------------------------------------------------------------
 # Handler classes
 #-----------------------------------------------------------------------------
 
 class BaseHandler(web.RequestHandler):
     """Base Handler class with common utilities"""
+
+    def initialize(self, exporter=None, exp_prefix=""):
+        self.exporter = exporter or self.default_exporter
+        self.exp_prefix = exp_prefix
 
     @property
     def pending(self):
@@ -464,7 +449,8 @@ class RenderingHandler(BaseHandler):
         """0 render_timeout means never finish early"""
         return self.settings.setdefault('render_timeout', 0)
 
-    def initialize(self):
+    def initialize(self, **kwargs):
+        super(RenderingHandler, self).initialize(**kwargs)
         loop = IOLoop.current()
         if self.render_timeout:
             self.slow_timeout = loop.add_timeout(
@@ -545,15 +531,15 @@ class RenderingHandler(BaseHandler):
             app_log.debug("Finished render of %s", download_url)
 
         # generate links to other formats
-        exporter_link_base = remove_exp(self.request.uri, exporter)
+        exporter_link_base = self.request.uri.replace(self.exp_prefix, "")
         exporters = dict(self.filter_exporters(nb, json_notebook))
 
         html = self.render_template("exporters/%s.html" % exporter,
             body=nbhtml,
             download_url=download_url,
             home_url=home_url,
-            exporter=exporter,
-            exporters=exporters,
+            exporter=self.exporter,
+            exporters=exporters,format_providers
             exporter_prefix=exporter_prefix,
             exporter_link_base=exporter_link_base,
             date=datetime.utcnow().strftime(date_fmt),
@@ -582,7 +568,7 @@ class URLHandler(RenderingHandler):
     """Renderer for /url or /urls"""
     @cached
     @gen.coroutine
-    def get(self, exporter, secure, url):
+    def get(self, secure, url):
         proto = 'http' + secure
 
         if '/?' in url:
@@ -614,7 +600,7 @@ class URLHandler(RenderingHandler):
                                    msg="file from url: %s" % remote_url,
                                    public=True,
                                    request=self.request,
-                                   exporter=exporter)
+                                   exporter=self.exporter)
 
 
 class UserGistsHandler(BaseHandler):
@@ -624,7 +610,7 @@ class UserGistsHandler(BaseHandler):
     """
     @cached
     @gen.coroutine
-    def get(self, exporter, user):
+    def get(self, user):
         page = self.get_argument("page", None)
         params = {}
         if page:
@@ -657,7 +643,7 @@ class GistHandler(RenderingHandler):
     """render a gist notebook, or list files if a multifile gist"""
     @cached
     @gen.coroutine
-    def get(self, exporter, user, gist_id, filename=''):
+    def get(self, user, gist_id, filename=''):
         with self.catch_client_error():
             response = yield self.github_client.get_gist(gist_id)
 
@@ -671,7 +657,7 @@ class GistHandler(RenderingHandler):
             else:
                 user = 'anonymous'
             new_url = u"{exporter}/gist/{user}/{gist_id}".format(
-                exporter=slash_exp(exporter), user=user, gist_id=gist_id)
+                exporter=self.exp_prefix, user=user, gist_id=gist_id)
             if filename:
                 new_url = new_url + "/" + filename
             self.redirect(new_url)
@@ -699,7 +685,7 @@ class GistHandler(RenderingHandler):
                     home_url=gist['html_url'],
                     msg="gist: %s" % gist_id,
                     public=gist['public'],
-                    exporter=exporter,
+                    exporter=self.exporter,
                     request=self.request
                 )
             else:
@@ -746,8 +732,8 @@ class GistHandler(RenderingHandler):
 
 class GistRedirectHandler(BaseHandler):
     """redirect old /<gist-id> to new /gist/<gist-id>"""
-    def get(self, exporter, gist_id, file=''):
-        new_url = '%s/gist/%s' % (slash_exp(exporter), gist_id)
+    def get(self, gist_id, file=''):
+        new_url = '%s/gist/%s' % (self.exp_prefix, gist_id)
         if file:
             new_url = "%s/%s" % (new_url, file)
 
@@ -757,9 +743,9 @@ class GistRedirectHandler(BaseHandler):
 
 class RawGitHubURLHandler(BaseHandler):
     """redirect old /urls/raw.github urls to /github/ API urls"""
-    def get(self, exporter, user, repo, path):
+    def get(self, user, repo, path):
         new_url = u'{exporter}/github/{user}/{repo}/blob/{path}'.format(
-            exporter=slash_exp(exporter), user=user, repo=repo, path=path,
+            exporter=self.exp_prefix, user=user, repo=repo, path=path,
         )
         app_log.info("Redirecting %s to %s", self.request.uri, new_url)
         self.redirect(new_url)
@@ -767,11 +753,11 @@ class RawGitHubURLHandler(BaseHandler):
 
 class GitHubRedirectHandler(BaseHandler):
     """redirect github blob|tree|raw urls to /github/ API urls"""
-    def get(self, exporter, user, repo, app, ref, path):
+    def get(self, user, repo, app, ref, path):
         if app == 'raw':
             app = 'blob'
         new_url = u'{exporter}/github/{user}/{repo}/{app}/{ref}/{path}'.format(
-            exporter=slash_exp(exporter), user=user, repo=repo, app=app,
+            exporter=self.exp_prefix, user=user, repo=repo, app=app,
             ref=ref, path=path,
         )
         app_log.info("Redirecting %s to %s", self.request.uri, new_url)
@@ -782,7 +768,7 @@ class GitHubUserHandler(BaseHandler):
     """list a user's github repos"""
     @cached
     @gen.coroutine
-    def get(self, exporter, user):
+    def get(self, user):
         page = self.get_argument("page", None)
         params = {'sort' : 'updated'}
         if page:
@@ -809,15 +795,15 @@ class GitHubUserHandler(BaseHandler):
 
 class GitHubRepoHandler(BaseHandler):
     """redirect /github/user/repo to .../tree/master"""
-    def get(self, exporter, user, repo):
-        self.redirect("%s/github/%s/%s/tree/master/" % (slash_exp(exporter), user, repo))
+    def get(self, user, repo):
+        self.redirect("%s/github/%s/%s/tree/master/" % (self.exp_prefix, user, repo))
 
 
 class GitHubTreeHandler(BaseHandler):
     """list files in a github repo (like github tree)"""
     @cached
     @gen.coroutine
-    def get(self, exporter, user, repo, ref, path):
+    def get(self, user, repo, ref, path):
         if not self.request.uri.endswith('/'):
             self.redirect(self.request.uri + '/')
             return
@@ -838,11 +824,11 @@ class GitHubTreeHandler(BaseHandler):
         if not isinstance(contents, list):
             app_log.info(
                 "{exporter}/{user}/{repo}/{ref}/{path} not tree, redirecting to blob",
-                extra=dict(exporter=slash_exp(exporter), user=user, repo=repo, ref=ref, path=path)
+                extra=dict(exporter=self.exp_prefix, user=user, repo=repo, ref=ref, path=path)
             )
             self.redirect(
                 u"{exporter}/github/{user}/{repo}/blob/{ref}/{path}".format(
-                    exporter=slash_exp(exporter), user=user, repo=repo, ref=ref, path=path,
+                    exporter=self.exp_prefix, user=user, repo=repo, ref=ref, path=path,
                 )
             )
             return
@@ -928,7 +914,7 @@ class GitHubBlobHandler(RenderingHandler):
     """
     @cached
     @gen.coroutine
-    def get(self, exporter, user, repo, ref, path):
+    def get(self, user, repo, ref, path):
         raw_url = u"https://raw.githubusercontent.com/{user}/{repo}/{ref}/{path}".format(
             user=user, repo=repo, ref=ref, path=quote(path)
         )
@@ -986,7 +972,7 @@ class GitHubBlobHandler(RenderingHandler):
                 breadcrumbs=breadcrumbs,
                 msg="file from GitHub: %s" % raw_url,
                 public=True,
-                exporter=exporter,
+                exporter=self.exporter,
                 request=self.request
             )
         else:
@@ -1030,7 +1016,7 @@ class LocalFileHandler(RenderingHandler):
     """
     @cached
     @gen.coroutine
-    def get(self, exporter, path):
+    def get(self, path):
         abspath = os.path.join(
             self.settings.get('localfile_path', ''),
             path,
@@ -1046,7 +1032,7 @@ class LocalFileHandler(RenderingHandler):
         yield self.finish_notebook(nbdata, download_url=path,
                                    msg="file from localfile: %s" % path,
                                    public=False,
-                                   exporter=exporter,
+                                   exporter=self.exporter,
                                    request=self.request)
 
 
@@ -1054,37 +1040,58 @@ class LocalFileHandler(RenderingHandler):
 # Default handler URL mapping
 #-----------------------------------------------------------------------------
 
-exp_re = '(?:(?:/' + exporter_prefix + ')([^\/]+))?'
+def format_providers(exporters, providers):
+    return [
+        (prefix + url, handler, {
+            "exporter": exporter,
+            "exp_prefix": prefix
+        })
+        for exporter in exporters
+        for url, handler in providers
+        for prefix in [exporter_prefix + exporter]
+    ]
 
-handlers = [
-    ('/', IndexHandler),
-    ('/index.html', IndexHandler),
-    (r'/faq/?', FAQHandler),
-    (r'/create/?', CreateHandler),
-    (r'/ipython-static/(.*)', web.StaticFileHandler, dict(path=ipython_static_path)),
+def init_handlers(exporters):
+    pre_providers = [
+        ('/', IndexHandler),
+        ('/index.html', IndexHandler),
+        (r'/faq/?', FAQHandler),
+        (r'/create/?', CreateHandler),
+        (r'/ipython-static/(.*)', web.StaticFileHandler, dict(path=ipython_static_path)),
 
-    # don't let super old browsers request data-uris
-    (r'.*/data:.*;base64,.*', Custom404),
+        # don't let super old browsers request data-uris
+        (r'.*/data:.*;base64,.*', Custom404),
+    ]
 
-    (exp_re + r'/url[s]?/github\.com/([^\/]+)/([^\/]+)/(tree|blob|raw)/([^\/]+)/(.*)', GitHubRedirectHandler),
-    (exp_re + r'/url[s]?/raw\.?github(?:usercontent)?\.com/([^\/]+)/([^\/]+)/(.*)', RawGitHubURLHandler),
-    (exp_re + r'/url([s]?)/(.*)', URLHandler),
+    post_providers = [
+        (r'/(robots\.txt|favicon\.ico)', web.StaticFileHandler),
+        (r'.*', Custom404),
+    ]
 
-    (exp_re + r'/github/([^\/]+)', AddSlashHandler),
-    (exp_re + r'/github/([^\/]+)/', GitHubUserHandler),
-    (exp_re + r'/github/([^\/]+)/([^\/]+)', AddSlashHandler),
-    (exp_re + r'/github/([^\/]+)/([^\/]+)/', GitHubRepoHandler),
-    (exp_re + r'/github/([^\/]+)/([^\/]+)/blob/([^\/]+)/(.*)/', RemoveSlashHandler),
-    (exp_re + r'/github/([^\/]+)/([^\/]+)/blob/([^\/]+)/(.*)', GitHubBlobHandler),
-    (exp_re + r'/github/([^\/]+)/([^\/]+)/tree/([^\/]+)', AddSlashHandler),
-    (exp_re + r'/github/([^\/]+)/([^\/]+)/tree/([^\/]+)/(.*)', GitHubTreeHandler),
+    providers = [
+        (r'/url[s]?/github\.com/([^\/]+)/([^\/]+)/(tree|blob|raw)/([^\/]+)/(.*)', GitHubRedirectHandler),
+        (r'/url[s]?/raw\.?github(?:usercontent)?\.com/([^\/]+)/([^\/]+)/(.*)', RawGitHubURLHandler),
+        (r'/url([s]?)/(.*)', URLHandler),
 
-    (exp_re + r'/gist/([^\/]+/)?([0-9]+|[0-9a-f]{20})', GistHandler),
-    (exp_re + r'/gist/([^\/]+/)?([0-9]+|[0-9a-f]{20})/(?:files/)?(.*)', GistHandler),
-    (exp_re + r'/([0-9]+|[0-9a-f]{20})', GistRedirectHandler),
-    (exp_re + r'/([0-9]+|[0-9a-f]{20})/(.*)', GistRedirectHandler),
-    (exp_re + r'/gist/([^\/]+)/?', UserGistsHandler),
-    (r'/(robots\.txt|favicon\.ico)', web.StaticFileHandler),
+        (r'/github/([^\/]+)', AddSlashHandler),
+        (r'/github/([^\/]+)/', GitHubUserHandler),
+        (r'/github/([^\/]+)/([^\/]+)', AddSlashHandler),
+        (r'/github/([^\/]+)/([^\/]+)/', GitHubRepoHandler),
+        (r'/github/([^\/]+)/([^\/]+)/blob/([^\/]+)/(.*)/', RemoveSlashHandler),
+        (r'/github/([^\/]+)/([^\/]+)/blob/([^\/]+)/(.*)', GitHubBlobHandler),
+        (r'/github/([^\/]+)/([^\/]+)/tree/([^\/]+)', AddSlashHandler),
+        (r'/github/([^\/]+)/([^\/]+)/tree/([^\/]+)/(.*)', GitHubTreeHandler),
 
-    (r'.*', Custom404),
-]
+        (r'/gist/([^\/]+/)?([0-9]+|[0-9a-f]{20})', GistHandler),
+        (r'/gist/([^\/]+/)?([0-9]+|[0-9a-f]{20})/(?:files/)?(.*)', GistHandler),
+        (r'/([0-9]+|[0-9a-f]{20})', GistRedirectHandler),
+        (r'/([0-9]+|[0-9a-f]{20})/(.*)', GistRedirectHandler),
+        (r'/gist/([^\/]+)/?', UserGistsHandler),
+    ]
+
+    return (
+        pre_providers +
+        providers + 
+        format_providers(exporters, providers) + 
+        post_providers
+    )

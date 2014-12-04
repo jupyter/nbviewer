@@ -26,7 +26,7 @@ from jinja2 import Environment, FileSystemLoader
 from IPython.config import Config
 from IPython.nbconvert.exporters import HTMLExporter
 
-from .handlers import handlers, LocalFileHandler, exp_re
+from .handlers import init_handlers, format_providers, LocalFileHandler
 from .cache import DummyAsyncCache, AsyncMultipartMemcache, MockCache, pylibmc
 from .index import NoSearch, ElasticSearch
 
@@ -207,11 +207,18 @@ def main():
         ),
     )
 
+    handlers = init_handlers(exporters)
+
     # create and start the app
     if options.localfiles:
         log.app_log.warning("Serving local notebooks in %s, this can be a security risk", options.localfiles)
         # use absolute or relative paths:
-        handlers.insert(0, (exp_re + r'/localfile/(.*)', LocalFileHandler))
+        local_handlers = (r'/localfile/(.*)', LocalFileHandler)
+        handlers = (
+            local_handlers +
+            format_providers(exporters, local_handlers) +
+            handlers
+        )
 
     # load ssl options
     ssl_options = None
