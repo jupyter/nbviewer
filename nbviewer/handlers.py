@@ -46,7 +46,7 @@ from .utils import (transform_ipynb_uri, quote, response_text, base64_decode,
                     parse_header_links, clean_filename)
 
 date_fmt = "%a, %d %b %Y %H:%M:%S UTC"
-exporter_prefix = "/format/"
+format_prefix = "/format/"
 
 #-----------------------------------------------------------------------------
 # Handler classes
@@ -55,21 +55,21 @@ exporter_prefix = "/format/"
 class BaseHandler(web.RequestHandler):
     """Base Handler class with common utilities"""
 
-    def initialize(self, exporter=None, exp_prefix=""):
-        self.exporter = exporter or self.default_exporter
-        self.exp_prefix = exp_prefix
+    def initialize(self, format=None, format_prefix=""):
+        self.format = format or self.default_format
+        self.format_prefix = format_prefix
 
     @property
     def pending(self):
         return self.settings.setdefault('pending', set())
 
     @property
-    def exporters(self):
-        return self.settings['exporters']
+    def formats(self):
+        return self.settings['formats']
 
     @property
-    def default_exporter(self):
-        return self.settings['default_exporter']
+    def default_format(self):
+        return self.settings['default_format']
 
     @property
     def github_client(self):
@@ -473,23 +473,23 @@ class RenderingHandler(BaseHandler):
         # short circuit some methods because the rest of the rendering will still happen
         self.write = self.finish = self.redirect = lambda chunk=None: None
 
-    def filter_exporters(self, nb, raw):
-        """Generate a list of exporters that can render the given nb json
+    def filter_formats(self, nb, raw):
+        """Generate a list of formats that can render the given nb json
 
-        exporters that do not provide a `test` method are assumed to work for
+        formats that do not provide a `test` method are assumed to work for
         any notebook
         """
-        for name, exporter in self.exporters.items():
-            test = exporter.get("test", None)
+        for name, format in self.formats.items():
+            test = format.get("test", None)
             try:
-                if (not test) or test(nb, raw):
-                    yield (name, exporter)
+                if test is None or test(nb, raw):
+                    yield (name, format)
             except Exception as err:
                 app_log.info("failed to test %s: %s", self.request.uri, name)
 
     @gen.coroutine
     def finish_notebook(self, json_notebook, download_url, home_url=None, msg=None,
-                        breadcrumbs=None, public=False, exporter=None, request=None):
+                        breadcrumbs=None, public=False, format=None, request=None):
         """render a notebook from its JSON body.
 
         download_url is required, home_url is not.
@@ -510,8 +510,8 @@ class RenderingHandler(BaseHandler):
             app_log.debug("Requesting render of %s", download_url)
             with self.time_block("Rendered %s" % download_url):
                 app_log.info("rendering %d B notebook from %s", len(json_notebook), download_url)
-                nbhtml, config = yield self.pool.submit(
-                    render_notebook, self.exporters[exporter]["class"], nb, download_url,
+                nbhtml, config = yield self.pool.submit(render_notebook,
+                    self.formats[format]["exporter"], nb, download_url,
                     config=self.config,
                 )
         except NbFormatError as e:
@@ -523,18 +523,15 @@ class RenderingHandler(BaseHandler):
         else:
             app_log.debug("Finished render of %s", download_url)
 
-        # generate links to other formats
-        exporter_link_base = self.request.uri.replace(self.exp_prefix, "")
-        exporters = dict(self.filter_exporters(nb, json_notebook))
-
-        html = self.render_template("exporters/%s.html" % exporter,
+        html = self.render_template(
+            "formats/%s.html" % format,
             body=nbhtml,
             download_url=download_url,
             home_url=home_url,
-            exporter=self.exporter,
-            exporters=exporters,
-            exporter_prefix=exporter_prefix,
-            exporter_link_base=exporter_link_base,
+            format=self.format,
+            format_prefix=self.format_prefix,
+            formats=dict(self.filter_formats(nb, json_notebook)),
+            format_base=self.request.uri.replace(self.format_prefix, ""),
             date=datetime.utcnow().strftime(date_fmt),
             breadcrumbs=breadcrumbs,
             **config)
@@ -593,7 +590,7 @@ class URLHandler(RenderingHandler):
                                    msg="file from url: %s" % remote_url,
                                    public=True,
                                    request=self.request,
-                                   exporter=self.exporter)
+                                   format=self.format)
 
 
 class UserGistsHandler(BaseHandler):
@@ -649,8 +646,8 @@ class GistHandler(RenderingHandler):
                 user = owner_dict['login']
             else:
                 user = 'anonymous'
-            new_url = u"{exporter}/gist/{user}/{gist_id}".format(
-                exporter=self.exp_prefix, user=user, gist_id=gist_id)
+            new_url = u"{format}/gist/{user}/{gist_id}".format(
+                format=self.format_prefix, user=user, gist_id=gist_id)
             if filename:
                 new_url = new_url + "/" + filename
             self.redirect(new_url)
@@ -678,7 +675,7 @@ class GistHandler(RenderingHandler):
                     home_url=gist['html_url'],
                     msg="gist: %s" % gist_id,
                     public=gist['public'],
-                    exporter=self.exporter,
+                    format=self.format,
                     request=self.request
                 )
             else:
@@ -737,8 +734,8 @@ class GistRedirectHandler(BaseHandler):
 class RawGitHubURLHandler(BaseHandler):
     """redirect old /urls/raw.github urls to /github/ API urls"""
     def get(self, user, repo, path):
-        new_url = u'{exporter}/github/{user}/{repo}/blob/{path}'.format(
-            exporter=self.exp_prefix, user=user, repo=repo, path=path,
+        new_url = u'{format}/github/{user}/{repo}/blob/{path}'.format(
+            format=self.format_prefix, user=user, repo=repo, path=path,
         )
         app_log.info("Redirecting %s to %s", self.request.uri, new_url)
         self.redirect(new_url)
@@ -749,8 +746,8 @@ class GitHubRedirectHandler(BaseHandler):
     def get(self, user, repo, app, ref, path):
         if app == 'raw':
             app = 'blob'
-        new_url = u'{exporter}/github/{user}/{repo}/{app}/{ref}/{path}'.format(
-            exporter=self.exp_prefix, user=user, repo=repo, app=app,
+        new_url = u'{format}/github/{user}/{repo}/{app}/{ref}/{path}'.format(
+            format=self.format_prefix, user=user, repo=repo, app=app,
             ref=ref, path=path,
         )
         app_log.info("Redirecting %s to %s", self.request.uri, new_url)
@@ -816,12 +813,12 @@ class GitHubTreeHandler(BaseHandler):
 
         if not isinstance(contents, list):
             app_log.info(
-                "{exporter}/{user}/{repo}/{ref}/{path} not tree, redirecting to blob",
-                extra=dict(exporter=self.exp_prefix, user=user, repo=repo, ref=ref, path=path)
+                "{format}/{user}/{repo}/{ref}/{path} not tree, redirecting to blob",
+                extra=dict(format=self.format_prefix, user=user, repo=repo, ref=ref, path=path)
             )
             self.redirect(
-                u"{exporter}/github/{user}/{repo}/blob/{ref}/{path}".format(
-                    exporter=self.exp_prefix, user=user, repo=repo, ref=ref, path=path,
+                u"{format}/github/{user}/{repo}/blob/{ref}/{path}".format(
+                    format=self.format_prefix, user=user, repo=repo, ref=ref, path=path,
                 )
             )
             return
@@ -965,7 +962,7 @@ class GitHubBlobHandler(RenderingHandler):
                 breadcrumbs=breadcrumbs,
                 msg="file from GitHub: %s" % raw_url,
                 public=True,
-                exporter=self.exporter,
+                format=self.format,
                 request=self.request
             )
         else:
@@ -1025,7 +1022,7 @@ class LocalFileHandler(RenderingHandler):
         yield self.finish_notebook(nbdata, download_url=path,
                                    msg="file from localfile: %s" % path,
                                    public=False,
-                                   exporter=self.exporter,
+                                   format=self.format,
                                    request=self.request)
 
 
@@ -1033,18 +1030,18 @@ class LocalFileHandler(RenderingHandler):
 # Default handler URL mapping
 #-----------------------------------------------------------------------------
 
-def format_providers(exporters, providers):
+def format_providers(formats, providers):
     return [
         (prefix + url, handler, {
-            "exporter": exporter,
-            "exp_prefix": prefix
+            "format": format,
+            "format_prefix": prefix
         })
-        for exporter in exporters
+        for format in formats
         for url, handler in providers
-        for prefix in [exporter_prefix + exporter]
+        for prefix in [format_prefix + format]
     ]
 
-def init_handlers(exporters):
+def init_handlers(formats):
     pre_providers = [
         ('/', IndexHandler),
         ('/index.html', IndexHandler),
@@ -1085,6 +1082,6 @@ def init_handlers(exporters):
     return (
         pre_providers +
         providers + 
-        format_providers(exporters, providers) + 
+        format_providers(formats, providers) + 
         post_providers
     )
