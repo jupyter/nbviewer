@@ -46,7 +46,7 @@ from .utils import (transform_ipynb_uri, quote, response_text, base64_decode,
                     parse_header_links, clean_filename)
 
 date_fmt = "%a, %d %b %Y %H:%M:%S UTC"
-exporter_prefix = "format/"
+exporter_prefix = "/format/"
 
 #-----------------------------------------------------------------------------
 # Handler classes
@@ -500,13 +500,6 @@ class RenderingHandler(BaseHandler):
         if msg is None:
             msg = download_url
 
-        if exporter is None:
-            exporter = self.default_exporter
-
-        if exporter not in self.exporters:
-            app_log.error("Invalid exporter %s", exporter)
-            raise web.HTTPError(400, "Invalid exporter.")
-
         try:
             nb = reads_json(json_notebook)
         except ValueError:
@@ -539,7 +532,7 @@ class RenderingHandler(BaseHandler):
             download_url=download_url,
             home_url=home_url,
             exporter=self.exporter,
-            exporters=exporters,format_providers
+            exporters=exporters,
             exporter_prefix=exporter_prefix,
             exporter_link_base=exporter_link_base,
             date=datetime.utcnow().strftime(date_fmt),
