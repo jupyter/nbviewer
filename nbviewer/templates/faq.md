@@ -62,8 +62,9 @@ This Notebook Viewer instance is hosted on [Rackspace](https://developer.rackspa
 
 The Notebook Viewer does not store any notebooks.
 You have to find the original place where the notebook is hosted to update/remove it.
-The update can take some time to appear here, as we cache rendered
-notebooks for a short period.
+Updates occur automatically, but can take some time to appear, as we cache rendered
+notebooks for approximately 10 minutes. To force an update, append `?flush_cache=true` 
+to the viewer URL.
 
 ### I can't share this notebook I'm working on...
 
