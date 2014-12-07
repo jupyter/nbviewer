@@ -6,6 +6,8 @@
     "animate.css": "~3.0.0",
     "headroom.js": "~0.3.9",
     "requirejs": "~2.1",
-    "moment": "~2.6.0"
+    "moment": "~2.6.0",
+    "bootstrap-css": "2.3.2",
+    "jquery": "~2.1.1"
   }
 }

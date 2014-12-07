@@ -1,4 +1,6 @@
 language: python
+node_js:
+- '0.10'
 python:
 - '2.7'
 before_install:
@@ -6,8 +8,10 @@ before_install:
 - sudo apt-get install -qq libzmq3-dev pandoc libcurl4-gnutls-dev libmemcached-dev
 - pip install -U setuptools
 - pip install -r dev-requirements.txt
+- npm install -g bower
 install:
 - pip install -r requirements.txt
+- invoke bower
 script: invoke test
 env:
   global:
