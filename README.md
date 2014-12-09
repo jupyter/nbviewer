@@ -1,7 +1,7 @@
-# IPython Notebook Viewer
+# Jupyter Notebook Viewer
 [![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/jupyter/nbviewer?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-IPython nbviewer is the web application behind [IPython Notebook Viewer](http://nbviewer.ipython.org), which is graciously hosted by [Rackspace](https://developer.rackspace.com/?nbviewer=awesome).
+Jupyter nbviewer is the web application behind [The Jupyter Notebook Viewer](http://nbviewer.ipython.org), which is graciously hosted by [Rackspace](https://developer.rackspace.com/?nbviewer=awesome).
 
 Run this locally to get most of the features of nbviewer on your own network.
 
@@ -10,8 +10,8 @@ Run this locally to get most of the features of nbviewer on your own network.
 If you have `docker` installed, you can pull and run the currently built version of the Docker container by
 
 ```
-$ docker pull ipython/nbviewer
-$ docker run -p 8080:8080 ipython/nbviewer
+$ docker pull jupyter/nbviewer
+$ docker run -p 8080:8080 jupyter/nbviewer
 ```
 
 It automatically gets built with each push to `master`, so you'll always be able to get the freshest copy.
@@ -21,7 +21,7 @@ For speed and friendliness to GitHub, be sure to set `GITHUB_OAUTH_KEY` and `GIT
 ```
 $ docker run -p 8080:8080 -e 'GITHUB_OAUTH_KEY=YOURKEY' \
                           -e 'GITHUB_OAUTH_SECRET=YOURSECRET' \
-                          ipython/nbviewer
+                          jupyter/nbviewer
 ```
 
 Or to use your GitHub personal access token, you can set just `GITHUB_API_TOKEN`.
@@ -36,7 +36,7 @@ You must also specify your `OAUTH` or `API_TOKEN` as explained above.  For examp
 $ docker run -p 8080:8080 -e 'GITHUB_OAUTH_KEY=YOURKEY' \
                           -e 'GITHUB_OAUTH_SECRET=YOURSECRET' \
                           -e 'GITHUB_API_URL=https://ghe.example.com/api/v3/' \
-                          ipython/nbviewer
+                          jupyter/nbviewer
 ```
 
 With this configured all GitHub API requests will go to you Enterprise instance so you can view all of your internal notebooks.
