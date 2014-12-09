@@ -101,8 +101,13 @@
                 {{ head_text('/faq', "FAQ") }}
 
               <li class="{{index}}">
-                <a href="http://www.ipython.org">IPython</a>
+                <a href="http://ipython.org">IPython</a>
               </li>
+
+              <li class="{{index}}">
+                <a href="http://jupyter.org">Jupyter</a>
+              </li>
+
             </ul>
             <ul class="nav pull-right"> 
               {% if github_url %}
@@ -141,8 +146,8 @@
 
           <div class="span4">
             <p>Thanks to <a href="https://developer.rackspace.com/?nbviewer=awesome">Rackspace</a> for hosting.</p>
-            <p>nbviewer GitHub <a href="https://github.com/ipython/nbviewer">repository</a>.</p>
-            <p>nbviewer <a href="https://github.com/ipython/nbviewer/blob/master/LICENSE.txt" target="_blank">license</a>.</p>
+            <p>nbviewer GitHub <a href="https://github.com/jupyter/nbviewer">repository</a>.</p>
+            <p>nbviewer <a href="https://github.com/jupyter/nbviewer/blob/master/LICENSE.txt" target="_blank">license</a>.</p>
           </div>
 
           <div class="span4">
@@ -150,7 +155,7 @@
               {% if git_data %}
                 <p>
                     nbviewer version:
-                    <a href="https://github.com/ipython/nbviewer/commit/{{git_data['sha']}}">{{git_data['sha'][:7]}}</a>
+                    <a href="https://github.com/jupyter/nbviewer/commit/{{git_data['sha']}}">{{git_data['sha'][:7]}}</a>
                 </p>
               {% endif %}
             {% endblock version_info %}
