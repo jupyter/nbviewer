@@ -75,6 +75,14 @@ class NBViewerTestCase(TestCase):
         return url_path_join('http://localhost:%i' % cls.port, *parts)
 
 
+class FormatHTMLMixin(object):
+    @classmethod
+    def url(cls, *parts):
+        return url_path_join(
+            'http://localhost:%i' % cls.port, 'format', 'html', *parts
+        )
+
+
 @contextmanager
 def assert_http_error(status, msg=None):
     try:

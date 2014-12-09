@@ -7,7 +7,7 @@
 
 import requests
 
-from .base import NBViewerTestCase
+from .base import NBViewerTestCase, FormatHTMLMixin
 
 class GistTestCase(NBViewerTestCase):
     def test_gist(self):
@@ -52,3 +52,7 @@ class GistTestCase(NBViewerTestCase):
         self.assertEqual(r.status_code, 200)
         html = r.text
         self.assertIn('<th>Name</th>', html)
+
+
+class FormatHTMLGistTestCase(GistTestCase, FormatHTMLMixin):
+    pass

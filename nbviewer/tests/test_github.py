@@ -10,7 +10,7 @@ import requests
 
 from unittest import SkipTest
 
-from .base import NBViewerTestCase
+from .base import NBViewerTestCase, FormatHTMLMixin
 
 class GitHubTestCase(NBViewerTestCase):
     def ipython_example(self, *parts, **kwargs):
@@ -144,3 +144,7 @@ class GitHubTestCase(NBViewerTestCase):
         self.assertIn('/github/ipython/ipython/tree/2.x/', html)
         # verify tag is linked
         self.assertIn('/github/ipython/ipython/tree/rel-2.3.0/', html)
+
+
+class FormatHTMLGitHubTestCase(NBViewerTestCase, FormatHTMLMixin):
+    pass

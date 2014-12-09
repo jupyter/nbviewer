@@ -46,6 +46,7 @@ from .utils import (transform_ipynb_uri, quote, response_text, base64_decode,
                     parse_header_links, clean_filename)
 
 date_fmt = "%a, %d %b %Y %H:%M:%S UTC"
+format_prefix = "/format/"
 
 #-----------------------------------------------------------------------------
 # Handler classes
@@ -54,13 +55,21 @@ date_fmt = "%a, %d %b %Y %H:%M:%S UTC"
 class BaseHandler(web.RequestHandler):
     """Base Handler class with common utilities"""
 
+    def initialize(self, format=None, format_prefix=""):
+        self.format = format or self.default_format
+        self.format_prefix = format_prefix
+
     @property
     def pending(self):
         return self.settings.setdefault('pending', set())
 
     @property
-    def exporter(self):
-        return self.settings['exporter']
+    def formats(self):
+        return self.settings['formats']
+
+    @property
+    def default_format(self):
+        return self.settings['default_format']
 
     @property
     def github_client(self):
@@ -440,7 +449,8 @@ class RenderingHandler(BaseHandler):
         """0 render_timeout means never finish early"""
         return self.settings.setdefault('render_timeout', 0)
 
-    def initialize(self):
+    def initialize(self, **kwargs):
+        super(RenderingHandler, self).initialize(**kwargs)
         loop = IOLoop.current()
         if self.render_timeout:
             self.slow_timeout = loop.add_timeout(
@@ -463,10 +473,23 @@ class RenderingHandler(BaseHandler):
         # short circuit some methods because the rest of the rendering will still happen
         self.write = self.finish = self.redirect = lambda chunk=None: None
 
+    def filter_formats(self, nb, raw):
+        """Generate a list of formats that can render the given nb json
+
+        formats that do not provide a `test` method are assumed to work for
+        any notebook
+        """
+        for name, format in self.formats.items():
+            test = format.get("test", None)
+            try:
+                if test is None or test(nb, raw):
+                    yield (name, format)
+            except Exception as err:
+                app_log.info("failed to test %s: %s", self.request.uri, name)
 
     @gen.coroutine
     def finish_notebook(self, json_notebook, download_url, home_url=None, msg=None,
-                        breadcrumbs=None, public=False):
+                        breadcrumbs=None, public=False, format=None, request=None):
         """render a notebook from its JSON body.
 
         download_url is required, home_url is not.
@@ -487,8 +510,8 @@ class RenderingHandler(BaseHandler):
             app_log.debug("Requesting render of %s", download_url)
             with self.time_block("Rendered %s" % download_url):
                 app_log.info("rendering %d B notebook from %s", len(json_notebook), download_url)
-                nbhtml, config = yield self.pool.submit(
-                    render_notebook, self.exporter, nb, download_url,
+                nbhtml, config = yield self.pool.submit(render_notebook,
+                    self.formats[format]["exporter"], nb, download_url,
                     config=self.config,
                 )
         except NbFormatError as e:
@@ -500,10 +523,15 @@ class RenderingHandler(BaseHandler):
         else:
             app_log.debug("Finished render of %s", download_url)
 
-        html = self.render_template('notebook.html',
+        html = self.render_template(
+            "formats/%s.html" % format,
             body=nbhtml,
             download_url=download_url,
             home_url=home_url,
+            format=self.format,
+            format_prefix=self.format_prefix,
+            formats=dict(self.filter_formats(nb, json_notebook)),
+            format_base=self.request.uri.replace(self.format_prefix, ""),
             date=datetime.utcnow().strftime(date_fmt),
             breadcrumbs=breadcrumbs,
             **config)
@@ -560,7 +588,9 @@ class URLHandler(RenderingHandler):
 
         yield self.finish_notebook(nbjson, download_url=remote_url,
                                    msg="file from url: %s" % remote_url,
-                                   public=True)
+                                   public=True,
+                                   request=self.request,
+                                   format=self.format)
 
 
 class UserGistsHandler(BaseHandler):
@@ -616,7 +646,8 @@ class GistHandler(RenderingHandler):
                 user = owner_dict['login']
             else:
                 user = 'anonymous'
-            new_url = u"/gist/{user}/{gist_id}".format(user=user, gist_id=gist_id)
+            new_url = u"{format}/gist/{user}/{gist_id}".format(
+                format=self.format_prefix, user=user, gist_id=gist_id)
             if filename:
                 new_url = new_url + "/" + filename
             self.redirect(new_url)
@@ -643,7 +674,9 @@ class GistHandler(RenderingHandler):
                     file['raw_url'],
                     home_url=gist['html_url'],
                     msg="gist: %s" % gist_id,
-                    public=gist['public']
+                    public=gist['public'],
+                    format=self.format,
+                    request=self.request
                 )
             else:
                 # cannot redirect because of X-Frame-Content
@@ -690,7 +723,7 @@ class GistHandler(RenderingHandler):
 class GistRedirectHandler(BaseHandler):
     """redirect old /<gist-id> to new /gist/<gist-id>"""
     def get(self, gist_id, file=''):
-        new_url = '/gist/%s' % gist_id
+        new_url = '%s/gist/%s' % (self.format_prefix, gist_id)
         if file:
             new_url = "%s/%s" % (new_url, file)
 
@@ -701,8 +734,8 @@ class GistRedirectHandler(BaseHandler):
 class RawGitHubURLHandler(BaseHandler):
     """redirect old /urls/raw.github urls to /github/ API urls"""
     def get(self, user, repo, path):
-        new_url = u'/github/{user}/{repo}/blob/{path}'.format(
-            user=user, repo=repo, path=path,
+        new_url = u'{format}/github/{user}/{repo}/blob/{path}'.format(
+            format=self.format_prefix, user=user, repo=repo, path=path,
         )
         app_log.info("Redirecting %s to %s", self.request.uri, new_url)
         self.redirect(new_url)
@@ -713,7 +746,10 @@ class GitHubRedirectHandler(BaseHandler):
     def get(self, user, repo, app, ref, path):
         if app == 'raw':
             app = 'blob'
-        new_url = u'/github/{user}/{repo}/{app}/{ref}/{path}'.format(**locals())
+        new_url = u'{format}/github/{user}/{repo}/{app}/{ref}/{path}'.format(
+            format=self.format_prefix, user=user, repo=repo, app=app,
+            ref=ref, path=path,
+        )
         app_log.info("Redirecting %s to %s", self.request.uri, new_url)
         self.redirect(new_url)
 
@@ -750,7 +786,7 @@ class GitHubUserHandler(BaseHandler):
 class GitHubRepoHandler(BaseHandler):
     """redirect /github/user/repo to .../tree/master"""
     def get(self, user, repo):
-        self.redirect("/github/%s/%s/tree/master/" % (user, repo))
+        self.redirect("%s/github/%s/%s/tree/master/" % (self.format_prefix, user, repo))
 
 
 class GitHubTreeHandler(BaseHandler):
@@ -777,12 +813,12 @@ class GitHubTreeHandler(BaseHandler):
 
         if not isinstance(contents, list):
             app_log.info(
-                "{user}/{repo}/{ref}/{path} not tree, redirecting to blob",
-                extra=dict(user=user, repo=repo, ref=ref, path=path)
+                "{format}/{user}/{repo}/{ref}/{path} not tree, redirecting to blob",
+                extra=dict(format=self.format_prefix, user=user, repo=repo, ref=ref, path=path)
             )
             self.redirect(
-                u"/github/{user}/{repo}/blob/{ref}/{path}".format(
-                    user=user, repo=repo, ref=ref, path=path,
+                u"{format}/github/{user}/{repo}/blob/{ref}/{path}".format(
+                    format=self.format_prefix, user=user, repo=repo, ref=ref, path=path,
                 )
             )
             return
@@ -925,7 +961,9 @@ class GitHubBlobHandler(RenderingHandler):
                 home_url=blob_url,
                 breadcrumbs=breadcrumbs,
                 msg="file from GitHub: %s" % raw_url,
-                public=True
+                public=True,
+                format=self.format,
+                request=self.request
             )
         else:
             mime, enc = mimetypes.guess_type(path)
@@ -983,42 +1021,67 @@ class LocalFileHandler(RenderingHandler):
 
         yield self.finish_notebook(nbdata, download_url=path,
                                    msg="file from localfile: %s" % path,
-                                   public=False)
+                                   public=False,
+                                   format=self.format,
+                                   request=self.request)
 
 
 #-----------------------------------------------------------------------------
 # Default handler URL mapping
 #-----------------------------------------------------------------------------
 
-handlers = [
-    ('/', IndexHandler),
-    ('/index.html', IndexHandler),
-    (r'/faq/?', FAQHandler),
-    (r'/create/?', CreateHandler),
-    (r'/ipython-static/(.*)', web.StaticFileHandler, dict(path=ipython_static_path)),
+def format_providers(formats, providers):
+    return [
+        (prefix + url, handler, {
+            "format": format,
+            "format_prefix": prefix
+        })
+        for format in formats
+        for url, handler in providers
+        for prefix in [format_prefix + format]
+    ]
 
-    # don't let super old browsers request data-uris
-    (r'.*/data:.*;base64,.*', Custom404),
+def init_handlers(formats):
+    pre_providers = [
+        ('/', IndexHandler),
+        ('/index.html', IndexHandler),
+        (r'/faq/?', FAQHandler),
+        (r'/create/?', CreateHandler),
+        (r'/ipython-static/(.*)', web.StaticFileHandler, dict(path=ipython_static_path)),
 
-    (r'/url[s]?/github\.com/([^\/]+)/([^\/]+)/(tree|blob|raw)/([^\/]+)/(.*)', GitHubRedirectHandler),
-    (r'/url[s]?/raw\.?github(?:usercontent)?\.com/([^\/]+)/([^\/]+)/(.*)', RawGitHubURLHandler),
-    (r'/url([s]?)/(.*)', URLHandler),
+        # don't let super old browsers request data-uris
+        (r'.*/data:.*;base64,.*', Custom404),
+    ]
 
-    (r'/github/([^\/]+)', AddSlashHandler),
-    (r'/github/([^\/]+)/', GitHubUserHandler),
-    (r'/github/([^\/]+)/([^\/]+)', AddSlashHandler),
-    (r'/github/([^\/]+)/([^\/]+)/', GitHubRepoHandler),
-    (r'/github/([^\/]+)/([^\/]+)/blob/([^\/]+)/(.*)/', RemoveSlashHandler),
-    (r'/github/([^\/]+)/([^\/]+)/blob/([^\/]+)/(.*)', GitHubBlobHandler),
-    (r'/github/([^\/]+)/([^\/]+)/tree/([^\/]+)', AddSlashHandler),
-    (r'/github/([^\/]+)/([^\/]+)/tree/([^\/]+)/(.*)', GitHubTreeHandler),
+    post_providers = [
+        (r'/(robots\.txt|favicon\.ico)', web.StaticFileHandler),
+        (r'.*', Custom404),
+    ]
 
-    (r'/gist/([^\/]+/)?([0-9]+|[0-9a-f]{20})', GistHandler),
-    (r'/gist/([^\/]+/)?([0-9]+|[0-9a-f]{20})/(?:files/)?(.*)', GistHandler),
-    (r'/([0-9]+|[0-9a-f]{20})', GistRedirectHandler),
-    (r'/([0-9]+|[0-9a-f]{20})/(.*)', GistRedirectHandler),
-    (r'/gist/([^\/]+)/?', UserGistsHandler),
-    (r'/(robots\.txt|favicon\.ico)', web.StaticFileHandler),
+    providers = [
+        (r'/url[s]?/github\.com/([^\/]+)/([^\/]+)/(tree|blob|raw)/([^\/]+)/(.*)', GitHubRedirectHandler),
+        (r'/url[s]?/raw\.?github(?:usercontent)?\.com/([^\/]+)/([^\/]+)/(.*)', RawGitHubURLHandler),
+        (r'/url([s]?)/(.*)', URLHandler),
 
-    (r'.*', Custom404),
-]
+        (r'/github/([^\/]+)', AddSlashHandler),
+        (r'/github/([^\/]+)/', GitHubUserHandler),
+        (r'/github/([^\/]+)/([^\/]+)', AddSlashHandler),
+        (r'/github/([^\/]+)/([^\/]+)/', GitHubRepoHandler),
+        (r'/github/([^\/]+)/([^\/]+)/blob/([^\/]+)/(.*)/', RemoveSlashHandler),
+        (r'/github/([^\/]+)/([^\/]+)/blob/([^\/]+)/(.*)', GitHubBlobHandler),
+        (r'/github/([^\/]+)/([^\/]+)/tree/([^\/]+)', AddSlashHandler),
+        (r'/github/([^\/]+)/([^\/]+)/tree/([^\/]+)/(.*)', GitHubTreeHandler),
+
+        (r'/gist/([^\/]+/)?([0-9]+|[0-9a-f]{20})', GistHandler),
+        (r'/gist/([^\/]+/)?([0-9]+|[0-9a-f]{20})/(?:files/)?(.*)', GistHandler),
+        (r'/([0-9]+|[0-9a-f]{20})', GistRedirectHandler),
+        (r'/([0-9]+|[0-9a-f]{20})/(.*)', GistRedirectHandler),
+        (r'/gist/([^\/]+)/?', UserGistsHandler),
+    ]
+
+    return (
+        pre_providers +
+        providers + 
+        format_providers(formats, providers) + 
+        post_providers
+    )

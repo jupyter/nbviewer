@@ -24,9 +24,9 @@ from tornado.options import define, options
 from jinja2 import Environment, FileSystemLoader
 
 from IPython.config import Config
-from IPython.nbconvert.exporters import HTMLExporter
+from IPython.nbconvert.exporters.export import exporter_map
 
-from .handlers import handlers, LocalFileHandler
+from .handlers import init_handlers, format_providers, LocalFileHandler
 from .cache import DummyAsyncCache, AsyncMultipartMemcache, MockCache, pylibmc
 from .index import NoSearch, ElasticSearch
 
@@ -78,6 +78,7 @@ def main():
     define("frontpage", default=FRONTPAGE_JSON, help="path to json file containing frontpage content", type=str)
     define("sslcert", help="path to ssl .crt file", type=str)
     define("sslkey", help="path to ssl .key file", type=str)
+    define("default_format", default="html", help="format to use for legacy / URLs", type=str)
     tornado.options.parse_command_line()
 
     # NBConvert config
@@ -95,12 +96,33 @@ def main():
 
     # setup memcache
     mc_pool = ThreadPoolExecutor(options.mc_threads)
+
+    """
+    - exporter: an Exporter subclass.
+        if using one of nbconvert.export.exporter_map, 
+        it will be added automatically
+    - test: a function(notebook_object, notebook_json)
+        conditionally offer a format based on content if truthy. see
+        `RenderingHandler.filter_exporters`
+    """
+    formats = {
+        'html': {},
+    }
+    
+    for key, format in formats.items():
+        exporter_cls = format.get("exporter", exporter_map[key])
+        if options.processes:
+            # can't pickle exporter instances,
+            formats[key]["exporter"] = exporter_cls
+        else:
+            formats[key]["exporter"] = exporter_cls(
+                config=config,
+                log=log.app_log
+            )
+
     if options.processes:
-        # can't pickle exporter instances,
-        exporter = HTMLExporter
         pool = ProcessPoolExecutor(options.processes)
     else:
-        exporter = HTMLExporter(config=config, log=log.app_log)
         pool = ThreadPoolExecutor(options.threads)
 
     memcache_urls = os.environ.get('MEMCACHIER_SERVERS',
@@ -183,7 +205,8 @@ def main():
         static_path=static_path,
         client=client,
         github_client=github_client,
-        exporter=exporter,
+        formats=formats,
+        default_format=options.default_format,
         config=config,
         index=indexer,
         cache=cache,
@@ -200,11 +223,17 @@ def main():
         ),
     )
 
-    # create and start the app
+    # handle handlers
+    handlers = init_handlers(formats)
     if options.localfiles:
         log.app_log.warning("Serving local notebooks in %s, this can be a security risk", options.localfiles)
         # use absolute or relative paths:
-        handlers.insert(0, (r'/localfile/(.*)', LocalFileHandler))
+        local_handlers = [(r'/localfile/(.*)', LocalFileHandler)]
+        handlers = (
+            local_handlers +
+            format_providers(formats, local_handlers) +
+            handlers
+        )
 
     # load ssl options
     ssl_options = None
@@ -214,6 +243,7 @@ def main():
             'keyfile' : options.sslkey,
         }
 
+    # create and start the app
     app = web.Application(handlers, debug=options.debug, **settings)
     http_server = httpserver.HTTPServer(app, xheaders=True, ssl_options=ssl_options)
     log.app_log.info("Listening on port %i", options.port)
