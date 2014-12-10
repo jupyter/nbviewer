@@ -11,4 +11,4 @@ def test():
 
 @invoke.task
 def bower():
-    invoke.run("bower install")
+    invoke.run("cd nbviewer/static && bower install")
