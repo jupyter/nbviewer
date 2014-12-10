@@ -5,11 +5,12 @@ Jupyter nbviewer is the web application behind [The Jupyter Notebook Viewer](htt
 
 Run this locally to get most of the features of nbviewer on your own network.
 
+
 ## Quick Run
 
 If you have `docker` installed, you can pull and run the currently built version of the Docker container by
 
-```
+```shell
 $ docker pull jupyter/nbviewer
 $ docker run -p 8080:8080 jupyter/nbviewer
 ```
@@ -18,7 +19,7 @@ It automatically gets built with each push to `master`, so you'll always be able
 
 For speed and friendliness to GitHub, be sure to set `GITHUB_OAUTH_KEY` and `GITHUB_OAUTH_SECRET`:
 
-```
+```shell
 $ docker run -p 8080:8080 -e 'GITHUB_OAUTH_KEY=YOURKEY' \
                           -e 'GITHUB_OAUTH_SECRET=YOURSECRET' \
                           jupyter/nbviewer
@@ -26,13 +27,14 @@ $ docker run -p 8080:8080 -e 'GITHUB_OAUTH_KEY=YOURKEY' \
 
 Or to use your GitHub personal access token, you can set just `GITHUB_API_TOKEN`.
 
+
 ## GitHub Enterprise
 
 To use nbviewer on against your own GitHub Enterprise instance you need to set `GITHUB_API_URL`.
 The relevant [API endpoints for GitHub Enterprise](https://developer.github.com/v3/enterprise/) are prefixed with `http://hostname/api/v3`.
 You must also specify your `OAUTH` or `API_TOKEN` as explained above.  For example:
 
-```
+```shell
 $ docker run -p 8080:8080 -e 'GITHUB_OAUTH_KEY=YOURKEY' \
                           -e 'GITHUB_OAUTH_SECRET=YOURSECRET' \
                           -e 'GITHUB_API_URL=https://ghe.example.com/api/v3/' \
@@ -47,17 +49,20 @@ With this configured all GitHub API requests will go to you Enterprise instance 
 
 You can build a docker image that uses your local branch
 
+
 #### Build
 
-```
+```shell
 docker build -t nbviewer .
 ```
 
+
 #### Run
 
-```
+```shell
 docker run -p 8080:8080 nbviewer
 ```
+
 
 ### Local Installation
 
@@ -65,11 +70,26 @@ The Notebook Viewer requires several binary packages to be installed on your sys
 
 If they are installed, you can install the required Python packages via pip.
 
-`pip install -r requirements.txt`
+```shell
+pip install -r requirements.txt`
+```
+
+
+#### Static Assets
+
+Static assets are maintained with `bower`.
+
+```shell
+$ cd <path to repo>
+$ invoke bower
+```
+
+This will download the relevant assets into `nbewier/static/components`.
+
 
 #### Running Locally
 
-```
+```shell
 $ cd <path to repo>
 $ python -m nbviewer --debug --no-cache
 ```
