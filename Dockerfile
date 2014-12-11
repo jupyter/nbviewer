@@ -21,7 +21,7 @@ RUN apt-get install -y -q build-essential make gcc zlib1g-dev git
 RUN apt-get install -y -q python python-dev python-pip
  
 # nbviewer binary dependencies
-RUN apt-get install -y -q libzmq3-dev sqlite3 libsqlite3-dev pandoc libevent-dev libcurl4-openssl-dev libmemcached-dev nodejs
+RUN apt-get install -y -q libzmq3-dev sqlite3 libsqlite3-dev pandoc libevent-dev libcurl4-openssl-dev libmemcached-dev nodejs nodejs-legacy npm 
 
 # install IPython 2.x branch
 WORKDIR /srv
@@ -34,6 +34,7 @@ ADD . /srv/nbviewer/
 
 WORKDIR /srv/nbviewer
 RUN pip install -r requirements.txt
+RUN invoke bower
 
 EXPOSE 8080
  
