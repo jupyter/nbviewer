@@ -21,7 +21,10 @@ RUN apt-get install -y -q build-essential make gcc zlib1g-dev git
 RUN apt-get install -y -q python python-dev python-pip
  
 # nbviewer binary dependencies
-RUN apt-get install -y -q libzmq3-dev sqlite3 libsqlite3-dev pandoc libevent-dev libcurl4-openssl-dev libmemcached-dev nodejs nodejs-legacy npm 
+RUN apt-get install -y -q libzmq3-dev sqlite3 libsqlite3-dev pandoc libevent-dev libcurl4-openssl-dev libmemcached-dev nodejs nodejs-legacy npm
+
+# asset toolchain
+RUN npm install -g bower
 
 # install IPython 2.x branch
 WORKDIR /srv
