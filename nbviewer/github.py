@@ -55,7 +55,39 @@ class AsyncGitHubClient(object):
             params.update(self.auth)
         url = url_concat(url, params)
         future = self.client.fetch(url, callback, **kwargs)
+        future.add_done_callback(self._log_rate_limit)
         return future
+    
+    def _log_rate_limit(self, future):
+        """log GitHub rate limit headers
+        
+        - error if 0 remaining
+        - warn if 10% or less remain
+        - debug otherwise
+        """
+        try:
+            r = future.result()
+        except HTTPError as e:
+            r = e.response
+        limit_s = r.headers.get('X-RateLimit-Limit', '')
+        remaining_s = r.headers.get('X-RateLimit-Remaining', '')
+        if not remaining_s or not limit_s:
+            self.log.warn("No rate limit header. Did GitHub change?")
+            return
+        
+        remaining = int(remaining_s)
+        limit = int(limit_s)
+        if remaining == 0:
+            jsondata = response_text(r)
+            data = json.loads(jsondata)
+            app_log.error("GitHub rate limit (%s) exceeded: %s", limit, data.get('message', 'no message'))
+            return
+        
+        if 10 * remaining > limit:
+            log = app_log.debug
+        else:
+            log = app_log.warn
+        log("%i/%i GitHub API requests remaining", remaining, limit)
 
     def github_api_request(self, path, callback=None, **kwargs):
         """Make a GitHub API request to URL
