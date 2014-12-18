@@ -182,7 +182,7 @@ class BaseHandler(web.RequestHandler):
         else:
             msg = str_exc
 
-        app_log.warn("Fetching %s failed with %s", url, msg)
+        app_log.warn("Fetching %s failed with %s. Body=%s", url, msg, escape(body))
         if exc.code == 599:
             if isinstance(exc, CurlError):
                 en = getattr(exc, 'errno', -1)
