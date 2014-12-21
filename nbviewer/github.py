@@ -72,9 +72,10 @@ class AsyncGitHubClient(object):
         limit_s = r.headers.get('X-RateLimit-Limit', '')
         remaining_s = r.headers.get('X-RateLimit-Remaining', '')
         if not remaining_s or not limit_s:
-            self.log.warn("No rate limit headers. Did GitHub change? %s",
-                json.dumps(r.headers, indent=1)
-            )
+            if r.code < 300:
+                app_log.warn("No rate limit headers. Did GitHub change? %s",
+                    json.dumps(r.headers, indent=1)
+                )
             return
         
         remaining = int(remaining_s)

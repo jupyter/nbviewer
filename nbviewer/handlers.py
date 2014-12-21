@@ -182,7 +182,7 @@ class BaseHandler(web.RequestHandler):
         else:
             msg = str_exc
 
-        slim_body = body[:300].encode('string_escape')
+        slim_body = escape(body[:300])
 
         app_log.warn("Fetching %s failed with %s. Body=%s", url, msg, slim_body)
         if exc.code == 599:
