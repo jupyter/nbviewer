@@ -8,3 +8,5 @@ bin
 build
 dist
 *.egg-info
+*/static/components
+\.ipynb_checkpoints

@@ -27,13 +27,6 @@
     </div>
 {%- endmacro %}
 
-
-{% block extra_script %}
-    {{ super() }}
-    <script src="/static/js/bootstrap-dropdown.js"></script>
-{% endblock %}
-
-
 {% block body %}
     <div>
         {% if branches|length + tags|length > 1 %}
