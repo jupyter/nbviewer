@@ -7,6 +7,7 @@
     "requirejs": "~2.1",
     "moment": "~2.7.0",
     "bootstrap": "components/bootstrap#~2.3.2",
-    "font-awesome": "components/font-awesome#~4.2.0"
+    "font-awesome": "components/font-awesome#~4.2.0",
+    "pygments": "2.0.0"
   }
 }

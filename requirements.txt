@@ -8,6 +8,5 @@ elasticsearch
 
 pygments
 jinja2
-Sphinx>=0.3
 
 ipython>=2.0.0
