@@ -16,11 +16,20 @@ def bower():
 
 
 @invoke.task
-def less():
-    tmpl = ("cd nbviewer/static/less && lessc --include-path={0} "
-            "{1}.less ../build/{1}.css")
+def less(debug=False):
+    if debug:
+        extra_args = "--source-map"
+    else:
+        extra_args = "--compress"
+
+    tmpl = (
+        "cd nbviewer/static/less && lessc {1} --include-path={2} "
+        "{0}.less ../build/{0}.css"
+    )
+
+    args = (extra_args, DEFAULT_STATIC_FILES_PATH)
 
     [
-        invoke.run(tmpl.format(DEFAULT_STATIC_FILES_PATH, less_file))
+        invoke.run(tmpl.format(less_file, *args))
         for less_file in ["styles", "notebook"]
     ]
