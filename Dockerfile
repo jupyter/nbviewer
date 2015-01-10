@@ -24,7 +24,7 @@ RUN apt-get install -y -q python python-dev python-pip
 RUN apt-get install -y -q libzmq3-dev sqlite3 libsqlite3-dev pandoc libevent-dev libcurl4-openssl-dev libmemcached-dev nodejs nodejs-legacy npm
 
 # asset toolchain
-RUN npm install -g bower
+RUN npm install -g bower less
 
 # install IPython 2.x branch
 WORKDIR /srv
@@ -33,15 +33,15 @@ WORKDIR /srv/ipython
 RUN git submodule init && git submodule update
 RUN pip install .
 
+RUN pip install invoke
+
 ADD . /srv/nbviewer/
-
-WORKDIR /srv/nbviewer/nbviewer/static
-RUN bower install --config.interactive=false --allow-root
-
 WORKDIR /srv/nbviewer
+
+RUN invoke bower
+RUN invoke less
+
 RUN pip install -r requirements.txt
-
-WORKDIR /srv/nbviewer
 
 EXPOSE 8080
 
