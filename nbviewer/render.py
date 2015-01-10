@@ -5,11 +5,13 @@
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
+import re
+
 from tornado.log import app_log
 from IPython.nbconvert.exporters import Exporter
 
 #-----------------------------------------------------------------------------
-# 
+#
 #-----------------------------------------------------------------------------
 
 class NbFormatError(Exception):
@@ -17,7 +19,9 @@ class NbFormatError(Exception):
 
 exporters = {}
 
-def render_notebook(exporter, nb, url=None, forced_theme=None, config=None):
+def render_notebook(format, nb, url=None, forced_theme=None, config=None):
+    exporter = format["exporter"]
+
     if not isinstance(exporter, Exporter):
         # allow exporter to be passed as a class, rather than instance
         # because Exporter instances cannot be passed across multiprocessing boundaries
@@ -42,17 +46,22 @@ def render_notebook(exporter, nb, url=None, forced_theme=None, config=None):
         name = nb.metadata.name
     except AttributeError:
         name = ''
-    
+
     if not name and url is not None:
         name = url.rsplit('/')[-1]
 
     if not name.endswith(".ipynb"):
         name = name + ".ipynb"
-    
+
     html, resources = exporter.from_notebook_node(nb)
 
+    if 'postprocess' in format:
+        print html
+        html, resources = format['postprocess'](html, resources)
+
     config = {
-            'download_name': name,
-            'css_theme': css_theme,
-            }
+        'download_name': name,
+        'css_theme': css_theme,
+    }
+
     return html, config

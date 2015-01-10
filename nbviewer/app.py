@@ -24,11 +24,11 @@ from tornado.options import define, options
 from jinja2 import Environment, FileSystemLoader
 
 from IPython.config import Config
-from IPython.nbconvert.exporters.export import exporter_map
 
 from .handlers import init_handlers, format_providers, LocalFileHandler
 from .cache import DummyAsyncCache, AsyncMultipartMemcache, MockCache, pylibmc
 from .index import NoSearch, ElasticSearch
+from .formats import configure_formats
 
 try:
     from .client import LoggingCurlAsyncHTTPClient as HTTPClientClass
@@ -83,7 +83,6 @@ def main():
 
     # NBConvert config
     config = Config()
-    config.HTMLExporter.template_file = 'basic'
     config.NbconvertApp.fileext = 'html'
     config.CSSHTMLHeaderTransformer.enabled = False
     # don't strip the files prefix - we use it for redirects
@@ -97,28 +96,8 @@ def main():
     # setup memcache
     mc_pool = ThreadPoolExecutor(options.mc_threads)
 
-    """
-    - exporter: an Exporter subclass.
-        if using one of nbconvert.export.exporter_map, 
-        it will be added automatically
-    - test: a function(notebook_object, notebook_json)
-        conditionally offer a format based on content if truthy. see
-        `RenderingHandler.filter_exporters`
-    """
-    formats = {
-        'html': {},
-    }
-    
-    for key, format in formats.items():
-        exporter_cls = format.get("exporter", exporter_map[key])
-        if options.processes:
-            # can't pickle exporter instances,
-            formats[key]["exporter"] = exporter_cls
-        else:
-            formats[key]["exporter"] = exporter_cls(
-                config=config,
-                log=log.app_log
-            )
+    # setup formats
+    formats = configure_formats(options, config, log.app_log)
 
     if options.processes:
         pool = ProcessPoolExecutor(options.processes)

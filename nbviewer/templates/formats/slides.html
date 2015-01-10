@@ -1,0 +1,99 @@
+{% extends "notebook.html" %}
+
+{% block style_base %}
+  <!-- General and theme style sheets -->
+  <link rel="stylesheet" href="/static/components/reveal.js/css/reveal.css" />
+  <link rel="stylesheet" href="/static/components/reveal.js/css/theme/simple.css" id="theme" />
+
+  <!-- For syntax highlighting -->
+  <link rel="stylesheet" href="/static/components/reveal.js/lib/css/zenburn.css" />
+
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+
+  <!-- Printing and PDF exports -->
+  <script>
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.type = 'text/css';
+    link.href = '/static/components/reveal.js/css/print/' +
+      (window.location.search.match(/print-pdf/gi) ? 'pdf' : 'paper') +
+      ".css";
+    document.getElementsByTagName('head')[0].appendChild(link);
+  </script>
+
+  <!--[if lt IE 9]>
+  <script src="/static/components/reveal.js/lib/js/html5shiv.js"></script>
+  <![endif]-->
+
+  {{ super() }}
+
+  <link rel="stylesheet" href="/static/css/slides.css" />
+{% endblock %}
+
+
+{% block menu_extra %}
+  <div class="container">{{ link_breadcrumbs(breadcrumbs) }}</div>
+{% endblock %}
+
+
+{% block body %}
+
+  {{ body | safe}}
+
+  <script>
+    require(
+      {
+        // required because reveal is IO bound
+        waitSeconds: 0
+      },
+      [
+        "/static/components/reveal.js/lib/js/head.min.js",
+        "/static/components/reveal.js/js/reveal.js"
+      ],
+      function(head, Reveal){
+        // Full list of configuration options available here: https://github.com/hakimel/reveal.js#configuration
+        Reveal.initialize({
+          controls: true,
+          progress: true,
+          history: true,
+
+          slideNumber: true,
+
+          // available themes are in /css/theme
+          theme: Reveal.getQueryHash().theme || 'simple',
+
+          // default/cube/page/concave/zoom/linear/none
+          transition: Reveal.getQueryHash().transition || 'linear',
+
+          // Optional libraries used to extend on reveal.js
+          dependencies: [
+            {
+              src: "/static/components/reveal.js/lib/js/classList.js",
+              condition: function() { return !document.body.classList; }
+            },
+            {
+              src: "/static/components/reveal.js/plugin/notes/notes.js",
+              async: true,
+              condition: function() { return !!document.body.classList; }
+            }
+          ]
+        });
+
+        var update = function(event){
+          window.scrollTo(0,0);
+          MathJax.Hub.Rerender(event.currentSlide);
+          var idx = Reveal.getIndices();
+          $('#menubar').headroom((!idx.h && !idx.v) ? 'pin' : 'unpin');
+        };
+
+        // show/hide the nbviewer header on slide change
+        Reveal.addEventListener('slidechanged', update);
+        Reveal.addEventListener('fragmentshown', update);
+        Reveal.addEventListener('fragmenthidden', update);
+      }
+    );//require
+  </script>
+{% endblock %}

@@ -513,7 +513,7 @@ class RenderingHandler(BaseHandler):
             with self.time_block("Rendered %s" % download_url):
                 app_log.info("rendering %d B notebook from %s", len(json_notebook), download_url)
                 nbhtml, config = yield self.pool.submit(render_notebook,
-                    self.formats[format]["exporter"], nb, download_url,
+                    self.formats[format], nb, download_url,
                     config=self.config,
                 )
         except NbFormatError as e:
@@ -532,7 +532,8 @@ class RenderingHandler(BaseHandler):
             download_url=download_url,
             home_url=home_url,
             format=self.format,
-            format_prefix=self.format_prefix,
+            default_format=self.default_format,
+            format_prefix=format_prefix,
             formats=dict(self.filter_formats(nb, json_notebook)),
             format_base=self.request.uri.replace(self.format_prefix, ""),
             date=datetime.utcnow().strftime(date_fmt),
@@ -1084,7 +1085,7 @@ def init_handlers(formats):
 
     return (
         pre_providers +
-        providers + 
-        format_providers(formats, providers) + 
+        providers +
+        format_providers(formats, providers) +
         post_providers
     )

@@ -4,14 +4,24 @@
 
 
 {% block otherlinks %}
+  {% for fmt_name, fmt in formats.items() %}
+    {% if format != fmt_name %}
+      {% if fmt_name == default_format %}
+        {{ layout.head_icon(format_base, "View as " ~ fmt.label, fmt.icon) }}
+      {% else %}
+        {{ layout.head_icon(format_prefix ~ fmt_name ~ format_base, "View as " ~ fmt.label, fmt.icon) }}
+      {% endif %}
+    {% endif %}
+  {% endfor %}
+
   {% if "kernelspec" in nb.metadata %}
     {{ layout.head_icon("#", nb.metadata.kernelspec.display_name + " Kernel", "server") }}
   {% endif %}
-
+  
   {% if home_url %}
     {{ layout.head_icon(home_url, "Notebook Home", "github") }}
   {% endif %}
-  
+
   {{ layout.head_icon(download_url, "Download Notebook", "download", True) }}
 {% endblock %}
 
@@ -30,10 +40,14 @@
   <meta name="twitter:domain" content="nbviewer.ipython.org">
   <meta name="twitter:image:src" content="{{ thumbnail | default('http://ipython.org/ipython-doc/dev/_images/ipynb_icon_128x128.png') }}">
 
-  <link href="/static/build/notebook.css" rel="stylesheet">
+  {% block style_base %}
+    <link href="/static/build/notebook.css" rel="stylesheet">
+  {% endblock %}
+
   {% if css_theme %}
     <link href="/static/css/theme/{{css_theme}}.css" rel="stylesheet">
   {% endif %}
+
   <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML" type="text/javascript">
   </script>
   <script type="text/javascript">
