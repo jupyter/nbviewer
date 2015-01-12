@@ -44,38 +44,9 @@
     {% endif %}
     #}
 
-    <link href="/ipython-static/style/ipython.min.css" rel="stylesheet">
-    <link href="/static/components/pygments/css/default.css" rel="stylesheet">
-    <style type="text/css" media='screen and (min-width:980px)'>
-   
-    body {
-        padding-top: 40px;
-    }
-
-    </style>
-    <style type="text/css" >
-    .imgwrap {
-        text-align: center;
-    }
-
-    @media (max-width: 767px){
-
-        div.input, div.output_area {
-            -webkit-box-orient: vertical;
-            -moz-box-orient: vertical;
-            box-orient: vertical;
-        }
-
-        div.prompt {
-            text-align:left;
-        }
-
-    }
-
-    
-    </style>
+    <link href="/static/build/notebook.css" rel="stylesheet">
     {% if css_theme %}
-        <link href="/static/css/theme/{{css_theme}}.css" rel="stylesheet">
+      <link href="/static/css/theme/{{css_theme}}.css" rel="stylesheet">
     {% endif %}
     <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML"type="text/javascript">
     </script>

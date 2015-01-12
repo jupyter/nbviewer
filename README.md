@@ -77,14 +77,17 @@ pip install -r requirements.txt`
 
 #### Static Assets
 
-Static assets are maintained with `bower`.
+Static assets are maintained with `bower` and `less`.
 
 ```shell
 $ cd <path to repo>
 $ invoke bower
+$ invoke less [-d]
 ```
 
-This will download the relevant assets into `nbewier/static/components`.
+This will download the relevant assets into `nbviewer/static/components` and create the built assets in `nbviewer/static/build`.
+
+Pass `-d` or `--debug` to `invoke less` to create a CSS sourcemap, useful for debugging.
 
 
 #### Running Locally
