@@ -34,7 +34,7 @@
       },
       {
         "text": "Probabilistic Programming",
-        "target": "github/CamDavidsonPilon/Probabilistic-Programming-and-Bayesian-Methods-for-Hackers/blob/master/Chapter1_Introduction/Chapter1_Introduction.ipynb",
+        "target": "github/CamDavidsonPilon/Probabilistic-Programming-and-Bayesian-Methods-for-Hackers/blob/master/Chapter1_Introduction/Chapter1.ipynb",
         "img": "/static/img/example-nb/probabilistic-bayesian.png"
       }
     ]
@@ -42,6 +42,11 @@
   {
     "header":"Misc",
     "links":[
+      {
+        "text": "Interactive data visualization with Bokeh",
+        "target": "github/bokeh/bokeh-notebooks/blob/master/index.ipynb",
+        "img": "/static/img/example-nb/bokeh.png"
+      },
       {
         "text": "Interactive plots with Plotly",
         "target": "github/plotly/python-user-guide/blob/master/Index.ipynb",
@@ -53,9 +58,9 @@
         "img": "/static/img/example-nb/XKCD-Matplotlib.png"
       },
       {
-        "text": "Interactive data visualization with Bokeh",
-        "target": "github/bokeh/bokeh-notebooks/blob/master/index.ipynb",
-        "img": "/static/img/example-nb/bokeh.png"
+        "text": "Python for Vision Research",
+        "target": "github/gestaltrevision/python_for_visres/blob/master/index.ipynb",
+        "img": "/static/img/example-nb/python_for_visres.png"
       },
       {
         "text": "Non Parametric Regression",
@@ -66,21 +71,6 @@
         "text": "Partial Differential Equations Solver",
         "target": "github/waltherg/notebooks/blob/master/2013-12-03-Crank_Nicolson.ipynb",
         "img": "/static/img/example-nb/pde_solver_with_numpy.png"
-      },
-      {
-        "text": "Nose testing",
-        "target": "github/swcarpentry/2012-11-scripps/blob/master/python/testing-with-nose.ipynb",
-        "img": "/static/img/example-nb/nose_testing.png"
-      },
-      {
-        "text": "Working with pandas",
-        "target": "gist/twiecki/3962843",
-        "img": "/static/img/example-nb/working_with_pandas.png"
-      },
-      {
-        "text": "Fitting",
-        "target": "gist/keflavich/4042018",
-        "img": "/static/img/example-nb/fitting.png"
       },
       {
         "text": "Analysis of current events",
@@ -96,16 +86,6 @@
         "text": "SymPy notebook",
         "target": "github/ipython/ipython/blob/2.x/examples/Notebook/SymPy.ipynb",
         "img": "/static/img/example-nb/sympy.png"
-      },
-      {
-        "text": "Numpy tests",
-        "target": "gist/Juanlu001/3914904",
-        "img": "/static/img/example-nb/numpy_tests.png"
-      },
-      {
-        "text": "Python for Vision Research",
-        "target": "github/gestaltrevision/python_for_visres/blob/master/index.ipynb",
-        "img": "/static/img/example-nb/python_for_visres.png"
       }
     ]
   }
