@@ -56,7 +56,6 @@ def render_notebook(format, nb, url=None, forced_theme=None, config=None):
     html, resources = exporter.from_notebook_node(nb)
 
     if 'postprocess' in format:
-        print html
         html, resources = format['postprocess'](html, resources)
 
     config = {
