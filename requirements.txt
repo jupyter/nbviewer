@@ -2,6 +2,7 @@ pycurl
 pylibmc
 futures
 newrelic
+markdown
 elasticsearch
 
 

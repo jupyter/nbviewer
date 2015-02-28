@@ -35,15 +35,19 @@ RUN pip install .
 
 RUN pip install invoke
 
-ADD . /srv/nbviewer/
+ADD ./requirements.txt /srv/nbviewer/
 WORKDIR /srv/nbviewer
-
-RUN invoke bower
-RUN invoke less
 
 RUN pip install -r requirements.txt
 
+ADD ./tasks.py /srv/nbviewer/
+ADD ["/nbviewer/static/bower.json", "/nbviewer/static/.bowerrc", "/srv/nbviewer/nbviewer/static/"]
+RUN invoke bower
+
 EXPOSE 8080
+
+ADD . /srv/nbviewer/
+RUN invoke less
 
 # To change the number of threads use
 # docker run -d -e NBVIEWER_THREADS=4 -p 80:8080 nbviewer
