@@ -1,31 +1,34 @@
 {% macro head_text(url, name, bold=False) -%}
-    <li>
-        <a href="{{url}}" title="{{name}}" {%if download %}download{% endif %}>
-            {% if bold %}<strong>{% endif %}
-            <span>{{name}}</span>
-            {% if bold %}</strong>{% endif %}
-        </a>
-    </li>
+  <li>
+    <a href="{{url}}" title="{{name}}" {%if download %}download{% endif %}>
+      {% if bold %}<strong>{% endif %}
+        <span>{{name}}</span>
+      {% if bold %}</strong>{% endif %}
+    </a>
+  </li>
 {%- endmacro %}
 
+
 {% macro head_icon(url, name, icon, download=False) -%}
-    <li>
-        <a href="{{url}}" title="{{name}}" {%if download %}download{% endif %}>
-            <span class='fa fa-{{icon}} fa-2x menu-icon'></span>
-            <span class='menu-text'>{{name}}</span>
-        </a>
-    </li>
+  <li>
+    <a href="{{url}}" title="{{name}}" {%if download %}download{% endif %}>
+      <span class="fa fa-{{icon}} fa-2x menu-icon"></span>
+      <span class="menu-text">{{name}}</span>
+    </a>
+  </li>
 {%- endmacro %}
 
 
 {% macro link_breadcrumbs(crumbs) -%}
-{% if crumbs %}
-<ul class="breadcrumb">
+  {% if crumbs %}
+  <ol class="breadcrumb">
     {% for crumb in crumbs %}
-    <li><a href="{{crumb['url']}}">{{crumb['name']}}</a> <span class="divider">/</span></li>
+      <li>
+        <a href="{{crumb['url']}}">{{crumb['name']}}</a>
+      </li>
     {% endfor %}
-</ul>
-{% endif %}
+  </ol>
+  {% endif %}
 {%- endmacro %}
 
 
@@ -38,15 +41,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     {% if description %}
-    <meta name="description" content="{{ description }}">
+      <meta name="description" content="{{ description }}">
     {% else %}
-    <meta name="description" content="">
+      <meta name="description" content="">
     {% endif %}
 
     {% if author %}
-    <meta name="author" content="{{ author }}">
+      <meta name="author" content="{{ author }}">
     {% else %}
-    <meta name="author" content="">
+      <meta name="author" content="">
     {% endif %}
 
     <!--NEW RELIC Start Perf Measurement-->
@@ -64,60 +67,64 @@
 
     <!-- Le fav and touch icons -->
     <link rel="shortcut icon" href="/static/ico/ipynb_icon_16x16.png">
-    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/static/ico/apple-touch-icon-144-precomposed.png">
-    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="/static/ico/apple-touch-icon-114-precomposed.png">
-    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="/static/ico/apple-touch-icon-72-precomposed.png">
-    <link rel="apple-touch-icon-precomposed" href="/static/ico/apple-touch-icon-57-precomposed.png">
-    {% block extra_head %}
-    {% endblock %}
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" 
+          href="/static/ico/apple-touch-icon-144-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" 
+          href="/static/ico/apple-touch-icon-114-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" 
+          href="/static/ico/apple-touch-icon-72-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" 
+          href="/static/ico/apple-touch-icon-57-precomposed.png">
+    {% block extra_head %}{% endblock %}
   </head>
 
   <body data-spy="scroll" data-target=".subnav" data-offset="50">
 
-  <!-- These are loaded at the top of the body so they are available to notebook
-  cells when they are loaded below. -->
-  <script src="/static/components/jquery/jquery.min.js"></script>
-  <script src="/static/components/requirejs/require.js"></script>
-  <script src="/static/components/moment/min/moment.min.js"></script>
+    <!-- These are loaded at the top of the body so they are available to 
+         notebook cells when they are loaded below. -->
+    <script src="/static/components/jquery/jquery.min.js"></script>
+    <script src="/static/components/requirejs/require.js"></script>
+    <script src="/static/components/moment/min/moment.min.js"></script>
 
   <!-- Navbar
   ================================================== -->
-    <div id='menubar' class="navbar navbar-fixed-top hidden-print">
-      <div class="navbar-inner">
-        <div class="container">
-          <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-            <span class="fa fa-bars"></span>
+    <nav id="menubar" class="navbar navbar-default navbar-fixed-top">
+      <!-- We use the fluid option here to avoid overriding the fixed width of a normal container within the narrow content columns. -->
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <i class="fa fa-bars"></i>
           </button>
-          <div class="nav-collapse collapse">
-            <ul class="nav">
-
-                {{ head_text('/', "nbviewer", True) }}
-                {{ head_text('/faq', "FAQ") }}
-
-              <li class="{{index}}">
-                <a href="http://ipython.org">IPython</a>
-              </li>
-
-              <li class="{{index}}">
-                <a href="http://jupyter.org">Jupyter</a>
-              </li>
-
-            </ul>
-            <ul class="nav pull-right">
-              {% if github_url %}
-              <li>
-                  <a href="{{github_url}}" title="View on GitHub">
-                    <i class="fa fa-github fa-2x menu-icon"></i>
-                  </a>
-              </li>
-              {% endif %}
-              {% block otherlinks %}
-              {% endblock %}
-            </ul>
-          </div>
+          <a class="navbar-brand" href="/">nbviewer</a>
         </div>
+
+        <div class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            {{ head_text('/faq', "FAQ") }}
+            <li class="{{index}}">
+              <a href="http://ipython.org">IPython</a>
+            </li>
+            <li class="{{index}}">
+              <a href="http://jupyter.org">Jupyter</a>
+            </li>
+          </ul>
+          
+          <ul class="nav navbar-nav navbar-right">
+            {% if github_url %}
+              <li>
+                <a href="{{github_url}}" title="View on GitHub">
+                  <i class="fa fa-github fa-2x menu-icon"></i>
+                </a>
+              </li>
+            {% endif %}
+
+            {% block otherlinks %}{% endblock %}
+          </ul>
+        </div><!-- /.navbar-collapse -->
       </div>
-    </div>
+    </nav>
+  
     <div class="container">
 
      {% block body %}{% endblock %}
@@ -152,8 +159,7 @@
                 </p>
               {% endif %}
             {% endblock version_info %}
-            {% block extra_footer %}
-            {% endblock extra_footer %}
+            {% block extra_footer %}{% endblock extra_footer %}
           </div>
       </div>
       </footer>
@@ -166,8 +172,7 @@
     <script src="/static/components/headroom.js/dist/jQuery.headroom.min.js"></script>
 
 
-    {% block extra_script %}
-    {% endblock %}
+    {% block extra_script %}{% endblock %}
 
     <!-- Analytics
     ================================================== -->
