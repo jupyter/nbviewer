@@ -28,7 +28,7 @@ RUN npm install -g bower less
 
 # install IPython 2.x branch
 WORKDIR /srv
-RUN git clone --depth 1 -b 2.x https://github.com/ipython/ipython.git
+RUN git clone --depth 1 -b 3.x https://github.com/ipython/ipython.git
 WORKDIR /srv/ipython
 RUN git submodule init && git submodule update
 RUN pip install .

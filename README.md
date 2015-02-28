@@ -63,6 +63,18 @@ docker build -t nbviewer .
 docker run -p 8080:8080 nbviewer
 ```
 
+### With Docker Compose
+
+The Notebook Viewer uses `memcache` in production. To locally try out this
+setup, a [docker-compose](https://docs.docker.com/compose/) configuration is
+provided to easily start/stop the `nbviewer` and `memcache` containers together:
+
+#### Run
+
+```shell
+docker-compose up
+```
+
 
 ### Local Installation
 

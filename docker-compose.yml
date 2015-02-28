@@ -1,0 +1,9 @@
+nbviewer:
+  build: .
+  links:
+  - nbcache
+  command: python -m nbviewer --port=8080
+  ports:
+   - 8080:8080
+nbcache:
+  image: memcached
