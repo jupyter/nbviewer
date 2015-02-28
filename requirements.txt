@@ -5,5 +5,4 @@ newrelic
 markdown
 elasticsearch
 
-
-IPython[notebook]>=3.0.0
+ipython[notebook]>=3.0.0
