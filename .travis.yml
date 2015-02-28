@@ -17,6 +17,8 @@ script: invoke test
 cache:
   apt: true
   pip: true
+  directories:
+    - /home/travis/virtualenv/python2.7.9/lib/python2.7/site-packages
 env:
   global:
   - secure: Sv53YMdsVTin1hUPRqIuvdAOJ0UwklEowW49qpxY9wSgiAM79D+e1b5Yxrn+RTtS3WGlvK1aKHICc+2ajccEJkKFL8WDy2SnTnoWPadrEy4NAGLkNMGK+bAYMnLNoNRbSGVz5JpvNJ7JkeaEplhJ572OJOxa1X7ZF9165ZbOWng=
