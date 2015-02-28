@@ -6,7 +6,6 @@
 #-----------------------------------------------------------------------------
 
 from tornado.log import app_log
-from IPython.nbformat.current import reads_json
 from IPython.nbconvert.exporters import Exporter
 
 #-----------------------------------------------------------------------------
