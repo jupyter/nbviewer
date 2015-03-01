@@ -2,7 +2,7 @@
   "name": "static",
   "version": "0.0.0",
   "dependencies": {
-    "animate.css": "3.1.1",
+    "animate.css": "~3.2",
     "headroom.js": "0.7.0",
     "requirejs": "~2.1",
     "moment": "~2.8.4",
