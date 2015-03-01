@@ -39,7 +39,7 @@ except ImportError:
     class CurlError(Exception): pass
 
 from IPython.html import DEFAULT_STATIC_FILES_PATH as ipython_static_path
-from IPython.nbformat.current import reads_json
+from IPython.nbformat import reads, current_nbformat
 
 from .render import render_notebook, NbFormatError
 from .utils import (transform_ipynb_uri, quote, response_text, base64_decode,
@@ -503,7 +503,7 @@ class RenderingHandler(BaseHandler):
             msg = download_url
 
         try:
-            nb = reads_json(json_notebook)
+            nb = reads(json_notebook, current_nbformat)
         except ValueError:
             app_log.error("Failed to render %s", msg, exc_info=True)
             raise web.HTTPError(400, "Error reading JSON notebook")

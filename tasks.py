@@ -1,8 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
 import invoke
 from IPython.html import DEFAULT_STATIC_FILES_PATH
+
+
+APP_ROOT = os.path.dirname(__file__)
+
 
 @invoke.task
 def test():
@@ -11,7 +16,7 @@ def test():
 
 @invoke.task
 def bower():
-    invoke.run("cd nbviewer/static && "
+    invoke.run("cd {}/nbviewer/static && ".format(APP_ROOT,) +
                "bower install --config.interactive=false --allow-root")
 
 
@@ -23,7 +28,8 @@ def less(debug=False):
         extra_args = "--compress"
 
     tmpl = (
-        "cd nbviewer/static/less && lessc {1} --include-path={2} "
+        "cd {}/nbviewer/static/less ".format(APP_ROOT,) +
+        "&& lessc {1} --include-path={2} "
         "{0}.less ../build/{0}.css"
     )
 
