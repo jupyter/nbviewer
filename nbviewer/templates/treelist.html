@@ -2,14 +2,14 @@
 
 
 {% macro ref_list(ref_type, refs) %}
-  <ul class="unstyled col-md-6">
-    <li role="presentation" class="nav-header">
-      {{ ref_type }}
-    </li>
-    {% for ref in refs %}
-      <li><a href="{{ ref.url }}">{{ ref.name }}</a></li>
-    {% endfor %}
-  </ul>
+  <div class="col-md-6">
+    <h5 class="nav-header">{{ ref_type }}</h5>
+    <ul>
+      {% for ref in refs %}
+        <li><a href="{{ ref.url }}">{{ ref.name }}</a></li>
+      {% endfor %}
+    </ul>
+  </div>
 {% endmacro %}
 
 
@@ -19,9 +19,11 @@
       {{ current }}
     </a>
     <div class="dropdown-menu" role="menu">
-      <div class="row-fluid">
-        {{ ref_list("branch", branches)  }}
-        {{ ref_list("tag", tags)  }}
+      <div class="container-fluid">
+        <div class="row">
+          {{ ref_list("branch", branches)  }}
+          {{ ref_list("tag", tags)  }}
+        </div>
       </div>
     </div>
   </div>
