@@ -34,7 +34,7 @@ RUN pip install invoke
 WORKDIR /srv/nbviewer
 
 # asset toolchain
-ADD ./package.json /srv/nbviewer
+ADD ./package.json /srv/nbviewer/
 RUN npm install .
 
 ADD ./requirements.txt /srv/nbviewer/
