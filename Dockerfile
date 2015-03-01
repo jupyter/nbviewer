@@ -41,7 +41,8 @@ WORKDIR /srv/nbviewer
 RUN pip install -r requirements.txt
 
 ADD ./tasks.py /srv/nbviewer/
-ADD ["/nbviewer/static/bower.json", "/nbviewer/static/.bowerrc", "/srv/nbviewer/nbviewer/static/"]
+ADD ["./nbviewer/static/bower.json", "./nbviewer/static/.bowerrc", \   
+     "/srv/nbviewer/nbviewer/static/"]
 RUN invoke bower
 
 EXPOSE 8080
