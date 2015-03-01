@@ -1,0 +1,8 @@
+{
+  "devDependencies": {
+    "less": "*",
+    "less-plugin-autoprefix": "*",
+    "less-plugin-clean-css": "*",
+    "bower": "*"
+  }
+}

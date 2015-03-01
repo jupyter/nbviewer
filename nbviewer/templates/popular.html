@@ -1,12 +1,19 @@
 {% extends "layout.html" %}
+
+
 {% block body %}
-    <table class='table table-condensed table-bordered table-striped '>
-            <thead>
-                <tr><th>Most Popular</th></tr>
-            </thead>
-            {% for entry in entries %}
-            <tr><td> <a href='{{entry.url}}'>({{entry.count}}) {{entry.url}}</a></td></tr>
-            {% endfor %}
-            </tbody>
-        </table>
+  <table class="table table-condensed table-bordered table-striped ">
+    <thead>
+      <tr><th>Most Popular</th></tr>
+    </thead>
+    <tbody>
+    {% for entry in entries %}
+      <tr>
+        <td>
+          <a href="{{entry.url}}">({{entry.count}}) {{entry.url}}</a>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
 {% endblock %}

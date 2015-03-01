@@ -10,3 +10,4 @@ dist
 *.egg-info
 */static/components
 \.ipynb_checkpoints
+node_modules

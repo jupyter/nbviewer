@@ -7,6 +7,7 @@ from IPython.html import DEFAULT_STATIC_FILES_PATH
 
 
 APP_ROOT = os.path.dirname(__file__)
+NPM_BIN = os.path.join(APP_ROOT, "node_modules", ".bin")
 
 
 @invoke.task
@@ -16,24 +17,31 @@ def test():
 
 @invoke.task
 def bower():
-    invoke.run("cd {}/nbviewer/static && ".format(APP_ROOT,) +
-               "bower install --config.interactive=false --allow-root")
+    invoke.run(
+        "cd {}/nbviewer/static &&".format(APP_ROOT) +
+        " {}/bower install".format(NPM_BIN) +
+        " --config.interactive=false --allow-root"
+    )
 
 
 @invoke.task
 def less(debug=False):
     if debug:
-        extra_args = "--source-map"
+        extra = "--source-map"
     else:
-        extra_args = "--compress"
+        extra = " --clean-css='--s1 --advanced --compatibility=ie8'"
+
 
     tmpl = (
-        "cd {}/nbviewer/static/less ".format(APP_ROOT,) +
-        "&& lessc {1} --include-path={2} "
-        "{0}.less ../build/{0}.css"
+    "cd {}/nbviewer/static/less ".format(APP_ROOT) +
+    " && {}/lessc".format(NPM_BIN) +
+    " {1} "
+    " --include-path={2}"
+    " --autoprefix='> 1%'"
+    " {0}.less ../build/{0}.css"
     )
 
-    args = (extra_args, DEFAULT_STATIC_FILES_PATH)
+    args = (extra, DEFAULT_STATIC_FILES_PATH)
 
     [
         invoke.run(tmpl.format(less_file, *args))
