@@ -4,6 +4,10 @@
 
 
 {% block otherlinks %}
+  {% if nb.metadata.kernelspec.display_name %}
+    {{ layout.head_icon("#", nb.metadata.kernelspec.display_name + " Kernel", "server") }}
+  {% endif %}
+
   {% if home_url %}
     {{ layout.head_icon(home_url, "Notebook Home", "github") }}
   {% endif %}
