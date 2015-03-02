@@ -4,7 +4,7 @@
 
 
 {% block otherlinks %}
-  {% if nb.metadata.kernelspec.display_name %}
+  {% if "kernelspec" in nb.metadata %}
     {{ layout.head_icon("#", nb.metadata.kernelspec.display_name + " Kernel", "server") }}
   {% endif %}
 
