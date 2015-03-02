@@ -59,7 +59,11 @@
 
 {% block body %}
   {{ link_breadcrumbs(breadcrumbs) }}
-  {{ body | safe}}
+  <div id="notebook">
+    <div id="notebook-container">
+      {{ body | safe}}
+    </div>
+  </div>
 {% endblock %}
 
 
