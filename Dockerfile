@@ -23,10 +23,7 @@ RUN apt-get install -y -q python python-dev python-pip
 # nbviewer binary dependencies
 RUN apt-get install -y -q libzmq3-dev sqlite3 libsqlite3-dev pandoc libevent-dev libcurl4-openssl-dev libmemcached-dev nodejs nodejs-legacy npm
 
-# asset toolchain
-RUN npm install -g bower less
-
-# install IPython 2.x branch
+# install IPython 3.x branch
 WORKDIR /srv
 RUN git clone --depth 1 -b 3.x https://github.com/ipython/ipython.git
 WORKDIR /srv/ipython
@@ -34,13 +31,17 @@ RUN git submodule init && git submodule update
 RUN pip install -e .[notebook]
 
 RUN pip install invoke
-
-ADD ./requirements.txt /srv/nbviewer/
 WORKDIR /srv/nbviewer
 
+# asset toolchain
+ADD ./package.json /srv/nbviewer/
+RUN npm install .
+
+ADD ./requirements.txt /srv/nbviewer/
 RUN pip install -r requirements.txt
 
 ADD ./tasks.py /srv/nbviewer/
+
 ADD ["./nbviewer/static/bower.json", "./nbviewer/static/.bowerrc", \   
      "/srv/nbviewer/nbviewer/static/"]
 RUN invoke bower

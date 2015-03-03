@@ -2,69 +2,82 @@
 
 
 {% macro ref_list(ref_type, refs) %}
-    <ul class="unstyled span6">
-        <li role="presentation" class="nav-header">
-            {{ ref_type }}
+  <div class="col-md-6">
+    <h5 class="nav-header">{{ ref_type }}</h5>
+    <ul>
+      {% for ref in refs %}
+        <li>
+          <a href="{{ ref.url }}">
+            {{ ref.name }}
+          </a>
         </li>
-        {% for ref in refs %}
-            <li><a href="{{ ref.url }}">{{ ref.name }}</a></li>
-        {% endfor %}
+      {% endfor %}
     </ul>
+  </div>
 {% endmacro %}
 
 
 {% macro ref_dropdown(current, branches, tags) -%}
-    <div class="pull-right dropdown dropdown-ref">
-        <a class="dropdown-toggle" data-toggle="dropdown">
-            {{ current }}
-        </a>
-        <div class="dropdown-menu" role="menu">
-            <div class="row-fluid">
-                {{ ref_list("branch", branches)  }}
-                {{ ref_list("tag", tags)  }}
-            </div>
+  <div class="pull-right dropdown dropdown-ref">
+    <a class="dropdown-toggle" data-toggle="dropdown">
+      {{ current }}
+    </a>
+    <div class="dropdown-menu" role="menu">
+      <div class="container-fluid">
+        <div class="row">
+          {{ ref_list("branch", branches)  }}
+          {{ ref_list("tag", tags)  }}
         </div>
+      </div>
     </div>
+  </div>
 {%- endmacro %}
 
-{% block body %}
-    <div>
-        {% if branches|length + tags|length > 1 %}
-            <div class="breadcrumb pull-right">
-                {{ ref_dropdown(ref, branches, tags) }}
-            </div>
-        {% endif %}
-        {{ link_breadcrumbs(breadcrumbs) }}
-    </div>
 
-    <table class='table table-condensed table-bordered table-striped'>
-            <thead>
-                <tr><th>Name</th></tr>
-            </thead>
-            <tbody>
-                <tr><td>
-                {% if len(breadcrumbs) > 1 %}
-                    <a href='../'>
-                      <i class='fa fa-backward fa-fw'></i> ..
-                    </a>
-                {% else %}
-                  <a href='/{{ tree_type | default('github') }}/{{user}}'>
-                    <i class='fa fa-backward fa-fw'></i> {{user}}'s 
-                    {{ tree_type | default('repositorie')}}s
-                  </a>
-                {% endif %}
-                </td></tr>
-                {% for entry in entries %}
-                  <tr><td>
-                  {% if entry.url %}
-                    <a href='{{entry.url}}'>
-                  {% endif %}
-                    <i class='fa fa-fw {{entry.class}}'></i> {{entry.name}}
-                  {% if entry.url %}
-                    </a>
-                  {% endif %}
-                  </td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
+{% block body %}
+  <div>
+    {% if branches|length + tags|length > 1 %}
+      <div class="breadcrumb pull-right">
+        {{ ref_dropdown(ref, branches, tags) }}
+      </div>
+    {% endif %}
+
+    {{ link_breadcrumbs(breadcrumbs) }}
+  </div>
+
+  <table class="table table-striped">
+    <thead>
+      <tr><th>Name</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>
+          {% if len(breadcrumbs) > 1 %}
+            <a href="../">
+              <i class="fa fa-backward fa-fw"></i> ..
+            </a>
+          {% else %}
+            <a href="/{{ tree_type | default('github') }}/{{user}}">
+              <i class="fa fa-backward fa-fw"></i> {{user}}'s 
+              {{ tree_type | default('repositorie')}}s
+            </a>
+          {% endif %}
+        </td>
+      </tr>
+      {% for entry in entries %}
+        <tr>
+          <td>
+            {% if entry.url %}
+              <a href="{{entry.url}}">
+            {% endif %}
+              <i class="fa fa-fw {{entry.class}}"></i>
+              {{entry.name}}
+            {% if entry.url %}
+              </a>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 {% endblock %}

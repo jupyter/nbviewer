@@ -1,37 +1,56 @@
 {% extends "layout.html" %}
+
 {% block body %}
+  <table class="table table-striped">
+    <thead>
+      {% block header_row %}
+        <tr>
+          <th>Name</th>
+        </tr>
+      {% endblock header_row %}
+    </thead>
+    <tbody>
+      {% block entries %}
+        {% for entry in entries %}
+          {% block entry scoped %}
+            <tr>
+              <td>
+                <a href="{{entry.url}}">
+                  <i class="fa {{entry.class}} fa-fw"></i>
+                  {{entry.name}}
+                </a>
+              </td>
+            </tr>
+          {% endblock entry %}
+        {% endfor %}
+      {% endblock entries %}
 
-<table class='table table-condensed table-bordered table-striped'>
-<thead>
-  {% block header_row %}
-  <tr><th>Name</th></tr>
-  {% endblock header_row %}
-</thead>
-<tbody>
 
-{% block entries %}
-{% for entry in entries %}
-  {% block entry scoped %}
-  <tr><td><a href='{{entry.url}}'><i class='fa {{entry.class}} fa-fw'></i> {{entry.name}}</a></td></tr>
-  {% endblock entry %}
-{% endfor %}
-{% endblock entries %}
-{% block page_links %}
-  {% if prev_url or next_url %}
-  <tr><td class="page_links" colspan="4">
-    {% if prev_url %}
-    <a href="{{prev_url}}"><i class="fa fa-fw fa-angle-left"></i> prev</a>
-    {% endif %}
-    {% if next_url and prev_url %}
-    &nbsp;...&nbsp;
-    {% endif %}
-    {% if next_url %}
-    <a href="{{next_url}}">next <i class="fa fa-fw fa-angle-right"></i></a>
-    {% endif %}
-  </td></tr>
-  {% endif %}
-{% endblock page_links %}
-</tbody>
-</table>
-
+      {% block page_links %}
+        {% if prev_url or next_url %}
+          <tr>
+            <td class="page_links" colspan="4">
+              {% if prev_url %}
+                <a href="{{prev_url}}">
+                  <i class="fa fa-fw fa-angle-left"></i>
+                  prev
+                </a>
+              {% endif %}
+              
+              {% if next_url and prev_url %}
+                &nbsp;...&nbsp;
+              {% endif %}
+            
+              {% if next_url %}
+                <a href="{{next_url}}">
+                  next
+                  <i class="fa fa-fw fa-angle-right"></i>
+                </a>
+              {% endif %}
+            </td>
+          </tr>
+        {% endif %}
+      {% endblock page_links %}
+    </tbody>
+  </table>
 {% endblock %}

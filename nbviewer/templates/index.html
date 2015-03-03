@@ -1,60 +1,46 @@
 {% extends "layout.html" %}
 
-{% block extra_head %}
-<style>
-    
-.marketing p {
-    white-space: nowrap;
-}
-
-</style>
-{% endblock %}
-
 {% block body %}
-
-<!-- Masthead
-================================================== -->
-<header class="jumbotron masthead">
-  <div class="inner">
+  <header class="jumbotron masthead">
     <h1>nbviewer</h1>
     <p>A simple way to share Jupyter Notebooks</p>
     <div class="row">
-      <div class="span8 offset2">
-        <form class='form-inline' method="post" action='create/'>
-          <div class="input-append controls controls-row">
-            <input class="span8"
-                   id="main-input"
-                   size="16"
-                   type="text"
-                   name="gistnorurl"
-                   autofocus="autofocus"
-                   placeholder="URL | GitHub username | GitHub username/repo | Gist ID"/>
-            <button class="btn" type="submit" type="button">Go!</button>
+      <div class="col-md-10 col-md-offset-1">
+        <form method="post" action="create/">
+          <div class="input-group">
+            <input class="form-control"
+             id="main-input"
+             type="text"
+             name="gistnorurl"
+             autofocus="autofocus"
+             placeholder="URL | GitHub username | GitHub username/repo | Gist ID"/>
+            <span class="input-group-btn">
+              <button class="btn btn-default" type="submit" type="button">
+                Go!
+              </button>
+            </span>
           </div>
         </form>
       </div>
     </div>
-  </div>
-</header>
-
-<hr/>
+  </header>
 
   {% for section in sections %}
-    <h3 class="section-heading">{{section.header}}</h3>
-    <div class="marketing">
-      <ul class="thumbnails example-sites">
-        {% for link in section.links %}
-        <li class="span4">
-        <p class="marketing-byline">{{link.text}}</p>
-        <a class="thumbnail" href="{{link.target}}" target="_blank">
-            <img src="{{link.img}}" >
-          </a>
-        </li>
-        {% endfor %}
-      </ul>
-    </div><!-- /.marketing -->
+    <section>
+      <h3 class="section-heading">{{section.header}}</h3>
+      <div class="marketing">
+        <ul class="thumbnails example-sites">
+          {% for link in section.links %}
+            <li class="col-md-4">
+              <p class="marketing-byline">{{link.text}}</p>
+              <a class="thumbnail" href="{{link.target}}" target="_blank">
+                <img src="{{link.img}}" />
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </section>
   {% endfor %}
 
-
-
-{% endblock %}
+{% endblock body %}
