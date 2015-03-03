@@ -6,7 +6,11 @@
     <h5 class="nav-header">{{ ref_type }}</h5>
     <ul>
       {% for ref in refs %}
-        <li><a href="{{ ref.url }}">{{ ref.name }}</a></li>
+        <li>
+          <a href="{{ ref.url }}">
+            {{ ref.name }}
+          </a>
+        </li>
       {% endfor %}
     </ul>
   </div>

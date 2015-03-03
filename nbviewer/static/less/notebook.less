@@ -1,4 +1,5 @@
 @import (less) "style/ipython.min.css";
+@import (reference) "../components/bootstrap/less/bootstrap";
 
 // Fixes regression of #391 when using bower-pygments
 .highlight {
@@ -18,5 +19,9 @@
 
   div.prompt {
     text-align:left;
+  }
+  
+  .cell img {
+    .img-responsive;
   }
 }
