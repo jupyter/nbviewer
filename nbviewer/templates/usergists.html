@@ -1,23 +1,34 @@
 {% extends "tabular.html" %}
+
+
 {% block header_row %}
-<tr>
-  <th>Name</th>
-  <th>Notebooks</th>
-  <th>Description</th>
-</tr>
+  <tr>
+    <th>Name</th>
+    <th>Notebooks</th>
+    <th>Description</th>
+  </tr>
 {% endblock header_row %}
+
+
 {% block entry scoped %}
-<tr>
-  <td><a href='{{entry.id}}'>{{entry.id}}</a></td>
-  <td>
-    {% for notebook in entry.notebooks %}
-    <a href='{{entry.id}}/{{notebook}}'>
-      <i class='fa fa-fw fa-book'></i> {{notebook}}
-    </a>
-    {% endfor %}
-  </td>
-  <td>
-    <span class='gist-description'>{{entry.description}}</span>
-  </td>
-</tr>
+  <tr>
+    <td>
+      <a href="{{entry.id}}">
+        {{entry.id}}
+      </a>
+    </td>
+    <td>
+      {% for notebook in entry.notebooks %}
+        <a href="{{entry.id}}/{{notebook}}">
+          <i class="fa fa-fw fa-book"></i>
+          {{notebook}}
+        </a>
+      {% endfor %}
+    </td>
+    <td>
+      <span class="gist-description">
+        {{entry.description}}
+      </span>
+    </td>
+  </tr>
 {% endblock entry %}

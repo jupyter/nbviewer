@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 
 {% block body %}
-  <table class='table table-condensed table-bordered table-striped'>
+  <table class="table table-striped">
     <thead>
       {% block header_row %}
       <tr><th>Name</th></tr>
@@ -13,8 +13,8 @@
           {% block entry scoped %}
             <tr>
               <td>
-                <a href='{{entry.url}}'>
-                  <i class='fa {{entry.class}} fa-fw'></i> 
+                <a href="{{entry.url}}">
+                  <i class="fa {{entry.class}} fa-fw"></i>
                   {{entry.name}}
                 </a>
               </td>
