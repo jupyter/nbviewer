@@ -9,7 +9,7 @@ import os
 import sys
 pjoin = os.path.join
 
-from distutils.core import setup
+from setuptools import setup
 
 def walk_subpkg(name):
     data_files = []
