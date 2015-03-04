@@ -26,7 +26,7 @@ except ImportError:
 #-----------------------------------------------------------------------------
 
 class MockCache(object):
-    """Mock Cache. Just stores nothing and alway return None on get."""
+    """Mock Cache. Just stores nothing and always return None on get."""
     def __init__(self, *args, **kwargs):
         pass
     
