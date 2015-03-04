@@ -40,7 +40,6 @@ body {
   }
 }
 
-
 div.input_area {
   padding: 0.06em;
 }
@@ -83,8 +82,11 @@ div.output_prompt {
 #menubar{
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 14px;
-}
 
+  .container .container {
+    position: absolute;
+  }
+}
 
 @media screen and (min-width:980px) {
   .navbar-inner {
@@ -94,13 +96,13 @@ div.output_prompt {
   }
 }
 
-
 @media screen and (max-width:767px) {
   #menubar {
     position: fixed;
     opacity: 0.9;
-  }
-  #menubar .container{
-    padding: 0px 20px;
+
+    .container{
+      padding: 0px 20px;
+    }
   }
 }

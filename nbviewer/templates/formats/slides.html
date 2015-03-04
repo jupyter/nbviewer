@@ -1,5 +1,6 @@
 {% extends "notebook.html" %}
 
+
 {% block style_base %}
   <!-- General and theme style sheets -->
   <link rel="stylesheet" href="/static/components/reveal.js/css/reveal.css" />
@@ -22,7 +23,7 @@
   </script>
 
   <!--[if lt IE 9]>
-  <script src="/static/components/reveal.js/lib/js/html5shiv.js"></script>
+    <script src="/static/components/reveal.js/lib/js/html5shiv.js"></script>
   <![endif]-->
 
   <link rel="stylesheet" href="/static/build/slides.css" />
@@ -35,8 +36,7 @@
 
 
 {% block body %}
-
-  {{ body | safe}}
+  {{ body|safe }}
 
   <script>
     require(
