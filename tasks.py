@@ -50,7 +50,7 @@ def less(debug=False):
 
     [
         invoke.run(tmpl.format(less_file, *args))
-        for less_file in ["styles", "notebook"]
+        for less_file in ["styles", "notebook", "slides"]
     ]
 
 
