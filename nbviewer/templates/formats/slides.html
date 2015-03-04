@@ -79,7 +79,9 @@
 
         var update = function(event){
           window.scrollTo(0,0);
-          MathJax.Hub.Rerender(event.currentSlide);
+          if(MathJax.Hub.getAllJax(Reveal.getCurrentSlide())){
+            MathJax.Hub.Rerender(Reveal.getCurrentSlide());
+          }
           var idx = Reveal.getIndices();
           $('#menubar').headroom((!idx.h && !idx.v) ? 'pin' : 'unpin');
         };
