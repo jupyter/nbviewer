@@ -703,11 +703,7 @@ class GistHandler(RenderingHandler):
             ipynbs = []
             others = []
             
-            iter_files = (
-                getattr(files, "itervalues", None) or getattr(files, "values")
-            )
-
-            for file in iter_files():
+            for file in files.values():
                 e = {}
                 e['name'] = file['filename']
                 if file['filename'].endswith('.ipynb'):
