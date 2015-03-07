@@ -26,6 +26,22 @@ class NBViewerTestCase(TestCase):
 
     port = 12341
 
+    def assertIn(self, observed, expected, *args, **kwargs):
+        return super(NBViewerTestCase, self).assertIn(
+            str(observed),
+            str(expected),
+            *args,
+            **kwargs
+        )
+
+    def assertNotIn(self, observed, expected, *args, **kwargs):
+        return super(NBViewerTestCase, self).assertNotIn(
+            str(observed),
+            str(expected),
+            *args,
+            **kwargs
+        )
+
     @classmethod
     def wait_until_alive(cls):
         """Wait for the server to be alive"""

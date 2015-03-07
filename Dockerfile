@@ -11,16 +11,11 @@ RUN apt-get install -y -q \
 ENV NBVIEWER_THREADS 2
 EXPOSE 8080
 
-RUN pip install invoke
-WORKDIR /srv/nbviewer
-
-# asset toolchain
+# Install asset toolchain: if you change your build, go pretty far back
 ADD ./package.json /srv/nbviewer/
 RUN npm install .
 
-ADD ./requirements.txt /srv/nbviewer/
-RUN pip install -r requirements.txt
-
+# Install local automation
 ADD ./tasks.py /srv/nbviewer/
 
 ADD ["./nbviewer/static/bower.json", "./nbviewer/static/.bowerrc", \
