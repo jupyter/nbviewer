@@ -18,6 +18,8 @@ from contextlib import contextmanager
 from subprocess import Popen, PIPE
 from unittest import TestCase
 
+from tornado.escape import to_unicode
+
 from nbviewer.utils import url_path_join
 
 
@@ -28,16 +30,16 @@ class NBViewerTestCase(TestCase):
 
     def assertIn(self, observed, expected, *args, **kwargs):
         return super(NBViewerTestCase, self).assertIn(
-            str(observed),
-            str(expected),
+            to_unicode(observed),
+            to_unicode(expected),
             *args,
             **kwargs
         )
 
     def assertNotIn(self, observed, expected, *args, **kwargs):
         return super(NBViewerTestCase, self).assertNotIn(
-            str(observed),
-            str(expected),
+            to_unicode(observed),
+            to_unicode(expected),
             *args,
             **kwargs
         )
