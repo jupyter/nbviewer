@@ -27,7 +27,7 @@ except ImportError:
     from urlparse import urlparse
 
 from tornado import web, gen, httpclient
-from tornado.escape import utf8
+from tornado.escape import utf8, url_escape, url_unescape
 from tornado.httputil import url_concat
 from tornado.ioloop import IOLoop
 from tornado.log import app_log, access_log
@@ -59,6 +59,15 @@ class BaseHandler(web.RequestHandler):
         self.format = format or self.default_format
         self.format_prefix = format_prefix
 
+    # Overloaded methods
+    def redirect(self, url, *args, **kwargs):
+        return super(BaseHandler, self).redirect(
+            "/".join(map(url_escape, url.split("/"))),
+            *args,
+            **kwargs
+        )
+
+    # Properties
     @property
     def pending(self):
         return self.settings.setdefault('pending', set())
@@ -921,7 +930,7 @@ class GitHubBlobHandler(RenderingHandler):
         )
         with self.catch_client_error():
             tree_entry = yield self.github_client.get_tree_entry(
-                user, repo, path=path, ref=ref
+                user, repo, path=url_unescape(path), ref=ref
             )
 
         if tree_entry['type'] == 'tree':
