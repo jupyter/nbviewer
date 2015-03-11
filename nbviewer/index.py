@@ -12,9 +12,9 @@ Classes for Indexing Notebooks
 from tornado.log import app_log
 
 import uuid
-from elasticsearch import Elasticsearch
 
-class Indexer():
+
+class Indexer(object):
     def index_notebook(self, notebook_url, notebook_contents):
         raise NotImplementedError("index_notebook not implemented")
 
@@ -29,7 +29,8 @@ class NoSearch(Indexer):
 
 class ElasticSearch(Indexer):
     def __init__(self, host="127.0.0.1", port=9200):
-      self.elasticsearch = Elasticsearch([{'host':host, 'port':port}])
+        from elasticsearch import Elasticsearch
+        self.elasticsearch = Elasticsearch([{'host':host, 'port':port}])
 
     def index_notebook(self, notebook_url, notebook_contents, public=False):
         notebook_url = notebook_url.encode('utf-8')
