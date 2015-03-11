@@ -79,6 +79,8 @@ def main():
     define("sslcert", help="path to ssl .crt file", type=str)
     define("sslkey", help="path to ssl .key file", type=str)
     define("default_format", default="html", help="format to use for legacy / URLs", type=str)
+    define("proxy_host", default="", help="The proxy URL.", type=str)
+    define("proxy_port", default="", help="The proxy port.", type=int)
     tornado.options.parse_command_line()
 
     # NBConvert config
@@ -178,6 +180,14 @@ def main():
         for link in section['links']:
             max_cache_uris.add('/' + link['target'])
 
+    fetch_kwargs = dict(connect_timeout=10,)
+    if options.proxy_host: 
+        fetch_kwargs.update(dict(proxy_host=options.proxy_host,
+                                 proxy_port=options.proxy_port))
+
+        log.app_log.info("Using web proxy {proxy_host}:{proxy_port}."
+                         "".format(**fetch_kwargs))
+
     settings = dict(
         log_function=log_request,
         jinja2_env=env,
@@ -197,9 +207,7 @@ def main():
         gzip=True,
         render_timeout=20,
         localfile_path=os.path.abspath(options.localfiles),
-        fetch_kwargs=dict(
-            connect_timeout=10,
-        ),
+        fetch_kwargs=fetch_kwargs,
     )
 
     # handle handlers
