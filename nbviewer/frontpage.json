@@ -43,6 +43,11 @@
     "header":"Misc",
     "links":[
       {
+        "text": "Data Visualization with Lightning",
+        "target": "github/lightning-viz/lightning-example-notebooks/blob/master/index.ipynb",
+        "img": "/static/img/example-nb/lightning.png"
+      }
+      {
         "text": "Interactive data visualization with Bokeh",
         "target": "github/bokeh/bokeh-notebooks/blob/master/index.ipynb",
         "img": "/static/img/example-nb/bokeh.png"
@@ -81,11 +86,6 @@
         "text": "Jaynes-Cummings model",
         "target": "github/jrjohansson/qutip-lectures/blob/master/Lecture-1-Jaynes-Cumming-model.ipynb",
         "img": "/static/img/example-nb/jaynes-cummings.png"
-      },
-      {
-        "text": "SymPy notebook",
-        "target": "github/ipython/ipython/blob/2.x/examples/Notebook/SymPy.ipynb",
-        "img": "/static/img/example-nb/sympy.png"
       }
     ]
   }
