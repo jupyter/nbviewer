@@ -46,7 +46,7 @@
         "text": "Data Visualization with Lightning",
         "target": "github/lightning-viz/lightning-example-notebooks/blob/master/index.ipynb",
         "img": "/static/img/example-nb/lightning.png"
-      }
+      },
       {
         "text": "Interactive data visualization with Bokeh",
         "target": "github/bokeh/bokeh-notebooks/blob/master/index.ipynb",
