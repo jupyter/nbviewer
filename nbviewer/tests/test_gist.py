@@ -58,9 +58,9 @@ class GistTestCase(NBViewerTestCase):
         url = self.url('gist/ocefpaf/cf023a8db7097bd9fe92')
         r = requests.get(url)
         self.assertEqual(r.status_code, 200)
-        html = u'{}'.format(r.text)
-        self.assertNotIn(u'paramÃ©trica', html)
-        self.assertIn(u'paramétrica', html)
+        html = r.text
+        self.assertNotIn('param&#195;&#169;trica', html)
+        self.assertIn('param&#233;trica', html)
 
 
 
