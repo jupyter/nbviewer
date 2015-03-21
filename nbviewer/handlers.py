@@ -527,7 +527,7 @@ class RenderingHandler(BaseHandler):
 
         html = self.render_template(
             "formats/%s.html" % format,
-            body=nbhtml,
+            body=u"{}".format(nbhtml),
             nb=nb,
             download_url=download_url,
             home_url=home_url,
