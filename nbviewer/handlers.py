@@ -668,7 +668,7 @@ class GistHandler(RenderingHandler):
             if file['truncated']:
                 app_log.debug("Gist %s/%s truncated, fetching %s", gist_id, filename, file['raw_url'])
                 response = yield self.fetch(file['raw_url'])
-                content = response_text(response)
+                content = response_text(response, encoding='utf-8')
             else:
                 content = file['content']
 

@@ -126,9 +126,13 @@ def get_encoding_from_headers(headers):
     if 'text' in content_type:
         return 'ISO-8859-1'
 
-def response_text(response):
+def response_text(response, encoding=None):
     """mimic requests.text property, but for plain HTTPResponse"""
-    encoding = get_encoding_from_headers(response.headers) or 'utf-8'
+    encoding = (
+        encoding or
+        get_encoding_from_headers(response.headers) or
+        'utf-8'
+    )
     return response.body.decode(encoding, 'replace')
 
 # parse_header_links from requests.util
