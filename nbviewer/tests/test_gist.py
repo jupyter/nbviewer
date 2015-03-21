@@ -59,8 +59,8 @@ class GistTestCase(NBViewerTestCase):
         r = requests.get(url)
         self.assertEqual(r.status_code, 200)
         html = r.text
-        self.assertNotIn('paramÃ©trica', html)
-        self.assertIn('paramétrica', html)
+        self.assertNotIn(u'paramÃ©trica', html)
+        self.assertIn(u'paramétrica', html)
 
 
 
