@@ -31,27 +31,36 @@ class GistTestCase(NBViewerTestCase):
         self.assertEqual(r.status_code, 200)
         html = r.text
         self.assertIn('<th>Name</th>', html)
-    
+
     def test_multifile_gist(self):
         url = self.url('7518294', 'Untitled0.ipynb')
         r = requests.get(url)
         self.assertEqual(r.status_code, 200)
         html = r.text
         self.assertIn('Download Notebook', html)
-    
+
     def test_anonymous_gist(self):
         url = self.url('gist/4465051')
         r = requests.get(url)
         self.assertEqual(r.status_code, 200)
         html = r.text
         self.assertIn('Download Notebook', html)
-    
+
     def test_gist_unicode(self):
         url = self.url('gist/amueller/3974344')
         r = requests.get(url)
         self.assertEqual(r.status_code, 200)
         html = r.text
         self.assertIn('<th>Name</th>', html)
+
+    def test_gist_unicode_content(self):
+        url = self.url('gist/ocefpaf/cf023a8db7097bd9fe92')
+        r = requests.get(url)
+        self.assertEqual(r.status_code, 200)
+        html = r.text
+        self.assertNotIn('paramÃ©trica', html)
+        self.assertIn('paramétrica', html)
+
 
 
 class FormatHTMLGistTestCase(GistTestCase, FormatHTMLMixin):
