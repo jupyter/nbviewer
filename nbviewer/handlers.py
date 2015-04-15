@@ -22,9 +22,11 @@ try:
     # py3
     from http.client import responses
     from urllib.parse import urlparse
+    from urllib import robotparser
 except ImportError:
     from httplib import responses
     from urlparse import urlparse
+    import robotparser
 
 from tornado import web, gen, httpclient
 from tornado.escape import utf8
@@ -582,6 +584,17 @@ class URLHandler(RenderingHandler):
                 self.redirect(remote_url)
                 return
 
+        parse_result = urlparse(remote_url)
+
+        robots_url = parse_result.scheme + "://" + parse_result.netloc + "/robots.txt"
+        robots_response = yield self.fetch(robots_url)
+        robotstxt = response_text(robots_response)
+
+        rfp = robotparser.RobotFileParser()
+        rfp.set_url(robots_url)
+        rfp.parse(robotstxt.splitlines())
+        public = rfp.can_fetch('*', remote_url)
+
         response = yield self.fetch(remote_url)
 
         try:
@@ -592,7 +605,7 @@ class URLHandler(RenderingHandler):
 
         yield self.finish_notebook(nbjson, download_url=remote_url,
                                    msg="file from url: %s" % remote_url,
-                                   public=True,
+                                   public=public,
                                    request=self.request,
                                    format=self.format)
 
