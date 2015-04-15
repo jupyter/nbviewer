@@ -592,7 +592,7 @@ class URLHandler(RenderingHandler):
 
         rfp = robotparser.RobotFileParser()
         rfp.set_url(robots_url)
-        rfp.parse(robotstxt)
+        rfp.parse(robotstxt.splitlines())
         public = rfp.can_fetch('*', remote_url)
 
         response = yield self.fetch(remote_url)

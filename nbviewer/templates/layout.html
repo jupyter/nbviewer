@@ -41,6 +41,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="{{ description | default('') }}">
   <meta name="author" content="{{ author | default('') }}">
+  {% if not public %}
+  <meta name="robots" content="noindex,nofollow">
+  {% endif %}
 
   <!--NEW RELIC Start Perf Measurement-->
   {{ nrhead() | safe }}
