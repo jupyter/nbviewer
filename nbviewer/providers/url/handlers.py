@@ -97,5 +97,6 @@ def default_handlers(handlers=[]):
 
 def uri_rewrites(rewrites=[]):
     return rewrites + [
-        ('^http(s?)://(.*)$', u'/url{0}/{1}')
+        ('^http(s?)://(.*)$', u'/url{0}/{1}'),
+        ('^(.*)$', u'/url/{0}'),
     ]
