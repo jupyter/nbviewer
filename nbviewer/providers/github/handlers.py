@@ -285,3 +285,16 @@ def default_handlers(handlers=[]):
         (r'/github/([^\/]+)/([^\/]+)/tree/([^\/]+)', AddSlashHandler),
         (r'/github/([^\/]+)/([^\/]+)/tree/([^\/]+)/(.*)', GitHubTreeHandler)
     ]
+
+
+def uri_rewrites(rewrites=[]):
+    return rewrites + [
+        (r'^https?://github.com/([\w\-]+)/([^\/]+)/(blob|tree)/(.*)$',        
+            u'/github/{0}/{1}/{2}/{3}'),
+        (r'^https?://raw.?github.com/([\w\-]+)/([^\/]+)/(.*)$',
+            u'/github/{0}/{1}/blob/{2}'),
+        (r'^([\w\-]+)/([^\/]+)$',
+            u'/github/{0}/{1}/tree/master/'),
+        (r'^([\w\-]+)$',
+            u'/github/{0}/'),
+    ]

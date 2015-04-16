@@ -1,1 +1,4 @@
-from .handlers import default_handlers
+from .handlers import (
+    default_handlers,
+    uri_rewrites,
+)

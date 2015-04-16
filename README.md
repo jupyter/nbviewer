@@ -122,12 +122,22 @@ Providers are sources of notebooks and directories of notebooks and directories.
 - `local`
 
 #### Writing a new Provider
-- Implement `default_handlers`, which accepts a list of tornado handlers
-- Optionally, implement `transform_ipynb_uri`, which will allow the front page 
-  to accept an arbitrary string (usually an URI fragment), escape it correctly
-  and turn it into a URL
-- Add the provider to the configuration
-  > TBD
+A provider is implemented as a python module, which can expose a few functions:
+
+##### `uri_rewrites`
+If you just need to rewrite URLs (or URIs) of another site/namespace, implement
+`uri_rewrites`, which will allow the front page to transform an arbitrary string
+(usually an URI fragment), escape it correctly and turn it into a URL.
+
+##### `default_handlers`
+If you need custom logic, such as connecting to an API, implement 
+`default_handlers`.
+
+`default_handlers` suggests
+
+##### Configuration
+To enable your provider,
+> TBD
 
 ### Formats
 Providers are ways to present notebooks to the user.
