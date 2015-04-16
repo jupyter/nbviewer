@@ -110,3 +110,31 @@ $ python -m nbviewer --debug --no-cache
 ```
 
 This will automatically relaunch the server if a change is detected on a python file, and not cache any results. You can then just do the modifications you like to the source code and/or the templates then refresh the pages.
+
+## Extending the Notebook Viewer
+### Providers
+Providers are sources of notebooks and directories of notebooks and directories.
+
+`nbviewer` ships with several providers
+- `url`
+- `gist`
+- `github`
+- `local`
+
+#### Writing a new Provider
+- Implement `default_handlers`, which accepts a list of tornado handlers
+- Optionally, implement `transform_ipynb_uri`, which will allow the front page 
+  to accept an arbitrary string (usually an URI fragment), escape it correctly
+  and turn it into a URL
+- Add the provider to the configuration
+  > TBD
+
+### Formats
+Providers are ways to present notebooks to the user.
+
+`nbviewer` ships with two providers:
+- `html`
+- `slides`
+
+#### Writing a new Format
+> TBD

@@ -25,16 +25,20 @@ from jinja2 import Environment, FileSystemLoader
 
 from IPython.config import Config
 
-from .handlers import init_handlers, format_providers, LocalFileHandler
+from .handlers import init_handlers, format_providers
 from .cache import DummyAsyncCache, AsyncMultipartMemcache, MockCache, pylibmc
 from .index import NoSearch, ElasticSearch
 from .formats import configure_formats
 
+from .providers.local import LocalFileHandler
+from .providers.github.client import AsyncGitHubClient
+
 try:
-    from .client import LoggingCurlAsyncHTTPClient as HTTPClientClass
+    from .providers.url.client import LoggingCurlAsyncHTTPClient as HTTPClientClass
 except ImportError:
-    from .client import LoggingSimpleAsyncHTTPClient as HTTPClientClass
-from .github import AsyncGitHubClient
+    from .providers.url.client import LoggingSimpleAsyncHTTPClient as HTTPClientClass
+
+
 from .log import log_request
 from .utils import git_info, ipython_info
 
