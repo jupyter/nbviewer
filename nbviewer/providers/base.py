@@ -81,10 +81,6 @@ class BaseHandler(web.RequestHandler):
         return self.settings['default_format']
 
     @property
-    def github_client(self):
-        return self.settings['github_client']
-
-    @property
     def config(self):
         return self.settings['config']
 

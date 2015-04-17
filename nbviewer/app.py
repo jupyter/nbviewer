@@ -32,7 +32,6 @@ from .formats import configure_formats
 
 from .providers import default_providers, default_rewrites
 from .providers.local import LocalFileHandler
-from .providers.github.client import AsyncGitHubClient
 
 try:
     from .providers.url.client import LoggingCurlAsyncHTTPClient as HTTPClientClass
@@ -175,7 +174,6 @@ def main():
     )
     AsyncHTTPClient.configure(HTTPClientClass)
     client = AsyncHTTPClient()
-    github_client = AsyncGitHubClient(client)
 
     # load frontpage sections
     with io.open(options.frontpage, 'r') as f:
@@ -200,7 +198,6 @@ def main():
         jinja2_env=env,
         static_path=static_path,
         client=client,
-        github_client=github_client,
         formats=formats,
         default_format=options.default_format,
         providers=options.providers,

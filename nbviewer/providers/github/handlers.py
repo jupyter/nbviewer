@@ -28,6 +28,17 @@ from ...utils import (
     response_text,
 )
 
+from .client import AsyncGitHubClient
+
+
+class GithubClientMixin(object):
+    @property
+    def github_client(self):
+        """Create an upgraded github API client from the HTTP client"""
+        if getattr(self, "_github_client", None) is None:
+            self._github_client = AsyncGitHubClient(self.client)
+        return self._github_client
+
 
 class RawGitHubURLHandler(BaseHandler):
     """redirect old /urls/raw.github urls to /github/ API urls"""
@@ -39,7 +50,7 @@ class RawGitHubURLHandler(BaseHandler):
         self.redirect(new_url)
 
 
-class GitHubRedirectHandler(BaseHandler):
+class GitHubRedirectHandler(BaseHandler, GithubClientMixin):
     """redirect github blob|tree|raw urls to /github/ API urls"""
     def get(self, user, repo, app, ref, path):
         if app == 'raw':
@@ -52,7 +63,7 @@ class GitHubRedirectHandler(BaseHandler):
         self.redirect(new_url)
 
 
-class GitHubUserHandler(BaseHandler):
+class GitHubUserHandler(BaseHandler, GithubClientMixin):
     """list a user's github repos"""
     @cached
     @gen.coroutine
@@ -87,7 +98,7 @@ class GitHubRepoHandler(BaseHandler):
         self.redirect("%s/github/%s/%s/tree/master/" % (self.format_prefix, user, repo))
 
 
-class GitHubTreeHandler(BaseHandler):
+class GitHubTreeHandler(BaseHandler, GithubClientMixin):
     """list files in a github repo (like github tree)"""
     @cached
     @gen.coroutine
@@ -191,7 +202,7 @@ class GitHubTreeHandler(BaseHandler):
         raise gen.Return(ref_data)
 
 
-class GitHubBlobHandler(RenderingHandler):
+class GitHubBlobHandler(RenderingHandler, GithubClientMixin):
     """handler for files on github
 
     If it's a...

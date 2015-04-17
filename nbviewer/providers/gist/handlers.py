@@ -23,8 +23,10 @@ from ...utils import (
     response_text,
 )
 
+from ..github.handlers import GithubClientMixin
 
-class UserGistsHandler(BaseHandler):
+
+class UserGistsHandler(BaseHandler, GithubClientMixin):
     """list a user's gists containing notebooks
 
     .ipynb file extension is required for listing (not for rendering).
@@ -60,7 +62,7 @@ class UserGistsHandler(BaseHandler):
         yield self.cache_and_finish(html)
 
 
-class GistHandler(RenderingHandler):
+class GistHandler(RenderingHandler, GithubClientMixin):
     """render a gist notebook, or list files if a multifile gist"""
     @cached
     @gen.coroutine
