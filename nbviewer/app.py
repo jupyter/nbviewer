@@ -25,11 +25,12 @@ from jinja2 import Environment, FileSystemLoader
 
 from IPython.config import Config
 
-from .handlers import init_handlers, format_providers
+from .handlers import init_handlers, format_handlers
 from .cache import DummyAsyncCache, AsyncMultipartMemcache, MockCache, pylibmc
 from .index import NoSearch, ElasticSearch
 from .formats import configure_formats
 
+from .providers import default_providers, default_rewrites
 from .providers.local import LocalFileHandler
 from .providers.github.client import AsyncGitHubClient
 
@@ -85,6 +86,8 @@ def main():
     define("default_format", default="html", help="format to use for legacy / URLs", type=str)
     define("proxy_host", default="", help="The proxy URL.", type=str)
     define("proxy_port", default="", help="The proxy port.", type=int)
+    define("providers", default=default_providers, help="Full dotted package(s) that provide `default_handlers`", type=str, multiple=True, group="provider")
+    define("provider_rewrites", default=default_rewrites, help="Full dotted package(s) that provide `uri_rewrites`", type=str, multiple=True, group="provider")
     tornado.options.parse_command_line()
 
     # NBConvert config
@@ -215,14 +218,15 @@ def main():
     )
 
     # handle handlers
-    handlers = init_handlers(formats)
+    handlers = init_handlers(formats, options.providers)
+
     if options.localfiles:
         log.app_log.warning("Serving local notebooks in %s, this can be a security risk", options.localfiles)
         # use absolute or relative paths:
         local_handlers = [(r'/localfile/(.*)', LocalFileHandler)]
         handlers = (
             local_handlers +
-            format_providers(formats, local_handlers) +
+            format_handlers(formats, local_handlers) +
             handlers
         )
 

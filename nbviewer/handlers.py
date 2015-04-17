@@ -56,19 +56,19 @@ class CreateHandler(BaseHandler):
 # Default handler URL mapping
 #-----------------------------------------------------------------------------
 
-def format_providers(formats, providers):
+def format_handlers(formats, handlers):
     return [
         (prefix + url, handler, {
             "format": format,
             "format_prefix": prefix
         })
         for format in formats
-        for url, handler in providers
+        for url, handler in handlers
         for prefix in [format_prefix + format]
     ]
 
 
-def init_handlers(formats):
+def init_handlers(formats, providers):
     pre_providers = [
         ('/', IndexHandler),
         ('/index.html', IndexHandler),
@@ -85,11 +85,11 @@ def init_handlers(formats):
         (r'.*', Custom404),
     ]
 
-    providers = provider_handlers()
+    handlers = provider_handlers(providers)
 
     return (
         pre_providers +
-        providers +
-        format_providers(formats, providers) +
+        handlers +
+        format_handlers(formats, handlers) +
         post_providers
     )
