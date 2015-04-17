@@ -38,12 +38,11 @@ def provider_uri_rewrites(providers=None):
 
 
 def _load_provider_feature(feature, providers, default_providers):
-    """Load (regex, template) tuples from a list of dotted-notation modules
-       which contain a `uri_rewrites` function
+    """Load the named feature from an ordered list of dotted-notation modules
+       which each implements the feature.
 
-       `uri_rewrites` should accept a list of rewrites and returns an
-       augmented list of rewrites: this allows the addition of, for
-       example, the greedy behavior of the `gist` and `github` providers
+       The feature will be passed a list of feature implementations and must
+       return that list, suitably modified.
     """
     features = []
 

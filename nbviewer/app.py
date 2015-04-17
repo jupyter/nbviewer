@@ -203,6 +203,8 @@ def main():
         github_client=github_client,
         formats=formats,
         default_format=options.default_format,
+        providers=options.providers,
+        provider_rewrites=options.provider_rewrites,
         config=config,
         index=indexer,
         cache=cache,

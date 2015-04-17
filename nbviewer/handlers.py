@@ -47,7 +47,7 @@ class CreateHandler(BaseHandler):
     """
     def post(self):
         value = self.get_argument('gistnorurl', '')
-        redirect_url = transform_ipynb_uri(value)
+        redirect_url = transform_ipynb_uri(value, self.provider_rewrites)
         app_log.info("create %s => %s", value, redirect_url)
         self.redirect(redirect_url)
 

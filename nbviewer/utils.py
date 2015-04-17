@@ -62,15 +62,18 @@ def url_path_join(*pieces):
 
 from collections import OrderedDict
 
-uri_rewrite_dict = None
+uri_rewrite_dict = OrderedDict()
 
-def transform_ipynb_uri(value):
+def transform_ipynb_uri(value, rewrite_providers=None):
     """Transform a given value (an ipynb 'URI') into an app URL"""
-    global uri_rewrite_dict
 
-    if uri_rewrite_dict is None:
-        from .providers import provider_uri_rewrites
-        uri_rewrite_dict = OrderedDict(provider_uri_rewrites())
+    if not uri_rewrite_dict:
+        from .providers import (
+            default_rewrites,
+            provider_uri_rewrites,
+        )
+        rewrite_providers = rewrite_providers or default_rewrites
+        uri_rewrite_dict.update(provider_uri_rewrites(rewrite_providers))
 
     # encode query parameters as last url part
     if '?' in value:
