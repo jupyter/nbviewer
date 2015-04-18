@@ -102,15 +102,15 @@
         </ul>
         
         <ul class="nav navbar-nav navbar-right">
-          {% if github_url %}
-            <li>
-              <a href="{{github_url}}" title="View on GitHub">
-                <i class="fa fa-github fa-2x menu-icon"></i>
-              </a>
-            </li>
-          {% endif %}
-
-          {% block otherlinks %}{% endblock %}
+          {% block otherlinks %}
+            {% if provider_url %}
+              <li>
+                <a href="{{provider_url}}" title="View on {{provider_label}}">
+                  <i class="fa fa-{{provider_icon}} fa-2x menu-icon"></i>
+                </a>
+              </li>
+            {% endif %}
+          {% endblock %}
         </ul>
       </div><!-- /.navbar-collapse -->
       {% block menu_extra %}

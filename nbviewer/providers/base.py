@@ -165,6 +165,20 @@ class BaseHandler(web.RequestHandler):
     # error handling
     #---------------------------------------------------------------
 
+    def client_error_message(self, exc, url, body, msg=None):
+        """Turn the tornado HTTP error into something useful"""
+        str_exc = str(exc)
+
+        # strip the unhelpful 599 prefix
+        if str_exc.startswith('HTTP 599: '):
+            str_exc = str_exc[10:]
+
+        if (msg is None) and body and len(body) < 100:
+            # if it's a short plain-text error message, include it
+            msg = "%s (%s)" % (str_exc, escape(body))
+
+        return msg or str_exc
+
     def reraise_client_error(self, exc):
         """Remote fetch raised an error"""
         try:
@@ -174,18 +188,7 @@ class BaseHandler(web.RequestHandler):
             url = 'url'
             body = ''
 
-        str_exc = str(exc)
-        # strip the unhelpful 599 prefix
-        if str_exc.startswith('HTTP 599: '):
-            str_exc = str_exc[10:]
-
-        if exc.code == 403 and 'too big' in body and 'gist' in url:
-            msg = "GitHub will not serve raw gists larger than 10MB"
-        elif body and len(body) < 100:
-            # if it's a short plain-text error message, include it
-            msg = "%s (%s)" % (str_exc, escape(body))
-        else:
-            msg = str_exc
+        msg = self.client_error_message(exc, url, body)
 
         slim_body = escape(body[:300])
 
@@ -477,11 +480,12 @@ class RenderingHandler(BaseHandler):
                 app_log.info("failed to test %s: %s", self.request.uri, name)
 
     @gen.coroutine
-    def finish_notebook(self, json_notebook, download_url, home_url=None, msg=None,
+    def finish_notebook(self, json_notebook, download_url, provider_url=None, 
+                        provider_icon=None, provider_label=None, msg=None,
                         breadcrumbs=None, public=False, format=None, request=None):
         """render a notebook from its JSON body.
 
-        download_url is required, home_url is not.
+        download_url is required, provider_url is not.
 
         msg is extra information for the log message when rendering fails.
         """
@@ -517,7 +521,9 @@ class RenderingHandler(BaseHandler):
             body=nbhtml,
             nb=nb,
             download_url=download_url,
-            home_url=home_url,
+            provider_url=provider_url,
+            provider_label=provider_label,
+            provider_icon=provider_icon,
             format=self.format,
             default_format=self.default_format,
             format_prefix=format_prefix,

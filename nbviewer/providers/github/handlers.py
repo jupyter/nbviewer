@@ -31,6 +31,12 @@ from ...utils import (
 from .client import AsyncGitHubClient
 
 
+PROVIDER_CTX = {
+    'provider_label': 'GitHub',
+    'provider_icon': 'github',
+}
+
+
 class GithubClientMixin(object):
     @property
     def github_client(self):
@@ -50,7 +56,7 @@ class RawGitHubURLHandler(BaseHandler):
         self.redirect(new_url)
 
 
-class GitHubRedirectHandler(BaseHandler, GithubClientMixin):
+class GitHubRedirectHandler(GithubClientMixin, BaseHandler):
     """redirect github blob|tree|raw urls to /github/ API urls"""
     def get(self, user, repo, app, ref, path):
         if app == 'raw':
@@ -63,7 +69,7 @@ class GitHubRedirectHandler(BaseHandler, GithubClientMixin):
         self.redirect(new_url)
 
 
-class GitHubUserHandler(BaseHandler, GithubClientMixin):
+class GitHubUserHandler(GithubClientMixin, BaseHandler):
     """list a user's github repos"""
     @cached
     @gen.coroutine
@@ -84,10 +90,11 @@ class GitHubUserHandler(BaseHandler, GithubClientMixin):
                 url=repo['name'],
                 name=repo['name'],
             ))
-        github_url = u"https://github.com/{user}".format(user=user)
+        provider_url = u"https://github.com/{user}".format(user=user)
         html = self.render_template("userview.html",
-            entries=entries, github_url=github_url,
+            entries=entries, provider_url=provider_url, 
             next_url=next_url, prev_url=prev_url,
+            **PROVIDER_CTX
         )
         yield self.cache_and_finish(html)
 
@@ -98,7 +105,7 @@ class GitHubRepoHandler(BaseHandler):
         self.redirect("%s/github/%s/%s/tree/master/" % (self.format_prefix, user, repo))
 
 
-class GitHubTreeHandler(BaseHandler, GithubClientMixin):
+class GitHubTreeHandler(GithubClientMixin, BaseHandler):
     """list files in a github repo (like github tree)"""
     @cached
     @gen.coroutine
@@ -135,7 +142,7 @@ class GitHubTreeHandler(BaseHandler, GithubClientMixin):
         base_url = u"/github/{user}/{repo}/tree/{ref}".format(
             user=user, repo=repo, ref=ref,
         )
-        github_url = u"https://github.com/{user}/{repo}/tree/{ref}/{path}".format(
+        provider_url = u"https://github.com/{user}/{repo}/tree/{ref}/{path}".format(
             user=user, repo=repo, ref=ref, path=path,
         )
 
@@ -182,9 +189,10 @@ class GitHubTreeHandler(BaseHandler, GithubClientMixin):
         entries.extend(others)
 
         html = self.render_template("treelist.html",
-            entries=entries, breadcrumbs=breadcrumbs, github_url=github_url,
+            entries=entries, breadcrumbs=breadcrumbs, provider_url=provider_url,
             user=user, repo=repo, ref=ref, path=path,
-            branches=branches, tags=tags
+            branches=branches, tags=tags, tree_type="github",
+            **PROVIDER_CTX
         )
         yield self.cache_and_finish(html)
 
@@ -202,7 +210,7 @@ class GitHubTreeHandler(BaseHandler, GithubClientMixin):
         raise gen.Return(ref_data)
 
 
-class GitHubBlobHandler(RenderingHandler, GithubClientMixin):
+class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
     """handler for files on github
 
     If it's a...
@@ -267,12 +275,13 @@ class GitHubBlobHandler(RenderingHandler, GithubClientMixin):
                 app_log.error("Failed to decode notebook: %s", raw_url, exc_info=True)
                 raise web.HTTPError(400)
             yield self.finish_notebook(nbjson, raw_url,
-                home_url=blob_url,
+                provider_url=blob_url,
                 breadcrumbs=breadcrumbs,
                 msg="file from GitHub: %s" % raw_url,
                 public=True,
                 format=self.format,
-                request=self.request
+                request=self.request,
+                **PROVIDER_CTX
             )
         else:
             mime, enc = mimetypes.guess_type(path)
