@@ -34,4 +34,4 @@ RUN invoke less
 
 USER nobody
 
-CMD ["python", "-m", "nbviewer", "--port=8080"]
+CMD ["python3", "-m", "nbviewer", "--port=8080"]
