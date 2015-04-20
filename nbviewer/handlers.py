@@ -587,13 +587,23 @@ class URLHandler(RenderingHandler):
         parse_result = urlparse(remote_url)
 
         robots_url = parse_result.scheme + "://" + parse_result.netloc + "/robots.txt"
-        robots_response = yield self.fetch(robots_url)
-        robotstxt = response_text(robots_response)
 
-        rfp = robotparser.RobotFileParser()
-        rfp.set_url(robots_url)
-        rfp.parse(robotstxt.splitlines())
-        public = rfp.can_fetch('*', remote_url)
+        public = False # Assume non-public
+
+        try:
+            robots_response = yield self.fetch(robots_url)
+            robotstxt = response_text(robots_response)
+            rfp = robotparser.RobotFileParser()
+            rfp.set_url(robots_url)
+            rfp.parse(robotstxt.splitlines())
+            public = rfp.can_fetch('*', remote_url)
+        except httpclient.HTTPError as e:
+            app_log.debug("Robots.txt not available for {}".format(remote_url),
+                    exc_info=True)
+            public = True
+        except Exception as e:
+            app_log.error(e)
+
 
         response = yield self.fetch(remote_url)
 
