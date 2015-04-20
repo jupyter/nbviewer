@@ -9,11 +9,11 @@ import requests
 import sys
 from nbviewer.utils import url_path_join
 
-from .base import NBViewerTestCase, FormatHTMLMixin
+from ....tests.base import NBViewerTestCase, FormatHTMLMixin
 
 class LocalFileDefaultTestCase(NBViewerTestCase):
     @classmethod
-    def get_server_cmd(cls): 
+    def get_server_cmd(cls):
         return [
             sys.executable, '-m', 'nbviewer',
             '--port=%d' % cls.port,
@@ -27,14 +27,14 @@ class LocalFileDefaultTestCase(NBViewerTestCase):
         self.assertEqual(r.status_code, 200)
 
 
-class FormatHTMLLocalFileDefaultTestCase(LocalFileDefaultTestCase, 
+class FormatHTMLLocalFileDefaultTestCase(LocalFileDefaultTestCase,
                                          FormatHTMLMixin):
     pass
 
 
 class LocalFileRelativePathTestCase(NBViewerTestCase):
     @classmethod
-    def get_server_cmd(cls): 
+    def get_server_cmd(cls):
         return [
             sys.executable, '-m', 'nbviewer',
             '--port=%d' % cls.port,
