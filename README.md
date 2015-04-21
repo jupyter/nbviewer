@@ -1,5 +1,6 @@
 # Jupyter Notebook Viewer
-[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/jupyter/nbviewer?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Gitter](https://badges.gitter.im/Join Chat.svg)][gitter]
+[gitter]: https://gitter.im/jupyter/nbviewer?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
 
 Jupyter nbviewer is the web application behind [The Jupyter Notebook Viewer](http://nbviewer.ipython.org), which is graciously hosted by [Rackspace](https://developer.rackspace.com/?nbviewer=awesome).
 
@@ -47,32 +48,38 @@ With this configured all GitHub API requests will go to you Enterprise instance 
 
 ### With Docker
 
-You can build a docker image that uses your local branch
+You can build a docker image that uses your local branch.
 
 
 #### Build
 
 ```shell
-docker build -t nbviewer .
+$ cd <path to repo>
+$ docker build -t nbviewer .
 ```
 
 
 #### Run
 
 ```shell
-docker run -p 8080:8080 nbviewer
+$ cd <path to repo>
+$ docker run -p 8080:8080 nbviewer
 ```
 
 ### With Docker Compose
 
-The Notebook Viewer uses `memcache` in production. To locally try out this
+The Notebook Viewer uses `memcached` in production. To locally try out this
 setup, a [docker-compose](https://docs.docker.com/compose/) configuration is
-provided to easily start/stop the `nbviewer` and `memcache` containers together:
+provided to easily start/stop the `nbviewer` and `memcached` containers 
+together from a your current branch. You will need to install `docker` prior
+to this.
 
 #### Run
 
 ```shell
-docker-compose up
+$ cd <path to repo>
+$ pip install docker-compose
+$ docker-compose up
 ```
 
 
@@ -83,16 +90,18 @@ The Notebook Viewer requires several binary packages to be installed on your sys
 If they are installed, you can install the required Python packages via pip.
 
 ```shell
-pip install -r requirements.txt`
+$ cd <path to repo>
+$ pip install -r requirements.txt
 ```
-
 
 #### Static Assets
 
-Static assets are maintained with `bower` and `less`.
+Static assets are maintained with `bower` and `less` (which require having
+`npm` installed), and the `invoke` python module.
 
 ```shell
 $ cd <path to repo>
+$ pip install -r dev-requirements.txt
 $ invoke bower
 $ invoke less [-d]
 ```
@@ -111,6 +120,20 @@ $ python -m nbviewer --debug --no-cache
 
 This will automatically relaunch the server if a change is detected on a python file, and not cache any results. You can then just do the modifications you like to the source code and/or the templates then refresh the pages.
 
+
+#### Running the Tests
+
+`nose` is used to run the test suite. The tests currently make calls to
+external APIs such as GitHub, so it is best to use your Github API Token when 
+running:
+
+```shell
+$ cd <path to repo>
+$ pip install -r dev-requirements.txt
+$ GITHUB_API_TOKEN=<your token> python setup.py test
+```
+
+
 ## Extending the Notebook Viewer
 ### Providers
 Providers are sources of notebooks and directories of notebooks and directories.
@@ -122,29 +145,41 @@ Providers are sources of notebooks and directories of notebooks and directories.
 - `local`
 
 #### Writing a new Provider
+There are several already additional providers
+[proposed/requested](/jupyter/nbviewer/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+label%3Aprovider). Some providers are more involved than others, and some,
+such as those which would require user authentication, will take some work to
+support properly.
+
 A provider is implemented as a python module, which can expose a few functions:
 
 ##### `uri_rewrites`
 If you just need to rewrite URLs (or URIs) of another site/namespace, implement
 `uri_rewrites`, which will allow the front page to transform an arbitrary string
-(usually an URI fragment), escape it correctly and turn it into a URL.
+(usually an URI fragment), escape it correctly, and turn it into a "canonical"
+nbviewer URL. See the [dropbox provider](./providers/dropbox/handlers.py)
+for a simple example of rewriting URLs without using a custom API client.
 
 ##### `default_handlers`
-If you need custom logic, such as connecting to an API, implement 
-`default_handlers`.
+If you need custom logic, such as connecting to an API, implement
+`default_handlers`. See the [github provider](./providers/github/handlers.py)
+for a complex example of providing multiple handlers.
 
-`default_handlers` suggests
-
-##### Configuration
-To enable your provider,
-> TBD
+##### Error Handling
+While you _could_ re-implement upstream HTTP error handling, a small
+convenience method is provided for intercepting HTTP errors.
+On a given URL handler that inherits from `BaseHandler`, overload the
+`client_error_message` and re-call it with your message (or `None`). See the
+[gist provider](./providers/gist/handlers.py) for an example of customizing the
+error message.
 
 ### Formats
-Providers are ways to present notebooks to the user.
+Formats are ways to present notebooks to the user.
 
 `nbviewer` ships with two providers:
 - `html`
 - `slides`
 
 #### Writing a new Format
-> TBD
+If you'd like to write a new format, open a ticket, or speak up on [gitter][]! 
+We have some work yet to do to support your next big thing in notebook 
+publishing, and we'd love to here from you.
