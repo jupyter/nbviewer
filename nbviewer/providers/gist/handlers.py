@@ -34,11 +34,9 @@ PROVIDER_CTX = {
 
 class GistClientMixin(GithubClientMixin):
     def client_error_message(self, exc, url, body, msg=None):
-        app_log.warn(["FOOO", exc, url, body, msg])
-
         if exc.code == 403 and 'too big' in body:
             msg = "GitHub will not serve raw gists larger than 10MB"
-        
+
         return super(GistClientMixin, self).client_error_message(
             exc, url, body, msg
         )
