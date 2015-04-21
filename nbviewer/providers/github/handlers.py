@@ -309,7 +309,7 @@ def default_handlers(handlers=[]):
 
 def uri_rewrites(rewrites=[]):
     return rewrites + [
-        (r'^https?://github.com/([\w\-]+)/([^\/]+)/(blob|tree)/(.*)$',        
+        (r'^https?://github.com/([\w\-]+)/([^\/]+)/(blob|tree)/(.*)$',
             u'/github/{0}/{1}/{2}/{3}'),
         (r'^https?://raw.?github.com/([\w\-]+)/([^\/]+)/(.*)$',
             u'/github/{0}/{1}/blob/{2}'),
