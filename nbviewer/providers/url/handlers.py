@@ -13,7 +13,11 @@ except ImportError:
     from urlparse import urlparse
     import robotparser
 
-from tornado import web, gen
+from tornado import (
+    gen,
+    httpclient,
+    web,
+)
 from tornado.log import app_log
 
 from ...utils import (
