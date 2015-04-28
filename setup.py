@@ -42,7 +42,7 @@ setup_args = dict(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.3',
     ],
+    test_suite="nose.collector",
 )
 
 setup(**setup_args)
-

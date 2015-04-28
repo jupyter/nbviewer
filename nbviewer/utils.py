@@ -53,15 +53,6 @@ def url_path_join(*pieces):
         result = '/'
     return result
 
-GIST_RGX = re.compile(r'^([a-f0-9]+)/?$')
-GIST_URL_RGX = re.compile(r'^https?://gist.github.com/([^\/]+/)?([a-f0-9]+)/?$')
-GITHUB_URL_RGX = re.compile(r'^https?://github.com/([\w\-]+)/([^\/]+)/(blob|tree)/(.*)$')
-GITHUB_RAW_URL_RGX = re.compile(r'^https?://raw.?github.com/([\w\-]+)/([^\/]+)/(.*)$')
-GITHUB_USER_RGX = re.compile(r'^([\w\-]+)$')
-GITHUB_USER_REPO_RGX = re.compile(r'^([\w\-]+)/([^\/]+)$')
-DROPBOX_URL_RGX = re.compile(r'^http(s?)://www.dropbox.com/(sh?)/(.+)$')
-
-
 #def url_rewrite(value):
 #
 #    for reg,template in regs_dict:
@@ -71,37 +62,28 @@ DROPBOX_URL_RGX = re.compile(r'^http(s?)://www.dropbox.com/(sh?)/(.+)$')
 
 from collections import OrderedDict
 
-url_rewrite_dict = OrderedDict([
-        (GIST_RGX,              u'/{0}'),
-        (GIST_URL_RGX,          u'/{1}'),
-        (GITHUB_URL_RGX,        u'/github/{0}/{1}/{2}/{3}'),
-        (GITHUB_RAW_URL_RGX,    u'/github/{0}/{1}/blob/{2}'),
-        (GITHUB_USER_REPO_RGX,  u'/github/{0}/{1}/tree/master/'),
-        (GITHUB_USER_RGX,       u'/github/{0}/'),
-        (DROPBOX_URL_RGX,       u'/url{0}/dl.dropbox.com/{1}/{2}'),
-])
+uri_rewrite_dict = OrderedDict()
 
-
-def transform_ipynb_uri(value):
+def transform_ipynb_uri(value, rewrite_providers=None):
     """Transform a given value (an ipynb 'URI') into an app URL"""
 
-    for reg,rewrite in url_rewrite_dict.items():
-        matches = reg.match(value)
-        if matches:
-            return rewrite.format(*matches.groups())
-    
+    if not uri_rewrite_dict:
+        from .providers import (
+            default_rewrites,
+            provider_uri_rewrites,
+        )
+        rewrite_providers = rewrite_providers or default_rewrites
+        uri_rewrite_dict.update(provider_uri_rewrites(rewrite_providers))
+
     # encode query parameters as last url part
     if '?' in value:
         value, query = value.split('?', 1)
         value = '%s/%s' % (value, quote('?' + query))
     
-    if value.startswith('https://'):
-        return u'/urls/%s' % value[8:]
-
-    if value.startswith('http://'):
-        return u'/url/%s' % value[7:]
-
-    return u'/url/%s' % value
+    for reg, rewrite in uri_rewrite_dict.items():
+        matches = re.match(reg, value)
+        if matches:
+            return rewrite.format(*matches.groups())
 
 # get_encoding_from_headers from requests.utils (1.2.3)
 # (c) 2013 Kenneth Reitz
