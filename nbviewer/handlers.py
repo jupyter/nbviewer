@@ -68,7 +68,7 @@ def format_handlers(formats, handlers):
     ]
 
 
-def init_handlers(formats, providers):
+def init_handlers(formats):
     pre_providers = [
         ('/', IndexHandler),
         ('/index.html', IndexHandler),
@@ -85,7 +85,7 @@ def init_handlers(formats, providers):
         (r'.*', Custom404),
     ]
 
-    handlers = provider_handlers(providers)
+    handlers = provider_handlers()
 
     return (
         pre_providers +

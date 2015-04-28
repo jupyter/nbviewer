@@ -15,8 +15,6 @@ import markdown
 from cgi import escape
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 
-from pkg_resources import iter_entry_points
-
 from tornado import web, httpserver, ioloop, log
 from tornado.httpclient import AsyncHTTPClient
 
@@ -32,6 +30,7 @@ from .cache import DummyAsyncCache, AsyncMultipartMemcache, MockCache, pylibmc
 from .index import NoSearch, ElasticSearch
 from .formats import configure_formats
 
+from .providers import provider_handlers, provider_uri_rewrites
 from .providers.local import LocalFileHandler
 
 try:
@@ -87,17 +86,6 @@ def main():
     define("proxy_host", default="", help="The proxy URL.", type=str)
     define("proxy_port", default="", help="The proxy port.", type=int)
     tornado.options.parse_command_line()
-
-    providers = [
-        provider.load()
-        for provider
-        in iter_entry_points("nbviewer.provider.handlers")
-    ]
-    provider_rewrites = [
-        provider.load()
-        for provider
-        in iter_entry_points("nbviewer.provider.uri_rewrite")
-    ]
 
     # NBConvert config
     config = Config()
@@ -210,8 +198,6 @@ def main():
         client=client,
         formats=formats,
         default_format=options.default_format,
-        providers=providers,
-        provider_rewrites=provider_rewrites,
         config=config,
         index=indexer,
         cache=cache,
@@ -227,7 +213,7 @@ def main():
     )
 
     # handle handlers
-    handlers = init_handlers(formats, providers)
+    handlers = init_handlers(formats)
 
     if options.localfiles:
         log.app_log.warning("Serving local notebooks in %s, this can be a security risk", options.localfiles)

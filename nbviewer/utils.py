@@ -70,7 +70,7 @@ def transform_ipynb_uri(value, rewrite_providers):
     """Transform a given value (an ipynb 'URI') into an app URL"""
 
     if not uri_rewrite_dict:
-        uri_rewrite_dict.update(provider_uri_rewrites(rewrite_providers))
+        uri_rewrite_dict.update(provider_uri_rewrites())
 
     # encode query parameters as last url part
     if '?' in value:

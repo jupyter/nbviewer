@@ -5,7 +5,11 @@
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
-def provider_handlers(providers):
+
+from pkg_resources import iter_entry_points
+
+
+def provider_handlers():
     """Load tornado URL handlers from an ordered list of dotted-notation modules
        which contain a `default_handlers` function
 
@@ -14,10 +18,10 @@ def provider_handlers(providers):
        example, custom URLs which should be intercepted before being
        handed to the basic `url` handler
     """
-    return _load_provider_feature(providers)
+    return _load_provider_feature(_load_feature_entry_points("handlers"))
 
 
-def provider_uri_rewrites(providers=None):
+def provider_uri_rewrites():
     """Load (regex, template) tuples from an ordered list of setup_tools
        entry_points which contain a `uri_rewrites` function
 
@@ -25,7 +29,15 @@ def provider_uri_rewrites(providers=None):
        augmented list of rewrites: this allows the addition of, for
        example, the greedy behavior of the `gist` and `github` providers
     """
-    return _load_provider_feature(providers)
+    return _load_provider_feature(_load_feature_entry_points("uri_rewrite"))
+
+
+def _load_feature_entry_points(feature):
+    return [
+        provider.load()
+        for provider
+        in iter_entry_points("nbviewer.provider.%s" % feature)
+    ]
 
 
 def _load_provider_feature(providers):
