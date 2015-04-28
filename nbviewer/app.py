@@ -15,6 +15,8 @@ import markdown
 from cgi import escape
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 
+from pkg_resources import iter_entry_points
+
 from tornado import web, httpserver, ioloop, log
 from tornado.httpclient import AsyncHTTPClient
 
@@ -30,7 +32,6 @@ from .cache import DummyAsyncCache, AsyncMultipartMemcache, MockCache, pylibmc
 from .index import NoSearch, ElasticSearch
 from .formats import configure_formats
 
-from .providers import default_providers, default_rewrites
 from .providers.local import LocalFileHandler
 
 try:
@@ -85,9 +86,18 @@ def main():
     define("default_format", default="html", help="format to use for legacy / URLs", type=str)
     define("proxy_host", default="", help="The proxy URL.", type=str)
     define("proxy_port", default="", help="The proxy port.", type=int)
-    define("providers", default=default_providers, help="Full dotted package(s) that provide `default_handlers`", type=str, multiple=True, group="provider")
-    define("provider_rewrites", default=default_rewrites, help="Full dotted package(s) that provide `uri_rewrites`", type=str, multiple=True, group="provider")
     tornado.options.parse_command_line()
+
+    providers = [
+        provider.load()
+        for provider
+        in iter_entry_points("nbviewer.provider.handlers")
+    ]
+    provider_rewrites = [
+        provider.load()
+        for provider
+        in iter_entry_points("nbviewer.provider.uri_rewrite")
+    ]
 
     # NBConvert config
     config = Config()
@@ -186,7 +196,7 @@ def main():
             max_cache_uris.add('/' + link['target'])
 
     fetch_kwargs = dict(connect_timeout=10,)
-    if options.proxy_host: 
+    if options.proxy_host:
         fetch_kwargs.update(dict(proxy_host=options.proxy_host,
                                  proxy_port=options.proxy_port))
 
@@ -200,8 +210,8 @@ def main():
         client=client,
         formats=formats,
         default_format=options.default_format,
-        providers=options.providers,
-        provider_rewrites=options.provider_rewrites,
+        providers=providers,
+        provider_rewrites=provider_rewrites,
         config=config,
         index=indexer,
         cache=cache,
@@ -217,7 +227,7 @@ def main():
     )
 
     # handle handlers
-    handlers = init_handlers(formats, options.providers)
+    handlers = init_handlers(formats, providers)
 
     if options.localfiles:
         log.app_log.warning("Serving local notebooks in %s, this can be a security risk", options.localfiles)

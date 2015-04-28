@@ -192,6 +192,8 @@ def default_handlers(handlers=[]):
         (r'/gist/([^\/]+)/?', UserGistsHandler),
     ]
 
+default_handlers.weight = 300
+
 
 def uri_rewrites(rewrites=[]):
     return [
@@ -200,3 +202,5 @@ def uri_rewrites(rewrites=[]):
         ('^https?://gist.github.com/([^\/]+/)?([a-f0-9]+)/?$',
             u'/{1}'),
     ] + rewrites
+
+uri_rewrites.weight = 100

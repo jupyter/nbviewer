@@ -5,14 +5,7 @@
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
-default_providers = ['nbviewer.providers.{}'.format(prov)
-                     for prov in ['url', 'github', 'gist']]
-
-default_rewrites = ['nbviewer.providers.{}'.format(prov)
-                    for prov in ['gist', 'github', 'dropbox', 'url']]
-
-
-def provider_handlers(providers=None):
+def provider_handlers(providers):
     """Load tornado URL handlers from an ordered list of dotted-notation modules
        which contain a `default_handlers` function
 
@@ -21,24 +14,22 @@ def provider_handlers(providers=None):
        example, custom URLs which should be intercepted before being
        handed to the basic `url` handler
     """
-    return _load_provider_feature('default_handlers',
-                                  providers,
-                                  default_providers)
+    return _load_provider_feature(providers)
 
 
 def provider_uri_rewrites(providers=None):
-    """Load (regex, template) tuples from an ordered list of dotted-notation
-       modules which contain a `uri_rewrites` function
+    """Load (regex, template) tuples from an ordered list of setup_tools
+       entry_points which contain a `uri_rewrites` function
 
        `uri_rewrites` should accept a list of rewrites and returns an
        augmented list of rewrites: this allows the addition of, for
        example, the greedy behavior of the `gist` and `github` providers
     """
-    return _load_provider_feature('uri_rewrites', providers, default_rewrites)
+    return _load_provider_feature(providers)
 
 
-def _load_provider_feature(feature, providers, default_providers):
-    """Load the named feature from an ordered list of dotted-notation modules
+def _load_provider_feature(providers):
+    """Load the named feature from an ordered list of setuptools entry_points
        which each implements the feature.
 
        The feature will be passed a list of feature implementations and must
@@ -46,10 +37,10 @@ def _load_provider_feature(feature, providers, default_providers):
     """
     features = []
 
-    providers = providers or default_providers
+    def _weight_comp(a, b):
+        return cmp(getattr(a, "weight", 0), getattr(b, "weight", 0))
 
-    for provider in providers:
-        mod = __import__(provider, fromlist=[feature])
-        features = getattr(mod, feature)(features)
+    for provider in sorted(providers, cmp=_weight_comp):
+        features = provider(features)
 
     return features

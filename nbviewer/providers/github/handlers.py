@@ -92,7 +92,7 @@ class GitHubUserHandler(GithubClientMixin, BaseHandler):
             ))
         provider_url = u"https://github.com/{user}".format(user=user)
         html = self.render_template("userview.html",
-            entries=entries, provider_url=provider_url, 
+            entries=entries, provider_url=provider_url,
             next_url=next_url, prev_url=prev_url,
             **PROVIDER_CTX
         )
@@ -306,6 +306,8 @@ def default_handlers(handlers=[]):
         (r'/github/([^\/]+)/([^\/]+)/tree/([^\/]+)/(.*)', GitHubTreeHandler)
     ]
 
+default_handlers.weight = 200
+
 
 def uri_rewrites(rewrites=[]):
     return rewrites + [
@@ -318,3 +320,5 @@ def uri_rewrites(rewrites=[]):
         (r'^([\w\-]+)$',
             u'/github/{0}/'),
     ]
+
+uri_rewrites.weight = 200

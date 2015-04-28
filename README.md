@@ -70,7 +70,7 @@ $ docker run -p 8080:8080 nbviewer
 
 The Notebook Viewer uses `memcached` in production. To locally try out this
 setup, a [docker-compose](https://docs.docker.com/compose/) configuration is
-provided to easily start/stop the `nbviewer` and `memcached` containers 
+provided to easily start/stop the `nbviewer` and `memcached` containers
 together from a your current branch. You will need to install `docker` prior
 to this.
 
@@ -124,7 +124,7 @@ This will automatically relaunch the server if a change is detected on a python 
 #### Running the Tests
 
 `nose` is used to run the test suite. The tests currently make calls to
-external APIs such as GitHub, so it is best to use your Github API Token when 
+external APIs such as GitHub, so it is best to use your Github API Token when
 running:
 
 ```shell
@@ -138,7 +138,7 @@ $ GITHUB_API_TOKEN=<your token> python setup.py test
 ### Providers
 Providers are sources of notebooks and directories of notebooks and directories.
 
-`nbviewer` ships with several providers
+`nbviewer` ships with several providers:
 - `url`
 - `gist`
 - `github`
@@ -150,16 +150,17 @@ There are several already additional providers
 such as those which would require user authentication, will take some work to
 support properly.
 
-A provider is implemented as a python module, which can expose a few functions:
+A provider is implemented as a set of functions exposed by `setuptools`
+`entry_points` in `setup.py`:
 
-##### `uri_rewrites`
+##### `nbviewer.provider.uri_rewrite`
 If you just need to rewrite URLs (or URIs) of another site/namespace, implement
 `uri_rewrites`, which will allow the front page to transform an arbitrary string
 (usually an URI fragment), escape it correctly, and turn it into a "canonical"
 nbviewer URL. See the [dropbox provider](./providers/dropbox/handlers.py)
 for a simple example of rewriting URLs without using a custom API client.
 
-##### `default_handlers`
+##### `nbviewer.provider.handlers`
 If you need custom logic, such as connecting to an API, implement
 `default_handlers`. See the [github provider](./providers/github/handlers.py)
 for a complex example of providing multiple handlers.
@@ -180,6 +181,6 @@ Formats are ways to present notebooks to the user.
 - `slides`
 
 #### Writing a new Format
-If you'd like to write a new format, open a ticket, or speak up on [gitter][]! 
-We have some work yet to do to support your next big thing in notebook 
+If you'd like to write a new format, open a ticket, or speak up on [gitter][]!
+We have some work yet to do to support your next big thing in notebook
 publishing, and we'd love to here from you.

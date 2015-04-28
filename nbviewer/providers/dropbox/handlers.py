@@ -10,3 +10,5 @@ def uri_rewrites(rewrites=[]):
         (r'^http(s?)://www.dropbox.com/(sh?)/(.+)$',
             u'/url{0}/dl.dropbox.com/{1}/{2}'),
     ]
+
+uri_rewrites.weight = 400
