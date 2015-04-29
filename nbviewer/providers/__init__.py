@@ -8,6 +8,8 @@
 
 from pkg_resources import iter_entry_points
 
+from tornado.log import app_log
+
 
 def provider_handlers():
     """Load tornado URL handlers from an ordered list of dotted-notation modules
@@ -33,11 +35,9 @@ def provider_uri_rewrites():
 
 
 def _load_feature_entry_points(feature):
-    return [
-        provider.load()
-        for provider
-        in iter_entry_points("nbviewer.provider.%s" % feature)
-    ]
+    for provider in iter_entry_points("nbviewer.provider.{}".format(feature)):
+        app_log.info("Loaded {}: {}".format(feature, provider.name))
+        yield provider.load()
 
 
 def _load_provider_feature(providers):

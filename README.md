@@ -151,7 +151,15 @@ such as those which would require user authentication, will take some work to
 support properly.
 
 A provider is implemented as a set of functions exposed by `setuptools`
-`entry_points` in `setup.py`:
+`entry_points` the `setup.py` in your module:
+```python
+entry_points={
+    "nbviewer.provider.<feature>": "<name> = mymodule.myprovider:<feature>"
+}
+```
+
+Once it is installed via `setup.py develop`, `setup.py install` or `pip`, it
+will be used automatically by the nbviewer app.
 
 ##### `nbviewer.provider.uri_rewrite`
 If you just need to rewrite URLs (or URIs) of another site/namespace, implement
@@ -172,6 +180,12 @@ On a given URL handler that inherits from `BaseHandler`, overload the
 `client_error_message` and re-call it with your message (or `None`). See the
 [gist provider](./providers/gist/handlers.py) for an example of customizing the
 error message.
+
+#### Configuration
+If you need to pass configuration specific to your handler or client, such as
+API keys or branding settings, at present the easiest way is environment
+variables. See the [github client](./providers/github/client.py) for an example
+of using configuring a provider via environment variables.
 
 ### Formats
 Formats are ways to present notebooks to the user.
