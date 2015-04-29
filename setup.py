@@ -21,7 +21,12 @@ def walk_subpkg(name):
     return data_files
 
 pkg_data = {
-    "nbviewer": ['frontpage.json'] + walk_subpkg('static') + walk_subpkg('templates')
+    "nbviewer": (
+        ['frontpage.json'] +
+        walk_subpkg('static') +
+        walk_subpkg('templates') +
+        walk_subpkg('providers')
+    )
 }
 
 setup_args = dict(
