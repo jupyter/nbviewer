@@ -11,7 +11,7 @@ RUN apt-get install -y -q \
 ENV NBVIEWER_THREADS 2
 EXPOSE 8080
 
-RUN pip install invoke
+RUN pip3 install invoke
 WORKDIR /srv/nbviewer
 
 # asset toolchain
