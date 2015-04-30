@@ -13,6 +13,7 @@ from tornado import (
     gen,
 )
 from tornado.log import app_log
+from tornado.escape import url_unescape
 
 from ..base import (
     AddSlashHandler,
