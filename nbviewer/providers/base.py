@@ -27,7 +27,11 @@ from tornado import (
     httpclient,
     web,
 )
-from tornado.escape import utf8
+from tornado.escape import (
+    url_escape,
+    url_unescape,
+    utf8,
+)
 from tornado.ioloop import IOLoop
 from tornado.log import app_log
 
@@ -60,6 +64,15 @@ class BaseHandler(web.RequestHandler):
         self.format = format or self.default_format
         self.format_prefix = format_prefix
 
+    # Overloaded methods
+    def redirect(self, url, *args, **kwargs):
+        return super(BaseHandler, self).redirect(
+            "/".join(map(url_escape, url.split("/"))),
+            *args,
+            **kwargs
+        )
+
+    # Properties
     @property
     def pending(self):
         return self.settings.setdefault('pending', set())

@@ -230,7 +230,7 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
         )
         with self.catch_client_error():
             tree_entry = yield self.github_client.get_tree_entry(
-                user, repo, path=path, ref=ref
+                user, repo, path=url_unescape(path), ref=ref
             )
 
         if tree_entry['type'] == 'tree':

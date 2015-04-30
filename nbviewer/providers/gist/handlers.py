@@ -139,7 +139,7 @@ class GistHandler(GistClientMixin, RenderingHandler):
             ipynbs = []
             others = []
 
-            for file in files.itervalues():
+            for file in files.values():
                 e = {}
                 e['name'] = file['filename']
                 if file['filename'].endswith('.ipynb'):
