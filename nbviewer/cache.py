@@ -134,7 +134,9 @@ class AsyncMultipartMemcache(AsyncMemcache):
             raise ValueError("file is too large: %sB" % len(compressed))
         values = {}
         for idx, offset in enumerate(offsets):
-            values[('%s.%i' % (key, idx)).encode()] = compressed[offset:offset + chunk_size]
+            values[('%s.%i' % (key, idx)).encode()] = compressed[
+                offset:offset + chunk_size
+            ]
         with self.mc_pool.reserve() as mc:
             return mc.set_multi(values, *args, **kwargs)
 

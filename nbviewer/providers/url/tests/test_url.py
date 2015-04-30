@@ -7,7 +7,7 @@
 
 import requests
 
-from .base import NBViewerTestCase, FormatHTMLMixin
+from ....tests.base import NBViewerTestCase, FormatHTMLMixin
 
 class URLTestCase(NBViewerTestCase):
     def test_url(self):

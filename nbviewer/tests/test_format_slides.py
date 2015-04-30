@@ -8,7 +8,7 @@
 import requests
 
 from .base import NBViewerTestCase
-from .test_localfile import LocalFileDefaultTestCase
+from ..providers.local.tests.test_localfile import LocalFileDefaultTestCase
 
 
 class SlidesGistTestCase(NBViewerTestCase):

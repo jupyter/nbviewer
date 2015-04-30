@@ -18,7 +18,7 @@ from tornado.httpclient import AsyncHTTPClient, HTTPError
 from tornado.httputil import url_concat
 from tornado.log import app_log
 
-from .utils import url_path_join, quote, response_text
+from ...utils import url_path_join, quote, response_text
 
 #-----------------------------------------------------------------------------
 # Async GitHub Client

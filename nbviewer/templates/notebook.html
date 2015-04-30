@@ -18,8 +18,8 @@
     {{ layout.head_icon("#", nb.metadata.kernelspec.display_name + " Kernel", "server") }}
   {% endif %}
   
-  {% if home_url %}
-    {{ layout.head_icon(home_url, "Notebook Home", "github") }}
+  {% if provider_url %}
+    {{ layout.head_icon(provider_url, "View on " + provider_label, provider_icon) }}
   {% endif %}
 
   {{ layout.head_icon(download_url, "Download Notebook", "download", True) }}
