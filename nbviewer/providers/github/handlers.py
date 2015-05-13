@@ -40,7 +40,7 @@ PROVIDER_CTX = {
 parts = ['github', 'corp', 'enterprisey', 'com']
 parts = ['github', 'com']
 
-base_url = u'https://' + '.'.join(parts)
+BASE_URL = u'https://' + '.'.join(parts)
 domain_re = '\.'.join(parts[:-1])
 sfx_re = '\.' + parts[-1]
 domain_sfx = '\.'.join(parts)
@@ -99,7 +99,7 @@ class GitHubUserHandler(GithubClientMixin, BaseHandler):
                 url=repo['name'],
                 name=repo['name'],
             ))
-        provider_url = base_url + u"/{user}".format(user=user)
+        provider_url = BASE_URL + u"/{user}".format(user=user)
         html = self.render_template("userview.html",
             entries=entries, provider_url=provider_url, 
             next_url=next_url, prev_url=prev_url,
@@ -151,7 +151,7 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
         base_url = u"/github/{user}/{repo}/tree/{ref}".format(
             user=user, repo=repo, ref=ref,
         )
-        provider_url = base_url + u"/{user}/{repo}/tree/{ref}/{path}".format(
+        provider_url = BASE_URL + u"/{user}/{repo}/tree/{ref}/{path}".format(
             user=user, repo=repo, ref=ref, path=path,
         )
 
@@ -231,10 +231,10 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
     @cached
     @gen.coroutine
     def get(self, user, repo, ref, path):
-        raw_url = base_url + u"/{user}/{repo}/{ref}/{path}".format(
+        raw_url = BASE_URL + u"/{user}/{repo}/{ref}/{path}".format(
             user=user, repo=repo, ref=ref, path=quote(path)
         )
-        blob_url = base_url + "/{user}/{repo}/blob/{ref}/{path}".format(
+        blob_url = BASE_URL + "/{user}/{repo}/blob/{ref}/{path}".format(
             user=user, repo=repo, ref=ref, path=quote(path),
         )
         with self.catch_client_error():
