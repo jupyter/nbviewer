@@ -37,6 +37,15 @@ PROVIDER_CTX = {
 }
 
 
+parts = ['github', 'corp', 'enterprisey', 'com']
+parts = ['github', 'com']
+
+base_url = u'https://' + '.'.join(parts)
+domain_re = '\.'.join(parts[:-1])
+sfx_re = '\.' + parts[-1]
+domain_sfx = '\.'.join(parts)
+
+
 class GithubClientMixin(object):
     @property
     def github_client(self):
@@ -90,7 +99,7 @@ class GitHubUserHandler(GithubClientMixin, BaseHandler):
                 url=repo['name'],
                 name=repo['name'],
             ))
-        provider_url = u"https://github.com/{user}".format(user=user)
+        provider_url = base_url + u"/{user}".format(user=user)
         html = self.render_template("userview.html",
             entries=entries, provider_url=provider_url, 
             next_url=next_url, prev_url=prev_url,
@@ -142,7 +151,7 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
         base_url = u"/github/{user}/{repo}/tree/{ref}".format(
             user=user, repo=repo, ref=ref,
         )
-        provider_url = u"https://github.com/{user}/{repo}/tree/{ref}/{path}".format(
+        provider_url = base_url + u"/{user}/{repo}/tree/{ref}/{path}".format(
             user=user, repo=repo, ref=ref, path=path,
         )
 
@@ -222,10 +231,10 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
     @cached
     @gen.coroutine
     def get(self, user, repo, ref, path):
-        raw_url = u"https://raw.githubusercontent.com/{user}/{repo}/{ref}/{path}".format(
+        raw_url = base_url + u"/{user}/{repo}/{ref}/{path}".format(
             user=user, repo=repo, ref=ref, path=quote(path)
         )
-        blob_url = u"https://github.com/{user}/{repo}/blob/{ref}/{path}".format(
+        blob_url = base_url + "/{user}/{repo}/blob/{ref}/{path}".format(
             user=user, repo=repo, ref=ref, path=quote(path),
         )
         with self.catch_client_error():
@@ -293,8 +302,8 @@ def default_handlers(handlers=[]):
     """Tornado handlers"""
 
     return [
-        (r'/url[s]?/github\.com/([^\/]+)/([^\/]+)/(tree|blob|raw)/([^\/]+)/(.*)', GitHubRedirectHandler),
-        (r'/url[s]?/raw\.?github(?:usercontent)?\.com/([^\/]+)/([^\/]+)/(.*)', RawGitHubURLHandler),
+        (r'/url[s]?/' + domain_sfx + '/([^\/]+)/([^\/]+)/(tree|blob|raw)/([^\/]+)/(.*)', GitHubRedirectHandler),
+        (r'/url[s]?/raw\.?' + domain_re + '(?:usercontent)?' + sfx_re + '/([^\/]+)/([^\/]+)/(.*)', RawGitHubURLHandler),
     ] + handlers + [
         (r'/github/([^\/]+)', AddSlashHandler),
         (r'/github/([^\/]+)/', GitHubUserHandler),
@@ -309,9 +318,9 @@ def default_handlers(handlers=[]):
 
 def uri_rewrites(rewrites=[]):
     return rewrites + [
-        (r'^https?://github.com/([\w\-]+)/([^\/]+)/(blob|tree)/(.*)$',
+        (r'^https?://' + domain_sfx + '/([\w\-]+)/([^\/]+)/(blob|tree)/(.*)$',
             u'/github/{0}/{1}/{2}/{3}'),
-        (r'^https?://raw.?github.com/([\w\-]+)/([^\/]+)/(.*)$',
+        (r'^https?://raw.?' + domain_sfx + '/([\w\-]+)/([^\/]+)/(.*)\?token=.*$',
             u'/github/{0}/{1}/blob/{2}'),
         (r'^([\w\-]+)/([^\/]+)$',
             u'/github/{0}/{1}/tree/master/'),
