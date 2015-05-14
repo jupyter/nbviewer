@@ -27,12 +27,13 @@ from ...utils import url_path_join, quote, response_text
 class AsyncGitHubClient(object):
     """AsyncHTTPClient wrapper with methods for common requests"""
     auth = None
-    
+
     def __init__(self, client=None):
         self.client = client or AsyncHTTPClient()
         self.github_api_url = os.environ.get('GITHUB_API_URL', 'https://api.github.com/')
+        self.github_html_url = os.environ.get('GITHUB_HTML_URL', 'https://github.com/')
         self.authenticate()
-    
+
     def authenticate(self):
         self.auth = {
             'client_id': os.environ.get('GITHUB_OAUTH_KEY', ''),
@@ -40,7 +41,7 @@ class AsyncGitHubClient(object):
             'access_token' : os.environ.get('GITHUB_API_TOKEN', ''),
         }
         self.auth = {k:v for k,v in self.auth.items() if v}
-    
+
     def fetch(self, url, callback=None, params=None, **kwargs):
         """Add GitHub auth to self.client.fetch"""
         host = urlparse(url).hostname
@@ -57,10 +58,10 @@ class AsyncGitHubClient(object):
         future = self.client.fetch(url, callback, **kwargs)
         future.add_done_callback(self._log_rate_limit)
         return future
-    
+
     def _log_rate_limit(self, future):
         """log GitHub rate limit headers
-        
+
         - error if 0 remaining
         - warn if 10% or less remain
         - debug otherwise
@@ -77,7 +78,7 @@ class AsyncGitHubClient(object):
                     json.dumps(r.headers, indent=1)
                 )
             return
-        
+
         remaining = int(remaining_s)
         limit = int(limit_s)
         if remaining == 0:
@@ -85,7 +86,7 @@ class AsyncGitHubClient(object):
             data = json.loads(jsondata)
             app_log.error("GitHub rate limit (%s) exceeded: %s", limit, data.get('message', 'no message'))
             return
-        
+
         if 10 * remaining > limit:
             log = app_log.debug
         else:
@@ -94,7 +95,7 @@ class AsyncGitHubClient(object):
 
     def github_api_request(self, path, callback=None, **kwargs):
         """Make a GitHub API request to URL
-        
+
         URL is constructed from url and params, if specified.
         callback and **kwargs are passed to client.fetch unmodified.
         """
@@ -105,7 +106,7 @@ class AsyncGitHubClient(object):
         """Get a gist"""
         path = u'gists/{}'.format(gist_id)
         return self.github_api_request(path, callback, **kwargs)
-    
+
     def get_contents(self, user, repo, path, callback=None, ref=None, **kwargs):
         """Make contents API request - either file contents or directory listing"""
         path = quote(u'repos/{user}/{repo}/contents/{path}'.format(
@@ -115,17 +116,17 @@ class AsyncGitHubClient(object):
             params = kwargs.setdefault('params', {})
             params['ref'] = ref
         return self.github_api_request(path, callback, **kwargs)
-    
+
     def get_repos(self, user, callback=None, **kwargs):
         """List a user's repos"""
         path = u"users/{user}/repos".format(user=user)
         return self.github_api_request(path, callback, **kwargs)
-    
+
     def get_gists(self, user, callback=None, **kwargs):
         """List a user's gists"""
         path = u"users/{user}/gists".format(user=user)
         return self.github_api_request(path, callback, **kwargs)
-    
+
     def get_tree(self, user, repo, ref='master', recursive=False, callback=None, **kwargs):
         """Get a git tree"""
         path = u"repos/{user}/{repo}/git/trees/{ref}".format(**locals())
@@ -133,20 +134,20 @@ class AsyncGitHubClient(object):
             params = kwargs.setdefault('params', {})
             params['recursive'] = True
         return self.github_api_request(path, callback, **kwargs)
-    
+
     def get_branches(self, user, repo, callback=None, **kwargs):
         """List a repo's branches"""
         path = u"repos/{user}/{repo}/branches".format(user=user, repo=repo)
         return self.github_api_request(path, callback, **kwargs)
-    
+
     def get_tags(self, user, repo, callback=None, **kwargs):
         """List a repo's branches"""
         path = u"repos/{user}/{repo}/tags".format(user=user, repo=repo)
         return self.github_api_request(path, callback, **kwargs)
-    
+
     def _extract_tree_entry(self, path, tree_response):
         """extract a single tree entry from a file list
-        
+
         For use as a callback in get_tree_entry
         raises 404 if not found
         """
@@ -156,18 +157,18 @@ class AsyncGitHubClient(object):
         for entry in data['tree']:
             if entry['path'] == path:
                 return entry
-        
+
         raise HTTPError(404, "%s not found among %i files" % (path, len(data['tree'])))
-    
+
     def get_tree_entry(self, user, repo, path, ref='master', callback=None, **kwargs):
         """Get a single tree entry for a path
-        
+
         Useful for finding the blob url for a given path.
         """
         # only need a recursive fetch if it's not in the top-level dir
         if '/' in path:
             kwargs['recursive'] = True
-        
+
         f = Future()
         def cb(response):
             try:
@@ -180,7 +181,6 @@ class AsyncGitHubClient(object):
             else:
                 result = tree_entry
             f.set_result(result)
-        
+
         self.get_tree(user, repo, ref=ref, callback=cb, **kwargs)
         return f
-    
