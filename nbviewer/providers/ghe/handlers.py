@@ -10,27 +10,27 @@ class GithubEnterpriseMixin(object):
     PROVIDER_URL_FRAG = PROVIDER_URL_FRAG
 
 
-class AddSlashHandler(ghh.AddSlashHandler, GithubEnterpriseMixin):
+class AddSlashHandler(GithubEnterpriseMixin, ghh.AddSlashHandler):
     pass
 
 
-class GitHubUserHandler(ghh.GitHubUserHandler, GithubEnterpriseMixin):
+class GitHubUserHandler(GithubEnterpriseMixin, ghh.GitHubUserHandler):
     pass
 
 
-class GitHubRepoHandler(ghh.GitHubRepoHandler, GithubEnterpriseMixin):
+class GitHubRepoHandler(GithubEnterpriseMixin, ghh.GitHubRepoHandler):
     pass
 
 
-class RemoveSlashHandler(ghh.RemoveSlashHandler, GithubEnterpriseMixin):
+class RemoveSlashHandler(GithubEnterpriseMixin, ghh.RemoveSlashHandler):
     pass
 
 
-class GitHubBlobHandler(ghh.GitHubBlobHandler, GithubEnterpriseMixin):
+class GitHubBlobHandler(GithubEnterpriseMixin, ghh.GitHubBlobHandler):
     pass
 
 
-class GitHubTreeHandler(ghh.GitHubTreeHandler, GithubEnterpriseMixin):
+class GitHubTreeHandler(GithubEnterpriseMixin, ghh.GitHubTreeHandler):
     pass
 
 
@@ -58,7 +58,7 @@ def default_handlers(handlers=[]):
 
 def uri_rewrites(rewrites=[]):
     return rewrites + [
-        (HTML_URL + r'^([\w\-]+)/([^\/]+)/(blob|tree)/(.*)$',
+        (r'^' + HTML_URL + r'([\w\-]+)/([^\/]+)/(blob|tree)/(.*)$',
             u'/' + PROVIDER_URL_FRAG + u'/{0}/{1}/{2}/{3}'),
         (r'^([\w\-]+)/([^\/]+)$',
             u'/' + PROVIDER_URL_FRAG + u'/{0}/{1}/tree/master/'),
