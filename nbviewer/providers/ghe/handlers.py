@@ -58,7 +58,7 @@ def default_handlers(handlers=[]):
 
 def uri_rewrites(rewrites=[]):
     return rewrites + [
-        (r'^' + HTML_URL + r'([\w\-]+)/([^\/]+)/(blob|tree)/(.*)$',
+        (r'^' + HTML_URL + r'/([\w\-]+)/([^\/]+)/(blob|tree)/(.*)$',
             u'/' + PROVIDER_URL_FRAG + u'/{0}/{1}/{2}/{3}'),
         (r'^([\w\-]+)/([^\/]+)$',
             u'/' + PROVIDER_URL_FRAG + u'/{0}/{1}/tree/master/'),

@@ -98,7 +98,7 @@ class GitHubUserHandler(GithubClientMixin, BaseHandler):
                 url=repo['name'],
                 name=repo['name'],
             ))
-        provider_url = u"{url}{user}".format(
+        provider_url = u"{url}/{user}".format(
             url=self.github_client.github_html_url,
             user=user
         )
@@ -163,7 +163,7 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
         base_url = u"/{provider}/{user}/{repo}/tree/{ref}".format(
             user=user, repo=repo, ref=ref, provider=self.PROVIDER_URL_FRAG,
         )
-        provider_url = u"{url}{user}/{repo}/tree/{ref}/{path}".format(
+        provider_url = u"{url}/{user}/{repo}/tree/{ref}/{path}".format(
             user=user, repo=repo, ref=ref, path=path,
             url=self.github_client.github_html_url,
         )

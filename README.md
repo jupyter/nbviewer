@@ -38,7 +38,7 @@ You must also specify your `OAUTH` or `API_TOKEN` as explained above.  For examp
 ```shell
 $ docker run -p 8080:8080 -e 'GITHUB_OAUTH_KEY=YOURKEY' \
                           -e 'GITHUB_OAUTH_SECRET=YOURSECRET' \
-                          -e 'GITHUB_API_URL=https://ghe.example.com/api/v3/' \
+                          -e 'GITHUB_API_URL=https://ghe.example.com/api/v3' \
                           jupyter/nbviewer
 ```
 
@@ -70,7 +70,7 @@ $ docker run -p 8080:8080 nbviewer
 
 The Notebook Viewer uses `memcached` in production. To locally try out this
 setup, a [docker-compose](https://docs.docker.com/compose/) configuration is
-provided to easily start/stop the `nbviewer` and `memcached` containers 
+provided to easily start/stop the `nbviewer` and `memcached` containers
 together from a your current branch. You will need to install `docker` prior
 to this.
 
@@ -124,7 +124,7 @@ This will automatically relaunch the server if a change is detected on a python 
 #### Running the Tests
 
 `nose` is used to run the test suite. The tests currently make calls to
-external APIs such as GitHub, so it is best to use your Github API Token when 
+external APIs such as GitHub, so it is best to use your Github API Token when
 running:
 
 ```shell
@@ -180,6 +180,6 @@ Formats are ways to present notebooks to the user.
 - `slides`
 
 #### Writing a new Format
-If you'd like to write a new format, open a ticket, or speak up on [gitter][]! 
-We have some work yet to do to support your next big thing in notebook 
+If you'd like to write a new format, open a ticket, or speak up on [gitter][]!
+We have some work yet to do to support your next big thing in notebook
 publishing, and we'd love to here from you.

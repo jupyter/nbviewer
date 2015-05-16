@@ -186,7 +186,7 @@ def main():
             max_cache_uris.add('/' + link['target'])
 
     fetch_kwargs = dict(connect_timeout=10,)
-    if options.proxy_host: 
+    if options.proxy_host:
         fetch_kwargs.update(dict(proxy_host=options.proxy_host,
                                  proxy_port=options.proxy_port))
 
