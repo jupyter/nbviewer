@@ -1,14 +1,16 @@
 import os
 
 from ..github import handlers as ghh
+from .client import AsyncGHEClient
 
 PROVIDER_URL_FRAG = os.environ.get("GHE_PROVIDER_URL_FRAG", "ghe")
-HTML_URL = os.environ.get("GITHUB_HTML_URL", None)
+HTML_URL = os.environ.get("GHE_HTML_URL", None)
 
 
 class GithubEnterpriseMixin(object):
     PROVIDER_URL_FRAG = PROVIDER_URL_FRAG
     HTML_URL = HTML_URL
+    GH_CLIENT_CLASS = AsyncGHEClient
 
 
 class AddSlashHandler(GithubEnterpriseMixin, ghh.AddSlashHandler):
@@ -56,6 +58,7 @@ def default_handlers(handlers=[]):
         (r'/{}/([^\/]+)/([^\/]+)/tree/([^\/]+)/(.*)'.format(PROVIDER_URL_FRAG),
             GitHubTreeHandler)
     ]
+
 
 def uri_rewrites(rewrites=[]):
     return rewrites + [

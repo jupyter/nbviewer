@@ -44,12 +44,13 @@ HTML_URL = os.environ.get('GITHUB_HTML_URL', 'https://github.com/')
 class GithubClientMixin(object):
     PROVIDER_URL_FRAG = PROVIDER_URL_FRAG
     HTML_URL = HTML_URL
+    GH_CLIENT_CLASS = AsyncGitHubClient
 
     @property
     def github_client(self):
         """Create an upgraded github API client from the HTTP client"""
         if getattr(self, "_github_client", None) is None:
-            self._github_client = AsyncGitHubClient(self.client)
+            self._github_client = self.GH_CLIENT_CLASS(self.client)
         return self._github_client
 
 

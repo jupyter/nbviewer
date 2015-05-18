@@ -8,11 +8,6 @@
 import json
 import os
 
-try: # py3
-    from urllib.parse import urlparse
-except ImportError:
-    from urlparse import urlparse
-
 from tornado.concurrent import Future
 from tornado.httpclient import AsyncHTTPClient, HTTPError
 from tornado.httputil import url_concat
@@ -24,26 +19,33 @@ from ...utils import url_path_join, quote, response_text
 # Async GitHub Client
 #-----------------------------------------------------------------------------
 
+
 class AsyncGitHubClient(object):
     """AsyncHTTPClient wrapper with methods for common requests"""
+
+    # Environment variables for Github auth
+    API_URL_ENV = ('GITHUB_API_URL', 'https://api.github.com/')
+    OAUTH_KEY_ENV = ('GITHUB_OAUTH_KEY', '')
+    OAUTH_SECRET_ENV = ('GITHUB_OAUTH_SECRET', '')
+    OAUTH_TOKEN_ENV = ('GITHUB_API_TOKEN', '')
+
     auth = None
 
     def __init__(self, client=None):
         self.client = client or AsyncHTTPClient()
-        self.github_api_url = os.environ.get('GITHUB_API_URL', 'https://api.github.com/')
+        self.github_api_url = os.environ.get(*self.API_URL_ENV)
         self.authenticate()
 
     def authenticate(self):
         self.auth = {
-            'client_id': os.environ.get('GITHUB_OAUTH_KEY', ''),
-            'client_secret': os.environ.get('GITHUB_OAUTH_SECRET', ''),
-            'access_token' : os.environ.get('GITHUB_API_TOKEN', ''),
+            'client_id': os.environ.get(*self.OAUTH_KEY_ENV),
+            'client_secret': os.environ.get(*self.OAUTH_SECRET_ENV),
+            'access_token': os.environ.get(*self.OAUTH_TOKEN_ENV),
         }
-        self.auth = {k:v for k,v in self.auth.items() if v}
+        self.auth = {k: v for k, v in self.auth.items() if v}
 
     def fetch(self, url, callback=None, params=None, **kwargs):
         """Add GitHub auth to self.client.fetch"""
-        host = urlparse(url).hostname
 
         if not url.startswith(self.github_api_url):
             raise ValueError(
@@ -169,6 +171,7 @@ class AsyncGitHubClient(object):
             kwargs['recursive'] = True
 
         f = Future()
+
         def cb(response):
             try:
                 tree_entry = self._extract_tree_entry(path, response)
