@@ -8,6 +8,7 @@ HTML_URL = os.environ.get("GITHUB_HTML_URL", None)
 
 class GithubEnterpriseMixin(object):
     PROVIDER_URL_FRAG = PROVIDER_URL_FRAG
+    HTML_URL = HTML_URL
 
 
 class AddSlashHandler(GithubEnterpriseMixin, ghh.AddSlashHandler):

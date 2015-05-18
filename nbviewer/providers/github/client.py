@@ -31,7 +31,6 @@ class AsyncGitHubClient(object):
     def __init__(self, client=None):
         self.client = client or AsyncHTTPClient()
         self.github_api_url = os.environ.get('GITHUB_API_URL', 'https://api.github.com/')
-        self.github_html_url = os.environ.get('GITHUB_HTML_URL', 'https://github.com/')
         self.authenticate()
 
     def authenticate(self):
