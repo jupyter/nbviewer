@@ -9,6 +9,7 @@ import re
 
 from IPython.nbconvert.exporters.export import exporter_map
 
+
 def default_formats():
     """
     Return the currently-implemented formats.

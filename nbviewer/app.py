@@ -87,6 +87,7 @@ def main():
     define("proxy_port", default="", help="The proxy port.", type=int)
     define("providers", default=default_providers, help="Full dotted package(s) that provide `default_handlers`", type=str, multiple=True, group="provider")
     define("provider_rewrites", default=default_rewrites, help="Full dotted package(s) that provide `uri_rewrites`", type=str, multiple=True, group="provider")
+    define("mathjax_url", default="https://cdn.mathjax.org/mathjax/latest/", help="URL base for mathjax package", type=str)
     tornado.options.parse_command_line()
 
     # NBConvert config
@@ -214,6 +215,7 @@ def main():
         render_timeout=20,
         localfile_path=os.path.abspath(options.localfiles),
         fetch_kwargs=fetch_kwargs,
+        mathjax_url=options.mathjax_url,
     )
 
     # handle handlers
