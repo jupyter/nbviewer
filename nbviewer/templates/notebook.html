@@ -55,6 +55,7 @@
       if (window.MathJax) {
         // MathJax loaded
         MathJax.Hub.Config({
+          TeX: { equationNumbers: { autoNumber: "AMS", useLabelIds: true } },
           tex2jax: {
             inlineMath: [ ['$','$'], ["\\(","\\)"] ],
             displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
