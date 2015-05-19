@@ -24,23 +24,23 @@ class AsyncGitHubClient(object):
     """AsyncHTTPClient wrapper with methods for common requests"""
 
     # Environment variables for Github auth
-    API_URL_ENV = ('GITHUB_API_URL', 'https://api.github.com/')
-    OAUTH_KEY_ENV = ('GITHUB_OAUTH_KEY', '')
-    OAUTH_SECRET_ENV = ('GITHUB_OAUTH_SECRET', '')
-    OAUTH_TOKEN_ENV = ('GITHUB_API_TOKEN', '')
+    ENV_PREFIX = 'GITHUB_'
 
     auth = None
 
     def __init__(self, client=None):
         self.client = client or AsyncHTTPClient()
-        self.github_api_url = os.environ.get(*self.API_URL_ENV)
+        self.github_api_url = self.env('API_URL', 'https://api.github.com/')
         self.authenticate()
+
+    def env(self, key, *args):
+        return os.environ.get(self.ENV_PREFIX + key, *args)
 
     def authenticate(self):
         self.auth = {
-            'client_id': os.environ.get(*self.OAUTH_KEY_ENV),
-            'client_secret': os.environ.get(*self.OAUTH_SECRET_ENV),
-            'access_token': os.environ.get(*self.OAUTH_TOKEN_ENV),
+            'client_id': self.env('OAUTH_KEY', ''),
+            'client_secret': self.env('OAUTH_SECRET', ''),
+            'access_token': self.env('OAUTH_TOKEN', ''),
         }
         self.auth = {k: v for k, v in self.auth.items() if v}
 
