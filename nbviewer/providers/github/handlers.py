@@ -5,9 +5,9 @@
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
-import os
 import json
 import mimetypes
+import os
 
 from tornado import (
     web,
@@ -38,16 +38,19 @@ PROVIDER_CTX = {
 }
 
 PROVIDER_URL_FRAG = "github"
+HTML_URL = os.environ.get('GITHUB_HTML_URL', 'https://github.com/')
 
 
 class GithubClientMixin(object):
     PROVIDER_URL_FRAG = PROVIDER_URL_FRAG
+    HTML_URL = HTML_URL
+    GH_CLIENT_CLASS = AsyncGitHubClient
 
     @property
     def github_client(self):
         """Create an upgraded github API client from the HTTP client"""
         if getattr(self, "_github_client", None) is None:
-            self._github_client = AsyncGitHubClient(self.client)
+            self._github_client = self.GH_CLIENT_CLASS(self.client)
         return self._github_client
 
 
@@ -83,7 +86,7 @@ class GitHubUserHandler(GithubClientMixin, BaseHandler):
     @gen.coroutine
     def get(self, user):
         page = self.get_argument("page", None)
-        params = {'sort' : 'updated'}
+        params = {'sort': 'updated'}
         if page:
             params['page'] = page
         with self.catch_client_error():
@@ -99,7 +102,7 @@ class GitHubUserHandler(GithubClientMixin, BaseHandler):
                 name=repo['name'],
             ))
         provider_url = u"{url}/{user}".format(
-            url=self.github_client.github_html_url,
+            url=self.HTML_URL,
             user=user
         )
         html = self.render_template("userview.html",
@@ -121,7 +124,6 @@ class GitHubRepoHandler(BaseHandler):
                 provider=self.PROVIDER_URL_FRAG,
             )
         )
-
 
 
 class GitHubTreeHandler(GithubClientMixin, BaseHandler):
@@ -165,12 +167,12 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
         )
         provider_url = u"{url}/{user}/{repo}/tree/{ref}/{path}".format(
             user=user, repo=repo, ref=ref, path=path,
-            url=self.github_client.github_html_url,
+            url=self.HTML_URL,
         )
 
         breadcrumbs = [{
-            'url' : base_url,
-            'name' : repo,
+            'url': base_url,
+            'name': repo,
         }]
         breadcrumbs.extend(self.breadcrumbs(path, base_url))
 
@@ -206,7 +208,6 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
                 e['url'] = ''
                 e['class'] = 'fa-folder-close'
                 others.append(e)
-
 
         entries.extend(dirs)
         entries.extend(ipynbs)
@@ -251,7 +252,7 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
         )
         blob_url = u"{url}/{user}/{repo}/blob/{ref}/{path}".format(
             user=user, repo=repo, ref=ref, path=quote(path),
-            url=self.github_client.github_html_url,
+            url=self.HTML_URL,
         )
         with self.catch_client_error():
             tree_entry = yield self.github_client.get_tree_entry(
@@ -287,8 +288,8 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
                 provider=self.PROVIDER_URL_FRAG,
             )
             breadcrumbs = [{
-                'url' : base_url,
-                'name' : repo,
+                'url': base_url,
+                'name': repo,
             }]
             breadcrumbs.extend(self.breadcrumbs(dir_path, base_url))
 
@@ -298,7 +299,7 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
                     nbjson = filedata.decode('utf-8')
                 else:
                     nbjson = filedata
-            except Exception as e:
+            except Exception:
                 app_log.error("Failed to decode notebook: %s", raw_url, exc_info=True)
                 raise web.HTTPError(400)
             yield self.finish_notebook(nbjson, raw_url,
