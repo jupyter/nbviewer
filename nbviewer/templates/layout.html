@@ -118,7 +118,7 @@
     </div>
   </nav>
 
-  <div class="container">
+  {% block container %}<div class="container">
     {% block body %}{% endblock %}
 
     <div class="back-to-top hidden-print text-center">
@@ -160,7 +160,7 @@
       </footer>
     {% endblock footer %}
 
-  </div><!-- /container -->
+  </div>{% endblock container %}
 
   <script src="/static/components/bootstrap/js/bootstrap.min.js"></script>
   <script src="/static/components/headroom.js/dist/headroom.min.js"></script>
