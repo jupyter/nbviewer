@@ -30,7 +30,7 @@ from .cache import DummyAsyncCache, AsyncMultipartMemcache, MockCache, pylibmc
 from .index import NoSearch, ElasticSearch
 from .formats import configure_formats
 
-from .providers import provider_handlers, provider_uri_rewrites
+from .providers import provider_config_options, provider_init_enabled
 from .providers.local import LocalFileHandler
 
 try:
@@ -70,22 +70,28 @@ FRONTPAGE_JSON = os.path.join(this_dir, "frontpage.json")
 
 def main():
     # command-line options
-    define("debug", default=False, help="run in debug mode", type=bool)
-    define("no_cache", default=False, help="Do not cache results", type=bool)
-    define("localfiles", default="", help="Allow to serve local files under /localfile/* this can be a security risk", type=str)
-    define("port", default=5000, help="run on the given port", type=int)
-    define("cache_expiry_min", default=10*60, help="minimum cache expiry (seconds)", type=int)
-    define("cache_expiry_max", default=2*60*60, help="maximum cache expiry (seconds)", type=int)
-    define("mc_threads", default=1, help="number of threads to use for Async Memcache", type=int)
-    define("threads", default=1, help="number of threads to use for rendering", type=int)
-    define("processes", default=0, help="use processes instead of threads for rendering", type=int)
-    define("frontpage", default=FRONTPAGE_JSON, help="path to json file containing frontpage content", type=str)
-    define("sslcert", help="path to ssl .crt file", type=str)
-    define("sslkey", help="path to ssl .key file", type=str)
-    define("default_format", default="html", help="format to use for legacy / URLs", type=str)
-    define("proxy_host", default="", help="The proxy URL.", type=str)
-    define("proxy_port", default="", help="The proxy port.", type=int)
+    define("debug", default=False, help="run in debug mode", type=bool, group="nbviewer")
+    define("no_cache", default=False, help="Do not cache results", type=bool, group="nbviewer")
+    define("localfiles", default="", help="Allow to serve local files under /localfile/* this can be a security risk", type=str, group="nbviewer")
+    define("port", default=5000, help="run on the given port", type=int, group="nbviewer")
+    define("cache_expiry_min", default=10*60, help="minimum cache expiry (seconds)", type=int, group="cache")
+    define("cache_expiry_max", default=2*60*60, help="maximum cache expiry (seconds)", type=int, group="cache")
+    define("mc_threads", default=1, help="number of threads to use for Async Memcache", type=int, group="cache")
+    define("threads", default=1, help="number of threads to use for rendering", type=int, group="rendering")
+    define("processes", default=0, help="use processes instead of threads for rendering", type=int, group="rendering")
+    define("frontpage", default=FRONTPAGE_JSON, help="path to json file containing frontpage content", type=str, group="nbviewer")
+    define("sslcert", help="path to ssl .crt file", type=str, group="ssl")
+    define("sslkey", help="path to ssl .key file", type=str, group="ssl")
+    define("default_format", default="html", help="format to use for legacy / URLs", type=str, group="format")
+    define("proxy_host", default="", help="The proxy URL.", type=str, group="proxy")
+    define("proxy_port", default="", help="The proxy port.", type=int, group="proxy")
+
+    provider_config_options(define)
+
     tornado.options.parse_command_line()
+
+    provider_init_enabled(options)
+
 
     # NBConvert config
     config = Config()
