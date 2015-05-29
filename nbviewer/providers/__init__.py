@@ -18,6 +18,8 @@ ENABLED = []
 def provider_init_enabled(options):
     """Updates the icky global of enabled entry point names based on the
        command line options.
+
+       If no options are provided, enable all bundled.
     """
     for feature in FEATURES:
         for ep in iter_entry_points(_entry_point(feature)):
@@ -25,12 +27,10 @@ def provider_init_enabled(options):
                 continue
 
             enabled = None
-            opt_with, opt_without = _with_opts(ep.name)
+            opt_with = _with_opt(ep.name)
 
             if opt_with in options:
                 enabled = options[opt_with]
-            else:
-                enabled = not options[opt_without]
 
             if enabled:
                 ENABLED.append(ep.name)
@@ -65,10 +65,10 @@ def _entry_point(feature):
     return "nbviewer.provider.{}".format(feature)
 
 
-def _with_opts(ep_name):
+def _with_opt(ep_name):
     """Format the command line options consistently
     """
-    return [base.format(ep_name) for base in ["with_{}", "without_{}"]]
+    return "with_{}".format(ep_name)
 
 
 def provider_config_options(define):
@@ -83,29 +83,25 @@ def provider_config_options(define):
             if ep.name in ep_names:
                 continue
 
-            opt_with, opt_without = _with_opts(ep.name)
-            if ep.name in BUNDLED:
-                define(
-                    name=opt_without,
-                    default=False,
-                    help="Disable the {} provider".format(ep.name),
-                    group="provider"
-                )
-            else:
-                define(
-                    name=opt_with,
-                    default=False,
-                    help="Enable the {} provider".format(ep.name),
-                    group="provider"
-                )
+            define(
+                name=_with_opt(ep.name),
+                default=ep.name in BUNDLED,
+                help="Enable the {} provider".format(ep.name),
+                group="provider"
+            )
             ep_names.append(ep.name)
 
 
 def _feature_entry_points(feature):
     """Load those feature entry points previously enabled
     """
+    if ENABLED:
+        enabled = ENABLED
+    else:
+        enabled = BUNDLED
+
     for ep in iter_entry_points(_entry_point(feature)):
-        if ep.name in ENABLED:
+        if ep.name in enabled:
             app_log.info("Loaded {}: {}".format(feature, ep.name))
             yield ep.load()
 

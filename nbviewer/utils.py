@@ -20,7 +20,7 @@ from IPython.utils import py3compat
 
 def quote(s):
     """unicode-safe quote
-    
+
     - Python 2 requires str, not unicode
     - always return unicode
     """
@@ -57,7 +57,7 @@ def url_path_join(*pieces):
 #
 #    for reg,template in regs_dict:
 #        matches = reg.match(value)
-#        if matches: 
+#        if matches:
 #            return template.format(matches.groups)
 
 from collections import OrderedDict
@@ -145,7 +145,7 @@ def parse_header_links(value):
                 break
 
             link[key.strip(replace_chars)] = value.strip(replace_chars)
-        
+
         if 'rel' in link:
             links[link['rel']] = link
 
@@ -172,7 +172,7 @@ def ipython_info():
 
 def base64_decode(s):
     """unicode-safe base64
-    
+
     base64 API only talks bytes
     """
     s = py3compat.cast_bytes(s)
@@ -181,7 +181,7 @@ def base64_decode(s):
 
 def base64_encode(s):
     """unicode-safe base64
-    
+
     base64 API only talks bytes
     """
     s = py3compat.cast_bytes(s)
