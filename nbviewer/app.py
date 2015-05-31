@@ -30,7 +30,11 @@ from .cache import DummyAsyncCache, AsyncMultipartMemcache, MockCache, pylibmc
 from .index import NoSearch, ElasticSearch
 from .formats import configure_formats
 
-from .providers import provider_config_options, provider_init_enabled
+from .providers import (
+    provider_config_options,
+    provider_init_enabled,
+    providers,
+)
 
 try:
     from .providers.url.client import LoggingCurlAsyncHTTPClient as HTTPClientClass
@@ -215,6 +219,8 @@ def main():
         render_timeout=20,
         localfile_path=os.path.abspath(options.localfiles),
         fetch_kwargs=fetch_kwargs,
+        options=options,
+        providers=providers()
     )
 
     # handle handlers

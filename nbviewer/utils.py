@@ -66,11 +66,11 @@ from .providers import provider_uri_rewrites
 uri_rewrite_dict = OrderedDict()
 
 
-def transform_ipynb_uri(value):
+def transform_ipynb_uri(value, options):
     """Transform a given value (an ipynb 'URI') into an app URL"""
 
     if not uri_rewrite_dict:
-        uri_rewrite_dict.update(provider_uri_rewrites())
+        uri_rewrite_dict.update(provider_uri_rewrites(options))
 
     # encode query parameters as last url part
     if '?' in value:

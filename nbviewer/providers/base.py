@@ -158,6 +158,14 @@ class BaseHandler(web.RequestHandler):
     def frontpage_sections(self):
         return self.settings.setdefault('frontpage_sections', {})
 
+    @property
+    def options(self):
+        return self.settings['options']
+
+    @property
+    def providers(self):
+        return self.settings['providers']
+
     #---------------------------------------------------------------
     # template rendering
     #---------------------------------------------------------------

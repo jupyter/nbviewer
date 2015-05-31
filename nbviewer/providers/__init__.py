@@ -15,7 +15,7 @@ from tornado.log import app_log
 _cached_ep_specs = {}
 
 
-def entry_point_specs():
+def providers():
     """Return the instances of the providers
     """
     if not _cached_ep_specs:
@@ -35,7 +35,7 @@ def provider_config_options(define):
        prefixed with `NBVIEWER_`
     """
 
-    for name, provider in entry_point_specs().items():
+    for name, provider in providers().items():
         for option in provider.options():
             if "group" not in option:
                 option["group"] = "provider {}".format(name)
@@ -60,7 +60,7 @@ def provider_init_enabled(options):
        command line options/environment variables.
     """
 
-    spec_dict = entry_point_specs()
+    spec_dict = providers()
 
     for name, provider in spec_dict.items():
         enabled = provider.enabled(options)
@@ -82,7 +82,7 @@ def provider_uri_rewrites(options):
     """Load (regex, template) tuples from an ordered list of setup_tools
        entry_points which contain a `uri_rewrites` function
     """
-    return _provider_feature("uri_rewrite", options)
+    return _provider_feature("uri_rewrites", options)
 
 
 def _provider_feature(feature, options):
@@ -99,7 +99,7 @@ def _provider_feature(feature, options):
         b_feat = getattr(b, feature)
         return cmp(getattr(a_feat, "weight", 0), getattr(b_feat, "weight", 0))
 
-    for provider in sorted(entry_point_specs().values(), cmp=_weight_comp):
+    for provider in sorted(providers().values(), cmp=_weight_comp):
         items = getattr(provider, feature)(items, options)
 
     return items
