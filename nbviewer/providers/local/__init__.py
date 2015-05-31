@@ -8,8 +8,8 @@ from . import handlers as local_handlers
 
 
 class LocalProvider(Provider):
-    def options(self, *args):
-        options = super(LocalProvider, self).options(*args)
+    def options(self):
+        options = super(LocalProvider, self).options()
 
         options.append(dict(
             name="localfiles",

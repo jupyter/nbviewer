@@ -36,7 +36,8 @@ class GithubClientMixin(object):
     def github_client(self):
         """Create an upgraded github API client from the HTTP client"""
         if getattr(self, "_github_client", None) is None:
-            self._github_client = AsyncGitHubClient(self.client)
+            self._github_client = AsyncGitHubClient(self.options,
+                                                    self.client)
         return self._github_client
 
 
