@@ -9,6 +9,11 @@ class GistProvider(Provider):
     # enable this by default
     default_enabled = True
 
+    context = {
+        'provider_label': 'Gist',
+        'provider_icon': 'github-square',
+    }
+
     def handlers(self, handlers, options):
         """Tornado handlers"""
 

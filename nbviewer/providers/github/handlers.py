@@ -31,12 +31,6 @@ from ...utils import (
 from .client import AsyncGitHubClient
 
 
-PROVIDER_CTX = {
-    'provider_label': 'GitHub',
-    'provider_icon': 'github',
-}
-
-
 class GithubClientMixin(object):
     @property
     def github_client(self):
@@ -94,7 +88,7 @@ class GitHubUserHandler(GithubClientMixin, BaseHandler):
         html = self.render_template("userview.html",
             entries=entries, provider_url=provider_url,
             next_url=next_url, prev_url=prev_url,
-            **PROVIDER_CTX
+            **self.providers['github'].context
         )
         yield self.cache_and_finish(html)
 
@@ -192,7 +186,7 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
             entries=entries, breadcrumbs=breadcrumbs, provider_url=provider_url,
             user=user, repo=repo, ref=ref, path=path,
             branches=branches, tags=tags, tree_type="github",
-            **PROVIDER_CTX
+            **self.providers['github'].context
         )
         yield self.cache_and_finish(html)
 
@@ -281,7 +275,7 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
                 public=True,
                 format=self.format,
                 request=self.request,
-                **PROVIDER_CTX
+                **self.providers['github'].context
             )
         else:
             mime, enc = mimetypes.guess_type(path)

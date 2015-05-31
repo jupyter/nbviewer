@@ -9,6 +9,11 @@ class GithubProvider(Provider):
     # enable this by default
     default_enabled = True
 
+    context = {
+        'provider_label': 'GitHub',
+        'provider_icon': 'github',
+    }
+
     def handlers(self, handlers, options):
         """Tornado handlers"""
 

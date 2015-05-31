@@ -26,12 +26,6 @@ from ...utils import (
 from ..github.handlers import GithubClientMixin
 
 
-PROVIDER_CTX = {
-    'provider_label': 'Gist',
-    'provider_icon': 'github-square',
-}
-
-
 class GistClientMixin(GithubClientMixin):
     def client_error_message(self, exc, url, body, msg=None):
         if exc.code == 403 and 'too big' in body:
@@ -72,7 +66,8 @@ class UserGistsHandler(GistClientMixin, BaseHandler):
                 ))
         provider_url = u"https://gist.github.com/{user}".format(user=user)
         html = self.render_template("usergists.html",
-            entries=entries, user=user, provider_url=provider_url, prev_url=prev_url, next_url=next_url, **PROVIDER_CTX
+            entries=entries, user=user, provider_url=provider_url, prev_url=prev_url, next_url=next_url,
+            **self.providers['gist'].context
         )
         yield self.cache_and_finish(html)
 
@@ -125,7 +120,7 @@ class GistHandler(GistClientMixin, RenderingHandler):
                     public=gist['public'],
                     format=self.format,
                     request=self.request,
-                    **PROVIDER_CTX
+                    **self.providers['gist'].context
                 )
             else:
                 # cannot redirect because of X-Frame-Content
@@ -165,7 +160,7 @@ class GistHandler(GistClientMixin, RenderingHandler):
                 tree_type='gist',
                 user=user.rstrip('/'),
                 provider_url=gist['html_url'],
-                **PROVIDER_CTX
+                **self.providers['gist'].context
             )
             yield self.cache_and_finish(html)
 
