@@ -120,7 +120,7 @@ class BaseHandler(web.RequestHandler):
 
     @property
     def default_format(self):
-        return self.settings['default_format']
+        return self.settings['options'].default_format
 
     @property
     def config(self):
@@ -140,11 +140,11 @@ class BaseHandler(web.RequestHandler):
 
     @property
     def cache_expiry_min(self):
-        return self.settings.setdefault('cache_expiry_min', 60)
+        return self.settings['options'].cache_expiry_min
 
     @property
     def cache_expiry_max(self):
-        return self.settings.setdefault('cache_expiry_max', 120)
+        return self.settings['options'].cache_expiry_max
 
     @property
     def pool(self):
