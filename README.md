@@ -163,7 +163,7 @@ must be enabled with the command line switch `--with-<provider>`. All bundled
 providers (except for `local`) will be enabled by default, and can be disabled
 with `--with-provider=false`.
 
-##### `Provider.uri_rewrite`
+##### `Provider.uri_rewrites`
 If you just need to rewrite URL/Is of another site/namespace, implement
 `uri_rewrites`, which will allow the big front page input to transform an
 arbitrary string (usually an URI fragment), escape it correctly, and turn it
