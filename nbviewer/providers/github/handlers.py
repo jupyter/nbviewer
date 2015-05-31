@@ -287,38 +287,3 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
             mime, enc = mimetypes.guess_type(path)
             self.set_header("Content-Type", mime or 'text/plain')
             self.cache_and_finish(filedata)
-
-
-def default_handlers(handlers=[]):
-    """Tornado handlers"""
-
-    return [
-        (r'/url[s]?/github\.com/([^\/]+)/([^\/]+)/(tree|blob|raw)/([^\/]+)/(.*)', GitHubRedirectHandler),
-        (r'/url[s]?/raw\.?github(?:usercontent)?\.com/([^\/]+)/([^\/]+)/(.*)', RawGitHubURLHandler),
-    ] + handlers + [
-        (r'/github/([^\/]+)', AddSlashHandler),
-        (r'/github/([^\/]+)/', GitHubUserHandler),
-        (r'/github/([^\/]+)/([^\/]+)', AddSlashHandler),
-        (r'/github/([^\/]+)/([^\/]+)/', GitHubRepoHandler),
-        (r'/github/([^\/]+)/([^\/]+)/blob/([^\/]+)/(.*)/', RemoveSlashHandler),
-        (r'/github/([^\/]+)/([^\/]+)/blob/([^\/]+)/(.*)', GitHubBlobHandler),
-        (r'/github/([^\/]+)/([^\/]+)/tree/([^\/]+)', AddSlashHandler),
-        (r'/github/([^\/]+)/([^\/]+)/tree/([^\/]+)/(.*)', GitHubTreeHandler)
-    ]
-
-default_handlers.weight = 200
-
-
-def uri_rewrites(rewrites=[]):
-    return rewrites + [
-        (r'^https?://github.com/([\w\-]+)/([^\/]+)/(blob|tree)/(.*)$',
-            u'/github/{0}/{1}/{2}/{3}'),
-        (r'^https?://raw.?github.com/([\w\-]+)/([^\/]+)/(.*)$',
-            u'/github/{0}/{1}/blob/{2}'),
-        (r'^([\w\-]+)/([^\/]+)$',
-            u'/github/{0}/{1}/tree/master/'),
-        (r'^([\w\-]+)$',
-            u'/github/{0}/'),
-    ]
-
-uri_rewrites.weight = 200

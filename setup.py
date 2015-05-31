@@ -49,16 +49,12 @@ setup_args = dict(
     ],
     test_suite="nose.collector",
     entry_points={
-        "nbviewer.provider.handlers": [
-            "url = nbviewer.providers.url:default_handlers",
-            "github = nbviewer.providers.github:default_handlers",
-            "gist = nbviewer.providers.gist:default_handlers",
-        ],
-        "nbviewer.provider.uri_rewrite": [
-            "url = nbviewer.providers.url:uri_rewrites",
-            "github = nbviewer.providers.github:uri_rewrites",
-            "gist = nbviewer.providers.gist:uri_rewrites",
-            "dropbox = nbviewer.providers.dropbox:uri_rewrites",
+        "nbviewer.provider": [
+            "dropbox = nbviewer.providers.dropbox:DropboxProvider",
+            "gist = nbviewer.providers.gist:GistProvider",
+            "github = nbviewer.providers.github:GithubProvider",
+            "local = nbviewer.providers.local:LocalProvider",
+            "url = nbviewer.providers.url:UrlProvider",
         ]
     }
 )

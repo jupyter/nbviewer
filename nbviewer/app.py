@@ -31,7 +31,6 @@ from .index import NoSearch, ElasticSearch
 from .formats import configure_formats
 
 from .providers import provider_config_options, provider_init_enabled
-from .providers.local import LocalFileHandler
 
 try:
     from .providers.url.client import LoggingCurlAsyncHTTPClient as HTTPClientClass
@@ -72,7 +71,6 @@ def main():
     # command-line options
     define("debug", default=False, help="run in debug mode", type=bool, group="nbviewer")
     define("no_cache", default=False, help="Do not cache results", type=bool, group="nbviewer")
-    define("localfiles", default="", help="Allow to serve local files under /localfile/* this can be a security risk", type=str, group="nbviewer")
     define("port", default=5000, help="run on the given port", type=int, group="nbviewer")
     define("cache_expiry_min", default=10*60, help="minimum cache expiry (seconds)", type=int, group="cache")
     define("cache_expiry_max", default=2*60*60, help="maximum cache expiry (seconds)", type=int, group="cache")
@@ -169,13 +167,14 @@ def main():
     else:
         git_data['msg'] = escape(git_data['msg'])
 
-
     if options.no_cache:
         # force jinja to recompile template every time
         env.globals.update(cache_size=0)
+
     env.globals.update(nrhead=nrhead, nrfoot=nrfoot, git_data=git_data,
-        ipython_info=ipython_info(), len=len,
-    )
+                       ipython_info=ipython_info(), len=len,
+                       )
+
     AsyncHTTPClient.configure(HTTPClientClass)
     client = AsyncHTTPClient()
 
@@ -219,17 +218,7 @@ def main():
     )
 
     # handle handlers
-    handlers = init_handlers(formats)
-
-    if options.localfiles:
-        log.app_log.warning("Serving local notebooks in %s, this can be a security risk", options.localfiles)
-        # use absolute or relative paths:
-        local_handlers = [(r'/localfile/(.*)', LocalFileHandler)]
-        handlers = (
-            local_handlers +
-            format_handlers(formats, local_handlers) +
-            handlers
-        )
+    handlers = init_handlers(formats, options)
 
     # load ssl options
     ssl_options = None

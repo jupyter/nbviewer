@@ -28,10 +28,9 @@ $ docker run -p 8080:8080 -e 'GITHUB_OAUTH_KEY=YOURKEY' \
 
 Or to use your GitHub personal access token, you can set just `GITHUB_API_TOKEN`.
 
-
 ## GitHub Enterprise
 
-To use nbviewer on against your own GitHub Enterprise instance you need to set `GITHUB_API_URL`.
+To use nbviewer against your own GitHub Enterprise instance you need to set `GITHUB_API_URL`.
 The relevant [API endpoints for GitHub Enterprise](https://developer.github.com/v3/enterprise/) are prefixed with `http://hostname/api/v3`.
 You must also specify your `OAUTH` or `API_TOKEN` as explained above.  For example:
 
@@ -142,36 +141,56 @@ Providers are sources of notebooks and directories of notebooks and directories.
 - `url`
 - `gist`
 - `github`
-- `local`
+- `local` _disabled by default_
+- `dropbox` _only performs rewrites_
 
 #### Writing a new Provider
-There are several already additional providers
+There are already several additional providers
 [proposed/requested](/jupyter/nbviewer/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+label%3Aprovider). Some providers are more involved than others, and some,
-such as those which would require user authentication, will take some work to
-support properly.
+such as those which would require end user sessions (i.e. per-user authentication), would require a lot of work to be done in a reasonably secure way.
 
-A provider is implemented as a set of functions exposed by `setuptools`
-`entry_points` the `setup.py` in your module:
+A provider is implemented as a subclass of `nbviewer.providers.base.Provider`
+exposed by an `setuptools`
+[`entry_point`](https://pythonhosted.org/setuptools/setuptools.html#dynamic-discovery-of-services-and-plugins) in `setup.py`:
 ```python
 entry_points={
-    "nbviewer.provider.<feature>": "<name> = mymodule.myprovider:<feature>"
+    "nbviewer.provider": "<name> = mymodule:<provider>"
 }
 ```
 
-Once it is installed via `setup.py develop`, `setup.py install` or `pip`, it
-will be used automatically by the nbviewer app.
+Once it is installed via `setup.py (develop|install)` (or `pip`), it
+must be enabled with the command line switch `--with-<provider>`. All bundled
+providers (except for `local`) will be enabled by default, and can be disabled
+with `--with-provider=false`.
 
-##### `nbviewer.provider.uri_rewrite`
-If you just need to rewrite URLs (or URIs) of another site/namespace, implement
-`uri_rewrites`, which will allow the front page to transform an arbitrary string
-(usually an URI fragment), escape it correctly, and turn it into a "canonical"
-nbviewer URL. See the [dropbox provider](./providers/dropbox/handlers.py)
+##### `Provider.uri_rewrite`
+If you just need to rewrite URL/Is of another site/namespace, implement
+`uri_rewrites`, which will allow the big front page input to transform an
+arbitrary string (usually an URI fragment), escape it correctly, and turn it
+into a "canonical" nbviewer URL. See the [dropbox provider](./providers/dropbox/__init__.py)
 for a simple example of rewriting URLs without using a custom API client.
 
-##### `nbviewer.provider.handlers`
+##### `Provider.handlers`
 If you need custom logic, such as connecting to an API, implement
-`default_handlers`. See the [github provider](./providers/github/handlers.py)
+`handlers`. See the [github provider](./providers/github/__init__.py)
 for a complex example of providing multiple handlers.
+
+A handler is a regex to be matched in an incoming URL, along with a Tornado
+`tornado.web.RequestHandler` subclass... likely, you'll want to subclass `nbviewer.providers.BaseHandler` to access all of the goodies there. The `github` provider currently has the broadest set of implemented handlers,
+though the `url` provider is the most concise implementation of just serving an `.ipynb`.
+
+#### `Provider.options`
+To make a provider configurable at the command line, implement `options`,
+which returns an iterable of `dict`s which will be passed to [tornado.options.OptionParser.define](http://tornado.readthedocs.org/en/latest/options.html#tornado.options.OptionParser.define). Some additional
+processing will occur to also listen for an `NBVIEWER_<OPTION NAME>` environment variable, add missing groups, etc. See the [`local` provider](./providers/local/__init__.py) for an example of options.
+
+> `define` expects names with `_` demarking words, such as
+  `with_github`, but will also answer to the more traditional `with-github`. Environment variables will only use `_`, however.
+
+#### `Provider.enabled`
+By default, a provider will be enabled via `with-<name>`, while the non-`local` providers will be enabled by default. If you need to change this behavior, implement `enabled`. See the [`local` provider](./providers/local/__init__.py) for an example of special
+enabling criteria.
+
 
 ##### Error Handling
 While you _could_ re-implement upstream HTTP error handling, a small
@@ -181,11 +200,37 @@ On a given URL handler that inherits from `BaseHandler`, overload the
 [gist provider](./providers/gist/handlers.py) for an example of customizing the
 error message.
 
-#### Configuration
+#### Feature Weight
+Order matters for when both `handlers` and `uri_rewrite` are called against the
+list of existing features. To ensure your provider feature is called where you
+want it, set a `weight` (default `0`) directly on your feature functions:
+
+| provider | handler weight | url rewrite weight |
+|----------|----------------|--------------------|
+| `url`    | 100            | 1000               |
+| `github` | 200            |  200               |
+| `gist`   | 200            |  100               |
+| `dropbox`| N/A            |  400               |
+| `local`  |  50            |  N/A               |
+
+#### Enabling/Configuring a Provider
+To enable (or disable) a provider, use the `--with-<provider name>`: for example, to only run the `url` provider:
+
+```shell
+$ python -m nbviewer --with-github=false --with-gist=0
+```
+
+Alternatively, providers can be configured via environment variables, usually prefixed with `NBVIEWER_`:
+
+```shell
+$ NBVIEWER_WITH_GITHUB=false NBVIEWER_WITH_GIST=false python -m nbviewer
+```
+
 If you need to pass configuration specific to your handler or client, such as
 API keys or branding settings, at present the easiest way is environment
 variables. See the [github client](./providers/github/client.py) for an example
-of using configuring a provider via environment variables.
+of configuring a provider via environment variables.
+
 
 ### Formats
 Formats are ways to present notebooks to the user.
@@ -196,5 +241,5 @@ Formats are ways to present notebooks to the user.
 
 #### Writing a new Format
 If you'd like to write a new format, open a ticket, or speak up on [gitter][]!
-We have some work yet to do to support your next big thing in notebook
+We have some work yet to do to support your Next Big Thing in notebook
 publishing, and we'd love to here from you.

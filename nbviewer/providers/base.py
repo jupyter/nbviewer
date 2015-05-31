@@ -47,10 +47,60 @@ try:
     from tornado.curl_httpclient import CurlError
 except ImportError:
     pycurl = None
-    class CurlError(Exception): pass
+
+    class CurlError(Exception):
+        pass
 
 date_fmt = "%a, %d %b %Y %H:%M:%S UTC"
 format_prefix = "/format/"
+
+
+class Provider(object):
+    """The base class for all providers. This should be the target of your
+       `entry_point` specification.
+    """
+    default_enabled = False
+
+    def __init__(self, spec_name):
+        """A new instance of a provider shouldn't really do much.
+
+           spec_name will be read off the entry_point
+        """
+        self.spec_name = spec_name
+
+    def enabled(self, options):
+        """Return whether the provider is enabled.
+        """
+        return options["with_{}".format(self.spec_name)]
+
+    def options(self):
+        """Generate the configuration options to be called with `define`,
+           with default values to be used if not found in environment variables
+
+           The `options` object will be available to your handler classes.
+
+           Make sure to call `super` to get the `with-<provider name>` option!
+        """
+        return [
+            dict(
+                name="with_{}".format(self.spec_name),
+                default=self.default_enabled,
+                help="Enable/disable the {} provider".format(self.spec_name)
+            )
+        ]
+
+    def handlers(self, handlers, options):
+        """Given a list of tornado (url, class) handlers, return the list of
+           handlers, suitably modified.
+        """
+        return handlers
+
+    def uri_rewrites(self, rewrites, options):
+        return rewrites
+
+    # lower weight handlers/uri_rewrites will be called first
+    handlers.weight = 0
+    uri_rewrites.weight = 0
 
 
 class BaseHandler(web.RequestHandler):
@@ -472,7 +522,7 @@ class RenderingHandler(BaseHandler):
                 app_log.info("failed to test %s: %s", self.request.uri, name)
 
     @gen.coroutine
-    def finish_notebook(self, json_notebook, download_url, provider_url=None, 
+    def finish_notebook(self, json_notebook, download_url, provider_url=None,
                         provider_icon=None, provider_label=None, msg=None,
                         breadcrumbs=None, public=False, format=None, request=None):
         """render a notebook from its JSON body.

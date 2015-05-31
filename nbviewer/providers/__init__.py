@@ -5,120 +5,101 @@
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
+import os
+
 from pkg_resources import iter_entry_points
 
 from tornado.log import app_log
 
 
-FEATURES = ["handlers", "uri_rewrite"]
-BUNDLED = ["dropbox", "gist", "github", "url"]
-ENABLED = []
+_cached_ep_specs = {}
 
 
-def provider_init_enabled(options):
-    """Updates the icky global of enabled entry point names based on the
-       command line options.
-
-       If no options are provided, enable all bundled.
+def entry_point_specs():
+    """Return the instances of the providers
     """
-    for feature in FEATURES:
-        for ep in iter_entry_points(_entry_point(feature)):
-            if ep.name in ENABLED:
-                continue
+    if not _cached_ep_specs:
+        _cached_ep_specs.update({
+            spec.name: spec.load()(spec.name)
+            for spec in iter_entry_points("nbviewer.provider")
+        })
 
-            enabled = None
-            opt_with = _with_opt(ep.name)
-
-            if opt_with in options:
-                enabled = options[opt_with]
-
-            if enabled:
-                ENABLED.append(ep.name)
-
-
-def provider_handlers():
-    """Load tornado URL handlers from an ordered list of dotted-notation modules
-       which contain a `default_handlers` function
-
-       `default_handlers` should accept a list of handlers and returns an
-       augmented list of handlers: this allows the addition of, for
-       example, custom URLs which should be intercepted before being
-       handed to the basic `url` handler
-    """
-    return _provider_feature(_feature_entry_points("handlers"))
-
-
-def provider_uri_rewrites():
-    """Load (regex, template) tuples from an ordered list of setup_tools
-       entry_points which contain a `uri_rewrites` function
-
-       `uri_rewrites` should accept a list of rewrites and returns an
-       augmented list of rewrites: this allows the addition of, for
-       example, the greedy behavior of the `gist` and `github` providers
-    """
-    return _provider_feature(_feature_entry_points("uri_rewrite"))
-
-
-def _entry_point(feature):
-    """Format the entry_point category consistently
-    """
-    return "nbviewer.provider.{}".format(feature)
-
-
-def _with_opt(ep_name):
-    """Format the command line options consistently
-    """
-    return "with_{}".format(ep_name)
+    return _cached_ep_specs
 
 
 def provider_config_options(define):
     """Find all of the providers with all features, and generate the inputs
-       to `tornado.options.define`
+       to `tornado.options.define`.
+
+       All options will be made configurable via environment variables,
+       prefixed with `NBVIEWER_`
     """
 
-    ep_names = []
+    for name, provider in entry_point_specs().items():
+        for option in provider.options():
+            if "group" not in option:
+                option["group"] = "provider {}".format(name)
 
-    for feature in FEATURES:
-        for ep in iter_entry_points(_entry_point(feature)):
-            if ep.name in ep_names:
-                continue
+            env_var = "NBVIEWER_{}".format(option["name"].upper())
 
-            define(
-                name=_with_opt(ep.name),
-                default=ep.name in BUNDLED,
-                help="Enable the {} provider".format(ep.name),
-                group="provider"
+            option["default"] = os.environ.get(
+                env_var,
+                option.get("default", None)
             )
-            ep_names.append(ep.name)
+
+            option["help"] = "{} [{}]".format(
+                option.get("help", ""),
+                env_var
+            ).strip()
+
+            define(**option)
 
 
-def _feature_entry_points(feature):
-    """Load those feature entry points previously enabled
+def provider_init_enabled(options):
+    """Updates the icky global of entry point specs based on the
+       command line options/environment variables.
     """
-    if ENABLED:
-        enabled = ENABLED
-    else:
-        enabled = BUNDLED
 
-    for ep in iter_entry_points(_entry_point(feature)):
-        if ep.name in enabled:
-            app_log.info("Loaded {}: {}".format(feature, ep.name))
-            yield ep.load()
+    spec_dict = entry_point_specs()
+
+    for name, provider in spec_dict.items():
+        enabled = provider.enabled(options)
+        if enabled:
+            app_log.info("Provider {} enabled".format(name))
+        else:
+            app_log.info("Provider {} disabled".format(name))
+            del spec_dict[name]
 
 
-def _provider_feature(providers):
-    """Load the named feature from an ordered list of setuptools entry_points
+def provider_handlers(options):
+    """Load tornado URL handlers from an ordered list of dotted-notation modules
+       which contain a `handlers` function
+    """
+    return _provider_feature("handlers", options)
+
+
+def provider_uri_rewrites(options):
+    """Load (regex, template) tuples from an ordered list of setup_tools
+       entry_points which contain a `uri_rewrites` function
+    """
+    return _provider_feature("uri_rewrite", options)
+
+
+def _provider_feature(feature, options):
+    """Load the named feature from an ordered list of providers
        which each implements the feature.
 
        The feature will be passed a list of feature implementations and must
        return that list, suitably modified.
     """
-    features = []
+    items = []
 
     def _weight_comp(a, b):
-        return cmp(getattr(a, "weight", 0), getattr(b, "weight", 0))
+        a_feat = getattr(a, feature)
+        b_feat = getattr(b, feature)
+        return cmp(getattr(a_feat, "weight", 0), getattr(b_feat, "weight", 0))
 
-    for provider in sorted(providers, cmp=_weight_comp):
-        features = provider(features)
+    for provider in sorted(entry_point_specs().values(), cmp=_weight_comp):
+        items = getattr(provider, feature)(items, options)
 
-    return features
+    return items

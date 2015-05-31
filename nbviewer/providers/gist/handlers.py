@@ -179,28 +179,3 @@ class GistRedirectHandler(BaseHandler):
 
         app_log.info("Redirecting %s to %s", self.request.uri, new_url)
         self.redirect(new_url)
-
-
-def default_handlers(handlers=[]):
-    """Tornado handlers"""
-
-    return handlers + [
-        (r'/gist/([^\/]+/)?([0-9]+|[0-9a-f]{20})', GistHandler),
-        (r'/gist/([^\/]+/)?([0-9]+|[0-9a-f]{20})/(?:files/)?(.*)', GistHandler),
-        (r'/([0-9]+|[0-9a-f]{20})', GistRedirectHandler),
-        (r'/([0-9]+|[0-9a-f]{20})/(.*)', GistRedirectHandler),
-        (r'/gist/([^\/]+)/?', UserGistsHandler),
-    ]
-
-default_handlers.weight = 300
-
-
-def uri_rewrites(rewrites=[]):
-    return [
-        (r'^([a-f0-9]+)/?$',
-            u'/{0}'),
-        ('^https?://gist.github.com/([^\/]+/)?([a-f0-9]+)/?$',
-            u'/{1}'),
-    ] + rewrites
-
-uri_rewrites.weight = 100
