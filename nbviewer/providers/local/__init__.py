@@ -8,13 +8,22 @@ from . import handlers as local_handlers
 
 
 class LocalProvider(Provider):
+    """A provider for files accessible on the local filesystem
+
+    """
+    context = {
+        'provider_label': 'Local Files',
+    }
+
     def options(self):
+        """For backwards compatibility, adds an un-prefixed `local` option
+        """
         options = super(LocalProvider, self).options()
 
         options.append(dict(
             name="localfiles",
             default="",
-            help="Allow to serve local files under /localfile/* this can be a security risk"
+            help="Local absolute/relative path from which to serve notebooks. \033[1;31mSecurity risk!\033[1;0m"
         ))
 
         return options
@@ -25,8 +34,12 @@ class LocalProvider(Provider):
         """
         return options["with_{}".format(self.spec_name)] or options.localfiles
 
+    def initialize(self, options):
+        options.localfiles = os.path.abspath(options.localfiles)
+
     def handlers(self, handlers, options):
-        """Tornado handlers"""
+        """Tornado handlers
+        """
 
         if not options.localfiles or not os.path.exists(options.localfiles):
             raise ValueError(
@@ -36,7 +49,7 @@ class LocalProvider(Provider):
 
         app_log.warning(
             "Serving local notebooks in %s, this can be a security risk",
-            os.path.abspath(options.localfiles)
+            options.localfiles
         )
 
         return handlers + [

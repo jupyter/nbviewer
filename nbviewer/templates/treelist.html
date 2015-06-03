@@ -58,8 +58,8 @@
             </a>
           {% else %}
             <a href="/{{ tree_type }}/{{user}}">
-              <i class="fa fa-backward fa-fw"></i> {{user}}'s 
-              {{ tree_type | default('repositorie')}}s
+              <i class="fa fa-backward fa-fw"></i> {{user}}'s
+              {{ collection_labels }}
             </a>
           {% endif %}
         </td>

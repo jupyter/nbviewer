@@ -38,7 +38,7 @@ def provider_config_options(define):
     for name, provider in providers().items():
         for option in provider.options():
             if "group" not in option:
-                option["group"] = "provider {}".format(name)
+                option["group"] = "{} provider".format(name)
 
             env_var = "NBVIEWER_{}".format(option["name"].upper())
 
@@ -61,14 +61,19 @@ def provider_init_enabled(options):
     """
 
     spec_dict = providers()
+    tmpl = "{} provider \033[1;{}m{}abled\033[1;0m"
 
-    for name, provider in spec_dict.items():
-        enabled = provider.enabled(options)
+    for name, provider in sorted(spec_dict.items()):
+        enabled = bool(provider.enabled(options))
+
         if enabled:
-            app_log.info("Provider {} enabled".format(name))
+            provider.initialize(options)
         else:
-            app_log.info("Provider {} disabled".format(name))
             del spec_dict[name]
+
+        app_log.info(tmpl.format(provider.label,
+                                 [31, 51][enabled],
+                                 ["dis", "en"][enabled]))
 
 
 def provider_handlers(options):

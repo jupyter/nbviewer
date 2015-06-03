@@ -53,16 +53,38 @@ except ImportError:
 
 date_fmt = "%a, %d %b %Y %H:%M:%S UTC"
 format_prefix = "/format/"
+bundled_providers = [
+    "dropbox",
+    "gist",
+    "github",
+    "url",
+]
 
 
 class Provider(object):
     """The base class for all providers. This should be the target of your
        `entry_point` specification.
     """
-    default_enabled = False
+
+    # context will be **merged into some templates
+    context = {
+        # convenience method `label` will try to access this
+        'provider_label': 'Provider',
+        # http://fortawesome.github.io/Font-Awesome/icons/, no `fa-` prefix
+        'provider_icon': 'database',
+        # for navigation links
+        'collections_label': 'Collections',
+    }
+
+    @property
+    def label(self):
+        """Human-readable name for both logs and templates
+        """
+        return self.context['provider_label']
 
     def __init__(self, spec_name):
-        """A new instance of a provider shouldn't really do much.
+        """A new instance of a provider shouldn't really do much, as at this
+           point it won't be certain to be enabled.
 
            spec_name will be read off the entry_point
         """
@@ -70,21 +92,31 @@ class Provider(object):
 
     def enabled(self, options):
         """Return whether the provider is enabled.
+
+           It would be ideal to always honor `with_<provider>`, but very simple
+           providers may benefit from "short circuit" enabling with e.g. API
+           key or file path
         """
         return options["with_{}".format(self.spec_name)]
+
+    def initialize(self, options):
+        """Run AFTER the provider is initialized, but BEFORE anything is done
+           with it. Here, you could sanitize options, etc.
+        """
+        pass
 
     def options(self):
         """Generate the configuration options to be called with `define`,
            with default values to be used if not found in environment variables
 
-           The `options` object will be available to your handler classes.
-
            Make sure to call `super` to get the `with-<provider name>` option!
+
+           The `options` object will be available to your handler classes.
         """
         return [
             dict(
                 name="with_{}".format(self.spec_name),
-                default=self.default_enabled,
+                default=self.spec_name in bundled_providers,
                 help="Enable/disable the {} provider".format(self.spec_name)
             )
         ]

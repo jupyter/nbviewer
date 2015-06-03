@@ -74,7 +74,7 @@ FRONTPAGE_JSON = os.path.join(this_dir, "frontpage.json")
 def main():
     # command-line options
     define("debug", default=False, help="run in debug mode", type=bool, group="nbviewer")
-    define("no_cache", default=False, help="Do not cache results", type=bool, group="nbviewer")
+    define("no_cache", default=False, help="Do not cache results", type=bool, group="cache")
     define("port", default=5000, help="run on the given port", type=int, group="nbviewer")
     define("cache_expiry_min", default=10*60, help="minimum cache expiry (seconds)", type=int, group="cache")
     define("cache_expiry_max", default=2*60*60, help="maximum cache expiry (seconds)", type=int, group="cache")
@@ -85,8 +85,8 @@ def main():
     define("sslcert", help="path to ssl .crt file", type=str, group="ssl")
     define("sslkey", help="path to ssl .key file", type=str, group="ssl")
     define("default_format", default="html", help="format to use for legacy / URLs", type=str, group="format")
-    define("proxy_host", default="", help="The proxy URL.", type=str, group="proxy")
-    define("proxy_port", default="", help="The proxy port.", type=int, group="proxy")
+    define("proxy_host", default="", help="The proxy URL for all requests", type=str, group="proxy")
+    define("proxy_port", default="", help="The proxy port for all requests", type=int, group="proxy")
 
     provider_config_options(define)
 
@@ -214,7 +214,7 @@ def main():
         pool=pool,
         gzip=True,
         render_timeout=20,
-        localfile_path=os.path.abspath(options.localfiles),
+        localfile_path=options.localfiles,
         fetch_kwargs=fetch_kwargs,
         options=options,
         providers=providers()

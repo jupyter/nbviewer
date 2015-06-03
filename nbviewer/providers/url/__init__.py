@@ -4,8 +4,9 @@ from . import handlers as url_handlers
 
 
 class UrlProvider(Provider):
-    # enable this by default
-    default_enabled = True
+    context = {
+        'provider_label': 'URL',
+    }
 
     def handlers(self, handlers, options):
         """Tornado handlers"""
@@ -17,6 +18,9 @@ class UrlProvider(Provider):
     handlers.weight = 100
 
     def uri_rewrites(self, rewrites, options):
+        """URL will mop up everything else: anything weighted greater than it
+           will NEVER be rewritten
+        """
         return rewrites + [
             ('^http(s?)://(.*)$', u'/url{0}/{1}'),
             ('^(.*)$', u'/url/{0}'),

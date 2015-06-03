@@ -8,12 +8,10 @@ from . import handlers as gh_handlers
 class GithubProvider(Provider):
     """A full provider for notebooks, users and directories on Github
     """
-    # enable this by default
-    default_enabled = True
-
     context = {
         'provider_label': 'GitHub',
         'provider_icon': 'github',
+        'collections_label': 'Repositories',
     }
 
     def options(self):
