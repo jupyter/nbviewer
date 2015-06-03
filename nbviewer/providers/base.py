@@ -563,8 +563,8 @@ class RenderingHandler(BaseHandler):
 
     @gen.coroutine
     def finish_notebook(self, json_notebook, download_url, provider_url=None,
-                        provider_icon=None, provider_label=None, msg=None,
-                        breadcrumbs=None, public=False, format=None, request=None):
+                        msg=None, breadcrumbs=None, public=False, format=None,
+                        request=None, **extra_context):
         """render a notebook from its JSON body.
 
         download_url is required, provider_url is not.
@@ -598,14 +598,16 @@ class RenderingHandler(BaseHandler):
         else:
             app_log.debug("Finished render of %s", download_url)
 
+        context = {}
+        context.update(extra_context)
+        context.update(config)
+
         html = self.render_template(
             "formats/%s.html" % format,
             body=nbhtml,
             nb=nb,
             download_url=download_url,
             provider_url=provider_url,
-            provider_label=provider_label,
-            provider_icon=provider_icon,
             format=self.format,
             default_format=self.default_format,
             format_prefix=format_prefix,
@@ -613,7 +615,7 @@ class RenderingHandler(BaseHandler):
             format_base=self.request.uri.replace(self.format_prefix, ""),
             date=datetime.utcnow().strftime(date_fmt),
             breadcrumbs=breadcrumbs,
-            **config)
+            **context)
 
         yield self.cache_and_finish(html)
 
