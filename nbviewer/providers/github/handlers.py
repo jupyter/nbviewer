@@ -31,18 +31,13 @@ from ...utils import (
 from .client import AsyncGitHubClient
 
 
-PROVIDER_CTX = {
-    'provider_label': 'GitHub',
-    'provider_icon': 'github',
-}
-
-
 class GithubClientMixin(object):
     @property
     def github_client(self):
         """Create an upgraded github API client from the HTTP client"""
         if getattr(self, "_github_client", None) is None:
-            self._github_client = AsyncGitHubClient(self.client)
+            self._github_client = AsyncGitHubClient(self.options,
+                                                    self.client)
         return self._github_client
 
 
@@ -92,9 +87,9 @@ class GitHubUserHandler(GithubClientMixin, BaseHandler):
             ))
         provider_url = u"https://github.com/{user}".format(user=user)
         html = self.render_template("userview.html",
-            entries=entries, provider_url=provider_url, 
+            entries=entries, provider_url=provider_url,
             next_url=next_url, prev_url=prev_url,
-            **PROVIDER_CTX
+            **self.providers['github'].context
         )
         yield self.cache_and_finish(html)
 
@@ -192,7 +187,7 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
             entries=entries, breadcrumbs=breadcrumbs, provider_url=provider_url,
             user=user, repo=repo, ref=ref, path=path,
             branches=branches, tags=tags, tree_type="github",
-            **PROVIDER_CTX
+            **self.providers['github'].context
         )
         yield self.cache_and_finish(html)
 
@@ -281,40 +276,9 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
                 public=True,
                 format=self.format,
                 request=self.request,
-                **PROVIDER_CTX
+                **self.providers['github'].context
             )
         else:
             mime, enc = mimetypes.guess_type(path)
             self.set_header("Content-Type", mime or 'text/plain')
             self.cache_and_finish(filedata)
-
-
-def default_handlers(handlers=[]):
-    """Tornado handlers"""
-
-    return [
-        (r'/url[s]?/github\.com/([^\/]+)/([^\/]+)/(tree|blob|raw)/([^\/]+)/(.*)', GitHubRedirectHandler),
-        (r'/url[s]?/raw\.?github(?:usercontent)?\.com/([^\/]+)/([^\/]+)/(.*)', RawGitHubURLHandler),
-    ] + handlers + [
-        (r'/github/([^\/]+)', AddSlashHandler),
-        (r'/github/([^\/]+)/', GitHubUserHandler),
-        (r'/github/([^\/]+)/([^\/]+)', AddSlashHandler),
-        (r'/github/([^\/]+)/([^\/]+)/', GitHubRepoHandler),
-        (r'/github/([^\/]+)/([^\/]+)/blob/([^\/]+)/(.*)/', RemoveSlashHandler),
-        (r'/github/([^\/]+)/([^\/]+)/blob/([^\/]+)/(.*)', GitHubBlobHandler),
-        (r'/github/([^\/]+)/([^\/]+)/tree/([^\/]+)', AddSlashHandler),
-        (r'/github/([^\/]+)/([^\/]+)/tree/([^\/]+)/(.*)', GitHubTreeHandler)
-    ]
-
-
-def uri_rewrites(rewrites=[]):
-    return rewrites + [
-        (r'^https?://github.com/([\w\-]+)/([^\/]+)/(blob|tree)/(.*)$',
-            u'/github/{0}/{1}/{2}/{3}'),
-        (r'^https?://raw.?github.com/([\w\-]+)/([^\/]+)/(.*)$',
-            u'/github/{0}/{1}/blob/{2}'),
-        (r'^([\w\-]+)/([^\/]+)$',
-            u'/github/{0}/{1}/tree/master/'),
-        (r'^([\w\-]+)$',
-            u'/github/{0}/'),
-    ]

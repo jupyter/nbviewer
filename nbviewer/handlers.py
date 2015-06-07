@@ -47,7 +47,7 @@ class CreateHandler(BaseHandler):
     """
     def post(self):
         value = self.get_argument('gistnorurl', '')
-        redirect_url = transform_ipynb_uri(value, self.provider_rewrites)
+        redirect_url = transform_ipynb_uri(value, self.options)
         app_log.info("create %s => %s", value, redirect_url)
         self.redirect(redirect_url)
 
@@ -68,7 +68,7 @@ def format_handlers(formats, handlers):
     ]
 
 
-def init_handlers(formats, providers):
+def init_handlers(formats, options):
     pre_providers = [
         ('/', IndexHandler),
         ('/index.html', IndexHandler),
@@ -85,7 +85,7 @@ def init_handlers(formats, providers):
         (r'.*', Custom404),
     ]
 
-    handlers = provider_handlers(providers)
+    handlers = provider_handlers(options)
 
     return (
         pre_providers +

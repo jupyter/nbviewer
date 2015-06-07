@@ -28,13 +28,17 @@ class LocalFileHandler(RenderingHandler):
     @cached
     @gen.coroutine
     def get(self, path):
-        abspath = os.path.join(
-            self.settings.get('localfile_path', ''),
-            path,
-        )
+        root = self.settings['localfile_path']
 
-        app_log.info("looking for file: '%s'" % abspath)
-        if not os.path.exists(abspath):
+        abspath = os.path.abspath(os.path.join(root, path))
+
+        app_log.info("looking for file `{}` in `{}`".format(abspath, root))
+
+        if not abspath.startswith(root):
+            app_log.warn("unsafe path requested: `{}`"
+                         .format(path))
+            raise web.HTTPError(400)
+        elif not os.path.exists(abspath):
             raise web.HTTPError(404)
 
         with io.open(abspath, encoding='utf-8') as f:

@@ -47,10 +47,92 @@ try:
     from tornado.curl_httpclient import CurlError
 except ImportError:
     pycurl = None
-    class CurlError(Exception): pass
+
+    class CurlError(Exception):
+        pass
 
 date_fmt = "%a, %d %b %Y %H:%M:%S UTC"
 format_prefix = "/format/"
+bundled_providers = [
+    "dropbox",
+    "gist",
+    "github",
+    "url",
+]
+
+
+class Provider(object):
+    """The base class for all providers. This should be the target of your
+       `entry_point` specification.
+    """
+
+    # context will be **merged into some templates
+    context = {
+        # convenience method `label` will try to access this
+        'provider_label': 'Provider',
+        # http://fortawesome.github.io/Font-Awesome/icons/, no `fa-` prefix
+        'provider_icon': 'database',
+        # for navigation links
+        'collections_label': 'Collections',
+    }
+
+    @property
+    def label(self):
+        """Human-readable name for both logs and templates
+        """
+        return self.context['provider_label']
+
+    def __init__(self, spec_name):
+        """A new instance of a provider shouldn't really do much, as at this
+           point it won't be certain to be enabled.
+
+           spec_name will be read off the entry_point
+        """
+        self.spec_name = spec_name
+
+    def enabled(self, options):
+        """Return whether the provider is enabled.
+
+           It would be ideal to always honor `with_<provider>`, but very simple
+           providers may benefit from "short circuit" enabling with e.g. API
+           key or file path
+        """
+        return options["with_{}".format(self.spec_name)]
+
+    def initialize(self, options):
+        """Run AFTER the provider is initialized, but BEFORE anything is done
+           with it. Here, you could sanitize options, etc.
+        """
+        pass
+
+    def options(self):
+        """Generate the configuration options to be called with `define`,
+           with default values to be used if not found in environment variables
+
+           Make sure to call `super` to get the `with-<provider name>` option!
+
+           The `options` object will be available to your handler classes.
+        """
+        return [
+            dict(
+                name="with_{}".format(self.spec_name),
+                default=self.spec_name in bundled_providers,
+                help="Enable/disable the {} provider".format(self.spec_name)
+            )
+        ]
+
+    def handlers(self, handlers, options):
+        """Given a list of tornado (url, class) handlers, return the list of
+           handlers, suitably modified.
+        """
+        return handlers
+
+    def uri_rewrites(self, rewrites, options):
+        return rewrites
+
+    # lower weight handlers/uri_rewrites will be called first
+    handlers.weight = 0
+    uri_rewrites.weight = 0
 
 
 class BaseHandler(web.RequestHandler):
@@ -69,16 +151,8 @@ class BaseHandler(web.RequestHandler):
         return self.settings['formats']
 
     @property
-    def providers(self):
-        return self.settings['providers']
-
-    @property
-    def provider_rewrites(self):
-        return self.settings['provider_rewrites']
-
-    @property
     def default_format(self):
-        return self.settings['default_format']
+        return self.settings['options'].default_format
 
     @property
     def config(self):
@@ -98,11 +172,11 @@ class BaseHandler(web.RequestHandler):
 
     @property
     def cache_expiry_min(self):
-        return self.settings.setdefault('cache_expiry_min', 60)
+        return self.settings['options'].cache_expiry_min
 
     @property
     def cache_expiry_max(self):
-        return self.settings.setdefault('cache_expiry_max', 120)
+        return self.settings['options'].cache_expiry_max
 
     @property
     def pool(self):
@@ -115,6 +189,14 @@ class BaseHandler(web.RequestHandler):
     @property
     def frontpage_sections(self):
         return self.settings.setdefault('frontpage_sections', {})
+
+    @property
+    def options(self):
+        return self.settings['options']
+
+    @property
+    def providers(self):
+        return self.settings['providers']
 
     #---------------------------------------------------------------
     # template rendering
@@ -480,9 +562,9 @@ class RenderingHandler(BaseHandler):
                 app_log.info("failed to test %s: %s", self.request.uri, name)
 
     @gen.coroutine
-    def finish_notebook(self, json_notebook, download_url, provider_url=None, 
-                        provider_icon=None, provider_label=None, msg=None,
-                        breadcrumbs=None, public=False, format=None, request=None):
+    def finish_notebook(self, json_notebook, download_url, provider_url=None,
+                        msg=None, breadcrumbs=None, public=False, format=None,
+                        request=None, **extra_context):
         """render a notebook from its JSON body.
 
         download_url is required, provider_url is not.
@@ -516,14 +598,16 @@ class RenderingHandler(BaseHandler):
         else:
             app_log.debug("Finished render of %s", download_url)
 
+        context = {}
+        context.update(extra_context)
+        context.update(config)
+
         html = self.render_template(
             "formats/%s.html" % format,
             body=nbhtml,
             nb=nb,
             download_url=download_url,
             provider_url=provider_url,
-            provider_label=provider_label,
-            provider_icon=provider_icon,
             format=self.format,
             default_format=self.default_format,
             format_prefix=format_prefix,
@@ -531,7 +615,7 @@ class RenderingHandler(BaseHandler):
             format_base=self.request.uri.replace(self.format_prefix, ""),
             date=datetime.utcnow().strftime(date_fmt),
             breadcrumbs=breadcrumbs,
-            **config)
+            **context)
 
         yield self.cache_and_finish(html)
 

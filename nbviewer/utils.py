@@ -20,7 +20,7 @@ from IPython.utils import py3compat
 
 def quote(s):
     """unicode-safe quote
-    
+
     - Python 2 requires str, not unicode
     - always return unicode
     """
@@ -57,29 +57,26 @@ def url_path_join(*pieces):
 #
 #    for reg,template in regs_dict:
 #        matches = reg.match(value)
-#        if matches: 
+#        if matches:
 #            return template.format(matches.groups)
 
 from collections import OrderedDict
+from .providers import provider_uri_rewrites
 
 uri_rewrite_dict = OrderedDict()
 
-def transform_ipynb_uri(value, rewrite_providers=None):
+
+def transform_ipynb_uri(value, options):
     """Transform a given value (an ipynb 'URI') into an app URL"""
 
     if not uri_rewrite_dict:
-        from .providers import (
-            default_rewrites,
-            provider_uri_rewrites,
-        )
-        rewrite_providers = rewrite_providers or default_rewrites
-        uri_rewrite_dict.update(provider_uri_rewrites(rewrite_providers))
+        uri_rewrite_dict.update(provider_uri_rewrites(options))
 
     # encode query parameters as last url part
     if '?' in value:
         value, query = value.split('?', 1)
         value = '%s/%s' % (value, quote('?' + query))
-    
+
     for reg, rewrite in uri_rewrite_dict.items():
         matches = re.match(reg, value)
         if matches:
@@ -148,7 +145,7 @@ def parse_header_links(value):
                 break
 
             link[key.strip(replace_chars)] = value.strip(replace_chars)
-        
+
         if 'rel' in link:
             links[link['rel']] = link
 
@@ -175,7 +172,7 @@ def ipython_info():
 
 def base64_decode(s):
     """unicode-safe base64
-    
+
     base64 API only talks bytes
     """
     s = py3compat.cast_bytes(s)
@@ -184,7 +181,7 @@ def base64_decode(s):
 
 def base64_encode(s):
     """unicode-safe base64
-    
+
     base64 API only talks bytes
     """
     s = py3compat.cast_bytes(s)

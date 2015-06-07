@@ -89,18 +89,3 @@ class URLHandler(RenderingHandler):
                                    public=public,
                                    request=self.request,
                                    format=self.format)
-
-
-def default_handlers(handlers=[]):
-    """Tornado handlers"""
-
-    return handlers + [
-        (r'/url([s]?)/(.*)', URLHandler),
-    ]
-
-
-def uri_rewrites(rewrites=[]):
-    return rewrites + [
-        ('^http(s?)://(.*)$', u'/url{0}/{1}'),
-        ('^(.*)$', u'/url/{0}'),
-    ]

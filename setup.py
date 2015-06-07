@@ -30,17 +30,17 @@ pkg_data = {
 }
 
 setup_args = dict(
-    name = "nbviewer",
-    version = '0.2.0',
-    packages = ["nbviewer"],
-    package_data = pkg_data,
-    author = "The Jupyter Development Team",
-    author_email = "ipython-dev@scipy.org",
-    url = 'http://nbviewer.ipython.org',
-    description = "Jupyter Notebook Viewer",
-    long_description = "Jupyter nbconvert as a web service",
-    license = "BSD",
-    classifiers = [
+    name="nbviewer",
+    version="0.2.0",
+    packages=["nbviewer"],
+    package_data=pkg_data,
+    author="The Jupyter Development Team",
+    author_email="ipython-dev@scipy.org",
+    url="http://nbviewer.ipython.org",
+    description="Jupyter Notebook Viewer",
+    long_description="Jupyter nbconvert as a web service",
+    license="BSD",
+    classifiers=[
         'License :: OSI Approved :: BSD License',
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
@@ -48,6 +48,15 @@ setup_args = dict(
         'Programming Language :: Python :: 3.3',
     ],
     test_suite="nose.collector",
+    entry_points={
+        "nbviewer.provider": [
+            "dropbox = nbviewer.providers.dropbox:DropboxProvider",
+            "gist = nbviewer.providers.gist:GistProvider",
+            "github = nbviewer.providers.github:GithubProvider",
+            "local = nbviewer.providers.local:LocalProvider",
+            "url = nbviewer.providers.url:UrlProvider",
+        ]
+    }
 )
 
 setup(**setup_args)

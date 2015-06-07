@@ -54,11 +54,11 @@ def test_transform_ipynb_uri():
         u'/urls/gist.github.com/user/1234/raw/a1b2c3/file.ipynb'),
     )
     for (ipynb_uri, expected_output) in test_data:
-        output = utils.transform_ipynb_uri(ipynb_uri)
+        output = utils.transform_ipynb_uri(ipynb_uri, {})
         nt.assert_equal(output, expected_output, "%s => %s != %s" % (
             ipynb_uri, output, expected_output
         ))
-    
+
 
 def test_quote():
     tests = [
@@ -76,4 +76,3 @@ def test_quote():
         quoted = utils.quote(s)
         assert quoted == expected
         assert type(quoted) == type(expected)
-    
