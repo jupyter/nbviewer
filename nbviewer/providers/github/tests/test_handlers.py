@@ -3,8 +3,8 @@
 from unittest import TestCase
 from collections import OrderedDict
 
-from ...utils import _transform_ipynb_uri
-from .handlers import uri_rewrites
+from ....utils import _transform_ipynb_uri
+from ..handlers import uri_rewrites
 
 uri_rewrite_dict = OrderedDict()
 uri_rewrite_dict.update(uri_rewrites())
