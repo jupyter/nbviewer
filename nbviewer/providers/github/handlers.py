@@ -308,25 +308,22 @@ def default_handlers(handlers=[]):
 
 def uri_rewrites(rewrites=[]):
     return rewrites + [
-        (r'^https?://github\.com/([^\/]+)/([^\/]+)/tree/([^\/]+)/(.*)',
-            '/github/{0}/{1}/tree/{3}/{4}'),
-        (r'^https?://github\.com/([^\/]+)/([^\/]+)/tree/([^\/]+)/(.*)',
-            '/github/{0}/{1}/blob/{3}/{4}'),
-
         # three different uris for a raw view
         (r'^https?://github\.com/([^\/]+)/([^\/]+)/raw/([^\/]+)/(.*)',
-            '/github/{0}/{1}/blob/{2}/{3}'),
+            u'/github/{0}/{1}/blob/{2}/{3}'),
         (r'^https?://raw\.github\.com/([^\/]+)/([^\/]+)/(.*)',
             u'/github/{0}/{1}/blob/{2}'),
         (r'^https?://raw\.githubusercontent\.com/([^\/]+)/([^\/]+)/(.*)',
             u'/github/{0}/{1}/blob/{2}'),
 
+        # trees & blobs
         (r'^https?://github.com/([\w\-]+)/([^\/]+)/(blob|tree)/(.*)$',
             u'/github/{0}/{1}/{2}/{3}'),
-        (r'^https?://raw.?github.com/([\w\-]+)/([^\/]+)/(.*)$',
-            u'/github/{0}/{1}/blob/{2}'),
+
+        # user/repo
         (r'^([\w\-]+)/([^\/]+)$',
             u'/github/{0}/{1}/tree/master/'),
+        # user
         (r'^([\w\-]+)$',
             u'/github/{0}/'),
     ]

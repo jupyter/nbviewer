@@ -8,6 +8,7 @@
 import base64
 import cgi
 import re
+from collections import OrderedDict
 from subprocess import check_output
 
 try:
@@ -53,21 +54,14 @@ def url_path_join(*pieces):
         result = '/'
     return result
 
-#def url_rewrite(value):
-#
-#    for reg,template in regs_dict:
-#        matches = reg.match(value)
-#        if matches: 
-#            return template.format(matches.groups)
-
-from collections import OrderedDict
 
 uri_rewrite_dict = OrderedDict()
 
 def transform_ipynb_uri(value, rewrite_providers=None):
     """Transform a given value (an ipynb 'URI') into an app URL"""
 
-    if not uri_rewrite_dict or rewrite_providers:
+    # Build uri_rewrite_dict if needed.
+    if not uri_rewrite_dict:
         from .providers import (
             default_rewrites,
             provider_uri_rewrites,
@@ -75,18 +69,28 @@ def transform_ipynb_uri(value, rewrite_providers=None):
         rewrite_providers = rewrite_providers or default_rewrites
         uri_rewrite_dict.update(provider_uri_rewrites(rewrite_providers))
 
+    return _transform_ipynb_uri(value, uri_rewrite_dict)
+
+
+def _transform_ipynb_uri(uri, uri_rewrite_dict):
+    """Transform a given uri (an ipynb 'URI') into an app URL
+
+    State-free part of transforming URIs to nbviewer URLs.
+
+    :param uri: uri to transform
+    :param uri_rewrite_dict: dict mapping URI regexes to URL templates
+    """
     for reg, rewrite in uri_rewrite_dict.items():
-        matches = re.match(reg, value)
+        matches = re.match(reg, uri)
         if matches:
-            value = rewrite.format(*matches.groups())
-            break
+            return rewrite.format(*matches.groups())
 
     # encode query parameters as last url part
-    if '?' in value:
-        value, query = value.split('?', 1)
-        value = '%s/%s' % (value, quote('?' + query))
+    if '?' in uri:
+        uri, query = uri.split('?', 1)
+        uri = '%s/%s' % (uri, quote('?' + query))
 
-    return value
+    return uri
 
 # get_encoding_from_headers from requests.utils (1.2.3)
 # (c) 2013 Kenneth Reitz
