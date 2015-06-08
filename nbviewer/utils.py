@@ -67,7 +67,7 @@ uri_rewrite_dict = OrderedDict()
 def transform_ipynb_uri(value, rewrite_providers=None):
     """Transform a given value (an ipynb 'URI') into an app URL"""
 
-    if not uri_rewrite_dict:
+    if not uri_rewrite_dict or rewrite_providers:
         from .providers import (
             default_rewrites,
             provider_uri_rewrites,
