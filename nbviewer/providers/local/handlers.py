@@ -28,12 +28,21 @@ class LocalFileHandler(RenderingHandler):
     @cached
     @gen.coroutine
     def get(self, path):
-        abspath = os.path.join(
-            self.settings.get('localfile_path', ''),
-            path,
-        )
+
+        localfile_path = os.path.abspath(
+            self.settings.get('localfile_path', ''))
+
+        abspath = os.path.abspath(os.path.join(
+            localfile_path,
+            path
+        ))
 
         app_log.info("looking for file: '%s'" % abspath)
+
+        if not abspath.startswith(localfile_path):
+            app_log.warn("directory traversal attempt: '%s'" % localfile_path)
+            raise web.HTTPError(404)
+
         if not os.path.exists(abspath):
             raise web.HTTPError(404)
 
