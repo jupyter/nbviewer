@@ -40,7 +40,7 @@ class LocalFileHandler(RenderingHandler):
         app_log.info("looking for file: '%s'" % abspath)
 
         if not abspath.startswith(localfile_path):
-            app_log.info("directory traversl: '%s'" % localfile_path)
+            app_log.warn("directory traversal attempt: '%s'" % localfile_path)
             raise web.HTTPError(404)
 
         if not os.path.exists(abspath):

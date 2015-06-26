@@ -11,7 +11,7 @@ import requests
 from .base import NBViewerTestCase
 
 from ..providers.local.tests.test_localfile import (
-    LocalFileDefaultTestCase as LFDTC
+    LocalFileRelativePathTestCase as LFRPTC
 )
 
 class XSSTestCase(NBViewerTestCase):
@@ -29,9 +29,9 @@ class XSSTestCase(NBViewerTestCase):
         self._xss('/gist/bburky/c020825874798a6544a7')
 
 
-class LocalDirectoryTraversalTestCase(LFDTC):
+class LocalDirectoryTraversalTestCase(LFRPTC):
     def test_url(self):
         ## assumes being run from base of this repo
-        url = self.url('localfile/../../foo.txt')
+        url = self.url('localfile/../README.md')
         r = requests.get(url)
         self.assertEqual(r.status_code, 404)
