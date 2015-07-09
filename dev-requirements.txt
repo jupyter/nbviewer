@@ -2,4 +2,6 @@ coverage
 invoke
 nose
 requests
+futures
+markdown
 -e .
