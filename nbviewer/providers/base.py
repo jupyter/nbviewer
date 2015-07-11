@@ -129,6 +129,10 @@ class BaseHandler(web.RequestHandler):
     def frontpage_sections(self):
         return self.settings.setdefault('frontpage_sections', {})
 
+    @property
+    def mathjax_url(self):
+        return self.settings['mathjax_url']
+
     #---------------------------------------------------------------
     # template rendering
     #---------------------------------------------------------------
@@ -144,7 +148,9 @@ class BaseHandler(web.RequestHandler):
 
     @property
     def template_namespace(self):
-        return {}
+        return {
+            "mathjax_url": self.mathjax_url
+        }
 
     def breadcrumbs(self, path, base_url):
         """Generate a list of breadcrumbs"""
