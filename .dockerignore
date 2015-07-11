@@ -1,2 +1,10 @@
+__pycache__
+.gitignore
+.ipynb_checkpoints
 .travis.yml
 *.pyc
+build
+nbviewer.egg-info
+nbviewer/static/build
+nbviewer/static/components
+node_modules
