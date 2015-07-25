@@ -75,15 +75,18 @@ def transform_ipynb_uri(value, rewrite_providers=None):
         rewrite_providers = rewrite_providers or default_rewrites
         uri_rewrite_dict.update(provider_uri_rewrites(rewrite_providers))
 
+    for reg, rewrite in uri_rewrite_dict.items():
+        matches = re.match(reg, value)
+        if matches:
+            value = rewrite.format(*matches.groups())
+            break
+
     # encode query parameters as last url part
     if '?' in value:
         value, query = value.split('?', 1)
         value = '%s/%s' % (value, quote('?' + query))
-    
-    for reg, rewrite in uri_rewrite_dict.items():
-        matches = re.match(reg, value)
-        if matches:
-            return rewrite.format(*matches.groups())
+
+    return value
 
 # get_encoding_from_headers from requests.utils (1.2.3)
 # (c) 2013 Kenneth Reitz

@@ -39,7 +39,7 @@ def test_transform_ipynb_uri():
           u'/url/dl.dropbox.com/s/bar/baz.qux'),
         ( u'https://www.dropbox.com/s/zip/baz.qux',
           u'/urls/dl.dropbox.com/s/zip/baz.qux'),
-        ( u'https://www.dropbox.com/sh/mhviow274da2wly/CZKwRRcA0k/nested/furthernested/User%2520Interface.ipynb',
+        ( u'https://www.dropbox.com/sh/mhviow274da2wly/CZKwRRcA0k/nested/furthernested/User%2520Interface.ipynb?dl=1',
           u'/urls/dl.dropbox.com/sh/mhviow274da2wly/CZKwRRcA0k/nested/furthernested/User%2520Interface.ipynb'),
         # URL
         ('https://example.org/ipynb',

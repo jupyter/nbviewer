@@ -17,10 +17,10 @@ from datetime import datetime
 try:
     # py3
     from http.client import responses
-    from urllib.parse import urlparse
+    from urllib.parse import urlparse, urlunparse
 except ImportError:
     from httplib import responses
-    from urlparse import urlparse
+    from urlparse import urlparse, urlunparse
 
 from tornado import (
     gen,
@@ -66,8 +66,22 @@ class BaseHandler(web.RequestHandler):
 
     # Overloaded methods
     def redirect(self, url, *args, **kwargs):
+        purl = urlparse(url)
+
+        eurl = urlunparse((
+            purl.scheme,
+            purl.netloc,
+            "/".join([
+                url_escape(url_unescape(p), plus=False)
+                for p in purl.path.split("/")
+            ]),
+            purl.params,
+            purl.query,
+            purl.fragment
+        ))
+
         return super(BaseHandler, self).redirect(
-            "/".join(map(url_escape, url.split("/"))),
+            eurl,
             *args,
             **kwargs
         )
