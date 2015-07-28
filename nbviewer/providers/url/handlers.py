@@ -19,6 +19,7 @@ from tornado import (
     web,
 )
 from tornado.log import app_log
+from tornado.escape import url_unescape
 
 from ...utils import (
     quote,
@@ -35,15 +36,17 @@ class URLHandler(RenderingHandler):
     """Renderer for /url or /urls"""
     @cached
     @gen.coroutine
-    def get(self, secure, url):
+    def get(self, secure, netloc, url):
         proto = 'http' + secure
+        netloc = url_unescape(netloc)
 
         if '/?' in url:
             url, query = url.rsplit('/?', 1)
         else:
             query = None
 
-        remote_url = u"{}://{}".format(proto, quote(url))
+        remote_url = u"{}://{}/{}".format(proto, netloc, quote(url))
+
         if query:
             remote_url = remote_url + '?' + query
         if not url.endswith('.ipynb'):
@@ -95,7 +98,7 @@ def default_handlers(handlers=[]):
     """Tornado handlers"""
 
     return handlers + [
-        (r'/url([s]?)/(.*)', URLHandler),
+        (r'/url([s]?)/([^/]+)/(.*)', URLHandler),
     ]
 
 
