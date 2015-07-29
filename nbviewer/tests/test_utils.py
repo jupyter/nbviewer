@@ -45,7 +45,7 @@ def test_transform_ipynb_uri():
         (u'http://drive.google.com/file/d/0B7d519FxJIqPYktaTVg1TTV1WDA/view?usp=sharing',
         '/url/googledrive.com/host/0B7d519FxJIqPYktaTVg1TTV1WDA'),
         (u'https://drive.google.com/open?id=0B7d519FxJIqPcEVOZXYzdGxBdzQ',
-        u'/url/googledrive.com/host/0B7d519FxJIqPYktaTVg1TTV1WDA'),
+        u'/urls/googledrive.com/host/0B7d519FxJIqPYktaTVg1TTV1WDA'),
         # URL
         ('https://example.org/ipynb',
         u'/urls/example.org/ipynb'),
