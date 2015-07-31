@@ -33,8 +33,6 @@ class GithubClientTest(AsyncTestCase):
         """
         if string.startswith(beginning):
             return
-        print beginning
-        print string
         self.assertTrue(string.startswith(beginning),
                         '%s does not start with %s' % (string, beginning))
 
