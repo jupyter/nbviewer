@@ -294,6 +294,14 @@ def default_handlers(handlers=[]):
     """Tornado handlers"""
 
     return [
+        # ideally these URIs should have been caught by an appropriate
+        # uri_rewrite rather than letting the url provider catch them and then
+        # fixing it here.
+        # There are probably links in the wild that depend on these, so keep
+        # these handlers for backwards compatibility.
+        (r'/url[s]?/github\.com/([^\/]+)/([^\/]+)/(tree|blob|raw)/([^\/]+)/(.*)', GitHubRedirectHandler),
+        (r'/url[s]?/raw\.?github\.com/([^\/]+)/([^\/]+)/(.*)', RawGitHubURLHandler),
+        (r'/url[s]?/raw\.?githubusercontent\.com/([^\/]+)/([^\/]+)/(.*)', RawGitHubURLHandler),
     ] + handlers + [
         (r'/github/([^\/]+)', AddSlashHandler),
         (r'/github/([^\/]+)/', GitHubUserHandler),
