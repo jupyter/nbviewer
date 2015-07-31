@@ -1,6 +1,6 @@
 coverage
 invoke
-mock
+mock>=1.3.0
 nose
 requests
 -e .
