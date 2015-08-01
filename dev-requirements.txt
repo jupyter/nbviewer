@@ -1,6 +1,6 @@
 coverage
 invoke
-mock>=1.3.0
+mock>=1.3.0  # python34 and older versions of mock do not play well together.
 nose
 requests
 -e .
