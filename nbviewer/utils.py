@@ -54,15 +54,15 @@ def url_path_join(*pieces):
     return result
 
 
-def transform_ipynb_uri(uri, uri_rewrite_dict):
+def transform_ipynb_uri(uri, uri_rewrite_list):
     """Transform a given uri (an ipynb 'URI') into an app URL
 
     State-free part of transforming URIs to nbviewer URLs.
 
     :param uri: uri to transform
-    :param uri_rewrite_dict: dict mapping URI regexes to URL templates
+    :param uri_rewrite_list: list of (URI regexes, URL templates) tuples
     """
-    for reg, rewrite in uri_rewrite_dict.items():
+    for reg, rewrite in uri_rewrite_list:
         matches = re.match(reg, uri)
         if matches:
             return rewrite.format(*matches.groups())

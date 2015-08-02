@@ -1,18 +1,16 @@
 # encoding: utf-8
 
 from unittest import TestCase
-from collections import OrderedDict
 
 from ....utils import transform_ipynb_uri
 from ..handlers import uri_rewrites
 
-uri_rewrite_dict = OrderedDict()
-uri_rewrite_dict.update(uri_rewrites())
+uri_rewrite_list = uri_rewrites()
 
 
 class TestRewrite(TestCase):
     def assert_rewrite(self, uri, rewrite):
-        new = transform_ipynb_uri(uri, uri_rewrite_dict)
+        new = transform_ipynb_uri(uri, uri_rewrite_list)
         self.assertEqual(new, rewrite)
 
     def test_githubusercontent(self):

@@ -59,14 +59,13 @@ def test_transform_ipynb_uri():
         ('https://gist.github.com/user/1234/raw/a1b2c3/file.ipynb',
         u'/urls/gist.github.com/user/1234/raw/a1b2c3/file.ipynb'),
     )
-    uri_rewrite_dict = OrderedDict()
-    uri_rewrite_dict.update(provider_uri_rewrites(default_rewrites))
+    uri_rewrite_list = provider_uri_rewrites(default_rewrites)
     for ipynb_uri, expected_output in test_data:
-        output = utils.transform_ipynb_uri(ipynb_uri, uri_rewrite_dict)
+        output = utils.transform_ipynb_uri(ipynb_uri, uri_rewrite_list)
         nt.assert_equal(output, expected_output, "%s => %s != %s" % (
             ipynb_uri, output, expected_output
         ))
-    
+
 
 def test_quote():
     tests = [
