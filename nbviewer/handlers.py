@@ -13,7 +13,10 @@ from IPython.html import DEFAULT_STATIC_FILES_PATH as ipython_static_path
 
 from .utils import transform_ipynb_uri
 
-from .providers import provider_handlers
+from .providers import (
+    provider_handlers,
+    provider_uri_rewrites,
+)
 from .providers.base import (
     BaseHandler,
     format_prefix,
@@ -58,13 +61,8 @@ class CreateHandler(BaseHandler):
         # storing this on a class attribute is a little icky, but is better
         # than the global this was refactored from.
         if self.uri_rewrite_dict is None:
-            from .providers import (
-                default_rewrites,
-                provider_uri_rewrites,
-            )
             # providers is a list of module import paths
             providers = self.settings['provider_rewrites']
-            providers = providers or default_rewrites
 
             uri_rewrite_dict = OrderedDict()
             uri_rewrite_dict.update(provider_uri_rewrites(providers))

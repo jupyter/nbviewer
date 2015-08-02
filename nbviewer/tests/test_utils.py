@@ -5,9 +5,15 @@
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
+from collections import OrderedDict
+
+import nose.tools as nt
 
 from nbviewer import utils
-import nose.tools as nt
+from nbviewer.providers import (
+    default_rewrites,
+    provider_uri_rewrites,
+)
 
 def test_transform_ipynb_uri():
     test_data = (
@@ -53,8 +59,10 @@ def test_transform_ipynb_uri():
         ('https://gist.github.com/user/1234/raw/a1b2c3/file.ipynb',
         u'/urls/gist.github.com/user/1234/raw/a1b2c3/file.ipynb'),
     )
-    for (ipynb_uri, expected_output) in test_data:
-        output = utils.transform_ipynb_uri(ipynb_uri)
+    uri_rewrite_dict = OrderedDict()
+    uri_rewrite_dict.update(provider_uri_rewrites(default_rewrites))
+    for ipynb_uri, expected_output in test_data:
+        output = utils.transform_ipynb_uri(ipynb_uri, uri_rewrite_dict)
         nt.assert_equal(output, expected_output, "%s => %s != %s" % (
             ipynb_uri, output, expected_output
         ))
