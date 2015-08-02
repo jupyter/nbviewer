@@ -4,6 +4,7 @@
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
+from collections import OrderedDict
 
 from tornado import web
 from tornado.log import app_log
@@ -45,11 +46,31 @@ class CreateHandler(BaseHandler):
 
     only redirects to the appropriate URL
     """
+    uri_rewrite_dict = None
+
     def post(self):
         value = self.get_argument('gistnorurl', '')
-        redirect_url = transform_ipynb_uri(value, self.provider_rewrites)
+        redirect_url = transform_ipynb_uri(value, self.get_provider_rewrites())
         app_log.info("create %s => %s", value, redirect_url)
         self.redirect(redirect_url)
+
+    def get_provider_rewrites(self):
+        # storing this on a class attribute is a little icky, but is better
+        # than the global this was refactored from.
+        if self.uri_rewrite_dict is None:
+            from .providers import (
+                default_rewrites,
+                provider_uri_rewrites,
+            )
+            # providers is a list of module import paths
+            providers = self.settings['provider_rewrites']
+            providers = providers or default_rewrites
+
+            uri_rewrite_dict = OrderedDict()
+            uri_rewrite_dict.update(provider_uri_rewrites(providers))
+
+            type(self).uri_rewrite_dict = uri_rewrite_dict
+        return self.uri_rewrite_dict
 
 
 #-----------------------------------------------------------------------------

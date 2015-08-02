@@ -100,10 +100,6 @@ class BaseHandler(web.RequestHandler):
         return self.settings['providers']
 
     @property
-    def provider_rewrites(self):
-        return self.settings['provider_rewrites']
-
-    @property
     def default_format(self):
         return self.settings['default_format']
 
