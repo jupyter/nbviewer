@@ -4,7 +4,6 @@
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
-
 from tornado import web
 from tornado.log import app_log
 
@@ -12,7 +11,10 @@ from IPython.html import DEFAULT_STATIC_FILES_PATH as ipython_static_path
 
 from .utils import transform_ipynb_uri
 
-from .providers import provider_handlers
+from .providers import (
+    provider_handlers,
+    provider_uri_rewrites,
+)
 from .providers.base import (
     BaseHandler,
     format_prefix,
@@ -45,11 +47,23 @@ class CreateHandler(BaseHandler):
 
     only redirects to the appropriate URL
     """
+    uri_rewrite_list = None
+
     def post(self):
         value = self.get_argument('gistnorurl', '')
-        redirect_url = transform_ipynb_uri(value, self.provider_rewrites)
+        redirect_url = transform_ipynb_uri(value, self.get_provider_rewrites())
         app_log.info("create %s => %s", value, redirect_url)
         self.redirect(redirect_url)
+
+    def get_provider_rewrites(self):
+        # storing this on a class attribute is a little icky, but is better
+        # than the global this was refactored from.
+        if self.uri_rewrite_list is None:
+            # providers is a list of module import paths
+            providers = self.settings['provider_rewrites']
+
+            type(self).uri_rewrite_list = provider_uri_rewrites(providers)
+        return self.uri_rewrite_list
 
 
 #-----------------------------------------------------------------------------

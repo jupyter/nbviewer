@@ -12,7 +12,7 @@ default_rewrites = ['nbviewer.providers.{}'.format(prov)
                     for prov in ['gist', 'github', 'dropbox', 'url']]
 
 
-def provider_handlers(providers=None):
+def provider_handlers(providers):
     """Load tornado URL handlers from an ordered list of dotted-notation modules
        which contain a `default_handlers` function
 
@@ -21,12 +21,10 @@ def provider_handlers(providers=None):
        example, custom URLs which should be intercepted before being
        handed to the basic `url` handler
     """
-    return _load_provider_feature('default_handlers',
-                                  providers,
-                                  default_providers)
+    return _load_provider_feature('default_handlers', providers)
 
 
-def provider_uri_rewrites(providers=None):
+def provider_uri_rewrites(providers):
     """Load (regex, template) tuples from an ordered list of dotted-notation
        modules which contain a `uri_rewrites` function
 
@@ -34,10 +32,10 @@ def provider_uri_rewrites(providers=None):
        augmented list of rewrites: this allows the addition of, for
        example, the greedy behavior of the `gist` and `github` providers
     """
-    return _load_provider_feature('uri_rewrites', providers, default_rewrites)
+    return _load_provider_feature('uri_rewrites', providers)
 
 
-def _load_provider_feature(feature, providers, default_providers):
+def _load_provider_feature(feature, providers):
     """Load the named feature from an ordered list of dotted-notation modules
        which each implements the feature.
 
@@ -45,8 +43,6 @@ def _load_provider_feature(feature, providers, default_providers):
        return that list, suitably modified.
     """
     features = []
-
-    providers = providers or default_providers
 
     for provider in providers:
         mod = __import__(provider, fromlist=[feature])
