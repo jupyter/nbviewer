@@ -145,6 +145,13 @@ class GitHubTestCase(NBViewerTestCase):
         # verify tag is linked
         self.assertIn('/github/ipython/ipython/tree/rel-2.3.0/', html)
 
+    def test_github_slash_ref_blob(self):
+        url = self.url(
+            '/github/remram44/ipython-nbviewer/blob/wrong/branch/test.ipynb'
+        )
+        r = requests.get(url)
+        self.assertEqual(r.status_code, 200)
+
 
 class FormatHTMLGitHubTestCase(NBViewerTestCase, FormatHTMLMixin):
     pass

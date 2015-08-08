@@ -47,6 +47,21 @@ class GithubClientMixin(object):
         return self._github_client
 
 
+class RefMixin(object):
+    @gen.coroutine
+    def refs(self, user, repo):
+        """get branches and tags for this user/repo"""
+        ref_types = ("branches", "tags")
+        ref_data = [None, None]
+
+        for i, ref_type in enumerate(ref_types):
+            with self.catch_client_error():
+                response = yield getattr(self.github_client, "get_%s" % ref_type)(user, repo)
+            ref_data[i] = json.loads(response_text(response))
+
+        raise gen.Return(ref_data)
+
+
 class RawGitHubURLHandler(BaseHandler):
     """redirect old /urls/raw.github urls to /github/ API urls"""
     def get(self, user, repo, path):
@@ -93,7 +108,7 @@ class GitHubUserHandler(GithubClientMixin, BaseHandler):
             ))
         provider_url = u"https://github.com/{user}".format(user=user)
         html = self.render_template("userview.html",
-            entries=entries, provider_url=provider_url, 
+            entries=entries, provider_url=provider_url,
             next_url=next_url, prev_url=prev_url,
             **PROVIDER_CTX
         )
@@ -106,7 +121,7 @@ class GitHubRepoHandler(BaseHandler):
         self.redirect("%s/github/%s/%s/tree/master/" % (self.format_prefix, user, repo))
 
 
-class GitHubTreeHandler(GithubClientMixin, BaseHandler):
+class GitHubTreeHandler(GithubClientMixin, BaseHandler, RefMixin):
     """list files in a github repo (like github tree)"""
     @cached
     @gen.coroutine
@@ -115,12 +130,34 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
             self.redirect(self.request.uri + '/')
             return
         path = path.rstrip('/')
+        symbolic_ref = None
+
         with self.catch_client_error():
-            response = yield self.github_client.get_contents(user, repo, path, ref=ref)
+            branches, tags = yield self.refs(user, repo)
+
+            try:
+                response = yield self.github_client.get_contents(
+                    user, repo, path, ref=ref
+                )
+            except Exception as err:
+                if getattr(err, "code", None) == 404:
+                    ref_path = "%s/%s" % (ref, path)
+                    for other_ref in branches + tags:
+                        if ref == other_ref["name"]:
+                            continue
+                        if ref_path.startswith(other_ref["name"]):
+                            client = self.github_client
+                            path = ref_path[len(other_ref["name"]) + 1:]
+                            ref = other_ref["commit"]["sha"]
+                            symbolic_ref = other_ref["name"]
+                            response = yield client.get_contents(
+                                user, repo, path, ref=ref
+                            )
+                            break
+                if symbolic_ref is None:
+                    raise err
 
         contents = json.loads(response_text(response))
-
-        branches, tags = yield self.refs(user, repo)
 
         for nav_ref in branches + tags:
             nav_ref["url"] = (u"/github/{user}/{repo}/tree/{ref}/{path}"
@@ -135,7 +172,8 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
             )
             self.redirect(
                 u"{format}/github/{user}/{repo}/blob/{ref}/{path}".format(
-                    format=self.format_prefix, user=user, repo=repo, ref=ref, path=path,
+                    format=self.format_prefix, user=user, repo=repo,
+                    ref=ref or symbolic_ref, path=path,
                 )
             )
             return
@@ -144,7 +182,7 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
             user=user, repo=repo, ref=ref,
         )
         provider_url = u"https://github.com/{user}/{repo}/tree/{ref}/{path}".format(
-            user=user, repo=repo, ref=ref, path=path,
+            user=user, repo=repo, ref=symbolic_ref or ref, path=path,
         )
 
         breadcrumbs = [{
@@ -193,25 +231,13 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
             entries=entries, breadcrumbs=breadcrumbs, provider_url=provider_url,
             user=user, repo=repo, ref=ref, path=path,
             branches=branches, tags=tags, tree_type="github",
+            symbolic_ref=symbolic_ref,
             **PROVIDER_CTX
         )
         yield self.cache_and_finish(html)
 
-    @gen.coroutine
-    def refs(self, user, repo):
-        """get branches and tags for this user/repo"""
-        ref_types = ("branches", "tags")
-        ref_data = [None, None]
 
-        for i, ref_type in enumerate(ref_types):
-            with self.catch_client_error():
-                response = yield getattr(self.github_client, "get_%s" % ref_type)(user, repo)
-            ref_data[i] = json.loads(response_text(response))
-
-        raise gen.Return(ref_data)
-
-
-class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
+class GitHubBlobHandler(GithubClientMixin, RenderingHandler, RefMixin):
     """handler for files on github
 
     If it's a...
@@ -229,14 +255,36 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
         blob_url = u"https://github.com/{user}/{repo}/blob/{ref}/{path}".format(
             user=user, repo=repo, ref=ref, path=quote(path),
         )
+        symbolic_ref = None
+
         with self.catch_client_error():
-            tree_entry = yield self.github_client.get_tree_entry(
-                user, repo, path=url_unescape(path), ref=ref
-            )
+            try:
+                tree_entry = yield self.github_client.get_tree_entry(
+                    user, repo, path=path, ref=ref
+                )
+            except Exception as err:
+                if getattr(err, "code", None) == 404:
+                    branches, tags = yield self.refs(user, repo)
+                    ref_path = "%s/%s" % (ref, path)
+                    for other_ref in branches + tags:
+                        if ref == other_ref["name"]:
+                            continue
+                        if ref_path.startswith(other_ref["name"]):
+                            client = self.github_client
+                            path = ref_path[len(other_ref["name"]) + 1:]
+                            ref = other_ref["commit"]["sha"]
+                            symbolic_ref = other_ref["name"]
+                            tree_entry = yield client.get_tree_entry(
+                                user, repo, ref=ref, path=path
+                            )
+                            break
+                if symbolic_ref is None:
+                    raise err
 
         if tree_entry['type'] == 'tree':
             tree_url = "/github/{user}/{repo}/tree/{ref}/{path}/".format(
-                user=user, repo=repo, ref=ref, path=quote(path),
+                user=user, repo=repo, ref=symbolic_ref or ref,
+                path=quote(path),
             )
             app_log.info("%s is a directory, redirecting to %s", self.request.path, tree_url)
             self.redirect(tree_url)
@@ -258,7 +306,7 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
         if path.endswith('.ipynb'):
             dir_path = path.rsplit('/', 1)[0]
             base_url = "/github/{user}/{repo}/tree/{ref}".format(
-                user=user, repo=repo, ref=ref,
+                user=user, repo=repo, ref=symbolic_ref or ref,
             )
             breadcrumbs = [{
                 'url' : base_url,
