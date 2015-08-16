@@ -1,10 +1,2 @@
-tornado>=3.1.1
-
-pycurl
-pylibmc
-futures
-newrelic
-markdown
-elasticsearch
-
-ipython[notebook]>=3.0.0
+-r requirements-docker.txt
+notebook

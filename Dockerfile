@@ -1,7 +1,7 @@
 # Using the Ubuntu image
-FROM ipython/ipython:3.x
+FROM jupyter/notebook
 
-MAINTAINER IPython Project <ipython-dev@scipy.org>
+MAINTAINER Project Jupyter <jupyter@googlegroups.com>
 
 RUN apt-get install -y -q \
   libmemcached-dev
@@ -19,9 +19,9 @@ WORKDIR /srv/nbviewer
 ADD ./package.json /srv/nbviewer/
 RUN npm install .
 
-ADD ./requirements.txt /srv/nbviewer/
-RUN pip install -r requirements.txt && \
-    pip3 install -r requirements.txt
+ADD ./requirements-docker.txt /srv/nbviewer/
+RUN pip install -r requirements-docker.txt && \
+    pip3 install -r requirements-docker.txt
 
 ADD ./tasks.py /srv/nbviewer/
 
