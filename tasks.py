@@ -8,7 +8,7 @@ import tempfile
 
 import invoke
 
-from IPython.html import DEFAULT_STATIC_FILES_PATH
+from notebook import DEFAULT_STATIC_FILES_PATH
 
 
 APP_ROOT = os.path.dirname(__file__)

@@ -23,7 +23,7 @@ from tornado.options import define, options
 
 from jinja2 import Environment, FileSystemLoader
 
-from IPython.config import Config
+from traitlets.config import Config
 
 from .handlers import init_handlers, format_handlers
 from .cache import DummyAsyncCache, AsyncMultipartMemcache, MockCache, pylibmc
