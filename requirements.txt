@@ -1,2 +1,7 @@
--r requirements-docker.txt
+elasticsearch
+futures
+markdown
+newrelic
 notebook
+pycurl
+pylibmc
