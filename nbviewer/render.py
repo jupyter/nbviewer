@@ -8,7 +8,7 @@
 import re
 
 from tornado.log import app_log
-from IPython.nbconvert.exporters import Exporter
+from nbconvert.exporters import Exporter
 
 #-----------------------------------------------------------------------------
 #

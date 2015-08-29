@@ -1,10 +1,7 @@
-tornado>=3.1.1
-
+elasticsearch
+futures
+markdown
+newrelic
+notebook
 pycurl
 pylibmc
-futures
-newrelic
-markdown
-elasticsearch
-
-ipython[notebook]>=3.0.0

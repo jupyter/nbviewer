@@ -35,7 +35,7 @@ from tornado.escape import (
 from tornado.ioloop import IOLoop
 from tornado.log import app_log
 
-from IPython.nbformat import (
+from nbformat import (
     current_nbformat,
     reads,
 )

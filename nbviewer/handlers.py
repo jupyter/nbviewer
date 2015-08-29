@@ -7,7 +7,7 @@
 from tornado import web
 from tornado.log import app_log
 
-from IPython.html import DEFAULT_STATIC_FILES_PATH as ipython_static_path
+from notebook import DEFAULT_STATIC_FILES_PATH as ipython_static_path
 
 from .utils import transform_ipynb_uri
 

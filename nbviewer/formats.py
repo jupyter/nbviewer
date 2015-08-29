@@ -7,7 +7,7 @@
 
 import re
 
-from IPython.nbconvert.exporters.export import exporter_map
+from nbconvert.exporters.export import exporter_map
 
 
 def default_formats():

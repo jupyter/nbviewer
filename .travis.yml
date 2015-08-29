@@ -9,7 +9,7 @@ before_install:
 - sudo apt-get update
 - sudo apt-get install -qq libzmq3-dev pandoc libcurl4-gnutls-dev libmemcached-dev
 - pip install -U setuptools
-- pip install -r dev-requirements.txt
+- pip install -r requirements-dev.txt
 - npm install .
 install:
 - pip install -r requirements.txt

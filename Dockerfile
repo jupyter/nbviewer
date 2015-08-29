@@ -1,37 +1,58 @@
 # Using the Ubuntu image
-FROM ipython/ipython:3.x
+FROM debian:jessie
 
-MAINTAINER IPython Project <ipython-dev@scipy.org>
+MAINTAINER Project Jupyter <jupyter@googlegroups.com>
 
-RUN apt-get install -y -q \
-  libmemcached-dev
+RUN apt-get update \
+  && apt-get install -y -q \
+    build-essential \
+    gcc \
+    git \
+    libcurl4-openssl-dev \
+    libmemcached-dev \
+    libsqlite3-dev \
+    libzmq3-dev \
+    make \
+    nodejs \
+    nodejs-legacy \
+    npm \
+    pandoc \
+    python3-dev \
+    python3-pip \
+    sqlite3 \
+    zlib1g-dev \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # To change the number of threads use
 # docker run -d -e NBVIEWER_THREADS=4 -p 80:8080 nbviewer
 ENV NBVIEWER_THREADS 2
 EXPOSE 8080
 
-RUN pip install invoke && \
-    pip3 install invoke
+RUN pip3 install invoke
 WORKDIR /srv/nbviewer
 
 # asset toolchain
 ADD ./package.json /srv/nbviewer/
 RUN npm install .
 
+# python requirements
 ADD ./requirements.txt /srv/nbviewer/
-RUN pip install -r requirements.txt && \
-    pip3 install -r requirements.txt
+RUN pip3 install -r requirements.txt && pip3 freeze
 
+# tasks will likely require re-running everything
 ADD ./tasks.py /srv/nbviewer/
 
+# front-end dependencies
 ADD ["./nbviewer/static/bower.json", "./nbviewer/static/.bowerrc", \
      "/srv/nbviewer/nbviewer/static/"]
 RUN invoke bower
 
+# build css
 ADD . /srv/nbviewer/
 RUN invoke less
 
+# root up until now!
 USER nobody
 
 CMD ["python3", "-m", "nbviewer", "--port=8080"]
