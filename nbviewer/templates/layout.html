@@ -59,20 +59,20 @@
 
   <!-- Le fav and touch icons -->
   <link rel="shortcut icon" href="/static/ico/ipynb_icon_16x16.png">
-  <link rel="apple-touch-icon-precomposed" sizes="144x144" 
+  <link rel="apple-touch-icon-precomposed" sizes="144x144"
         href="/static/ico/apple-touch-icon-144-precomposed.png">
-  <link rel="apple-touch-icon-precomposed" sizes="114x114" 
+  <link rel="apple-touch-icon-precomposed" sizes="114x114"
         href="/static/ico/apple-touch-icon-114-precomposed.png">
-  <link rel="apple-touch-icon-precomposed" sizes="72x72" 
+  <link rel="apple-touch-icon-precomposed" sizes="72x72"
         href="/static/ico/apple-touch-icon-72-precomposed.png">
-  <link rel="apple-touch-icon-precomposed" 
+  <link rel="apple-touch-icon-precomposed"
         href="/static/ico/apple-touch-icon-57-precomposed.png">
   {% block extra_head %}{% endblock %}
 </head>
 
-<body data-spy="scroll" data-target=".subnav" data-offset="50">
+<body>
 
-  <!-- These are loaded at the top of the body so they are available to 
+  <!-- These are loaded at the top of the body so they are available to
        notebook cells when they are loaded below. -->
   <script src="/static/components/jquery/dist/jquery.min.js"></script>
   <script src="/static/components/requirejs/require.js"></script>
@@ -80,7 +80,7 @@
 
 <!-- Navbar
 ================================================== -->
-  <nav id="menubar" class="navbar navbar-default navbar-fixed-top">
+  <nav id="menubar" class="navbar navbar-default navbar-fixed-top" data-spy="affix">
     <div class="container">
       <div class="navbar-header">
         <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
@@ -91,17 +91,12 @@
       </div>
 
       <div class="collapse navbar-collapse">
-        <ul class="nav navbar-nav">
-          {{ head_text('/faq', "FAQ") }}
-          <li class="{{index}}">
-            <a href="http://ipython.org">IPython</a>
-          </li>
-          <li class="{{index}}">
-            <a href="http://jupyter.org">Jupyter</a>
-          </li>
-        </ul>
-        
         <ul class="nav navbar-nav navbar-right">
+          <li class="{{index}}">
+            <a href="http://jupyter.org">JUPYTER</a>
+          </li>
+          {{ head_text('/faq', "FAQ") }}
+
           {% block otherlinks %}
             {% if provider_url %}
               <li>
@@ -124,9 +119,12 @@
     <div class="back-to-top hidden-print text-center">
       <a href="#">Back to top</a>
     </div>
+  </div>{% endblock container %}
 
-    {% block footer %}
-      <footer class="footer hidden-print col-md-12">
+
+  {% block footer %}
+    <footer class="footer hidden-print">
+      <div class="container">
         <div class="col-md-4">
           <p>
             This web site does not host notebooks, it only renders notebooks
@@ -136,7 +134,7 @@
 
         <div class="col-md-4">
           <p>
-            Delivered by <a href="http://www.fastly.com/">Fastly</a>, 
+            Delivered by <a href="http://www.fastly.com/">Fastly</a>,
             Rendered by <a href="https://developer.rackspace.com/?nbviewer=awesome">Rackspace</a>
           </p>
           <p>
@@ -157,10 +155,9 @@
           {% endblock version_info %}
           {% block extra_footer %}{% endblock extra_footer %}
         </div>
-      </footer>
-    {% endblock footer %}
-
-  </div>{% endblock container %}
+      </div>
+    </footer>
+  {% endblock footer %}
 
   <script src="/static/components/bootstrap/js/bootstrap.min.js"></script>
   <script src="/static/components/headroom.js/dist/headroom.min.js"></script>
@@ -177,12 +174,17 @@
     ga('send', 'pageview');
   </script>
   <script>
-      var update_date  = function(){
-          var str = window.moment($('.date').data('date')).fromNow();
-          $('.date').text(str);
-      }
-      setInterval(update_date , 61*1000);
-      $(update_date);
+    require({
+        paths: {
+          moment: "/static/components/moment/min/moment.min.js"
+        }
+      }, ["moment"], function(moment){
+      var date = $("footer .date"),
+        m = moment(new Date(date.data('date'))),
+        update = function(){ date.text(m.fromNow()); };
+      setInterval(update, 61*1000);
+      update();
+    });
   </script>
   <!--NEW RELIC Stop Perf Measurement-->
   {{ nrfoot()| safe }}

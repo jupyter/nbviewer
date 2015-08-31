@@ -18,11 +18,16 @@ body {
 }
 
 footer {
-  padding: 35px 0 36px;
-  border-top: 1px solid #e5e5e5;
+  padding: 15px 0;
+  background-color: @footer-bg;
+  color: #ddd;
 
-  p {
-    color: #999;
+  a {
+    color: #fff;
+    &:hover{
+      color: #fff;
+      text-decoration: dotted;
+    }
   }
 }
 
@@ -33,4 +38,21 @@ pre, code {
 
 td.page_links {
   text-align: center;
+}
+
+.navbar-fixed-top {
+  .nav > li > a:hover{
+    color: @jupyter-brand;
+  }
+  .navbar-brand {
+    background-image: url(/static/img/nav_logo.svg);
+    background-size: 159px 45px;
+    background-repeat: no-repeat;
+    background-position: 15px 21px;
+    text-align: right;
+    padding: 51px 0 0 0;
+    width: 195px;
+    height: 80px;
+    display: block;
+  }
 }
