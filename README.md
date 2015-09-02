@@ -101,7 +101,7 @@ Static assets are maintained with `bower` and `less` (which require having
 
 ```shell
 $ cd <path to repo>
-$ pip install -r dev-requirements.txt
+$ pip install -r requirements-dev.txt
 $ invoke bower
 $ invoke less [-d]
 ```
@@ -129,7 +129,7 @@ running:
 
 ```shell
 $ cd <path to repo>
-$ pip install -r dev-requirements.txt
+$ pip install -r requirements-dev.txt
 $ GITHUB_API_TOKEN=<your token> python setup.py test
 ```
 
