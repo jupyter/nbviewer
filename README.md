@@ -146,7 +146,7 @@ Providers are sources of notebooks and directories of notebooks and directories.
 
 #### Writing a new Provider
 There are several already additional providers
-[proposed/requested](/jupyter/nbviewer/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+label%3Aprovider). Some providers are more involved than others, and some,
+[proposed/requested](https://github.com/jupyter/nbviewer/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+label%3Aprovider). Some providers are more involved than others, and some,
 such as those which would require user authentication, will take some work to
 support properly.
 
