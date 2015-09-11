@@ -17,10 +17,10 @@
 {% endmacro %}
 
 
-{% macro ref_dropdown(current, branches, tags) -%}
+{% macro ref_dropdown(current, symbolic_ref, branches, tags) -%}
   <div class="pull-right dropdown dropdown-ref">
     <a class="dropdown-toggle" data-toggle="dropdown">
-      {{ current }}
+      {{ symbolic_ref|default(current) }}
     </a>
     <div class="dropdown-menu" role="menu">
       <div class="container-fluid">
@@ -38,7 +38,7 @@
   <div>
     {% if branches|length + tags|length > 1 %}
       <div class="breadcrumb pull-right">
-        {{ ref_dropdown(ref, branches, tags) }}
+        {{ ref_dropdown(ref, symbolic_ref, branches, tags) }}
       </div>
     {% endif %}
 
@@ -58,7 +58,7 @@
             </a>
           {% else %}
             <a href="/{{ tree_type }}/{{user}}">
-              <i class="fa fa-backward fa-fw"></i> {{user}}'s 
+              <i class="fa fa-backward fa-fw"></i> {{user}}'s
               {{ tree_type | default('repositorie')}}s
             </a>
           {% endif %}
