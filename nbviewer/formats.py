@@ -57,6 +57,7 @@ def configure_formats(options, config, log, formats=None):
     # This would be better defined in a class
     config.HTMLExporter.template_file = 'basic'
     config.SlidesExporter.template_file = 'slides_reveal'
+
     config.TemplateExporter.template_path = [
         os.path.join(os.path.dirname(__file__), "templates", "nbconvert")
     ]
