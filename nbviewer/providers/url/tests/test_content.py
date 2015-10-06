@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from ....tests.async_base import AsyncNbviewerTestCase
 
 
