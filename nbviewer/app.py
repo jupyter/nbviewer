@@ -68,7 +68,7 @@ def nrfoot():
 this_dir, this_filename = os.path.split(__file__)
 FRONTPAGE_JSON = os.path.join(this_dir, "frontpage.json")
 
-def main():
+def make_app():
     # command-line options
     define("debug", default=False, help="run in debug mode", type=bool)
     define("no_cache", default=False, help="Do not cache results", type=bool)
@@ -234,6 +234,14 @@ def main():
             handlers
         )
 
+    # create the app
+    return web.Application(handlers, debug=options.debug, **settings)
+
+
+def main():
+    # create and start the app
+    app = make_app()
+
     # load ssl options
     ssl_options = None
     if options.sslcert:
@@ -242,8 +250,6 @@ def main():
             'keyfile' : options.sslkey,
         }
 
-    # create and start the app
-    app = web.Application(handlers, debug=options.debug, **settings)
     http_server = httpserver.HTTPServer(app, xheaders=True, ssl_options=ssl_options)
     log.app_log.info("Listening on port %i", options.port)
     http_server.listen(options.port)

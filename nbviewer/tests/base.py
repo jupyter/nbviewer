@@ -27,22 +27,6 @@ class NBViewerTestCase(TestCase):
     """A base class for tests that need a running nbviewer server."""
 
     port = 12341
-    
-    def assertIn(self, observed, expected, *args, **kwargs):
-        return super(NBViewerTestCase, self).assertIn(
-            to_unicode(observed),
-            to_unicode(expected),
-            *args,
-            **kwargs
-        )
-
-    def assertNotIn(self, observed, expected, *args, **kwargs):
-        return super(NBViewerTestCase, self).assertNotIn(
-            to_unicode(observed),
-            to_unicode(expected),
-            *args,
-            **kwargs
-        )
 
     def assertIn(self, observed, expected, *args, **kwargs):
         return super(NBViewerTestCase, self).assertIn(
