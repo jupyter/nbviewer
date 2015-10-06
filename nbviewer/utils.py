@@ -20,7 +20,7 @@ from IPython.utils import py3compat
 
 def quote(s):
     """unicode-safe quote
-    
+
     - Python 2 requires str, not unicode
     - always return unicode
     """
@@ -94,8 +94,12 @@ def get_encoding_from_headers(headers):
     if 'charset' in params:
         return params['charset'].strip("'\"")
 
+
+    # per #507, at least some hosts are providing UTF-8 without declaring it
+    # while the former choice of ISO-8859-1 wasn't known to be causing problems
+    # in the wild
     if 'text' in content_type:
-        return 'ISO-8859-1'
+        return 'utf-8'
 
 def response_text(response, encoding=None):
     """mimic requests.text property, but for plain HTTPResponse"""
@@ -137,7 +141,7 @@ def parse_header_links(value):
                 break
 
             link[key.strip(replace_chars)] = value.strip(replace_chars)
-        
+
         if 'rel' in link:
             links[link['rel']] = link
 
@@ -164,7 +168,7 @@ def ipython_info():
 
 def base64_decode(s):
     """unicode-safe base64
-    
+
     base64 API only talks bytes
     """
     s = py3compat.cast_bytes(s)
@@ -173,7 +177,7 @@ def base64_decode(s):
 
 def base64_encode(s):
     """unicode-safe base64
-    
+
     base64 API only talks bytes
     """
     s = py3compat.cast_bytes(s)
