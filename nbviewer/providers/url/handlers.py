@@ -82,7 +82,7 @@ class URLHandler(RenderingHandler):
         response = yield self.fetch(remote_url)
 
         try:
-            nbjson = response_text(response)
+            nbjson = response_text(response, encoding='utf-8')
         except UnicodeDecodeError:
             app_log.error("Notebook is not utf8: %s", remote_url, exc_info=True)
             raise web.HTTPError(400)

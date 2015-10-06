@@ -9,7 +9,8 @@ body {
 }
 
 .reveal {
-  font-size: 160%;
+  font-size: 130%;
+  overflow-y: scroll;
 
   pre {
     width: inherit;
@@ -18,6 +19,10 @@ body {
     font-family: monospace, sans-serif;
     font-size: 80%;
     box-shadow: 0px 0px 0px rgba(0, 0, 0, 0);
+
+    code {
+      padding: 0px;
+    }
   }
 
   section img {
@@ -37,6 +42,11 @@ body {
 
   &.fade {
     opacity: 1;
+  }
+
+  .text_cell.rendered .rendered_html {
+    /* The H1 height seems miscalculated, we are just hidding the scrollbar */
+    overflow-y: hidden;
   }
 }
 
