@@ -51,12 +51,14 @@ app_log = log.app_log
 here = os.path.dirname(__file__)
 pjoin = os.path.join
 
+
 def nrhead():
     try:
         import newrelic.agent
     except ImportError:
         return ''
     return newrelic.agent.get_browser_timing_header()
+
 
 def nrfoot():
     try:
@@ -68,28 +70,8 @@ def nrfoot():
 this_dir, this_filename = os.path.split(__file__)
 FRONTPAGE_JSON = os.path.join(this_dir, "frontpage.json")
 
-def make_app():
-    # command-line options
-    define("debug", default=False, help="run in debug mode", type=bool)
-    define("no_cache", default=False, help="Do not cache results", type=bool)
-    define("localfiles", default="", help="Allow to serve local files under /localfile/* this can be a security risk", type=str)
-    define("port", default=5000, help="run on the given port", type=int)
-    define("cache_expiry_min", default=10*60, help="minimum cache expiry (seconds)", type=int)
-    define("cache_expiry_max", default=2*60*60, help="maximum cache expiry (seconds)", type=int)
-    define("mc_threads", default=1, help="number of threads to use for Async Memcache", type=int)
-    define("threads", default=1, help="number of threads to use for rendering", type=int)
-    define("processes", default=0, help="use processes instead of threads for rendering", type=int)
-    define("frontpage", default=FRONTPAGE_JSON, help="path to json file containing frontpage content", type=str)
-    define("sslcert", help="path to ssl .crt file", type=str)
-    define("sslkey", help="path to ssl .key file", type=str)
-    define("default_format", default="html", help="format to use for legacy / URLs", type=str)
-    define("proxy_host", default="", help="The proxy URL.", type=str)
-    define("proxy_port", default="", help="The proxy port.", type=int)
-    define("providers", default=default_providers, help="Full dotted package(s) that provide `default_handlers`", type=str, multiple=True, group="provider")
-    define("provider_rewrites", default=default_rewrites, help="Full dotted package(s) that provide `uri_rewrites`", type=str, multiple=True, group="provider")
-    define("mathjax_url", default="https://cdn.mathjax.org/mathjax/latest/", help="URL base for mathjax package", type=str)
-    tornado.options.parse_command_line()
 
+def make_app():
     # NBConvert config
     config = Config()
     config.NbconvertApp.fileext = 'html'
@@ -238,7 +220,32 @@ def make_app():
     return web.Application(handlers, debug=options.debug, **settings)
 
 
+def init_options():
+    # command-line options
+    define("debug", default=False, help="run in debug mode", type=bool)
+    define("no_cache", default=False, help="Do not cache results", type=bool)
+    define("localfiles", default="", help="Allow to serve local files under /localfile/* this can be a security risk", type=str)
+    define("port", default=5000, help="run on the given port", type=int)
+    define("cache_expiry_min", default=10*60, help="minimum cache expiry (seconds)", type=int)
+    define("cache_expiry_max", default=2*60*60, help="maximum cache expiry (seconds)", type=int)
+    define("mc_threads", default=1, help="number of threads to use for Async Memcache", type=int)
+    define("threads", default=1, help="number of threads to use for rendering", type=int)
+    define("processes", default=0, help="use processes instead of threads for rendering", type=int)
+    define("frontpage", default=FRONTPAGE_JSON, help="path to json file containing frontpage content", type=str)
+    define("sslcert", help="path to ssl .crt file", type=str)
+    define("sslkey", help="path to ssl .key file", type=str)
+    define("default_format", default="html", help="format to use for legacy / URLs", type=str)
+    define("proxy_host", default="", help="The proxy URL.", type=str)
+    define("proxy_port", default="", help="The proxy port.", type=int)
+    define("providers", default=default_providers, help="Full dotted package(s) that provide `default_handlers`", type=str, multiple=True, group="provider")
+    define("provider_rewrites", default=default_rewrites, help="Full dotted package(s) that provide `uri_rewrites`", type=str, multiple=True, group="provider")
+    define("mathjax_url", default="https://cdn.mathjax.org/mathjax/latest/", help="URL base for mathjax package", type=str)
+
+
 def main():
+    init_options()
+    tornado.options.parse_command_line()
+
     # create and start the app
     app = make_app()
 
