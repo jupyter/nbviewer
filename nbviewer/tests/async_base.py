@@ -1,7 +1,7 @@
 from tornado import testing
 from tornado.escape import to_unicode
 
-from ..app import make_app
+from .. import app
 
 
 class AsyncNbviewerTestCase(testing.AsyncHTTPTestCase):
@@ -10,7 +10,8 @@ class AsyncNbviewerTestCase(testing.AsyncHTTPTestCase):
     def get_app(self):
         """ create an nbviewer tornado app instance for testing
         """
-        return make_app()
+        app.init_options()
+        return app.make_app()
 
     def assertIn(self, observed, expected, *args, **kwargs):
         """ test whether the observed contains the expected, in utf-8
