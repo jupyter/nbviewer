@@ -45,7 +45,7 @@
     {{ link_breadcrumbs(breadcrumbs) }}
   </div>
 
-  <table class="table table-striped">
+  <table class="table table-striped table-nbviewer">
     <thead>
       <tr><th>Name</th></tr>
     </thead>
@@ -59,7 +59,7 @@
           {% else %}
             <a href="/{{ tree_type }}/{{user}}">
               <i class="fa fa-backward fa-fw"></i> {{user}}'s 
-              {{ tree_type | default('repositorie')}}s
+              {{ tree_label | default('repositories')}}
             </a>
           {% endif %}
         </td>

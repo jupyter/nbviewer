@@ -1,8 +1,12 @@
 {
+  "scripts": {
+    "watch-less": "./node_modules/.bin/watch 'invoke less' ./nbviewer/static/less"
+  },
   "devDependencies": {
     "less": "*",
     "less-plugin-autoprefix": "*",
     "less-plugin-clean-css": "*",
-    "bower": "*"
+    "bower": "*",
+    "watch": "*"
   }
 }

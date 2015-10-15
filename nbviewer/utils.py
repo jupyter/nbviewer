@@ -133,12 +133,12 @@ def parse_header_links(value):
         link = {}
 
         link["url"] = url.strip("<> '\"")
-
         for param in params.split(";"):
             try:
                 key, value = param.split("=")
             except ValueError:
                 break
+            raise Exception(key)
 
             link[key.strip(replace_chars)] = value.strip(replace_chars)
 
@@ -157,14 +157,14 @@ def git_info(path):
         msg=msg,
     )
 
-def ipython_info():
-    """Get IPython info dict"""
-    from IPython.utils import sysinfo
-    try:
-        return sysinfo.get_sys_info()
-    except AttributeError:
-        # IPython < 2.0
-        return eval(sysinfo.sys_info())
+def jupyter_info():
+    """Get Jupyter info dict"""
+    import notebook
+    import nbconvert
+    return dict(
+        notebook_version=notebook.__version__,
+        nbconvert_version=nbconvert.__version__
+    )
 
 def base64_decode(s):
     """unicode-safe base64

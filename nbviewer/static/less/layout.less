@@ -1,5 +1,8 @@
 body {
   padding-top: @navbar-height;
+  &.scrolled .navbar-fixed-top {
+    box-shadow: 1px 1px 1px #999;
+  }
 }
 
 .navbar-header .navbar-toggle {
@@ -41,24 +44,19 @@ td.page_links {
 }
 
 .navbar-fixed-top {
-  .nav > li > a:hover{
-    color: @jupyter-brand;
+  .nav > li > a{
+    &:hover, &.active{
+      color: @jupyter-brand;
+    }
   }
   .navbar-brand {
-    background-image: url(/static/img/nav_logo.svg);
-    background-size: 159px 45px;
-    background-repeat: no-repeat;
-    background-position: 15px 21px;
-    text-align: right;
-    padding: 51px 0 0 0;
-    width: 195px;
-    height: 80px;
-    display: block;
+    padding: 15px 0 0 15px;
   }
 }
 
-.breadcrumb a {
+.breadcrumb a, .table-nbviewer a, .nbviewer-error a{
   color: grey;
+  white-space: nowrap;
   &:hover{
     color: @jupyter-brand;
     text-decoration: none;

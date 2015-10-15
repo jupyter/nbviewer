@@ -2,9 +2,9 @@
 {% block error_detail %}
 <p>You are requesting a page that does not exist!</p>
 {% if 'HTTP 404' in message %}
-<p class="marketing-byline">The remote resource was not found. </p>
+<p>The remote resource was not found. </p>
 {% elif message %}
-<p class="marketing-byline">{{message}}</p>
+<p>{{message}}</p>
 {% endif %}
 {% endblock %}
 

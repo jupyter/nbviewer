@@ -37,7 +37,7 @@
 
 <head>
   <meta charset="utf-8">
-  <title>{{title}}</title>
+  <title>{{title|default("Jupyter Notebook Viewer")}}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="{{ description | default('') }}">
   <meta name="author" content="{{ author | default('') }}">
@@ -87,13 +87,15 @@
           <span class="sr-only">Toggle navigation</span>
           <i class="fa fa-bars"></i>
         </button>
-        <a class="navbar-brand" href="/">nbviewer</a>
+        <a class="navbar-brand" href="/">
+          <img src="/static/img/nav_logo.svg" width="159"/>
+        </a>
       </div>
 
       <div class="collapse navbar-collapse">
         <ul class="nav navbar-nav navbar-right">
-          <li class="{{index}}">
-            <a href="http://jupyter.org">JUPYTER</a>
+          <li>
+            <a class="active" href="http://jupyter.org">JUPYTER</a>
           </li>
           {{ head_text('/faq', "FAQ") }}
 
@@ -180,6 +182,9 @@
         update = function(){ date.text(m.fromNow()); };
       setInterval(update, 61*1000);
       update();
+      var w = $(window).scroll(function(event){
+        $("body").toggleClass("scrolled", w.scrollTop() > 0);
+      });
     });
   </script>
   <!--NEW RELIC Stop Perf Measurement-->

@@ -163,6 +163,7 @@ class GistHandler(GistClientMixin, RenderingHandler):
                 'treelist.html',
                 entries=entries,
                 tree_type='gist',
+                tree_label='gists',
                 user=user.rstrip('/'),
                 provider_url=gist['html_url'],
                 **PROVIDER_CTX
