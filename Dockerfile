@@ -46,7 +46,14 @@ ADD ./tasks.py /srv/nbviewer/
 # front-end dependencies
 ADD ["./nbviewer/static/bower.json", "./nbviewer/static/.bowerrc", \
      "/srv/nbviewer/nbviewer/static/"]
-RUN invoke bower
+
+# RUN invoke bower
+WORKDIR /srv/nbviewer/nbviewer/static
+RUN ../../node_modules/.bin/bower install \
+  --allow-root \
+  --config.interactive=false
+
+WORKDIR /srv/nbviewer
 
 # build css
 ADD . /srv/nbviewer/
