@@ -35,3 +35,14 @@ class LocalDirectoryTraversalTestCase(LFRPTC):
         url = self.url('localfile/../README.md')
         r = requests.get(url)
         self.assertEqual(r.status_code, 404)
+
+
+class URLLeakTestCase(NBViewerTestCase):
+    def test_gist(self):
+        url = self.url('/github/jupyter')
+        r = requests.get(url)
+        self.assertEqual(r.status_code, 200)
+        html = r.content
+        self.assertNotIn('client_id', html)
+        self.assertNotIn('client_secret', html)
+        self.assertNotIn('access_token', html)
