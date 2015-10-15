@@ -11,11 +11,31 @@ import re
 from subprocess import check_output
 
 try:
-    from urllib.parse import quote as stdlib_quote
+    from urllib.parse import (
+        parse_qs,
+        quote as stdlib_quote,
+        urlencode,
+        urlparse,
+        urlunparse,
+    )
 except ImportError:
+    from urllib import urlencode
     from urllib2 import quote as stdlib_quote
+    from urlparse import (
+        parse_qs,
+        urlparse,
+        urlunparse,
+    )
+
 
 from IPython.utils import py3compat
+
+
+STRIP_PARAMS = [
+    'client_id',
+    'client_secret',
+    'access_token',
+]
 
 
 def quote(s):
@@ -113,11 +133,11 @@ def response_text(response, encoding=None):
 # parse_header_links from requests.util
 # modified to actually return a dict, like the docstring says.
 
+
 def parse_header_links(value):
     """Return a dict of parsed link headers proxies.
 
     i.e. Link: <http:/.../front.jpeg>; rel=front; type="image/jpeg",<http://.../back.jpeg>; rel=back;type="image/jpeg"
-
     """
 
     links = {}
@@ -132,7 +152,19 @@ def parse_header_links(value):
 
         link = {}
 
-        link["url"] = url.strip("<> '\"")
+        parts = list(urlparse(url.strip("<> '\"")))
+
+        get_params = parse_qs(parts[4])
+
+        get_params = {
+            key: value[0]
+            for key, value in get_params.items()
+            if key not in STRIP_PARAMS
+        }
+        parts[4] = urlencode(get_params)
+
+        link["url"] = urlunparse(parts)
+
         for param in params.split(";"):
             try:
                 key, value = param.split("=")
@@ -145,6 +177,7 @@ def parse_header_links(value):
             links[link['rel']] = link
 
     return links
+
 
 def git_info(path):
     """Return some git info"""
