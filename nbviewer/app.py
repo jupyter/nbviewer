@@ -40,7 +40,7 @@ except ImportError:
 
 
 from .log import log_request
-from .utils import git_info, ipython_info
+from .utils import git_info, jupyter_info
 
 #-----------------------------------------------------------------------------
 # Code
@@ -156,7 +156,7 @@ def make_app():
         # force jinja to recompile template every time
         env.globals.update(cache_size=0)
     env.globals.update(nrhead=nrhead, nrfoot=nrfoot, git_data=git_data,
-        ipython_info=ipython_info(), len=len,
+        jupyter_info=jupyter_info(), len=len,
     )
     AsyncHTTPClient.configure(HTTPClientClass)
     client = AsyncHTTPClient()

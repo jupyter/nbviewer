@@ -1,14 +1,16 @@
 {% extends "layout.html" %}
 {% block body %}
 
-<header class="jumbotron masthead">
-  <div class="inner">
-    {% block h1_error %}
-    <h1>{{status_code}} : {{status_message}}</h1>
-    {% endblock h1_error %}
-    {% block error_detail %}
-    {% endblock %}
-  </div>
-</header>
-<p class="marketing-byline faq-link">Read the <a href='/faq'>FAQ</a> for more information.</p>
+<div class="nbviewer-error">
+  <header class="jumbotron masthead">
+    <div class="inner">
+      {% block h1_error %}
+      <h1>{{status_code}} : {{status_message}}</h1>
+      {% endblock h1_error %}
+      {% block error_detail %}
+      {% endblock %}
+    </div>
+  </header>
+  <p class="faq-link">Read the <a href='/faq'>FAQ</a> for more information.</p>
+</div>
 {% endblock %}

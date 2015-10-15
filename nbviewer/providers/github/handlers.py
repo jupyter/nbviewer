@@ -193,6 +193,7 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
             entries=entries, breadcrumbs=breadcrumbs, provider_url=provider_url,
             user=user, repo=repo, ref=ref, path=path,
             branches=branches, tags=tags, tree_type="github",
+            tree_label="repositories",
             **PROVIDER_CTX
         )
         yield self.cache_and_finish(html)

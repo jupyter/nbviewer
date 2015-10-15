@@ -1,5 +1,8 @@
 body {
   padding-top: @navbar-height;
+  &.scrolled .navbar-fixed-top {
+    box-shadow: 1px 1px 1px #999;
+  }
 }
 
 .navbar-header .navbar-toggle {
@@ -18,11 +21,16 @@ body {
 }
 
 footer {
-  padding: 35px 0 36px;
-  border-top: 1px solid #e5e5e5;
+  padding: 15px 0;
+  background-color: @footer-bg;
+  color: #ddd;
 
-  p {
-    color: #999;
+  a {
+    color: #fff;
+    &:hover{
+      color: #fff;
+      text-decoration: dotted;
+    }
   }
 }
 
@@ -33,4 +41,28 @@ pre, code {
 
 td.page_links {
   text-align: center;
+}
+
+.navbar-fixed-top {
+  .nav > li > a{
+    &:hover, &.active{
+      color: @jupyter-brand;
+    }
+  }
+  .navbar-brand {
+    padding: 15px 0 0 15px;
+  }
+}
+
+.breadcrumb a, .table-nbviewer a, .nbviewer-error a{
+  color: grey;
+  white-space: nowrap;
+  &:hover{
+    color: @jupyter-brand;
+    text-decoration: none;
+  };
+}
+
+.container-main {
+  min-height: 100vh;
 }
