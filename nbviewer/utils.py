@@ -138,7 +138,6 @@ def parse_header_links(value):
                 key, value = param.split("=")
             except ValueError:
                 break
-            raise Exception(key)
 
             link[key.strip(replace_chars)] = value.strip(replace_chars)
 
