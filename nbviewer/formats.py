@@ -6,6 +6,7 @@
 #-----------------------------------------------------------------------------
 
 import re
+import os
 
 from nbconvert.exporters.export import exporter_map
 
@@ -31,9 +32,6 @@ def default_formats():
         perform any modifications to html and resources after nbconvert
     """
 
-    reveal_body = re.compile(r'.*<body>(.*)<script[^>]+head.min.*',
-                             flags=re.MULTILINE | re.DOTALL)
-
     return {
         'html': {
             'nbconvert_template': 'basic',
@@ -45,11 +43,6 @@ def default_formats():
             'label': 'Slides',
             'icon': 'gift',
             'test': lambda nb, json: '"slideshow"' in json,
-            'postprocess': lambda html, resources: (
-                reveal_body.sub('\\1', html),
-                resources
-            ),
-
         }
     }
 
@@ -64,6 +57,10 @@ def configure_formats(options, config, log, formats=None):
     # This would be better defined in a class
     config.HTMLExporter.template_file = 'basic'
     config.SlidesExporter.template_file = 'slides_reveal'
+
+    config.TemplateExporter.template_path = [
+        os.path.join(os.path.dirname(__file__), "templates", "nbconvert")
+    ]
 
     for key, format in formats.items():
         exporter_cls = format.get("exporter", exporter_map[key])
