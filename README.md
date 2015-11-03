@@ -42,7 +42,7 @@ $ docker run -p 8080:8080 -e 'GITHUB_OAUTH_KEY=YOURKEY' \
                           jupyter/nbviewer
 ```
 
-With this configured all GitHub API requests will go to you Enterprise instance so you can view all of your internal notebooks.
+With this configured all GitHub API requests will go to your Enterprise instance so you can view all of your internal notebooks.
 
 ## Local Development
 
