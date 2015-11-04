@@ -136,10 +136,14 @@ def make_app():
 
     # setup tornado handlers and settings
 
-    template_path = pjoin(here, 'templates')
+    template_paths = pjoin(here, 'templates')
+    custom_template_path = os.environ.get('CUSTOM_TEMPLATE_PATH', None)
+    if custom_template_path is not None:
+        template_paths = [custom_template_path, template_paths]
+    
     static_path = pjoin(here, 'static')
     env = Environment(
-        loader=FileSystemLoader(template_path),
+        loader=FileSystemLoader(template_paths),
         autoescape=True
     )
     env.filters['markdown'] = markdown.markdown
