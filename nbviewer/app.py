@@ -135,7 +135,6 @@ def make_app():
         cache = DummyAsyncCache()
 
     # setup tornado handlers and settings
-
     template_path = pjoin(here, 'templates')
     static_path = pjoin(here, 'static')
     env = Environment(
