@@ -137,7 +137,7 @@ def make_app():
     # setup tornado handlers and settings
 
     template_paths = pjoin(here, 'templates')
-    custom_template_path = os.environ.get('CUSTOM_TEMPLATE_PATH', None)
+    custom_template_path = os.environ.get('NBVIEWER_TEMPLATE_PATH', None)
     if custom_template_path is not None:
         template_paths = [custom_template_path, template_paths]
     
