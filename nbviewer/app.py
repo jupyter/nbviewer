@@ -137,10 +137,13 @@ def make_app():
     # setup tornado handlers and settings
 
     template_paths = pjoin(here, 'templates')
-    custom_template_path = os.environ.get('NBVIEWER_TEMPLATE_PATH', None)
-    if custom_template_path is not None:
-        template_paths = [custom_template_path, template_paths]
-    
+
+    if options.template_path is not None:
+        log.app_log.info("Using custom template path {}".format(
+            options.template_path)
+        )
+        template_paths = [options.template_path, template_paths]
+
     static_path = pjoin(here, 'static')
     env = Environment(
         loader=FileSystemLoader(template_paths),
@@ -249,6 +252,7 @@ def init_options():
     define("providers", default=default_providers, help="Full dotted package(s) that provide `default_handlers`", type=str, multiple=True, group="provider")
     define("provider_rewrites", default=default_rewrites, help="Full dotted package(s) that provide `uri_rewrites`", type=str, multiple=True, group="provider")
     define("mathjax_url", default="https://cdn.mathjax.org/mathjax/latest/", help="URL base for mathjax package", type=str)
+    define("template_path", default=os.environ.get("NBVIEWER_TEMPLATE_PATH", None), help="Custom template path for the nbviewer app (not rendered notebooks)", type=str)
 
 
 def main(argv=None):
