@@ -69,6 +69,9 @@ class AsyncGitHubClient(object):
             r = future.result()
         except HTTPError as e:
             r = e.response
+            if r is None:
+                # some errors don't have a response (e.g. failure to build request)
+                return
         limit_s = r.headers.get('X-RateLimit-Limit', '')
         remaining_s = r.headers.get('X-RateLimit-Remaining', '')
         if not remaining_s or not limit_s:
