@@ -13,10 +13,8 @@ from ....tests.base import NBViewerTestCase, FormatHTMLMixin
 
 class LocalFileDefaultTestCase(NBViewerTestCase):
     @classmethod
-    def get_server_cmd(cls):
+    def get_server_args(cls):
         return [
-            sys.executable, '-m', 'nbviewer',
-            '--port=%d' % cls.port,
             '--localfiles=.',
             ]
 
@@ -34,10 +32,8 @@ class FormatHTMLLocalFileDefaultTestCase(LocalFileDefaultTestCase,
 
 class LocalFileRelativePathTestCase(NBViewerTestCase):
     @classmethod
-    def get_server_cmd(cls):
+    def get_server_args(cls):
         return [
-            sys.executable, '-m', 'nbviewer',
-            '--port=%d' % cls.port,
             '--localfiles=nbviewer',
             ]
 
