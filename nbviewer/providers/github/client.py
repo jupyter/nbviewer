@@ -98,7 +98,7 @@ class AsyncGitHubClient(object):
         URL is constructed from url and params, if specified.
         callback and **kwargs are passed to client.fetch unmodified.
         """
-        url = url_path_join(self.github_api_url, path)
+        url = url_path_join(self.github_api_url, quote(path))
         return self.fetch(url, callback, **kwargs)
 
     def get_gist(self, gist_id, callback=None, **kwargs):
@@ -108,9 +108,7 @@ class AsyncGitHubClient(object):
     
     def get_contents(self, user, repo, path, callback=None, ref=None, **kwargs):
         """Make contents API request - either file contents or directory listing"""
-        path = quote(u'repos/{user}/{repo}/contents/{path}'.format(
-            **locals()
-        ))
+        path = u'repos/{user}/{repo}/contents/{path}'.format(**locals())
         if ref is not None:
             params = kwargs.setdefault('params', {})
             params['ref'] = ref
