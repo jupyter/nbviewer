@@ -10,17 +10,18 @@ Derived from IPython.html notebook test case in 2.0
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
-import os
-import sys
 import time
 import requests
 from contextlib import contextmanager
-from subprocess import Popen, PIPE
+from threading import Thread, Event
 from unittest import TestCase
 
 from tornado.escape import to_unicode
+from tornado.ioloop import IOLoop
+import tornado.options
 
 from nbviewer.utils import url_path_join
+from nbviewer.app import main
 
 
 class NBViewerTestCase(TestCase):
@@ -67,26 +68,29 @@ class NBViewerTestCase(TestCase):
                 time.sleep(.1)
 
     @classmethod
-    def get_server_cmd(cls):
-        return [
-            sys.executable, '-m', 'nbviewer',
-            '--port=%d' % cls.port,
-            # '--logging=debug',
-        ]
-
-    @classmethod
     def setup_class(cls):
-        server_cmd = cls.get_server_cmd()
-        devnull = open(os.devnull, 'w')
-        cls.server = Popen(server_cmd,
-            stdout=devnull,
-            stderr=devnull,
-        )
+        cls._start_evt = Event()
+        cls.server = Thread(target=cls._server_main)
+        cls.server.start()
+        cls._start_evt.wait()
         cls.wait_until_alive()
+    
+    @classmethod
+    def get_server_args(cls):
+        return []
+    
+    @classmethod
+    def _server_main(cls):
+        cls._server_loop = loop = IOLoop()
+        loop.make_current()
+        cls._server_loop.add_callback(cls._start_evt.set)
+        main(['', '--port=%d' % cls.port] + cls.get_server_args())
+        loop.close(all_fds=True)
 
     @classmethod
     def teardown_class(cls):
-        cls.server.terminate()
+        cls._server_loop.add_callback(cls._server_loop.stop)
+        cls.server.join()
         cls.wait_until_dead()
 
     @classmethod
