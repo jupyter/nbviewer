@@ -13,22 +13,22 @@ from ..providers.local.tests.test_localfile import LocalFileDefaultTestCase
 
 class SlidesGistTestCase(NBViewerTestCase):
     def test_gist(self):
-        url = self.url('/format/slides/7518294/Untitled0.ipynb')
+        url = self.url('/format/slides/0c5b3639b10ed3d7cc85/single-cell.ipynb')
         r = requests.get(url)
         self.assertEqual(r.status_code, 200)
         html = r.content
         self.assertIn('reveal.js', html)
 
     def test_html_exporter_link(self):
-        url = self.url('/format/slides/7518294/Untitled0.ipynb')
+        url = self.url('/format/slides/0c5b3639b10ed3d7cc85/single-cell.ipynb')
         r = requests.get(url)
         self.assertEqual(r.status_code, 200)
         html = r.content
-        self.assertIn('/gist/minrk/7518294/Untitled0.ipynb', html)
-        self.assertNotIn('//gist/minrk/7518294/Untitled0.ipynb', html)
+        self.assertIn('/gist/minrk/0c5b3639b10ed3d7cc85/single-cell.ipynb', html)
+        self.assertNotIn('//gist/minrk/0c5b3639b10ed3d7cc85/single-cell.ipynb', html)
 
     def test_no_slides_exporter_link(self):
-        url = self.url('/7518294/Untitled0.ipynb')
+        url = self.url('/0c5b3639b10ed3d7cc85/single-cell.ipynb')
         r = requests.get(url)
         self.assertEqual(r.status_code, 200)
         html = r.content
