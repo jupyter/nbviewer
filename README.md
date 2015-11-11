@@ -102,6 +102,7 @@ Static assets are maintained with `bower` and `less` (which require having
 ```shell
 $ cd <path to repo>
 $ pip install -r requirements-dev.txt
+$ npm install
 $ invoke bower
 $ invoke less [-d]
 ```
