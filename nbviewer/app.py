@@ -222,6 +222,10 @@ def make_app():
 
 def init_options():
     # command-line options
+    if 'port' in options:
+        # already run
+        return
+    
     define("debug", default=False, help="run in debug mode", type=bool)
     define("no_cache", default=False, help="Do not cache results", type=bool)
     define("localfiles", default="", help="Allow to serve local files under /localfile/* this can be a security risk", type=str)
@@ -242,9 +246,9 @@ def init_options():
     define("mathjax_url", default="https://cdn.mathjax.org/mathjax/latest/", help="URL base for mathjax package", type=str)
 
 
-def main():
+def main(argv=None):
     init_options()
-    tornado.options.parse_command_line()
+    tornado.options.parse_command_line(argv)
 
     # create and start the app
     app = make_app()
@@ -260,7 +264,7 @@ def main():
     http_server = httpserver.HTTPServer(app, xheaders=True, ssl_options=ssl_options)
     log.app_log.info("Listening on port %i", options.port)
     http_server.listen(options.port)
-    ioloop.IOLoop.instance().start()
+    ioloop.IOLoop.current().start()
 
 
 if __name__ == '__main__':
