@@ -197,7 +197,7 @@ def make_app():
         frontpage_sections=frontpage_sections,
         pool=pool,
         gzip=True,
-        render_timeout=20,
+        render_timeout=options.render_timeout,
         localfile_path=os.path.abspath(options.localfiles),
         fetch_kwargs=fetch_kwargs,
         mathjax_url=options.mathjax_url,
@@ -228,6 +228,7 @@ def init_options():
     define("port", default=5000, help="run on the given port", type=int)
     define("cache_expiry_min", default=10*60, help="minimum cache expiry (seconds)", type=int)
     define("cache_expiry_max", default=2*60*60, help="maximum cache expiry (seconds)", type=int)
+    define("render_timeout", default=15, help="Time to wait for a render to complete before showing the 'Working...' page.", type=int)
     define("mc_threads", default=1, help="number of threads to use for Async Memcache", type=int)
     define("threads", default=1, help="number of threads to use for rendering", type=int)
     define("processes", default=0, help="use processes instead of threads for rendering", type=int)
