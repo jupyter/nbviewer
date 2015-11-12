@@ -204,7 +204,7 @@ def base64_decode(s):
     base64 API only talks bytes
     """
     s = py3compat.cast_bytes(s)
-    decoded = base64.decodestring(s)
+    decoded = base64.decodebytes(s)
     return decoded
 
 def base64_encode(s):
@@ -213,5 +213,5 @@ def base64_encode(s):
     base64 API only talks bytes
     """
     s = py3compat.cast_bytes(s)
-    encoded = base64.encodestring(s)
+    encoded = base64.encodebytes(s)
     return encoded.decode('ascii')

@@ -12,7 +12,15 @@ import os
 import logging
 import markdown
 
-from cgi import escape
+
+# https://docs.python.org/3/library/cgi.html#cgi.escape
+# Deprecated since version 3.2: This function is unsafe because quote is
+# false by default, and therefore deprecated. Use html.escape() instead.
+try:
+    from html import escape
+except ImportError:
+    from cgi import escape
+
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 
 from tornado import web, httpserver, ioloop, log
@@ -225,7 +233,7 @@ def init_options():
     if 'port' in options:
         # already run
         return
-    
+
     define("debug", default=False, help="run in debug mode", type=bool)
     define("no_cache", default=False, help="Do not cache results", type=bool)
     define("localfiles", default="", help="Allow to serve local files under /localfile/* this can be a security risk", type=str)
