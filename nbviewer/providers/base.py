@@ -27,6 +27,7 @@ from tornado import (
     httpclient,
     web,
 )
+from tornado.concurrent import Future
 from tornado.escape import (
     url_escape,
     url_unescape,
@@ -89,7 +90,7 @@ class BaseHandler(web.RequestHandler):
     # Properties
     @property
     def pending(self):
-        return self.settings.setdefault('pending', set())
+        return self.settings.setdefault('pending', {})
 
     @property
     def formats(self):
@@ -415,15 +416,13 @@ def cached(method):
             # call the wrapped method
             yield method(self, *args, **kwargs)
             return
-
-        if uri in self.pending:
-            loop = IOLoop.current()
+        
+        pending_future = self.pending.get(uri, None)
+        loop = IOLoop.current()
+        if pending_future:
             app_log.info("Waiting for concurrent request at %s", short_url)
             tic = loop.time()
-            while uri in self.pending:
-                # another request is already rendering this request,
-                # wait for it
-                yield gen.Task(loop.add_timeout, loop.time() + 1)
+            yield pending_future
             toc = loop.time()
             app_log.info("Waited %.3fs for concurrent request at %s",
                  toc-tic, short_url
@@ -447,14 +446,13 @@ def cached(method):
             self.write(cached['body'])
         else:
             app_log.debug("cache miss %s", short_url)
-            self.pending.add(uri)
+            future = self.pending[uri] = Future()
             try:
                 # call the wrapped method
                 yield method(self, *args, **kwargs)
             finally:
-                if uri in self.pending:
-                    # protect against double-remove
-                    self.pending.remove(uri)
+                # notify waiters
+                future.set_result(None)
 
     return cached_method
 

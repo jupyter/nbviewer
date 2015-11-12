@@ -69,12 +69,15 @@ class AsyncGitHubClient(object):
             r = future.result()
         except HTTPError as e:
             r = e.response
+            if r is None:
+                # some errors don't have a response (e.g. failure to build request)
+                return
         limit_s = r.headers.get('X-RateLimit-Limit', '')
         remaining_s = r.headers.get('X-RateLimit-Remaining', '')
         if not remaining_s or not limit_s:
             if r.code < 300:
                 app_log.warn("No rate limit headers. Did GitHub change? %s",
-                    json.dumps(r.headers, indent=1)
+                    json.dumps(dict(r.headers), indent=1)
                 )
             return
         
@@ -98,7 +101,7 @@ class AsyncGitHubClient(object):
         URL is constructed from url and params, if specified.
         callback and **kwargs are passed to client.fetch unmodified.
         """
-        url = url_path_join(self.github_api_url, path)
+        url = url_path_join(self.github_api_url, quote(path))
         return self.fetch(url, callback, **kwargs)
 
     def get_gist(self, gist_id, callback=None, **kwargs):
@@ -108,9 +111,7 @@ class AsyncGitHubClient(object):
     
     def get_contents(self, user, repo, path, callback=None, ref=None, **kwargs):
         """Make contents API request - either file contents or directory listing"""
-        path = quote(u'repos/{user}/{repo}/contents/{path}'.format(
-            **locals()
-        ))
+        path = u'repos/{user}/{repo}/contents/{path}'.format(**locals())
         if ref is not None:
             params = kwargs.setdefault('params', {})
             params['ref'] = ref

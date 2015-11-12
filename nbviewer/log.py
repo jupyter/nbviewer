@@ -49,6 +49,6 @@ def log_request(handler):
         msg = msg + ' user-agent={agent}'
     if status >= 500 and status != 502:
         # log all headers if it caused an error
-        log_method(json.dumps(request.headers, indent=2))
+        log_method(json.dumps(dict(request.headers), indent=2))
     log_method(msg.format(**ns))
 
