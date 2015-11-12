@@ -5,7 +5,14 @@
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
-import base64
+# https://docs.python.org/3.1/library/base64.html#base64.decodestring
+try:
+    from base64 import encodebytes as encodestring
+    from base64 import decodebytes as decodestring
+except ImportError:
+    from base64 import encodestring
+    from base64 import decodestring
+
 import cgi
 import re
 from subprocess import check_output
@@ -204,7 +211,7 @@ def base64_decode(s):
     base64 API only talks bytes
     """
     s = py3compat.cast_bytes(s)
-    decoded = base64.decodebytes(s)
+    decoded = decodestring(s)
     return decoded
 
 def base64_encode(s):
@@ -213,5 +220,5 @@ def base64_encode(s):
     base64 API only talks bytes
     """
     s = py3compat.cast_bytes(s)
-    encoded = base64.encodebytes(s)
+    encoded = encodestring(s)
     return encoded.decode('ascii')
