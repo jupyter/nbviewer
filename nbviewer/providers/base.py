@@ -451,6 +451,7 @@ def cached(method):
                 # call the wrapped method
                 yield method(self, *args, **kwargs)
             finally:
+                self.pending.pop(uri, None)
                 # notify waiters
                 future.set_result(None)
 
