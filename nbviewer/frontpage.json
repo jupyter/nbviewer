@@ -4,7 +4,7 @@
     "links":[
       {
         "text": "IPython",
-        "target": "github/ipython/ipython/blob/3.x/examples/Index.ipynb",
+        "target": "github/ipython/ipython/blob/4.0.x/examples/IPython Kernel/Index.ipynb",
         "img": "/static/img/example-nb/ipython-thumb.png"
       },
       {
