@@ -38,7 +38,10 @@ RUN npm install .
 
 # python requirements
 ADD ./requirements.txt /srv/nbviewer/
-RUN pip3 install -r requirements.txt && pip3 freeze
+# get reduced validation tracebacks from unreleased nbformat-4.1
+RUN pip3 install -r requirements.txt && \
+    pip3 install -e git+https://github.com/jupyter/nbformat#egg=nbformat && \
+    pip3 freeze
 
 # tasks will likely require re-running everything
 ADD ./tasks.py /srv/nbviewer/
