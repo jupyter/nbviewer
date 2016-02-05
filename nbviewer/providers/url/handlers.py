@@ -49,7 +49,7 @@ class URLHandler(RenderingHandler):
 
         if query:
             remote_url = remote_url + '?' + query
-        if not url.endswith('.ipynb'):
+        if not self.is_notebook_file(url):
             # this is how we handle relative links (files/ URLs) in notebooks
             # if it's not a .ipynb URL and it is a link from a notebook,
             # redirect to the original URL rather than trying to render it as a notebook

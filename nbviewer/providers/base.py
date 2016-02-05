@@ -56,7 +56,7 @@ except ImportError:
 
 date_fmt = "%a, %d %b %Y %H:%M:%S UTC"
 format_prefix = "/format/"
-
+notebook_file_extensions = ['.ipynb', '.snb']
 
 class BaseHandler(web.RequestHandler):
     """Base Handler class with common utilities"""
@@ -175,6 +175,13 @@ class BaseHandler(web.RequestHandler):
                 'name' : name,
             })
         return breadcrumbs
+
+    def is_notebook_file(self, path):
+        """return if a path is a notebook file
+
+        It checks for presence of file extension, such as '.ipynb'.
+        """
+        return any(path.endswith(ext) for ext in notebook_file_extensions)
 
     def get_page_links(self, response):
         """return prev_url, next_url for pagination
