@@ -8,6 +8,9 @@
       <h1>{{status_code}} : {{status_message}}</h1>
       {% endblock h1_error %}
       {% block error_detail %}
+      {% if message %}
+      <p>{{message}}</p>
+      {% endif %}
       {% endblock %}
     </div>
   </header>
