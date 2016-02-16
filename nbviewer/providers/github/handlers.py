@@ -45,6 +45,14 @@ class GithubClientMixin(object):
         if getattr(self, "_github_client", None) is None:
             self._github_client = AsyncGitHubClient(self.client)
         return self._github_client
+    
+    def client_error_message(self, exc, url, body, msg=None):
+        if exc.code == 403 and 'rate limit' in body.lower():
+            return 503, "GitHub API rate limit exceeded. Try again soon."
+
+        return super(GithubClientMixin, self).client_error_message(
+            exc, url, body, msg
+        )
 
 
 class RawGitHubURLHandler(BaseHandler):

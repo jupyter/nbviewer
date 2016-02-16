@@ -45,7 +45,7 @@ from ..render import (
     NbFormatError,
     render_notebook,
 )
-from ..utils import parse_header_links
+from ..utils import parse_header_links, time_block
 
 try:
     import pycurl
@@ -196,7 +196,10 @@ class BaseHandler(web.RequestHandler):
     #---------------------------------------------------------------
 
     def client_error_message(self, exc, url, body, msg=None):
-        """Turn the tornado HTTP error into something useful"""
+        """Turn the tornado HTTP error into something useful
+        
+        Returns error code
+        """
         str_exc = str(exc)
 
         # strip the unhelpful 599 prefix
@@ -206,8 +209,32 @@ class BaseHandler(web.RequestHandler):
         if (msg is None) and body and len(body) < 100:
             # if it's a short plain-text error message, include it
             msg = "%s (%s)" % (str_exc, escape(body))
-
-        return msg or str_exc
+        
+        if not msg:
+            msg = str_exc
+        
+        # Now get the error code
+        if exc.code == 599:
+            if isinstance(exc, CurlError):
+                en = getattr(exc, 'errno', -1)
+                # can't connect to server should be 404
+                # possibly more here
+                if en in (pycurl.E_COULDNT_CONNECT, pycurl.E_COULDNT_RESOLVE_HOST):
+                    code = 404
+            # otherwise, raise 400 with informative message:
+            code = 400
+        elif exc.code >= 500:
+            # 5XX, server error, but not this server
+            code = 502
+        else:
+            # client-side error, blame our client
+            if exc.code == 404:
+                code = 404
+                msg = "Remote %s" % msg
+            else:
+                code = 400
+        
+        return code, msg
 
     def reraise_client_error(self, exc):
         """Remote fetch raised an error"""
@@ -218,29 +245,12 @@ class BaseHandler(web.RequestHandler):
             url = 'url'
             body = ''
 
-        msg = self.client_error_message(exc, url, body)
+        code, msg = self.client_error_message(exc, url, body)
 
         slim_body = escape(body[:300])
 
         app_log.warn("Fetching %s failed with %s. Body=%s", url, msg, slim_body)
-        if exc.code == 599:
-            if isinstance(exc, CurlError):
-                en = getattr(exc, 'errno', -1)
-                # can't connect to server should be 404
-                # possibly more here
-                if en in (pycurl.E_COULDNT_CONNECT, pycurl.E_COULDNT_RESOLVE_HOST):
-                    raise web.HTTPError(404, msg)
-            # otherwise, raise 400 with informative message:
-            raise web.HTTPError(400, msg)
-        if exc.code >= 500:
-            # 5XX, server error, but not this server
-            raise web.HTTPError(502, msg)
-        else:
-            # client-side error, blame our client
-            if exc.code == 404:
-                raise web.HTTPError(404, "Remote %s" % msg)
-            else:
-                raise web.HTTPError(400, msg)
+        raise web.HTTPError(code, msg)
 
     @contextmanager
     def catch_client_error(self):
@@ -271,18 +281,6 @@ class BaseHandler(web.RequestHandler):
         with self.catch_client_error():
             response = yield self.client.fetch(url, **kw)
         raise gen.Return(response)
-
-    @contextmanager
-    def time_block(self, message):
-        """context manager for timing a block
-
-        logs millisecond timings of the block
-        """
-        tic = time.time()
-        yield
-        dt = time.time() - tic
-        log = app_log.info if dt > 1 else app_log.debug
-        log("%s in %.2f ms", message, 1e3 * dt)
 
     def write_error(self, status_code, **kwargs):
         """render custom error pages"""
@@ -390,7 +388,7 @@ class BaseHandler(web.RequestHandler):
         log = app_log.info if expiry > self.cache_expiry_min else app_log.debug
         log("caching (expiry=%is) %s", expiry, short_url)
         try:
-            with self.time_block("cache set %s" % short_url):
+            with time_block("cache set %s" % short_url):
                 yield self.cache.set(
                     self.cache_key, cache_data, int(time.time() + expiry),
                 )
@@ -429,7 +427,7 @@ def cached(method):
             )
 
         try:
-            with self.time_block("cache get %s" % short_url):
+            with time_block("cache get %s" % short_url):
                 cached_pickle = yield self.cache.get(self.cache_key)
             if cached_pickle is not None:
                 cached = pickle.loads(cached_pickle)
@@ -529,7 +527,7 @@ class RenderingHandler(BaseHandler):
 
         try:
             app_log.debug("Requesting render of %s", download_url)
-            with self.time_block("Rendered %s" % download_url):
+            with time_block("Rendered %s" % download_url):
                 app_log.info("rendering %d B notebook from %s", len(json_notebook), download_url)
                 nbhtml, config = yield self.pool.submit(render_notebook,
                     self.formats[format], nb, download_url,

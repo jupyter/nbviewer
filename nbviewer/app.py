@@ -42,9 +42,9 @@ from .providers import default_providers, default_rewrites
 from .providers.local import LocalFileHandler
 
 try:
-    from .providers.url.client import LoggingCurlAsyncHTTPClient as HTTPClientClass
+    from .providers.url.client import NBViewerCurlAsyncHTTPClient as HTTPClientClass
 except ImportError:
-    from .providers.url.client import LoggingSimpleAsyncHTTPClient as HTTPClientClass
+    from .providers.url.client import NBViewerSimpleAsyncHTTPClient as HTTPClientClass
 
 
 from .log import log_request
@@ -175,6 +175,7 @@ def make_app():
     )
     AsyncHTTPClient.configure(HTTPClientClass)
     client = AsyncHTTPClient()
+    client.cache = cache
 
     # load frontpage sections
     with io.open(options.frontpage, 'r') as f:

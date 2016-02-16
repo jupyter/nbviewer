@@ -14,8 +14,10 @@ except ImportError:
     from base64 import decodestring as decodebytes
 
 import cgi
+from contextlib import contextmanager
 import re
 from subprocess import check_output
+import time
 
 try:
     from urllib.parse import (
@@ -35,6 +37,7 @@ except ImportError:
     )
 
 
+from tornado.log import app_log
 from IPython.utils import py3compat
 
 
@@ -222,3 +225,17 @@ def base64_encode(s):
     s = py3compat.cast_bytes(s)
     encoded = encodebytes(s)
     return encoded.decode('ascii')
+
+
+@contextmanager
+def time_block(message):
+    """context manager for timing a block
+
+    logs millisecond timings of the block
+    """
+    tic = time.time()
+    yield
+    dt = time.time() - tic
+    log = app_log.info if dt > 1 else app_log.debug
+    log("%s in %.2f ms", message, 1e3 * dt)
+
