@@ -80,7 +80,8 @@ class NBViewerAsyncHTTPClient(object):
         log = app_log.info if dt > 1 else app_log.debug
         if response.code == 304 and cached_response:
             log("Upstream 304 on %s in %.2f ms", name, 1e3 * dt)
-            callback(cached_response)
+            response = self._update_cached_response(response, cached_response)
+            callback(response)
         else:
             if not response.error:
                 log("Fetched  %s in %.2f ms", name, 1e3 * dt)
@@ -88,6 +89,24 @@ class NBViewerAsyncHTTPClient(object):
             if not response.error:
                 yield self._cache_response(cache_key, name, response)
     
+    def _update_cached_response(self, three_o_four, cached_response):
+        """Apply any changes to the cached response from the 304
+
+        Return the HTTPResponse to be used.
+
+        Currently this hardcodes more recent GitHub rate limit headers,
+        and that's it.
+        Is there a better way for this to be in the right place?
+
+        """
+        # Copy GitHub rate-limit headers from 304 to the cached response
+        # So we don't log stale rate limits.
+        for key, value in three_o_four.headers.items():
+            if key.lower().startswith('x-ratelimit-'):
+                cached_response.headers[key] = value
+
+        return cached_response
+
     @gen.coroutine
     def _get_cached_response(self, cache_key, name):
         """Get the cached response, if any"""
