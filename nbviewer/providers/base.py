@@ -45,7 +45,7 @@ from ..render import (
     NbFormatError,
     render_notebook,
 )
-from ..utils import parse_header_links
+from ..utils import parse_header_links, time_block
 
 try:
     import pycurl
@@ -282,18 +282,6 @@ class BaseHandler(web.RequestHandler):
             response = yield self.client.fetch(url, **kw)
         raise gen.Return(response)
 
-    @contextmanager
-    def time_block(self, message):
-        """context manager for timing a block
-
-        logs millisecond timings of the block
-        """
-        tic = time.time()
-        yield
-        dt = time.time() - tic
-        log = app_log.info if dt > 1 else app_log.debug
-        log("%s in %.2f ms", message, 1e3 * dt)
-
     def write_error(self, status_code, **kwargs):
         """render custom error pages"""
         exc_info = kwargs.get('exc_info')
@@ -400,7 +388,7 @@ class BaseHandler(web.RequestHandler):
         log = app_log.info if expiry > self.cache_expiry_min else app_log.debug
         log("caching (expiry=%is) %s", expiry, short_url)
         try:
-            with self.time_block("cache set %s" % short_url):
+            with time_block("cache set %s" % short_url):
                 yield self.cache.set(
                     self.cache_key, cache_data, int(time.time() + expiry),
                 )
@@ -439,7 +427,7 @@ def cached(method):
             )
 
         try:
-            with self.time_block("cache get %s" % short_url):
+            with time_block("cache get %s" % short_url):
                 cached_pickle = yield self.cache.get(self.cache_key)
             if cached_pickle is not None:
                 cached = pickle.loads(cached_pickle)
@@ -539,7 +527,7 @@ class RenderingHandler(BaseHandler):
 
         try:
             app_log.debug("Requesting render of %s", download_url)
-            with self.time_block("Rendered %s" % download_url):
+            with time_block("Rendered %s" % download_url):
                 app_log.info("rendering %d B notebook from %s", len(json_notebook), download_url)
                 nbhtml, config = yield self.pool.submit(render_notebook,
                     self.formats[format], nb, download_url,
