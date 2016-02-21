@@ -30,6 +30,9 @@ def default_formats():
     - postprocess:
         a function(html, resources)
         perform any modifications to html and resources after nbconvert
+    - content_Type:
+        a string specifying the Content-Type of the response from this format.
+        Defaults to  text/html; charset=UTF-8
     """
 
     return {
@@ -43,6 +46,10 @@ def default_formats():
             'label': 'Slides',
             'icon': 'gift',
             'test': lambda nb, json: '"slideshow"' in json,
+        },
+        'script': {
+            'label': 'Code',
+            'content_type': 'text/plain; charset=UTF-8'
         }
     }
 
