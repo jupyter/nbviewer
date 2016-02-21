@@ -36,9 +36,7 @@ except ImportError:
         urlunparse,
     )
 
-
 from tornado.log import app_log
-from IPython.utils import py3compat
 
 
 STRIP_PARAMS = [
@@ -51,12 +49,16 @@ STRIP_PARAMS = [
 def quote(s):
     """unicode-safe quote
 
+    - accepts str+unicode (not bytes on py3)
     - Python 2 requires str, not unicode
     - always return unicode
     """
-    s = py3compat.cast_bytes_py2(s)
+    if not isinstance(s, str):
+        s = s.encode('utf8')
     quoted = stdlib_quote(s)
-    return py3compat.str_to_unicode(quoted)
+    if isinstance(quoted, bytes):
+        quoted = quoted.decode('utf8')
+    return quoted
 
 
 def clean_filename(fn):
@@ -201,10 +203,8 @@ def git_info(path):
 
 def jupyter_info():
     """Get Jupyter info dict"""
-    import notebook
     import nbconvert
     return dict(
-        notebook_version=notebook.__version__,
         nbconvert_version=nbconvert.__version__
     )
 
@@ -213,7 +213,8 @@ def base64_decode(s):
 
     base64 API only talks bytes
     """
-    s = py3compat.cast_bytes(s)
+    if not isinstance(s, bytes):
+        s = s.encode('ascii', 'replace')
     decoded = decodebytes(s)
     return decoded
 
@@ -222,7 +223,8 @@ def base64_encode(s):
 
     base64 API only talks bytes
     """
-    s = py3compat.cast_bytes(s)
+    if not isinstance(s, bytes):
+        s = s.encode('ascii', 'replace')
     encoded = encodebytes(s)
     return encoded.decode('ascii')
 

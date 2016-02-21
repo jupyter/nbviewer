@@ -1,7 +1,9 @@
 elasticsearch
-futures
+futures; python_version == '2.7'
 markdown
 newrelic
-notebook
+nbconvert
+ipython
 pycurl
 pylibmc
+tornado
