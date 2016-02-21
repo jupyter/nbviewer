@@ -559,6 +559,8 @@ class RenderingHandler(BaseHandler):
             breadcrumbs=breadcrumbs,
             **config)
 
+        if 'content_type' in self.formats[format]:
+            self.set_header('Content-Type', self.formats[format]['content_type'])
         yield self.cache_and_finish(html)
 
         # Index notebook
