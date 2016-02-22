@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
+
 import os
 import hashlib
 import json
@@ -8,7 +10,11 @@ import shutil
 import tempfile
 import sys
 import tarfile
-from urllib.request import urlretrieve
+
+try:
+    from urllib.request import urlretrieve
+except ImportError:
+    from urllib import urlretrieve
 
 import invoke
 
