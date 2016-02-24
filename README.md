@@ -31,7 +31,7 @@ Or to use your GitHub personal access token, you can set just `GITHUB_API_TOKEN`
 
 ## GitHub Enterprise
 
-To use nbviewer on against your own GitHub Enterprise instance you need to set `GITHUB_API_URL`.
+To use nbviewer on your own GitHub Enterprise instance you need to set `GITHUB_API_URL`.
 The relevant [API endpoints for GitHub Enterprise](https://developer.github.com/v3/enterprise/) are prefixed with `http://hostname/api/v3`.
 You must also specify your `OAUTH` or `API_TOKEN` as explained above.  For example:
 
