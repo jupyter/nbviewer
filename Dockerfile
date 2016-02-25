@@ -3,6 +3,7 @@ FROM debian:jessie
 
 MAINTAINER Project Jupyter <jupyter@googlegroups.com>
 
+ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update \
   && apt-get install -y -q \
     build-essential \
@@ -22,14 +23,17 @@ RUN apt-get update \
     sqlite3 \
     zlib1g-dev \
   && apt-get clean \
-  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+  && pip3 install --upgrade setuptools pip \
+  && hash -r \
+  && pip3 install --no-cache-dir invoke
+
 
 # To change the number of threads use
 # docker run -d -e NBVIEWER_THREADS=4 -p 80:8080 nbviewer
 ENV NBVIEWER_THREADS 2
 EXPOSE 8080
 
-RUN pip3 install invoke
 WORKDIR /srv/nbviewer
 
 # asset toolchain
@@ -39,8 +43,8 @@ RUN npm install .
 # python requirements
 ADD ./requirements.txt /srv/nbviewer/
 # get reduced validation tracebacks from unreleased nbformat-4.1
-RUN pip3 install -r requirements.txt && \
-    pip3 install -e git+https://github.com/jupyter/nbformat#egg=nbformat && \
+RUN pip3 install --no-cache-dir -r requirements.txt && \
+    pip3 install --no-cache-dir -e git+https://github.com/jupyter/nbformat#egg=nbformat && \
     pip3 freeze
 
 # tasks will likely require re-running everything

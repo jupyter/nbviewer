@@ -1,24 +1,34 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
+
 import os
+import hashlib
 import json
 import shutil
 import tempfile
+import sys
+import tarfile
+
+try:
+    from urllib.request import urlretrieve
+except ImportError:
+    from urllib import urlretrieve
 
 import invoke
 
-from notebook import DEFAULT_STATIC_FILES_PATH
-
+NOTEBOOK_VERSION = '4.1.0' # the notebook version whose LESS we will use
+NOTEBOOK_CHECKSUM = 'b597437ba33538221008e21fea71cd01eda9da1515ca3963d7c74e44f4b03d90' # sha256 checksum of notebook tarball
 
 APP_ROOT = os.path.dirname(__file__)
 NPM_BIN = os.path.join(APP_ROOT, "node_modules", ".bin")
+NOTEBOOK_STATIC_PATH = os.path.join(APP_ROOT, 'notebook-%s' % NOTEBOOK_VERSION, 'notebook', 'static')
 
 
 @invoke.task
 def test():
     invoke.run("nosetests -v")
-
 
 @invoke.task
 def bower():
@@ -30,7 +40,28 @@ def bower():
 
 
 @invoke.task
+def notebook_static():
+    if os.path.exists(NOTEBOOK_STATIC_PATH):
+        return
+    fname = 'notebook-%s.tar.gz' % NOTEBOOK_VERSION
+    nb_tgz = os.path.join(APP_ROOT, fname)
+    nb_url = 'https://pypi.python.org/packages/source/n/notebook/' + fname
+    if not os.path.exists(nb_tgz):
+        print("Downloading %s -> %s" % (nb_url, nb_tgz))
+        urlretrieve(nb_url, nb_tgz)
+    with open(nb_tgz, 'rb') as f:
+        checksum = hashlib.sha256(f.read()).hexdigest()
+    if checksum != NOTEBOOK_CHECKSUM:
+        print("Notebook tarball checksum mismatch (%s)" % nb_url, file=sys.stderr)
+        print("Expected: %s" % NOTEBOOK_CHECKSUM, file=sys.stderr)
+        print("Got: %s" % checksum, file=sys.stderr)
+        sys.exit(1)
+    invoke.run("tar -xzf '{}'".format(nb_tgz))
+
+
+@invoke.task
 def less(debug=False):
+    notebook_static()
     if debug:
         extra = "--source-map"
     else:
@@ -46,7 +77,7 @@ def less(debug=False):
     " {0}.less ../build/{0}.css"
     )
 
-    args = (extra, DEFAULT_STATIC_FILES_PATH)
+    args = (extra, NOTEBOOK_STATIC_PATH)
 
     [
         invoke.run(tmpl.format(less_file, *args))

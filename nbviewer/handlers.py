@@ -7,8 +7,6 @@
 from tornado import web
 from tornado.log import app_log
 
-from notebook import DEFAULT_STATIC_FILES_PATH as ipython_static_path
-
 from .utils import transform_ipynb_uri
 
 from .providers import (
@@ -88,7 +86,6 @@ def init_handlers(formats, providers):
         ('/index.html', IndexHandler),
         (r'/faq/?', FAQHandler),
         (r'/create/?', CreateHandler),
-        (r'/ipython-static/(.*)', web.StaticFileHandler, dict(path=ipython_static_path)),
 
         # don't let super old browsers request data-uris
         (r'.*/data:.*;base64,.*', Custom404),
