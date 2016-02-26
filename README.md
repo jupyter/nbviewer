@@ -176,9 +176,10 @@ error message.
 ### Formats
 Formats are ways to present notebooks to the user.
 
-`nbviewer` ships with two providers:
+`nbviewer` ships with three providers:
 - `html`
 - `slides`
+- `script`
 
 #### Writing a new Format
 If you'd like to write a new format, open a ticket, or speak up on [gitter][]!
