@@ -345,7 +345,7 @@ class BaseHandler(web.RequestHandler):
     def truncate(self, s, limit=256):
         """Truncate long strings"""
         if len(s) > limit:
-            s = "%s...%s" % (s[:limit/2], s[limit/2:])
+            s = "%s...%s" % (s[:limit//2], s[limit//2:])
         return s
 
     @gen.coroutine
