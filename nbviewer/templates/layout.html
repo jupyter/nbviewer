@@ -100,12 +100,12 @@
           {{ head_text('/faq', "FAQ") }}
 
           {% block otherlinks %}
+            {% if runner_url %}
+              {{ head_icon(runner_url, "Run on " + runner_label, runner_icon) }}
+            {% endif %}
+
             {% if provider_url %}
-              <li>
-                <a href="{{provider_url}}" title="View on {{provider_label}}">
-                  <i class="fa fa-{{provider_icon}} fa-2x menu-icon"></i>
-                </a>
-              </li>
+              {{ head_icon(provider_url, "View on " + provider_label, provider_icon) }}
             {% endif %}
           {% endblock %}
         </ul>
