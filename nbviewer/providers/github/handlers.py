@@ -5,6 +5,7 @@
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
+import os
 import json
 import mimetypes
 
@@ -324,7 +325,7 @@ def default_handlers(handlers=[]):
 
 
 def uri_rewrites(rewrites=[]):
-    return rewrites + [
+    github_rewrites = [
         # three different uris for a raw view
         (r'^https?://github\.com/([^\/]+)/([^\/]+)/raw/([^\/]+)/(.*)',
             u'/github/{0}/{1}/blob/{2}/{3}'),
@@ -344,3 +345,19 @@ def uri_rewrites(rewrites=[]):
         (r'^([\w\-]+)$',
             u'/github/{0}/'),
     ]
+    # github enterprise
+    if os.environ.get('GITHUB_API_URL', '') != '':
+        github_api_url = os.environ.get('GITHUB_API_URL')
+
+        github_rewrites.extend([
+            # raw view
+            (r'^' + github_api_url.split('/api/v3/')[0]
+                + '/([^\/]+)/([^\/]+)/raw/([^\/]+)/(.*)',
+                u'/github/{0}/{1}/blob/{2}/{3}'),
+
+            # trees & blobs
+            (r'^' + github_api_url.split('/api/v3/')[0]
+                + '/([\w\-]+)/([^\/]+)/(blob|tree)/(.*)$',
+                u'/github/{0}/{1}/{2}/{3}'),
+        ])
+    return rewrites + github_rewrites
