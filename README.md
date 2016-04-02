@@ -4,6 +4,7 @@ Jupyter nbviewer is the web application behind [The Jupyter Notebook Viewer](htt
 
 Run this locally to get most of the features of nbviewer on your own network.
 
+If you need help using or installing Jupyter Notebook Viewer, please use the [jupyter/help](https://github.com/jupyter/help) issue tracker.
 
 ## Quick Run
 
