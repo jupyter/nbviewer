@@ -186,10 +186,10 @@ def default_handlers(handlers=[]):
     """Tornado handlers"""
 
     return handlers + [
-        (r'/gist/([^\/]+/)?([0-9]+|[0-9a-f]{20})', GistHandler),
-        (r'/gist/([^\/]+/)?([0-9]+|[0-9a-f]{20})/(?:files/)?(.*)', GistHandler),
-        (r'/([0-9]+|[0-9a-f]{20})', GistRedirectHandler),
-        (r'/([0-9]+|[0-9a-f]{20})/(.*)', GistRedirectHandler),
+        (r'/gist/([^\/]+/)?([0-9]+|[0-9a-f]{20,})', GistHandler),
+        (r'/gist/([^\/]+/)?([0-9]+|[0-9a-f]{20,})/(?:files/)?(.*)', GistHandler),
+        (r'/([0-9]+|[0-9a-f]{20,})', GistRedirectHandler),
+        (r'/([0-9]+|[0-9a-f]{20,})/(.*)', GistRedirectHandler),
         (r'/gist/([^\/]+)/?', UserGistsHandler),
     ]
 
