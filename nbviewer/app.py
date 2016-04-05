@@ -217,6 +217,9 @@ def make_app():
         localfile_path=os.path.abspath(options.localfiles),
         fetch_kwargs=fetch_kwargs,
         mathjax_url=options.mathjax_url,
+        statsd_host=options.statsd_host,
+        statsd_port=options.statsd_port,
+        statsd_prefix=options.statsd_prefix
     )
 
     # handle handlers
@@ -262,7 +265,9 @@ def init_options():
     define("provider_rewrites", default=default_rewrites, help="Full dotted package(s) that provide `uri_rewrites`", type=str, multiple=True, group="provider")
     define("mathjax_url", default="https://cdn.mathjax.org/mathjax/latest/", help="URL base for mathjax package", type=str)
     define("template_path", default=os.environ.get("NBVIEWER_TEMPLATE_PATH", None), help="Custom template path for the nbviewer app (not rendered notebooks)", type=str)
-
+    define("statsd_host", default="", help="Host running statsd to send metrics to", type=str)
+    define("statsd_port", default=8125, help="Port on which statsd is listening for metrics on statsd_host", type=int)
+    define("statsd_prefix", default='nbviewer', help="Prefix to use for naming metrics sent to statsd", type=str)
 
 def main(argv=None):
     init_options()

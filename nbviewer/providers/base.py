@@ -9,6 +9,7 @@ import hashlib
 import pickle
 import socket
 import time
+import statsd
 
 from cgi import escape
 from contextlib import contextmanager
@@ -45,7 +46,7 @@ from ..render import (
     NbFormatError,
     render_notebook,
 )
-from ..utils import parse_header_links, time_block
+from ..utils import parse_header_links, time_block, EmptyClass
 
 try:
     import pycurl
@@ -143,6 +144,23 @@ class BaseHandler(web.RequestHandler):
     @property
     def mathjax_url(self):
         return self.settings['mathjax_url']
+
+    @property
+    def statsd(self):
+        if hasattr(self, '_statsd'):
+            return self._statsd
+        if self.settings['statsd_host']:
+            print(self.settings)
+            self._statsd = statsd.StatsClient(
+                self.settings['statsd_host'],
+                self.settings['statsd_port'],
+                self.settings['statsd_prefix']
+            )
+            return self._statsd
+        else:
+            # return an empty mock object!
+            self._statsd = EmptyClass()
+            return self._statsd
 
     #---------------------------------------------------------------
     # template rendering
