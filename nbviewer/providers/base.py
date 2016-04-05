@@ -154,7 +154,7 @@ class BaseHandler(web.RequestHandler):
             self._statsd = statsd.StatsClient(
                 self.settings['statsd_host'],
                 self.settings['statsd_port'],
-                self.settings['statsd_prefix']
+                self.settings['statsd_prefix'] + '.' + type(self).__name__
             )
             return self._statsd
         else:
