@@ -46,6 +46,21 @@ STRIP_PARAMS = [
 ]
 
 
+class EmptyClass(object):
+    """
+    Simple empty class that returns itself for all functions called on it.
+    This allows us to call any method of any name on this, and it'll return another
+    instance of itself that'll allow any method to be called on it.
+
+    Primarily used to mock out the statsd client when statsd is not being used
+    """
+    def empty_function(self, *args, **kwargs):
+        return self
+
+    def __getattr__(self, attr):
+        return self.empty_function
+
+
 def quote(s):
     """unicode-safe quote
 
@@ -240,4 +255,3 @@ def time_block(message):
     dt = time.time() - tic
     log = app_log.info if dt > 1 else app_log.debug
     log("%s in %.2f ms", message, 1e3 * dt)
-

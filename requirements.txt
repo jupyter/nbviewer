@@ -7,3 +7,4 @@ ipython
 pycurl
 pylibmc
 tornado
+statsd

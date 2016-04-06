@@ -9,6 +9,7 @@ import hashlib
 import pickle
 import socket
 import time
+import statsd
 
 from cgi import escape
 from contextlib import contextmanager
@@ -45,7 +46,7 @@ from ..render import (
     NbFormatError,
     render_notebook,
 )
-from ..utils import parse_header_links, time_block
+from ..utils import parse_header_links, time_block, EmptyClass
 
 try:
     import pycurl
@@ -143,6 +144,23 @@ class BaseHandler(web.RequestHandler):
     @property
     def mathjax_url(self):
         return self.settings['mathjax_url']
+
+    @property
+    def statsd(self):
+        if hasattr(self, '_statsd'):
+            return self._statsd
+        if self.settings['statsd_host']:
+            print(self.settings)
+            self._statsd = statsd.StatsClient(
+                self.settings['statsd_host'],
+                self.settings['statsd_port'],
+                self.settings['statsd_prefix'] + '.' + type(self).__name__
+            )
+            return self._statsd
+        else:
+            # return an empty mock object!
+            self._statsd = EmptyClass()
+            return self._statsd
 
     #---------------------------------------------------------------
     # template rendering
@@ -490,6 +508,7 @@ class RenderingHandler(BaseHandler):
 
         # short circuit some methods because the rest of the rendering will still happen
         self.write = self.finish = self.redirect = lambda chunk=None: None
+        self.statsd.incr('rendering.waiting', 1)
 
     def filter_formats(self, nb, raw):
         """Generate a list of formats that can render the given nb json
@@ -520,28 +539,37 @@ class RenderingHandler(BaseHandler):
             msg = download_url
 
         try:
+            parse_time = self.statsd.timer('rendering.parsing.time').start()
             nb = reads(json_notebook, current_nbformat)
+            parse_time.stop()
         except ValueError:
             app_log.error("Failed to render %s", msg, exc_info=True)
+            self.statsd.incr('rendering.parsing.fail')
             raise web.HTTPError(400, "Error reading JSON notebook")
 
         try:
             app_log.debug("Requesting render of %s", download_url)
             with time_block("Rendered %s" % download_url):
                 app_log.info("rendering %d B notebook from %s", len(json_notebook), download_url)
+                render_time = self.statsd.timer('rendering.nbrender.time').start()
                 nbhtml, config = yield self.pool.submit(render_notebook,
                     self.formats[format], nb, download_url,
                     config=self.config,
                 )
+                render_time.stop()
         except NbFormatError as e:
+            self.statsd.incr('rendering.nbrender.fail', 1)
             app_log.error("Invalid notebook %s: %s", msg, e)
             raise web.HTTPError(400, str(e))
         except Exception as e:
+            self.statsd.incr('rendering.nbrender.fail', 1)
             app_log.error("Failed to render %s", msg, exc_info=True)
             raise web.HTTPError(400, str(e))
         else:
+            self.statsd.incr('rendering.nbrender.success', 1)
             app_log.debug("Finished render of %s", download_url)
 
+        html_time = self.statsd.timer('rendering.html.time').start()
         html = self.render_template(
             "formats/%s.html" % format,
             body=nbhtml,
@@ -558,6 +586,7 @@ class RenderingHandler(BaseHandler):
             date=datetime.utcnow().strftime(date_fmt),
             breadcrumbs=breadcrumbs,
             **config)
+        html_time.stop()
 
         if 'content_type' in self.formats[format]:
             self.set_header('Content-Type', self.formats[format]['content_type'])
