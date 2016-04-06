@@ -195,6 +195,11 @@ def make_app():
         log.app_log.info("Using web proxy {proxy_host}:{proxy_port}."
                          "".format(**fetch_kwargs))
 
+    if options.no_check_certificate:
+        fetch_kwargs.update(dict(validate_cert=False))
+
+        log.app_log.info("Not validating SSL certificates")
+
     settings = dict(
         log_function=log_request,
         jinja2_env=env,
@@ -258,6 +263,7 @@ def init_options():
     define("frontpage", default=FRONTPAGE_JSON, help="path to json file containing frontpage content", type=str)
     define("sslcert", help="path to ssl .crt file", type=str)
     define("sslkey", help="path to ssl .key file", type=str)
+    define("no_check_certificate", default=False, help="Do not validate SSL certificates", type=bool)
     define("default_format", default="html", help="format to use for legacy / URLs", type=str)
     define("proxy_host", default="", help="The proxy URL.", type=str)
     define("proxy_port", default="", help="The proxy port.", type=int)
