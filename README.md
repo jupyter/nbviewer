@@ -37,7 +37,7 @@ You must also specify your `OAUTH` or `API_TOKEN` as explained above.  For examp
 ```shell
 $ docker run -p 8080:8080 -e 'GITHUB_OAUTH_KEY=YOURKEY' \
                           -e 'GITHUB_OAUTH_SECRET=YOURSECRET' \
-                          -e 'GITHUB_API_URL=https://ghe.example.com/api/v3/' \
+                          -e 'GITHUB_API_URL=https://ghe.example.com/api/v3' \
                           jupyter/nbviewer
 ```
 

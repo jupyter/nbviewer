@@ -8,6 +8,7 @@
 import os
 import json
 import mimetypes
+import os
 
 from tornado import (
     web,
@@ -38,13 +39,20 @@ PROVIDER_CTX = {
     'provider_icon': 'github',
 }
 
+PROVIDER_URL_FRAG = "github"
+HTML_URL = os.environ.get('GITHUB_HTML_URL', 'https://github.com/')
+
 
 class GithubClientMixin(object):
+    PROVIDER_URL_FRAG = PROVIDER_URL_FRAG
+    HTML_URL = HTML_URL
+    GH_CLIENT_CLASS = AsyncGitHubClient
+
     @property
     def github_client(self):
         """Create an upgraded github API client from the HTTP client"""
         if getattr(self, "_github_client", None) is None:
-            self._github_client = AsyncGitHubClient(self.client)
+            self._github_client = self.GH_CLIENT_CLASS(self.client)
         return self._github_client
     
     def client_error_message(self, exc, url, body, msg=None):
@@ -57,10 +65,13 @@ class GithubClientMixin(object):
 
 
 class RawGitHubURLHandler(BaseHandler):
+    PROVIDER_URL_FRAG = PROVIDER_URL_FRAG
+
     """redirect old /urls/raw.github urls to /github/ API urls"""
     def get(self, user, repo, path):
-        new_url = u'{format}/github/{user}/{repo}/blob/{path}'.format(
+        new_url = u'{format}/{provider}/{user}/{repo}/blob/{path}'.format(
             format=self.format_prefix, user=user, repo=repo, path=path,
+            provider=self.PROVIDER_URL_FRAG,
         )
         app_log.info("Redirecting %s to %s", self.request.uri, new_url)
         self.redirect(new_url)
@@ -71,9 +82,9 @@ class GitHubRedirectHandler(GithubClientMixin, BaseHandler):
     def get(self, user, repo, app, ref, path):
         if app == 'raw':
             app = 'blob'
-        new_url = u'{format}/github/{user}/{repo}/{app}/{ref}/{path}'.format(
+        new_url = u'{format}/{provider}/{user}/{repo}/{app}/{ref}/{path}'.format(
             format=self.format_prefix, user=user, repo=repo, app=app,
-            ref=ref, path=path,
+            ref=ref, path=path, provider=self.PROVIDER_URL_FRAG,
         )
         app_log.info("Redirecting %s to %s", self.request.uri, new_url)
         self.redirect(new_url)
@@ -85,7 +96,7 @@ class GitHubUserHandler(GithubClientMixin, BaseHandler):
     @gen.coroutine
     def get(self, user):
         page = self.get_argument("page", None)
-        params = {'sort' : 'updated'}
+        params = {'sort': 'updated'}
         if page:
             params['page'] = page
         with self.catch_client_error():
@@ -100,9 +111,12 @@ class GitHubUserHandler(GithubClientMixin, BaseHandler):
                 url=repo['name'],
                 name=repo['name'],
             ))
-        provider_url = u"https://github.com/{user}".format(user=user)
+        provider_url = u"{url}/{user}".format(
+            url=self.HTML_URL,
+            user=user
+        )
         html = self.render_template("userview.html",
-            entries=entries, provider_url=provider_url, 
+            entries=entries, provider_url=provider_url,
             next_url=next_url, prev_url=prev_url,
             **PROVIDER_CTX
         )
@@ -110,9 +124,16 @@ class GitHubUserHandler(GithubClientMixin, BaseHandler):
 
 
 class GitHubRepoHandler(BaseHandler):
+    PROVIDER_URL_FRAG = PROVIDER_URL_FRAG
+
     """redirect /github/user/repo to .../tree/master"""
     def get(self, user, repo):
-        self.redirect("%s/github/%s/%s/tree/master/" % (self.format_prefix, user, repo))
+        self.redirect(
+            "{format}/{provider}/{user}/{repo}/tree/master/".format(
+                format=self.format_prefix, user=user, repo=repo,
+                provider=self.PROVIDER_URL_FRAG,
+            )
+        )
 
 
 class GitHubTreeHandler(GithubClientMixin, BaseHandler):
@@ -132,9 +153,10 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
         branches, tags = yield self.refs(user, repo)
 
         for nav_ref in branches + tags:
-            nav_ref["url"] = (u"/github/{user}/{repo}/tree/{ref}/{path}"
+            nav_ref["url"] = (u"/{provider}/{user}/{repo}/tree/{ref}/{path}"
                 .format(
-                    ref=nav_ref["name"], user=user, repo=repo, path=path
+                    ref=nav_ref["name"], user=user, repo=repo, path=path,
+                    provider=self.PROVIDER_URL_FRAG,
                 ))
 
         if not isinstance(contents, list):
@@ -143,22 +165,24 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
                 extra=dict(format=self.format_prefix, user=user, repo=repo, ref=ref, path=path)
             )
             self.redirect(
-                u"{format}/github/{user}/{repo}/blob/{ref}/{path}".format(
-                    format=self.format_prefix, user=user, repo=repo, ref=ref, path=path,
+                u"{format}/{provider}/{user}/{repo}/blob/{ref}/{path}".format(
+                    format=self.format_prefix, user=user, repo=repo, ref=ref,
+                    path=path, provider=self.PROVIDER_URL_FRAG,
                 )
             )
             return
 
-        base_url = u"/github/{user}/{repo}/tree/{ref}".format(
-            user=user, repo=repo, ref=ref,
+        base_url = u"/{provider}/{user}/{repo}/tree/{ref}".format(
+            user=user, repo=repo, ref=ref, provider=self.PROVIDER_URL_FRAG,
         )
-        provider_url = u"https://github.com/{user}/{repo}/tree/{ref}/{path}".format(
+        provider_url = u"{url}/{user}/{repo}/tree/{ref}/{path}".format(
             user=user, repo=repo, ref=ref, path=path,
+            url=self.HTML_URL,
         )
 
         breadcrumbs = [{
-            'url' : base_url,
-            'name' : repo,
+            'url': base_url,
+            'name': repo,
         }]
         breadcrumbs.extend(self.breadcrumbs(path, base_url))
 
@@ -170,15 +194,17 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
             e = {}
             e['name'] = file['name']
             if file['type'] == 'dir':
-                e['url'] = u'/github/{user}/{repo}/tree/{ref}/{path}'.format(
-                user=user, repo=repo, ref=ref, path=file['path']
+                e['url'] = u'/{provider}/{user}/{repo}/tree/{ref}/{path}'.format(
+                    user=user, repo=repo, ref=ref, path=file['path'],
+                    provider=self.PROVIDER_URL_FRAG,
                 )
                 e['url'] = quote(e['url'])
                 e['class'] = 'fa-folder-open'
                 dirs.append(e)
             elif file['name'].endswith('.ipynb'):
-                e['url'] = u'/github/{user}/{repo}/blob/{ref}/{path}'.format(
-                user=user, repo=repo, ref=ref, path=file['path']
+                e['url'] = u'/{provider}/{user}/{repo}/blob/{ref}/{path}'.format(
+                    user=user, repo=repo, ref=ref, path=file['path'],
+                    provider=self.PROVIDER_URL_FRAG
                 )
                 e['url'] = quote(e['url'])
                 e['class'] = 'fa-book'
@@ -192,7 +218,6 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
                 e['url'] = ''
                 e['class'] = 'fa-folder-close'
                 others.append(e)
-
 
         entries.extend(dirs)
         entries.extend(ipynbs)
@@ -236,8 +261,9 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
         raw_url = u"https://raw.githubusercontent.com/{user}/{repo}/{ref}/{path}".format(
             user=user, repo=repo, ref=ref, path=quote(path)
         )
-        blob_url = u"https://github.com/{user}/{repo}/blob/{ref}/{path}".format(
+        blob_url = u"{url}/{user}/{repo}/blob/{ref}/{path}".format(
             user=user, repo=repo, ref=ref, path=quote(path),
+            url=self.HTML_URL,
         )
         with self.catch_client_error():
             tree_entry = yield self.github_client.get_tree_entry(
@@ -245,8 +271,9 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
             )
 
         if tree_entry['type'] == 'tree':
-            tree_url = "/github/{user}/{repo}/tree/{ref}/{path}/".format(
+            tree_url = "/{provider}/{user}/{repo}/tree/{ref}/{path}/".format(
                 user=user, repo=repo, ref=ref, path=quote(path),
+                provider=self.PROVIDER_URL_FRAG,
             )
             app_log.info("%s is a directory, redirecting to %s", self.request.path, tree_url)
             self.redirect(tree_url)
@@ -267,12 +294,13 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
 
         if path.endswith('.ipynb'):
             dir_path = path.rsplit('/', 1)[0]
-            base_url = "/github/{user}/{repo}/tree/{ref}".format(
+            base_url = "/{provider}/{user}/{repo}/tree/{ref}".format(
                 user=user, repo=repo, ref=ref,
+                provider=self.PROVIDER_URL_FRAG,
             )
             breadcrumbs = [{
-                'url' : base_url,
-                'name' : repo,
+                'url': base_url,
+                'name': repo,
             }]
             breadcrumbs.extend(self.breadcrumbs(dir_path, base_url))
 
@@ -282,7 +310,7 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
                     nbjson = filedata.decode('utf-8')
                 else:
                     nbjson = filedata
-            except Exception as e:
+            except Exception:
                 app_log.error("Failed to decode notebook: %s", raw_url, exc_info=True)
                 raise web.HTTPError(400)
             yield self.finish_notebook(nbjson, raw_url,
