@@ -113,11 +113,6 @@
   {{super()}}
   {% if jupyter_info %}
   <p>
-    notebook version: <a href="https://github.com/jupyter/notebook/releases/tag/{{jupyter_info['notebook_version']}}">
-      {{jupyter_info['notebook_version']}}
-    </a>
-  </p>
-  <p>
     nbconvert version: <a href="https://github.com/jupyter/nbconvert/releases/tag/{{jupyter_info['nbconvert_version']}}">
       {{jupyter_info['nbconvert_version']}}
     </a>
