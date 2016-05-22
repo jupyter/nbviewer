@@ -1,9 +1,5 @@
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2013 The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# Copyright (c) Jupyter Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import json
 
@@ -109,7 +105,12 @@ class GistHandler(GistClientMixin, RenderingHandler):
 
         if filename and filename in files:
             file = files[filename]
-            if file['truncated']:
+            if (file['type'] or '').startswith('image/'):
+                app_log.debug("Fetching raw image (%s) %s/%s: %s", file['type'], gist_id, filename, file['raw_url'])
+                response = yield self.fetch(file['raw_url'])
+                # use raw bytes for images:
+                content = response.body
+            elif file['truncated']:
                 app_log.debug("Gist %s/%s truncated, fetching %s", gist_id, filename, file['raw_url'])
                 response = yield self.fetch(file['raw_url'])
                 content = response_text(response, encoding='utf-8')
@@ -128,6 +129,7 @@ class GistHandler(GistClientMixin, RenderingHandler):
                     **PROVIDER_CTX
                 )
             else:
+                self.set_header('Content-Type', file.get('type') or 'text/plain')
                 # cannot redirect because of X-Frame-Content
                 self.finish(content)
                 return
