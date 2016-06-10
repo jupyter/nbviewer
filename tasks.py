@@ -28,11 +28,11 @@ NOTEBOOK_STATIC_PATH = os.path.join(APP_ROOT, 'notebook-%s' % NOTEBOOK_VERSION, 
 
 @invoke.task
 def test(ctx):
-    invoke.run("nosetests -v")
+    ctx.run("nosetests -v")
 
 @invoke.task
 def bower(ctx):
-    invoke.run(
+    ctx.run(
         "cd {}/nbviewer/static &&".format(APP_ROOT) +
         " {}/bower install".format(NPM_BIN) +
         " --config.interactive=false --allow-root"
@@ -56,7 +56,7 @@ def notebook_static(ctx):
         print("Expected: %s" % NOTEBOOK_CHECKSUM, file=sys.stderr)
         print("Got: %s" % checksum, file=sys.stderr)
         sys.exit(1)
-    invoke.run("tar -xzf '{}'".format(nb_tgz))
+    ctx.run("tar -xzf '{}'".format(nb_tgz))
 
 
 @invoke.task
@@ -80,7 +80,7 @@ def less(ctx, debug=False):
     args = (extra, NOTEBOOK_STATIC_PATH)
 
     [
-        invoke.run(tmpl.format(less_file, *args))
+        ctx.run(tmpl.format(less_file, *args))
         for less_file in ["styles", "notebook", "slides"]
     ]
 
@@ -127,6 +127,6 @@ def screenshots(ctx, root="http://localhost:5000/", dest="./screenshots"):
     tmpfile = os.path.join(tmpdir, "screenshots.coffee")
     with open(tmpfile, "w+") as f:
         f.write(script)
-    invoke.run("casperjs test {script}".format(script=tmpfile))
+    ctx.run("casperjs test {script}".format(script=tmpfile))
 
     shutil.rmtree(tmpdir)
