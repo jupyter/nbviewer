@@ -27,11 +27,11 @@ NOTEBOOK_STATIC_PATH = os.path.join(APP_ROOT, 'notebook-%s' % NOTEBOOK_VERSION, 
 
 
 @invoke.task
-def test():
+def test(ctx):
     invoke.run("nosetests -v")
 
 @invoke.task
-def bower():
+def bower(ctx):
     invoke.run(
         "cd {}/nbviewer/static &&".format(APP_ROOT) +
         " {}/bower install".format(NPM_BIN) +
@@ -40,7 +40,7 @@ def bower():
 
 
 @invoke.task
-def notebook_static():
+def notebook_static(ctx):
     if os.path.exists(NOTEBOOK_STATIC_PATH):
         return
     fname = 'notebook-%s.tar.gz' % NOTEBOOK_VERSION
@@ -60,8 +60,8 @@ def notebook_static():
 
 
 @invoke.task
-def less(debug=False):
-    notebook_static()
+def less(ctx, debug=False):
+    notebook_static(ctx)
     if debug:
         extra = "--source-map"
     else:
@@ -86,7 +86,7 @@ def less(debug=False):
 
 
 @invoke.task
-def screenshots(root="http://localhost:5000/", dest="./screenshots"):
+def screenshots(ctx, root="http://localhost:5000/", dest="./screenshots"):
     dest = os.path.abspath(dest)
 
     script = """
@@ -107,7 +107,7 @@ def screenshots(root="http://localhost:5000/", dest="./screenshots"):
             desktop_standard: [1280, 1024]
             desktop_1080p: [1920, 1080]
         }})
-        
+
         casper.start root
 
         casper.each screens, (_, screen) ->
@@ -122,11 +122,11 @@ def screenshots(root="http://localhost:5000/", dest="./screenshots"):
 
         casper.run()
     """.format(root=root, dest=dest)
-    
+
     tmpdir = tempfile.mkdtemp()
     tmpfile = os.path.join(tmpdir, "screenshots.coffee")
     with open(tmpfile, "w+") as f:
         f.write(script)
     invoke.run("casperjs test {script}".format(script=tmpfile))
-    
+
     shutil.rmtree(tmpdir)
