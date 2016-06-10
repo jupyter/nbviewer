@@ -1,21 +1,28 @@
 language: python
+
 node_js:
 - '0.10'
+
 python:
 - '2.7'
 - '3.3'
 - '3.4'
+
 before_install:
 - sudo apt-get update
 - sudo apt-get install -qq libzmq3-dev pandoc libcurl4-gnutls-dev libmemcached-dev
 - pip install -U setuptools
 - pip install -r requirements-dev.txt
 - npm install .
+
 install:
 - pip install -r requirements.txt
 - invoke bower
 - invoke less
-script: invoke test
+
+script:
+- invoke test
+
 env:
   global:
   - secure: Sv53YMdsVTin1hUPRqIuvdAOJ0UwklEowW49qpxY9wSgiAM79D+e1b5Yxrn+RTtS3WGlvK1aKHICc+2ajccEJkKFL8WDy2SnTnoWPadrEy4NAGLkNMGK+bAYMnLNoNRbSGVz5JpvNJ7JkeaEplhJ572OJOxa1X7ZF9165ZbOWng=

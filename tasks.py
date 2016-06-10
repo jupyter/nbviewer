@@ -27,12 +27,12 @@ NOTEBOOK_STATIC_PATH = os.path.join(APP_ROOT, 'notebook-%s' % NOTEBOOK_VERSION, 
 
 
 @invoke.task
-def test():
-    invoke.run("nosetests -v")
+def test(ctx):
+    ctx.run("nosetests -v")
 
 @invoke.task
-def bower():
-    invoke.run(
+def bower(ctx):
+    ctx.run(
         "cd {}/nbviewer/static &&".format(APP_ROOT) +
         " {}/bower install".format(NPM_BIN) +
         " --config.interactive=false --allow-root"
@@ -40,7 +40,7 @@ def bower():
 
 
 @invoke.task
-def notebook_static():
+def notebook_static(ctx):
     if os.path.exists(NOTEBOOK_STATIC_PATH):
         return
     fname = 'notebook-%s.tar.gz' % NOTEBOOK_VERSION
@@ -56,12 +56,12 @@ def notebook_static():
         print("Expected: %s" % NOTEBOOK_CHECKSUM, file=sys.stderr)
         print("Got: %s" % checksum, file=sys.stderr)
         sys.exit(1)
-    invoke.run("tar -xzf '{}'".format(nb_tgz))
+    ctx.run("tar -xzf '{}'".format(nb_tgz))
 
 
 @invoke.task
-def less(debug=False):
-    notebook_static()
+def less(ctx, debug=False):
+    notebook_static(ctx)
     if debug:
         extra = "--source-map"
     else:
@@ -80,13 +80,13 @@ def less(debug=False):
     args = (extra, NOTEBOOK_STATIC_PATH)
 
     [
-        invoke.run(tmpl.format(less_file, *args))
+        ctx.run(tmpl.format(less_file, *args))
         for less_file in ["styles", "notebook", "slides"]
     ]
 
 
 @invoke.task
-def screenshots(root="http://localhost:5000/", dest="./screenshots"):
+def screenshots(ctx, root="http://localhost:5000/", dest="./screenshots"):
     dest = os.path.abspath(dest)
 
     script = """
@@ -107,7 +107,7 @@ def screenshots(root="http://localhost:5000/", dest="./screenshots"):
             desktop_standard: [1280, 1024]
             desktop_1080p: [1920, 1080]
         }})
-        
+
         casper.start root
 
         casper.each screens, (_, screen) ->
@@ -122,11 +122,11 @@ def screenshots(root="http://localhost:5000/", dest="./screenshots"):
 
         casper.run()
     """.format(root=root, dest=dest)
-    
+
     tmpdir = tempfile.mkdtemp()
     tmpfile = os.path.join(tmpdir, "screenshots.coffee")
     with open(tmpfile, "w+") as f:
         f.write(script)
-    invoke.run("casperjs test {script}".format(script=tmpfile))
-    
+    ctx.run("casperjs test {script}".format(script=tmpfile))
+
     shutil.rmtree(tmpdir)
