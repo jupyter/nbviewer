@@ -21,9 +21,14 @@ install:
 - invoke less
 
 script:
-- invoke test
-
+  # run tests
+  - invoke test
+  - docker build --no-cache -t $DOCKER_IMAGE_NAME .
+  # tag the build
+  - docker tag $DOCKER_IMAGE_NAME $DOCKER_IMAGE_NAME
+  # push the image to the repository
+  - docker push $DOCKER_IMAGE_NAME:latest
+notifications:
+  slack: 3blades:kDsouoROcGOm58UyVIvH1XhV 
 env:
-  global:
-  - secure: Sv53YMdsVTin1hUPRqIuvdAOJ0UwklEowW49qpxY9wSgiAM79D+e1b5Yxrn+RTtS3WGlvK1aKHICc+2ajccEJkKFL8WDy2SnTnoWPadrEy4NAGLkNMGK+bAYMnLNoNRbSGVz5JpvNJ7JkeaEplhJ572OJOxa1X7ZF9165ZbOWng=
-  - secure: ajFM7ch1/xYyEjusyTzd963GOOLg5/H0lxvQ7L6r+LBDDro79FxNPMcAkZxF7n24rkPO8I+AP3FfUwbQf4ShmGkAdsxSFMc2d7GDUowxiicPr5bMitygxlzl2ox2lWdpt4QldmEywbrCKKwt/cZkKxE8er9xBcwe7xw/2xUYOLk=
+  - $DOCKER_IMAGE_NAME=3blades/nbviewer

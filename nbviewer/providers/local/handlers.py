@@ -7,6 +7,8 @@
 
 import io
 import os
+# For use with DynamoDB
+import boto3
 
 from tornado import (
     gen,
@@ -19,6 +21,9 @@ from ..base import (
     RenderingHandler,
 )
 
+# Get the service resource.
+dynamodb = boto3.resource('dynamodb')
+# dynamo_json = {'9225f374cff3d43695023abb36e68226769a5dd6156fbdfdfd7539ecf72c1aba': 'notebooks/werner.greg/test.ipynb'}
 
 class LocalFileHandler(RenderingHandler):
     """Renderer for /localfile
@@ -28,6 +33,13 @@ class LocalFileHandler(RenderingHandler):
     @cached
     @gen.coroutine
     def get(self, path):
+
+        file_name = path.split('/')[-1]
+        hash_value = file_name.split('.')[0]
+        # Connect to dynamo here
+        table = dynamodb.Table('Shared_Notebooks_Staging')
+        print(table.creation_date_time)
+        # path = dynamo_json[hash_value]
 
         localfile_path = os.path.abspath(
             self.settings.get('localfile_path', ''))

@@ -67,6 +67,6 @@ ADD . /srv/nbviewer/
 RUN invoke less
 
 # root up until now!
-USER nobody
+# USER nobody
 
 CMD ["python3", "-m", "nbviewer", "--port=8080"]

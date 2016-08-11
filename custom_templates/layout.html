@@ -1,0 +1,154 @@
+{% macro head_text(url, name, bold=False) -%}
+  <li>
+    <a href="{{url}}" title="{{name}}" {%if download %}download{% endif %}>
+      {% if bold %}<strong>{% endif %}
+        <span>{{name}}</span>
+      {% if bold %}</strong>{% endif %}
+    </a>
+  </li>
+{%- endmacro %}
+
+
+{% macro head_icon(url, name, icon, download=False) -%}
+  <li>
+    <a href="{{url}}" title="{{name}}" {%if download %}download{% endif %}>
+      <span class="fa fa-{{icon}} fa-2x menu-icon"></span>
+      <span class="menu-text">{{name}}</span>
+    </a>
+  </li>
+{%- endmacro %}
+
+
+{% macro link_breadcrumbs(crumbs) -%}
+  {% if crumbs %}
+  <ol class="breadcrumb">
+    {% for crumb in crumbs %}
+      <li>
+        <a href="{{crumb['url']}}">{{crumb['name']}}</a>
+      </li>
+    {% endfor %}
+  </ol>
+  {% endif %}
+{%- endmacro %}
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>{{title|default("3Blades Notebook Viewer")}}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="{{ description | default('') }}">
+  <meta name="author" content="{{ author | default('') }}">
+  {% if not public %}
+  <meta name="robots" content="noindex,nofollow">
+  {% endif %}
+
+  <!-- Le styles -->
+  <link href="/static/build/styles.css" rel="stylesheet">
+
+  <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+  <!--[if lt IE 9]>
+    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <!-- Le fav and touch icons -->
+  <link rel="shortcut icon" href="/static/ico/ipynb_icon_16x16.png">
+  <link rel="apple-touch-icon-precomposed" sizes="144x144"
+        href="/static/ico/apple-touch-icon-144-precomposed.png">
+  <link rel="apple-touch-icon-precomposed" sizes="114x114"
+        href="/static/ico/apple-touch-icon-114-precomposed.png">
+  <link rel="apple-touch-icon-precomposed" sizes="72x72"
+        href="/static/ico/apple-touch-icon-72-precomposed.png">
+  <link rel="apple-touch-icon-precomposed"
+        href="/static/ico/apple-touch-icon-57-precomposed.png">
+  {% block extra_head %}{% endblock %}
+</head>
+
+<body class="nbviewer">
+
+  <!-- These are loaded at the top of the body so they are available to
+       notebook cells when they are loaded below. -->
+  <script src="/static/components/jquery/dist/jquery.min.js"></script>
+  <script src="/static/components/requirejs/require.js"></script>
+  <script src="/static/components/moment/min/moment.min.js"></script>
+
+<!-- Navbar
+================================================== -->
+  <nav id="menubar" class="navbar navbar-default navbar-fixed-top" data-spy="affix">
+    <div class="container">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
+          <span class="sr-only">Toggle navigation</span>
+          <i class="fa fa-bars"></i>
+        </button>
+        <a class="navbar-brand" href="/">
+          <img src="https://d2jiyx4sd0zwed.cloudfront.net/static/images/logo.png" width="159"/>
+        </a>
+      </div>
+
+      <div class="collapse navbar-collapse">
+        <ul class="nav navbar-nav navbar-right">
+          {{ head_text('/faq', "FAQ") }}
+
+          {% block otherlinks %}
+            {% if provider_url %}
+              <li>
+                <a href="{{provider_url}}" title="View on {{provider_label}}">
+                  <i class="fa fa-{{provider_icon}} fa-2x menu-icon"></i>
+                </a>
+              </li>
+            {% endif %}
+          {% endblock %}
+        </ul>
+      </div><!-- /.navbar-collapse -->
+      {% block menu_extra %}
+      {% endblock %}
+    </div>
+  </nav>
+
+  {% block container %}<div class="container container-main">
+    {% block body %}{% endblock %}
+  </div>{% endblock container %}
+
+
+  {% block footer %}
+    <footer class="footer hidden-print">
+      <div class="container">
+        <div class="col-md-4">
+          <p>
+            Rendered by <a href="https://3blades.io">3Blades</a>
+          </p>
+        </div>
+
+        <div class="col-md-4">
+          {% block extra_footer %}{% endblock extra_footer %}
+        </div>
+      </div>
+    </footer>
+  {% endblock footer %}
+
+  <script src="/static/components/bootstrap/js/bootstrap.min.js"></script>
+  <script src="/static/components/headroom.js/dist/headroom.min.js"></script>
+  <script src="/static/components/headroom.js/dist/jQuery.headroom.min.js"></script>
+
+  {% block extra_script %}{% endblock %}
+  <script>
+    require({
+        paths: {
+          moment: "/static/components/moment/min/moment.min.js"
+        }
+      }, ["moment"], function(moment){
+      var date = $("footer .date"),
+        m = moment(new Date(date.data('date'))),
+        update = function(){ date.text(m.fromNow()); };
+      setInterval(update, 61*1000);
+      update();
+      var w = $(window).scroll(function(event){
+        $("body").toggleClass("scrolled", w.scrollTop() > 0);
+      });
+    });
+  </script>
+</body>
+</html>
