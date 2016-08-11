@@ -1,3 +1,5 @@
+**[Click here to view documentation related to fork changes for custom templates and custom provider](https://github.com/3Blades/docs/blob/master/setup/staging/nbviewer-setup.md)**
+
 # Jupyter Notebook Viewer
 
 Jupyter nbviewer is the web application behind [The Jupyter Notebook Viewer](http://nbviewer.ipython.org), which is graciously hosted by [Rackspace](https://developer.rackspace.com/?nbviewer=awesome).
