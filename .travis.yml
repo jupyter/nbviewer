@@ -1,33 +1,20 @@
-language: 
-  - python
-python:
-  - '2.7'
-  - '3.3'
-  - '3.4'
 branches:  
   only:
     - master
     - staging
     - production
-services:
-# enable docker service inside travis
+services:  
+  #Enable docker service inside travis
   - docker
-  - elasticsearch
-before_install:
+before_install:  
   - docker login -e="$DOCKER_EMAIL" -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
-  - sudo apt-get update
-  - sudo apt-get install -qq libzmq3-dev pandoc libcurl4-gnutls-dev libmemcached-dev
-  - pip install -U setuptools
-  - pip install -r requirements-dev.txt
-  - npm install .
-install:
-  - pip install -r requirements.txt
-  - invoke bower
-  - invoke less
+script: 
+  # build the images
+  - docker build --no-cache -t 3blades/nbviewer nbviewer/.
+  - docker push 3blades/nbviewer:latest
 
 script:
-  # run tests
-  - invoke test
+  # build
   - docker build --no-cache -t $DOCKER_IMAGE_NAME .
   # tag the build
   - docker tag $DOCKER_IMAGE_NAME $DOCKER_IMAGE_NAME
