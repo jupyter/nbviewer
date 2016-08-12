@@ -72,7 +72,7 @@ RUN mkdir /srv/nbviewer/notebooks
 # root up until now!
 USER nobody
 
-CMD ["python3", "-m", "nbviewer", "--port=8080", "--localfiles=$NBVIEWER_LOCAL_FILES", "--provider_rewrites=nbviewer.providers.xfer", "--providers=nbviewer.providers.url"]
+CMD ["python3", "-m", "nbviewer", "--port=8080", "--localfiles=/srv/nbviewer/notebooks", "--provider_rewrites=nbviewer.providers.xfer", "--providers=nbviewer.providers.url"]
 
 # customizations
 ENV NBVIEWER_TEMPLATE_PATH /srv/nbviewer/custom_templates
