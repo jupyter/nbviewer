@@ -23,7 +23,6 @@ from ..base import (
 
 # Get the service resource.
 dynamodb = boto3.resource('dynamodb')
-# dynamo_json = {'9225f374cff3d43695023abb36e68226769a5dd6156fbdfdfd7539ecf72c1aba': 'notebooks/werner.greg/test.ipynb'}
 
 class LocalFileHandler(RenderingHandler):
     """Renderer for /localfile
@@ -36,10 +35,24 @@ class LocalFileHandler(RenderingHandler):
 
         file_name = path.split('/')[-1]
         hash_value = file_name.split('.')[0]
-        # Connect to dynamo here
+        # path = dynamo_json[hash_value]
+
+        ####
+        # BEGIN DYNAMODB
+        ####
         table = dynamodb.Table('Shared_Notebooks_Staging')
         print(table.creation_date_time)
-        # path = dynamo_json[hash_value]
+
+        response = table.get_item(
+            Key={
+                'hashId': hash_value
+            }
+        )
+        item = response['Item']
+        path = item['path']
+        ####
+        # END DYNAMODB
+        ####
 
         localfile_path = os.path.abspath(
             self.settings.get('localfile_path', ''))

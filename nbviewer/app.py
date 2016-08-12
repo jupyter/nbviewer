@@ -78,7 +78,6 @@ def nrfoot():
 this_dir, this_filename = os.path.split(__file__)
 FRONTPAGE_JSON = os.path.join(this_dir, "frontpage.json")
 
-
 def make_app():
     # NBConvert config
     config = Config()
@@ -233,7 +232,7 @@ def make_app():
     if options.localfiles:
         log.app_log.warning("Serving local notebooks in %s, this can be a security risk", options.localfiles)
         # use absolute or relative paths:
-        local_handlers = [(r'/localfile/(.*)', LocalFileHandler)]
+        local_handlers = [(r'/shared/(.*)', LocalFileHandler)]
         handlers = (
             local_handlers +
             format_handlers(formats, local_handlers) +
