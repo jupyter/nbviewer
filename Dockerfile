@@ -67,12 +67,9 @@ ADD . /srv/nbviewer/
 RUN invoke less
 
 # root up until now!
-# USER nobody
+USER nobody
 
 CMD ["python3", "-m", "nbviewer", "--port=8080", "--localfiles=$NBVIEWER_LOCAL_FILES", "--provider_rewrites=nbviewer.providers.xfer", "--providers=nbviewer.providers.url"]
 
 # customizations
 ENV NBVIEWER_TEMPLATE_PATH /srv/nbviewer/custom_templates
-ENV AWS_ACCESS_KEY_ID $AWS_ACCESS_KEY_ID
-ENV AWS_SECRET_ACCESS_KEY $AWS_SECRET_ACCESS_KEY
-ENV AWS_DEFAULT_REGION $AWS_DEFAULT_REGION
