@@ -66,6 +66,9 @@ WORKDIR /srv/nbviewer
 ADD . /srv/nbviewer/
 RUN invoke less
 
+# used to mount notebooks
+RUN mkdir /srv/nbviewer/notebooks
+
 # root up until now!
 USER nobody
 
