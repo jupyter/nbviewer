@@ -24,7 +24,7 @@ from ..base import (
 # Get the service resource.
 dynamodb = boto3.resource('dynamodb')
 # Get environment (dev, staging or production)
-dynamodb-table = os.environ.get('DYNAMODB_TABLE', None)
+DYNAMODB_TABLE = os.environ.get("DYNAMODB_TABLE", None)
 
 class LocalFileHandler(RenderingHandler):
     """Renderer for /localfile
@@ -42,7 +42,7 @@ class LocalFileHandler(RenderingHandler):
         ####
         # BEGIN DYNAMODB
         ####
-        table = dynamodb.Table(dynamodb-table)
+        table = dynamodb.Table(DYNAMODB_TABLE)
         response = table.get_item(
             Key={
                 'hashId': hash_value
