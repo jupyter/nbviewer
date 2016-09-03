@@ -5,21 +5,16 @@ from __future__ import print_function
 
 import os
 import hashlib
-import json
 import shutil
 import tempfile
 import sys
-import tarfile
-
-try:
-    from urllib.request import urlretrieve
-except ImportError:
-    from urllib import urlretrieve
+from zipfile import ZipFile
+import pip
 
 import invoke
 
 NOTEBOOK_VERSION = '4.1.0' # the notebook version whose LESS we will use
-NOTEBOOK_CHECKSUM = 'b597437ba33538221008e21fea71cd01eda9da1515ca3963d7c74e44f4b03d90' # sha256 checksum of notebook tarball
+NOTEBOOK_CHECKSUM = '24cac518544caaeca34b39931cbc1a4ac580078f2044ba09adb9dee01a72dc84' # sha256 checksum of notebook tarball
 
 APP_ROOT = os.path.dirname(__file__)
 NPM_BIN = os.path.join(APP_ROOT, "node_modules", ".bin")
@@ -29,6 +24,7 @@ NOTEBOOK_STATIC_PATH = os.path.join(APP_ROOT, 'notebook-%s' % NOTEBOOK_VERSION, 
 @invoke.task
 def test(ctx):
     ctx.run("nosetests -v")
+
 
 @invoke.task
 def bower(ctx):
@@ -43,20 +39,20 @@ def bower(ctx):
 def notebook_static(ctx):
     if os.path.exists(NOTEBOOK_STATIC_PATH):
         return
-    fname = 'notebook-%s.tar.gz' % NOTEBOOK_VERSION
-    nb_tgz = os.path.join(APP_ROOT, fname)
-    nb_url = 'https://pypi.python.org/packages/source/n/notebook/' + fname
-    if not os.path.exists(nb_tgz):
-        print("Downloading %s -> %s" % (nb_url, nb_tgz))
-        urlretrieve(nb_url, nb_tgz)
-    with open(nb_tgz, 'rb') as f:
+    fname = 'notebook-%s.zip' % NOTEBOOK_VERSION
+    nb_zip = os.path.join(APP_ROOT, fname)
+    if not os.path.exists(nb_zip):
+        print("Downloading from pypi -> %s" % nb_zip)
+        pip.main(['download', 'notebook=={}'.format(NOTEBOOK_VERSION), '--no-deps', '-d', APP_ROOT, '--no-binary', ':all:'])
+    with open(nb_zip, 'rb') as f:
         checksum = hashlib.sha256(f.read()).hexdigest()
     if checksum != NOTEBOOK_CHECKSUM:
-        print("Notebook tarball checksum mismatch (%s)" % nb_url, file=sys.stderr)
+        print("Notebook zipfile checksum mismatch", file=sys.stderr)
         print("Expected: %s" % NOTEBOOK_CHECKSUM, file=sys.stderr)
         print("Got: %s" % checksum, file=sys.stderr)
         sys.exit(1)
-    ctx.run("tar -xzf '{}'".format(nb_tgz))
+    with ZipFile(nb_zip, 'r') as nb_zip_file:
+        print("Extract {0} in {1}".format(nb_zip, nb_zip_file.extractall()))
 
 
 @invoke.task
@@ -66,7 +62,6 @@ def less(ctx, debug=False):
         extra = "--source-map"
     else:
         extra = " --clean-css='--s1 --advanced --compatibility=ie8'"
-
 
     tmpl = (
     "cd {}/nbviewer/static/less ".format(APP_ROOT) +
