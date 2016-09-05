@@ -39,6 +39,9 @@ PROVIDER_CTX = {
 }
 
 
+def _github_url():
+    return os.environ.get('GITHUB_URL') if os.environ.get('GITHUB_URL', '') else "https://github.com/"
+
 class GithubClientMixin(object):
     @property
     def github_client(self):
@@ -100,7 +103,8 @@ class GitHubUserHandler(GithubClientMixin, BaseHandler):
                 url=repo['name'],
                 name=repo['name'],
             ))
-        provider_url = u"https://github.com/{user}".format(user=user)
+  
+        provider_url = u"{github_url}{user}".format(user=user, github_url = _github_url())
         html = self.render_template("userview.html",
             entries=entries, provider_url=provider_url, 
             next_url=next_url, prev_url=prev_url,
@@ -152,8 +156,9 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
         base_url = u"/github/{user}/{repo}/tree/{ref}".format(
             user=user, repo=repo, ref=ref,
         )
-        provider_url = u"https://github.com/{user}/{repo}/tree/{ref}/{path}".format(
-            user=user, repo=repo, ref=ref, path=path,
+
+        provider_url = u"{github_url}{user}/{repo}/tree/{ref}/{path}".format(
+            user=user, repo=repo, ref=ref, path=path, github_url = _github_url()
         )
 
         breadcrumbs = [{
@@ -236,8 +241,8 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
         raw_url = u"https://raw.githubusercontent.com/{user}/{repo}/{ref}/{path}".format(
             user=user, repo=repo, ref=ref, path=quote(path)
         )
-        blob_url = u"https://github.com/{user}/{repo}/blob/{ref}/{path}".format(
-            user=user, repo=repo, ref=ref, path=quote(path),
+        blob_url = u"{github_url}{user}/{repo}/blob/{ref}/{path}".format(
+            user=user, repo=repo, ref=ref, path=quote(path), github_url=_github_url()
         )
         with self.catch_client_error():
             tree_entry = yield self.github_client.get_tree_entry(
