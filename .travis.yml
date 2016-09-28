@@ -3,17 +3,33 @@ branches:
     - master
     - staging
     - production
+language: python
+node_js:
+  - '0.10'
+python:
+  - '2.7'
+  - '3.3'
+  - '3.4'
 services:  
   #Enable docker service inside travis
   - docker
-before_install:  
+before_install:
+  - sudo apt-get update
+  - sudo apt-get install -qq libzmq3-dev pandoc libcurl4-gnutls-dev libmemcached-dev
+  - pip install -U setuptools
+  - pip install -r requirements-dev.txt
+  - npm install .
   - docker login -e="$DOCKER_EMAIL" -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
-script: 
-  # build the images
-  - docker build --no-cache -t 3blades/nbviewer nbviewer/.
-  - docker push 3blades/nbviewer:latest
-
+install:
+  - pip install -r requirements.txt
+  - invoke bower
+  - invoke less
 script:
+  - invoke test
+  - docker --version  # document the version travis is using
+  - pip install --user awscli # install aws cli w/o sudo
+  - export PATH=$PATH:$HOME/.local/bin # put aws in the path
+  - eval $(aws ecr get-login --region us-east-1) #needs AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY envvars
   # build
   - docker build --no-cache -t $DOCKER_IMAGE_NAME .
   # tag the build
@@ -23,4 +39,4 @@ script:
 notifications:
   slack: 3blades:kDsouoROcGOm58UyVIvH1XhV 
 env:
-  - $DOCKER_IMAGE_NAME=3blades/nbviewer
+  - $DOCKER_IMAGE_NAME="860100747351.dkr.ecr.us-east-1.amazonaws.com/nbviewer"
