@@ -13,19 +13,7 @@ python:
 services:  
   #Enable docker service inside travis
   - docker
-before_install:
-  - sudo apt-get update
-  - sudo apt-get install -qq libzmq3-dev pandoc libcurl4-gnutls-dev libmemcached-dev
-  - pip install -U setuptools
-  - pip install -r requirements-dev.txt
-  - npm install .
-  - docker login -e="$DOCKER_EMAIL" -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
-install:
-  - pip install -r requirements.txt
-  - invoke bower
-  - invoke less
 script:
-  - invoke test
   - docker --version  # document the version travis is using
   - pip install awscli # install aws cli w/o sudo
   - export PATH=$PATH:$HOME/.local/bin # put aws in the path
