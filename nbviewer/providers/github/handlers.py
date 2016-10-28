@@ -66,7 +66,7 @@ class RawGitHubURLHandler(BaseHandler):
             format=self.format_prefix, user=user, repo=repo, path=path,
         )
         app_log.info("Redirecting %s to %s", self.request.uri, new_url)
-        self.redirect(new_url)
+        self.redirect(self.from_base(new_url))
 
 
 class GitHubRedirectHandler(GithubClientMixin, BaseHandler):
@@ -79,7 +79,7 @@ class GitHubRedirectHandler(GithubClientMixin, BaseHandler):
             ref=ref, path=path,
         )
         app_log.info("Redirecting %s to %s", self.request.uri, new_url)
-        self.redirect(new_url)
+        self.redirect(self.from_base(new_url))
 
 
 class GitHubUserHandler(GithubClientMixin, BaseHandler):
@@ -116,7 +116,9 @@ class GitHubUserHandler(GithubClientMixin, BaseHandler):
 class GitHubRepoHandler(BaseHandler):
     """redirect /github/user/repo to .../tree/master"""
     def get(self, user, repo):
-        self.redirect("%s/github/%s/%s/tree/master/" % (self.format_prefix, user, repo))
+        new_url = self.from_base('/', self.format_prefix, 'github', user, repo, 'tree', 'master')
+        app_log.info("Redirecting %s to %s", self.request.uri, new_url)
+        self.redirect(new_url)
 
 
 class GitHubTreeHandler(GithubClientMixin, BaseHandler):

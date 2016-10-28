@@ -48,7 +48,7 @@ except ImportError:
 
 
 from .log import log_request
-from .utils import git_info, jupyter_info
+from .utils import git_info, jupyter_info, url_path_join
 
 #-----------------------------------------------------------------------------
 # Code
@@ -204,6 +204,7 @@ def make_app():
         log_function=log_request,
         jinja2_env=env,
         static_path=static_path,
+        static_url_prefix=url_path_join(options.base_url, '/static/'),
         client=client,
         formats=formats,
         default_format=options.default_format,
@@ -224,11 +225,12 @@ def make_app():
         mathjax_url=options.mathjax_url,
         statsd_host=options.statsd_host,
         statsd_port=options.statsd_port,
-        statsd_prefix=options.statsd_prefix
+        statsd_prefix=options.statsd_prefix,
+        base_url=options.base_url
     )
 
     # handle handlers
-    handlers = init_handlers(formats, options.providers)
+    handlers = init_handlers(formats, options.providers, options.base_url)
 
     if options.localfiles:
         log.app_log.warning("Serving local notebooks in %s, this can be a security risk", options.localfiles)
@@ -274,6 +276,8 @@ def init_options():
     define("statsd_host", default="", help="Host running statsd to send metrics to", type=str)
     define("statsd_port", default=8125, help="Port on which statsd is listening for metrics on statsd_host", type=int)
     define("statsd_prefix", default='nbviewer', help="Prefix to use for naming metrics sent to statsd", type=str)
+    define("base_url", default="/", help="URL base for the server")
+
 
 def main(argv=None):
     init_options()

@@ -13,13 +13,13 @@
 {% block entry scoped %}
   <tr>
     <td>
-      <a href="{{entry.id}}">
+      <a href="{{ from_base(entry.id) }}">
         {{entry.id}}
       </a>
     </td>
     <td>
       {% for notebook in entry.notebooks %}
-        <a href="{{entry.id}}/{{notebook}}">
+        <a href="{{ from_base(entry.id, notebook) }}">
           <i class="fa fa-fw fa-book"></i>
           {{notebook}}
         </a>

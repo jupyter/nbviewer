@@ -1,6 +1,6 @@
 {% macro head_text(url, name, bold=False) -%}
   <li>
-    <a href="{{url}}" title="{{name}}" {%if download %}download{% endif %}>
+    <a href="{{ from_base(url) }}" title="{{name}}" {%if download %}download{% endif %}>
       {% if bold %}<strong>{% endif %}
         <span>{{name}}</span>
       {% if bold %}</strong>{% endif %}
@@ -11,7 +11,7 @@
 
 {% macro head_icon(url, name, icon, download=False) -%}
   <li>
-    <a href="{{url}}" title="{{name}}" {%if download %}download{% endif %}>
+    <a href="{{ from_base(url) }}" title="{{name}}" {%if download %}download{% endif %}>
       <span class="fa fa-{{icon}} fa-2x menu-icon"></span>
       <span class="menu-text">{{name}}</span>
     </a>
@@ -24,7 +24,7 @@
   <ol class="breadcrumb">
     {% for crumb in crumbs %}
       <li>
-        <a href="{{crumb['url']}}">{{crumb['name']}}</a>
+        <a href="{{ from_base(crumb['url']) }}">{{crumb['name']}}</a>
       </li>
     {% endfor %}
   </ol>
@@ -50,7 +50,7 @@
   <!--NREND-->
 
   <!-- Le styles -->
-  <link href="/static/build/styles.css" rel="stylesheet">
+  <link href="{{static_url("build/styles.css")}}" rel="stylesheet">
 
   <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
   <!--[if lt IE 9]>
@@ -60,13 +60,13 @@
   <!-- Le fav and touch icons -->
   <link rel="shortcut icon" href="/static/ico/ipynb_icon_16x16.png">
   <link rel="apple-touch-icon-precomposed" sizes="144x144"
-        href="/static/ico/apple-touch-icon-144-precomposed.png">
+        href="{{ static_url("ico/apple-touch-icon-144-precomposed.png") }}">
   <link rel="apple-touch-icon-precomposed" sizes="114x114"
-        href="/static/ico/apple-touch-icon-114-precomposed.png">
+        href="{{ static_url("ico/apple-touch-icon-114-precomposed.png") }}">
   <link rel="apple-touch-icon-precomposed" sizes="72x72"
-        href="/static/ico/apple-touch-icon-72-precomposed.png">
+        href="{{ static_url("ico/apple-touch-icon-72-precomposed.png") }}">
   <link rel="apple-touch-icon-precomposed"
-        href="/static/ico/apple-touch-icon-57-precomposed.png">
+        href="{{ static_url("ico/apple-touch-icon-57-precomposed.png") }}">
   {% block extra_head %}{% endblock %}
 </head>
 
@@ -74,9 +74,9 @@
 
   <!-- These are loaded at the top of the body so they are available to
        notebook cells when they are loaded below. -->
-  <script src="/static/components/jquery/dist/jquery.min.js"></script>
-  <script src="/static/components/requirejs/require.js"></script>
-  <script src="/static/components/moment/min/moment.min.js"></script>
+  <script src="{{ static_url("components/jquery/dist/jquery.min.js") }}"></script>
+  <script src="{{ static_url("components/requirejs/require.js") }}"></script>
+  <script src="{{ static_url("components/moment/min/moment.min.js") }}"></script>
 
 <!-- Navbar
 ================================================== -->
@@ -87,8 +87,8 @@
           <span class="sr-only">Toggle navigation</span>
           <i class="fa fa-bars"></i>
         </button>
-        <a class="navbar-brand" href="/">
-          <img src="/static/img/nav_logo.svg" width="159"/>
+        <a class="navbar-brand" href="{{ from_base('/') }}">
+          <img src="{{ static_url("img/nav_logo.svg") }}" width="159"/>
         </a>
       </div>
 
@@ -97,7 +97,7 @@
           <li>
             <a class="active" href="http://jupyter.org">JUPYTER</a>
           </li>
-          {{ head_text('/faq', "FAQ") }}
+          {{ head_text(from_base('/faq'), "FAQ") }}
 
           {% block otherlinks %}
             {% if provider_url %}
@@ -157,9 +157,9 @@
     </footer>
   {% endblock footer %}
 
-  <script src="/static/components/bootstrap/js/bootstrap.min.js"></script>
-  <script src="/static/components/headroom.js/dist/headroom.min.js"></script>
-  <script src="/static/components/headroom.js/dist/jQuery.headroom.min.js"></script>
+  <script src="{{ static_url("components/bootstrap/js/bootstrap.min.js") }}></script>
+  <script src="{{ static_url("components/headroom.js/dist/headroom.min.js") }}></script>
+  <script src="{{ static_url("components/headroom.js/dist/jQuery.headroom.min.js") }}></script>
 
   {% block extra_script %}{% endblock %}
 
@@ -174,7 +174,7 @@
   <script>
     require({
         paths: {
-          moment: "/static/components/moment/min/moment.min.js"
+          moment: "{{ static_url("components/moment/min/moment.min.js") }}"
         }
       }, ["moment"], function(moment){
       var date = $("footer .date"),

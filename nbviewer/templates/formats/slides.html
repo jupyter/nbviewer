@@ -3,8 +3,8 @@
 
 {% block style_base %}
   <!-- General and theme style sheets -->
-  <link rel="stylesheet" href="/static/components/reveal.js/css/reveal.css" />
-  <link rel="stylesheet" href="/static/components/reveal.js/css/theme/simple.css" id="theme" />
+  <link rel="stylesheet" href="{{ static_url("components/reveal.js/css/reveal.css") }}" />
+  <link rel="stylesheet" href="{{ static_url("components/reveal.js/css/theme/simple.css") }}" id="theme" />
 
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -16,17 +16,17 @@
     var link = document.createElement('link');
     link.rel = 'stylesheet';
     link.type = 'text/css';
-    link.href = '/static/components/reveal.js/css/print/' +
+    link.href = '{{ static_url("components/reveal.js/css/print/") }}' +
       (window.location.search.match(/print-pdf/gi) ? 'pdf' : 'paper') +
       ".css";
     document.getElementsByTagName('head')[0].appendChild(link);
   </script>
 
   <!--[if lt IE 9]>
-    <script src="/static/components/reveal.js/lib/js/html5shiv.js"></script>
+    <script src="{{ static_url("components/reveal.js/lib/js/html5shiv.js") }}"></script>
   <![endif]-->
 
-  <link rel="stylesheet" href="/static/build/slides.css" />
+  <link rel="stylesheet" href="{{ static_url("build/slides.css") }}" />
 {% endblock %}
 
 
@@ -45,8 +45,8 @@
         waitSeconds: 0
       },
       [
-        "/static/components/reveal.js/lib/js/head.min.js",
-        "/static/components/reveal.js/js/reveal.js"
+        "{{ static_url("components/reveal.js/lib/js/head.min.js") }}",
+        "{{ static_url("components/reveal.js/js/reveal.js") }}"
       ],
       function(head, Reveal){
         // Full list of configuration options available here: https://github.com/hakimel/reveal.js#configuration
@@ -66,11 +66,11 @@
           // Optional libraries used to extend on reveal.js
           dependencies: [
             {
-              src: "/static/components/reveal.js/lib/js/classList.js",
+              src: "{{ static_url("components/reveal.js/lib/js/classList.js") }} ",
               condition: function() { return !document.body.classList; }
             },
             {
-              src: "/static/components/reveal.js/plugin/notes/notes.js",
+              src: "{{ static_url("components/reveal.js/plugin/notes/notes.js") }}",
               async: true,
               condition: function() { return !!document.body.classList; }
             }
