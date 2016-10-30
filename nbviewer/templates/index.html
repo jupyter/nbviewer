@@ -33,8 +33,8 @@
           {% for link in section.links %}
             <li class="col-md-4">
               <p class="marketing-byline">{{link.text}}</p>
-              <a class="thumbnail" href="{{link.target}}" target="_blank">
-                <img src="{{link.img}}" />
+              <a class="thumbnail" href="{{ from_base(link.target) }}" target="_blank">
+                <img src="{{ from_base(link.img) }}" />
               </a>
             </li>
           {% endfor %}
