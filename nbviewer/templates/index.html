@@ -6,7 +6,7 @@
     <p>A simple way to share Jupyter Notebooks</p>
     <div class="row">
       <div class="col-md-10 col-md-offset-1">
-        <form method="post" action="create/">
+        <form method="post" action="{{ from_base('/create/') }}">
           <div class="input-group">
             <input class="form-control"
              id="main-input"
@@ -33,8 +33,8 @@
           {% for link in section.links %}
             <li class="col-md-4">
               <p class="marketing-byline">{{link.text}}</p>
-              <a class="thumbnail" href="{{link.target}}" target="_blank">
-                <img src="{{link.img}}" />
+              <a class="thumbnail" href="{{ from_base(link.target) }}" target="_blank">
+                <img src="{{ from_base(link.img) }}" />
               </a>
             </li>
           {% endfor %}

@@ -46,7 +46,7 @@ from ..render import (
     NbFormatError,
     render_notebook,
 )
-from ..utils import parse_header_links, time_block, EmptyClass
+from ..utils import parse_header_links, time_block, EmptyClass, url_path_join
 
 try:
     import pycurl
@@ -162,9 +162,18 @@ class BaseHandler(web.RequestHandler):
             self._statsd = EmptyClass()
             return self._statsd
 
+    @property
+    def base_url(self):
+        return self.settings['base_url']
+
     #---------------------------------------------------------------
     # template rendering
     #---------------------------------------------------------------
+
+    def from_base(self, url, *args):
+        if not url.startswith('/') or url.startswith(self.base_url):
+            return url_path_join(url, *args)
+        return url_path_join(self.base_url, url, *args)
 
     def get_template(self, name):
         """Return the jinja template object for a given name"""
@@ -178,7 +187,9 @@ class BaseHandler(web.RequestHandler):
     @property
     def template_namespace(self):
         return {
-            "mathjax_url": self.mathjax_url
+            "mathjax_url": self.mathjax_url,
+            "static_url": self.static_url,
+            "from_base": self.from_base
         }
 
     def breadcrumbs(self, path, base_url):
@@ -186,8 +197,9 @@ class BaseHandler(web.RequestHandler):
         breadcrumbs = []
         if not path:
             return breadcrumbs
+
         for name in path.split('/'):
-            href = base_url = "%s/%s" % (base_url, name)
+            href = base_url = url_path_join(base_url, name)
             breadcrumbs.append({
                 'url' : base_url,
                 'name' : name,
@@ -582,7 +594,7 @@ class RenderingHandler(BaseHandler):
             default_format=self.default_format,
             format_prefix=format_prefix,
             formats=dict(self.filter_formats(nb, json_notebook)),
-            format_base=self.request.uri.replace(self.format_prefix, ""),
+            format_base=self.request.uri.replace(self.format_prefix, "").replace(self.base_url, '/'),
             date=datetime.utcnow().strftime(date_fmt),
             breadcrumbs=breadcrumbs,
             **config)

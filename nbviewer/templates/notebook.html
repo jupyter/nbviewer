@@ -1,15 +1,15 @@
 {% extends "layout.html" %}
 
-{% import "layout.html" as layout %}
+{% import "layout.html" as layout with context %}
 
 
 {% block otherlinks %}
   {% for fmt_name, fmt in formats.items() %}
     {% if format != fmt_name %}
       {% if fmt_name == default_format %}
-        {{ layout.head_icon(format_base, "View as " ~ fmt.label, fmt.icon) }}
+        {{ layout.head_icon(from_base(format_base), "View as " ~ fmt.label, fmt.icon) }}
       {% else %}
-        {{ layout.head_icon(format_prefix ~ fmt_name ~ format_base, "View as " ~ fmt.label, fmt.icon) }}
+        {{ layout.head_icon(from_base(format_prefix, fmt_name, format_base), "View as " ~ fmt.label, fmt.icon) }}
       {% endif %}
     {% endif %}
   {% endfor %}
@@ -41,11 +41,11 @@
   <meta name="twitter:image:src" content="{{ thumbnail | default('http://ipython.org/ipython-doc/dev/_images/ipynb_icon_128x128.png') }}">
 
   {% block style_base %}
-    <link href="/static/build/notebook.css" rel="stylesheet">
+    <link href="{{ static_url("build/notebook.css") }}" rel="stylesheet">
   {% endblock %}
 
   {% if css_theme %}
-    <link href="/static/css/theme/{{css_theme}}.css" rel="stylesheet">
+    <link href="{{ static_url("css/theme/{{css_theme}}.css") }} rel="stylesheet">
   {% endif %}
 
   {% block mathjax %}

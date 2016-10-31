@@ -7,7 +7,7 @@
     <ul>
       {% for ref in refs %}
         <li>
-          <a href="{{ ref.url }}">
+          <a href="{{ from_base(ref.url) }}">
             {{ ref.name }}
           </a>
         </li>
@@ -57,7 +57,7 @@
               <i class="fa fa-backward fa-fw"></i> ..
             </a>
           {% else %}
-            <a href="/{{ tree_type }}/{{user}}">
+            <a href="{{ from_base('/', tree_type, user) }}">
               <i class="fa fa-backward fa-fw"></i> {{user}}'s 
               {{ tree_label | default('repositories')}}
             </a>
@@ -68,7 +68,7 @@
         <tr>
           <td>
             {% if entry.url %}
-              <a href="{{entry.url}}">
+              <a href="{{ from_base(entry.url) }}">
             {% endif %}
               <i class="fa fa-fw {{entry.class}}"></i>
               {{entry.name}}
