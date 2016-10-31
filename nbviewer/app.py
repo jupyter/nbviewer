@@ -226,7 +226,9 @@ def make_app():
         statsd_host=options.statsd_host,
         statsd_port=options.statsd_port,
         statsd_prefix=options.statsd_prefix,
-        base_url=options.base_url
+        base_url=options.base_url,
+        hub_api_token=os.getenv('JUPYTERHUB_API_TOKEN'),
+        hub_api_url=os.getenv('JUPYTERHUB_API_URL'),
     )
 
     # handle handlers
@@ -276,7 +278,7 @@ def init_options():
     define("statsd_host", default="", help="Host running statsd to send metrics to", type=str)
     define("statsd_port", default=8125, help="Port on which statsd is listening for metrics on statsd_host", type=int)
     define("statsd_prefix", default='nbviewer', help="Prefix to use for naming metrics sent to statsd", type=str)
-    define("base_url", default="/", help="URL base for the server")
+    define("base_url", default=os.getenv('JUPYTERHUB_SERVICE_PREFIX', '/'), help='URL base for the server')
 
 
 def main(argv=None):
@@ -295,7 +297,7 @@ def main(argv=None):
         }
 
     http_server = httpserver.HTTPServer(app, xheaders=True, ssl_options=ssl_options)
-    log.app_log.info("Listening on port %i", options.port)
+    log.app_log.info("Listening on port %i, path %s", options.port, options.base_url)
     http_server.listen(options.port)
     ioloop.IOLoop.current().start()
 

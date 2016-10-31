@@ -18,10 +18,10 @@ from datetime import datetime
 try:
     # py3
     from http.client import responses
-    from urllib.parse import urlparse, urlunparse
+    from urllib.parse import urlparse, urlunparse, quote
 except ImportError:
     from httplib import responses
-    from urlparse import urlparse, urlunparse
+    from urlparse import urlparse, urlunparse, quote
 
 from tornado import (
     gen,
@@ -65,6 +65,7 @@ class BaseHandler(web.RequestHandler):
     def initialize(self, format=None, format_prefix=""):
         self.format = format or self.default_format
         self.format_prefix = format_prefix
+        self.http_client = httpclient.AsyncHTTPClient()
 
     # Overloaded methods
     def redirect(self, url, *args, **kwargs):
@@ -87,6 +88,23 @@ class BaseHandler(web.RequestHandler):
             *args,
             **kwargs
         )
+
+    @gen.coroutine
+    def prepare(self):
+        if self.hub_api_url or self.hub_api_token:
+            encrypted_cookie = self.get_cookie(self.hub_cookie_name)
+            if not encrypted_cookie:
+                raise web.HTTPError(401)
+
+            yield self.http_client.fetch(
+                url_path_join(self.hub_api_url,
+                                'authorizations/cookie',
+                                self.hub_cookie_name,
+                                quote(encrypted_cookie, safe='')),
+                headers={
+                    'Authorization': 'token ' + self.hub_api_token
+                }
+            )
 
     # Properties
     @property
@@ -165,6 +183,18 @@ class BaseHandler(web.RequestHandler):
     @property
     def base_url(self):
         return self.settings['base_url']
+
+    @property
+    def hub_api_token(self):
+        return self.settings.get('hub_api_token')
+
+    @property
+    def hub_api_url(self):
+        return self.settings.get('hub_api_url')
+
+    @property
+    def hub_cookie_name(self):
+        return 'jupyterhub-services'
 
     #---------------------------------------------------------------
     # template rendering
