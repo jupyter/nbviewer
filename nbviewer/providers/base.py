@@ -21,7 +21,8 @@ try:
     from urllib.parse import urlparse, urlunparse, quote
 except ImportError:
     from httplib import responses
-    from urlparse import urlparse, urlunparse, quote
+    from urlparse import urlparse, urlunparse
+    from urllib import quote
 
 from tornado import (
     gen,
