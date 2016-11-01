@@ -235,7 +235,7 @@ def make_app():
     if options.localfiles:
         log.app_log.warning("Serving local notebooks in %s, this can be a security risk", options.localfiles)
         # use absolute or relative paths:
-        local_handlers = [(r'/localfile/(.*)', LocalFileHandler)]
+        local_handlers = [( url_path_join(options.base_url, r'/localfile/(.*)'), LocalFileHandler)]
         handlers = (
             local_handlers +
             format_handlers(formats, local_handlers) +
