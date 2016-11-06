@@ -6,6 +6,7 @@
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
+import os
 import requests
 
 from .base import NBViewerTestCase
@@ -46,3 +47,41 @@ class URLLeakTestCase(NBViewerTestCase):
         self.assertNotIn('client_id', html)
         self.assertNotIn('client_secret', html)
         self.assertNotIn('access_token', html)
+
+class JupyterHubServiceTestCase(NBViewerTestCase):
+    HUB_SETTINGS = {
+        'JUPYTERHUB_SERVICE_NAME': 'nbviewer-test',
+        'JUPYTERHUB_API_TOKEN': 'test-token',
+        'JUPYTERHUB_API_URL': 'http://127.0.0.1:8080/hub/api',
+        'JUPYTERHUB_BASE_URL': '/',
+        'JUPYTERHUB_SERVICE_URL': 'http://127.0.0.1:%d' % NBViewerTestCase.port,
+        'JUPYTERHUB_SERVICE_PREFIX': '/services/nbviewer-test'
+    }
+
+    @classmethod
+    def get_server_args(cls):
+        return [
+            '--localfiles=.'
+        ]
+
+    @classmethod
+    def setup_class(cls):
+        os.environ.update(cls.HUB_SETTINGS)
+        super(JupyterHubServiceTestCase, cls).setup_class()
+
+    @classmethod
+    def teardown_class(cls):
+        for key in cls.HUB_SETTINGS.keys():
+            del os.environ[key]
+        super(JupyterHubServiceTestCase, cls).teardown_class()
+
+    def test_login_redirect(self):
+        url = self.url('/services/nbviewer-test/github/jupyter')
+        r = requests.get(url, allow_redirects=False)
+        self.assertEqual(r.status_code, 302)
+        self.assertEqual(r.headers['location'], '/hub/login')
+
+        url = self.url('services/nbviewer-test/localfile/nbviewer/tests/notebook.ipynb')
+        r = requests.get(url, allow_redirects=False)
+        self.assertEqual(r.status_code, 302)
+        self.assertEqual(r.headers['location'], '/hub/login')
