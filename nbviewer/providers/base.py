@@ -92,11 +92,22 @@ class BaseHandler(web.RequestHandler):
 
     @gen.coroutine
     def prepare(self):
+        """Check if the user is authenticated with JupyterHub if the hub
+        API endpoint and token are configured.
+
+        Redirect unauthenticated requests to the JupyterHub login page.
+        Do nothing if not running as a JupyterHub service.
+        """
+        # if any of these are set, assume we want to do auth, even if
+        # we're misconfigured (better safe than sorry!)
         if self.hub_api_url or self.hub_api_token:
             encrypted_cookie = self.get_cookie(self.hub_cookie_name)
             if not encrypted_cookie:
+                # no cookie == not authenticated
+                # self.redirect(url_path_join(self.hub_api_url, '../login'))
                 raise web.HTTPError(401)
 
+            # TODO: 400 indicates user is unknown? what about a faked cookie?
             yield self.http_client.fetch(
                 url_path_join(self.hub_api_url,
                                 'authorizations/cookie',

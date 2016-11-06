@@ -13,13 +13,16 @@ import logging
 import markdown
 
 
-# https://docs.python.org/3/library/cgi.html#cgi.escape
-# Deprecated since version 3.2: This function is unsafe because quote is
-# false by default, and therefore deprecated. Use html.escape() instead.
 try:
+    # py3
+    from urllib.parse import urlparse
+    # https://docs.python.org/3/library/cgi.html#cgi.escape
+    # Deprecated since version 3.2: This function is unsafe because quote is
+    # false by default, and therefore deprecated. Use html.escape() instead.
     from html import escape
 except ImportError:
     from cgi import escape
+    from urlparse import urlparse
 
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 
@@ -254,10 +257,18 @@ def init_options():
         # already run
         return
 
+    # check if JupyterHub service options are available to use as defaults
+    if 'JUPYTERHUB_SERVICE_URL' in os.environ:
+        url = urlparse(os.environ['JUPYTERHUB_SERVICE_URL'])
+        default_host, default_port = url.hostname, url.port
+    else:
+        default_host, default_port = '0.0.0.0', 5000
+
     define("debug", default=False, help="run in debug mode", type=bool)
     define("no_cache", default=False, help="Do not cache results", type=bool)
     define("localfiles", default="", help="Allow to serve local files under /localfile/* this can be a security risk", type=str)
-    define("port", default=5000, help="run on the given port", type=int)
+    define("host", default=default_host, help="run on the given interface", type=str)
+    define("port", default=default_port, help="run on the given port", type=int)
     define("cache_expiry_min", default=10*60, help="minimum cache expiry (seconds)", type=int)
     define("cache_expiry_max", default=2*60*60, help="maximum cache expiry (seconds)", type=int)
     define("render_timeout", default=15, help="Time to wait for a render to complete before showing the 'Working...' page.", type=int)
@@ -297,8 +308,8 @@ def main(argv=None):
         }
 
     http_server = httpserver.HTTPServer(app, xheaders=True, ssl_options=ssl_options)
-    log.app_log.info("Listening on port %i, path %s", options.port, options.base_url)
-    http_server.listen(options.port)
+    log.app_log.info("Listening on %s:%i, path %s", options.host, options.port, options.base_url)
+    http_server.listen(options.port, options.host)
     ioloop.IOLoop.current().start()
 
 
