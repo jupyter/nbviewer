@@ -107,7 +107,7 @@ class BaseHandler(web.RequestHandler):
             encrypted_cookie = self.get_cookie(self.hub_cookie_name)
             if not encrypted_cookie:
                 # no cookie == not authenticated
-                return redirect_to_login()
+                raise gen.Return(redirect_to_login())
 
             try:
                 # if the hub returns a success code, the user is known
@@ -123,7 +123,7 @@ class BaseHandler(web.RequestHandler):
             except httpclient.HTTPError as ex:
                 if ex.response.code == 404:
                     # hub does not recognize the cookie == not authenticated
-                    return redirect_to_login()
+                    raise gen.Return(redirect_to_login())
                 # let all other errors surface: they're unexpected
                 raise ex
 
