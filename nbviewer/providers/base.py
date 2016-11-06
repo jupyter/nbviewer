@@ -100,23 +100,32 @@ class BaseHandler(web.RequestHandler):
         """
         # if any of these are set, assume we want to do auth, even if
         # we're misconfigured (better safe than sorry!)
-        if self.hub_api_url or self.hub_api_token:
+        if self.hub_api_url or self.hub_api_token or self.hub_base_url:
+            def redirect_to_login():
+                self.redirect(url_path_join(self.hub_base_url, '/hub/login'))
+
             encrypted_cookie = self.get_cookie(self.hub_cookie_name)
             if not encrypted_cookie:
                 # no cookie == not authenticated
-                # self.redirect(url_path_join(self.hub_api_url, '../login'))
-                raise web.HTTPError(401)
+                return redirect_to_login()
 
-            # TODO: 400 indicates user is unknown? what about a faked cookie?
-            yield self.http_client.fetch(
-                url_path_join(self.hub_api_url,
-                                'authorizations/cookie',
-                                self.hub_cookie_name,
-                                quote(encrypted_cookie, safe='')),
-                headers={
-                    'Authorization': 'token ' + self.hub_api_token
-                }
-            )
+            try:
+                # if the hub returns a success code, the user is known
+                yield self.http_client.fetch(
+                    url_path_join(self.hub_api_url,
+                                    'authorizations/cookie',
+                                    self.hub_cookie_name,
+                                    quote(encrypted_cookie, safe='')),
+                    headers={
+                        'Authorization': 'token ' + self.hub_api_token
+                    }
+                )
+            except httpclient.HTTPError as ex:
+                if ex.response.code == 404:
+                    # hub does not recognize the cookie == not authenticated
+                    return redirect_to_login()
+                # let all other errors surface: they're unexpected
+                raise ex
 
     # Properties
     @property
@@ -203,6 +212,10 @@ class BaseHandler(web.RequestHandler):
     @property
     def hub_api_url(self):
         return self.settings.get('hub_api_url')
+
+    @property
+    def hub_base_url(self):
+        return self.settings['hub_base_url']
 
     @property
     def hub_cookie_name(self):

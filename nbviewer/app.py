@@ -232,6 +232,7 @@ def make_app():
         base_url=options.base_url,
         hub_api_token=os.getenv('JUPYTERHUB_API_TOKEN'),
         hub_api_url=os.getenv('JUPYTERHUB_API_URL'),
+        hub_base_url=os.getenv('JUPYTERHUB_BASE_URL'),
     )
 
     # handle handlers
