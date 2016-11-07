@@ -18,10 +18,10 @@ from datetime import datetime
 try:
     # py3
     from http.client import responses
-    from urllib.parse import urlparse, urlunparse, quote
+    from urllib.parse import urlparse, urlunparse, quote, urlencode
 except ImportError:
     from httplib import responses
-    from urlparse import urlparse, urlunparse
+    from urlparse import urlparse, urlunparse, urlencode
     from urllib import quote
 
 from tornado import (
@@ -102,7 +102,8 @@ class BaseHandler(web.RequestHandler):
         # we're misconfigured (better safe than sorry!)
         if self.hub_api_url or self.hub_api_token or self.hub_base_url:
             def redirect_to_login():
-                self.redirect(url_path_join(self.hub_base_url, '/hub/login'))
+                self.redirect(url_path_join(self.hub_base_url, '/hub/login') +
+                              '?' + urlencode({'next': self.request.path}))
 
             encrypted_cookie = self.get_cookie(self.hub_cookie_name)
             if not encrypted_cookie:
