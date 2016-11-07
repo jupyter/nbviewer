@@ -79,9 +79,9 @@ class JupyterHubServiceTestCase(NBViewerTestCase):
         url = self.url('/services/nbviewer-test/github/jupyter')
         r = requests.get(url, allow_redirects=False)
         self.assertEqual(r.status_code, 302)
-        self.assertEqual(r.headers['location'], '/hub/login')
+        self.assertEqual(r.headers['location'], '/hub/login?next=%2Fservices%2Fnbviewer-test%2Fgithub%2Fjupyter')
 
         url = self.url('services/nbviewer-test/localfile/nbviewer/tests/notebook.ipynb')
         r = requests.get(url, allow_redirects=False)
         self.assertEqual(r.status_code, 302)
-        self.assertEqual(r.headers['location'], '/hub/login')
+        self.assertEqual(r.headers['location'], '/hub/login?next=%2Fservices%2Fnbviewer-test%2Flocalfile%2Fnbviewer%2Ftests%2Fnotebook.ipynb')
