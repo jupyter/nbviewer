@@ -187,7 +187,7 @@ publishing, and we'd love to here from you.
 
 ## Securing the Notebook Viewer
 
-You can run the viewer as a JupyterHub 0.7+ service. Doing so prevents users who have not authenticated with the Hub from viewing any notebooks. This setup can be useful for protecting access to local notebooks rendered with the `--localfiles` option.
+You can run the viewer as a [JupyterHub 0.7+ service](http://jupyterhub.readthedocs.io/en/latest/services.html). Running the viewer as a service prevents users who have not authenticated with the Hub from acccessing the nbviewer instance. This setup can be useful for protecting access to local notebooks rendered with the `--localfiles` option.
 
 Add an entry like the following to your `jupyterhub_config.py` to have it start nbviewer as a managed service:
 
