@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+{% block body %}
+{{ link_breadcrumbs(breadcrumbs) }}
+<table class='table table-condensed table-bordered table-striped'>
+  <thead>
+    <tr><th>Name</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        {% if len(breadcrumbs) > 1 %}
+          <a href='{{ from_base(breadcrumbs[-2]["url"]) }}'><i class='fa fa-level-up'></i> ..</a>
+        {% endif %}
+      </td>
+    </tr>
+    {% for entry in entries %}
+      <tr><td><i class='{{entry.class}}'></i>
+        {% if entry.url %}
+          <a href='{{ from_base(entry.url) }}'>
+        {% endif %}
+        {{entry.name}}
+        {% if entry.url %}
+          </a>
+        {% endif %}
+      </td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

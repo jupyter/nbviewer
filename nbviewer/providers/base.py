@@ -199,10 +199,10 @@ class BaseHandler(web.RequestHandler):
             return breadcrumbs
 
         for name in path.split('/'):
-            href = base_url = url_path_join(base_url, name)
+            base_url = url_path_join(base_url, name)
             breadcrumbs.append({
-                'url' : base_url,
-                'name' : name,
+                'url': base_url,
+                'name': name,
             })
         return breadcrumbs
 
