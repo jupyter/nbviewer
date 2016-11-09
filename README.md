@@ -184,3 +184,26 @@ Formats are ways to present notebooks to the user.
 If you'd like to write a new format, open a ticket, or speak up on [gitter][]!
 We have some work yet to do to support your next big thing in notebook
 publishing, and we'd love to here from you.
+
+## Securing the Notebook Viewer
+
+You can run the viewer as a [JupyterHub 0.7+ service](http://jupyterhub.readthedocs.io/en/latest/services.html). Running the viewer as a service prevents users who have not authenticated with the Hub from acccessing the nbviewer instance. This setup can be useful for protecting access to local notebooks rendered with the `--localfiles` option.
+
+Add an entry like the following to your `jupyterhub_config.py` to have it start nbviewer as a managed service:
+
+```python
+c.JupyterHub.services = [
+    {
+        # the /services/<name> path for accessing the notebook viewer
+        'name': 'nbviewer',
+        # the interface and port nbviewer will use
+        'url': 'http://127.0.0.1:9000',
+        # the api token for nbviewer to check user auth
+        'api_token': 'my-secret-nbviewer-token',
+        # command to start the nbviewer
+        'command': ['python', '-m', 'nbviewer']
+    }
+]
+```
+
+The nbviewer instance will automatically read the [various `JUPYTERHUB_*` environment variables](http://jupyterhub.readthedocs.io/en/latest/services.html#launching-a-hub-managed-service) and configure itself accordingly. You can also run the nbviewer instance as an [externally managed JupyterHub service](http://jupyterhub.readthedocs.io/en/latest/services.html#externally-managed-services), but must set the requisite environment variables yourself.

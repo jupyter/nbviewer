@@ -13,13 +13,16 @@ import logging
 import markdown
 
 
-# https://docs.python.org/3/library/cgi.html#cgi.escape
-# Deprecated since version 3.2: This function is unsafe because quote is
-# false by default, and therefore deprecated. Use html.escape() instead.
 try:
+    # py3
+    from urllib.parse import urlparse
+    # https://docs.python.org/3/library/cgi.html#cgi.escape
+    # Deprecated since version 3.2: This function is unsafe because quote is
+    # false by default, and therefore deprecated. Use html.escape() instead.
     from html import escape
 except ImportError:
     from cgi import escape
+    from urlparse import urlparse
 
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 
@@ -200,11 +203,14 @@ def make_app():
 
         log.app_log.info("Not validating SSL certificates")
 
+    # prefer the jhub defined service prefix over the CLI
+    base_url = os.getenv('JUPYTERHUB_SERVICE_PREFIX', options.base_url)
+
     settings = dict(
         log_function=log_request,
         jinja2_env=env,
         static_path=static_path,
-        static_url_prefix=url_path_join(options.base_url, '/static/'),
+        static_url_prefix=url_path_join(base_url, '/static/'),
         client=client,
         formats=formats,
         default_format=options.default_format,
@@ -226,16 +232,19 @@ def make_app():
         statsd_host=options.statsd_host,
         statsd_port=options.statsd_port,
         statsd_prefix=options.statsd_prefix,
-        base_url=options.base_url
+        base_url=base_url,
+        hub_api_token=os.getenv('JUPYTERHUB_API_TOKEN'),
+        hub_api_url=os.getenv('JUPYTERHUB_API_URL'),
+        hub_base_url=os.getenv('JUPYTERHUB_BASE_URL'),
     )
 
     # handle handlers
-    handlers = init_handlers(formats, options.providers, options.base_url)
+    handlers = init_handlers(formats, options.providers, base_url)
 
     if options.localfiles:
         log.app_log.warning("Serving local notebooks in %s, this can be a security risk", options.localfiles)
         # use absolute or relative paths:
-        local_handlers = [( url_path_join(options.base_url, r'/localfile/?(.*)'), LocalFileHandler)]
+        local_handlers = [( url_path_join(base_url, r'/localfile/?(.*)'), LocalFileHandler)]
         handlers = (
             local_handlers +
             format_handlers(formats, local_handlers) +
@@ -252,10 +261,18 @@ def init_options():
         # already run
         return
 
+    # check if JupyterHub service options are available to use as defaults
+    if 'JUPYTERHUB_SERVICE_URL' in os.environ:
+        url = urlparse(os.environ['JUPYTERHUB_SERVICE_URL'])
+        default_host, default_port = url.hostname, url.port
+    else:
+        default_host, default_port = '0.0.0.0', 5000
+
     define("debug", default=False, help="run in debug mode", type=bool)
     define("no_cache", default=False, help="Do not cache results", type=bool)
     define("localfiles", default="", help="Allow to serve local files under /localfile/* this can be a security risk", type=str)
-    define("port", default=5000, help="run on the given port", type=int)
+    define("host", default=default_host, help="run on the given interface", type=str)
+    define("port", default=default_port, help="run on the given port", type=int)
     define("cache_expiry_min", default=10*60, help="minimum cache expiry (seconds)", type=int)
     define("cache_expiry_max", default=2*60*60, help="maximum cache expiry (seconds)", type=int)
     define("render_timeout", default=15, help="Time to wait for a render to complete before showing the 'Working...' page.", type=int)
@@ -276,7 +293,7 @@ def init_options():
     define("statsd_host", default="", help="Host running statsd to send metrics to", type=str)
     define("statsd_port", default=8125, help="Port on which statsd is listening for metrics on statsd_host", type=int)
     define("statsd_prefix", default='nbviewer', help="Prefix to use for naming metrics sent to statsd", type=str)
-    define("base_url", default="/", help="URL base for the server")
+    define("base_url", default='/', help='URL base for the server')
 
 
 def main(argv=None):
@@ -295,8 +312,9 @@ def main(argv=None):
         }
 
     http_server = httpserver.HTTPServer(app, xheaders=True, ssl_options=ssl_options)
-    log.app_log.info("Listening on port %i", options.port)
-    http_server.listen(options.port)
+    log.app_log.info("Listening on %s:%i, path %s", options.host, options.port,
+                     app.settings['base_url'])
+    http_server.listen(options.port, options.host)
     ioloop.IOLoop.current().start()
 
 
