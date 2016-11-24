@@ -42,7 +42,6 @@ from .index import NoSearch, ElasticSearch
 from .formats import configure_formats
 
 from .providers import default_providers, default_rewrites
-from .providers.local import LocalFileHandler
 
 try:
     from .providers.url.client import NBViewerCurlAsyncHTTPClient as HTTPClientClass
@@ -238,18 +237,11 @@ def make_app():
         hub_base_url=os.getenv('JUPYTERHUB_BASE_URL'),
     )
 
-    # handle handlers
-    handlers = init_handlers(formats, options.providers, base_url)
-
     if options.localfiles:
         log.app_log.warning("Serving local notebooks in %s, this can be a security risk", options.localfiles)
-        # use absolute or relative paths:
-        local_handlers = [( url_path_join(base_url, r'/localfile/?(.*)'), LocalFileHandler)]
-        handlers = (
-            local_handlers +
-            format_handlers(formats, local_handlers) +
-            handlers
-        )
+
+    # handle handlers
+    handlers = init_handlers(formats, options.providers, base_url, options.localfiles)
 
     # create the app
     return web.Application(handlers, debug=options.debug, **settings)

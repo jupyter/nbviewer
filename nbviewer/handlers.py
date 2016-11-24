@@ -17,6 +17,7 @@ from .providers.base import (
     BaseHandler,
     format_prefix,
 )
+from .providers.local import LocalFileHandler
 
 #-----------------------------------------------------------------------------
 # Handler classes
@@ -81,7 +82,7 @@ def format_handlers(formats, handlers):
     ]
 
 
-def init_handlers(formats, providers, base_url):
+def init_handlers(formats, providers, base_url, localfiles):
     pre_providers = [
         ('/', IndexHandler),
         ('/index.html', IndexHandler),
@@ -97,6 +98,9 @@ def init_handlers(formats, providers, base_url):
     ]
 
     handlers = provider_handlers(providers)
+
+    # Add localfile handlers if the option is set
+    handlers = [(r'/localfile/?(.*)', LocalFileHandler)]+handlers if localfiles else handlers
 
     raw_handlers = (
         pre_providers +
