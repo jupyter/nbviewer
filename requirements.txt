@@ -2,6 +2,7 @@ elasticsearch
 futures; python_version == '2.7'
 markdown
 newrelic
+nbformat>=4.2
 nbconvert
 ipython
 pycurl
