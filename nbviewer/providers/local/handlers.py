@@ -8,6 +8,7 @@
 import errno
 import io
 import os
+from datetime import datetime
 
 from tornado import (
     gen,
@@ -112,6 +113,9 @@ class LocalFileHandler(RenderingHandler):
                 if not os.access(absf, os.X_OK | os.R_OK):
                     # skip directories we cannot visit
                     continue
+                st = os.stat(absf)
+                dt = datetime.utcfromtimestamp(st.st_mtime)
+                entry['modtime'] = dt.strftime('%Y-%m-%d %H:%M:%S')
                 entry['url'] = url_path_join(base_url, path, f)
                 entry['class'] = 'fa fa-folder-open'
                 dirs.append(entry)
@@ -119,6 +123,9 @@ class LocalFileHandler(RenderingHandler):
                 if not os.access(absf, os.R_OK):
                     # skip files we cannot read
                     continue
+                st = os.stat(absf)
+                dt = datetime.utcfromtimestamp(st.st_mtime)
+                entry['modtime'] = dt.strftime('%Y-%m-%d %H:%M:%S')
                 entry['url'] = url_path_join(base_url, path, f)
                 entry['class'] = 'fa fa-book'
                 ipynbs.append(entry)
