@@ -1,5 +1,6 @@
 elasticsearch
 futures; python_version == '2.7'
+jupyter_client
 markdown
 newrelic
 nbformat>=4.2
