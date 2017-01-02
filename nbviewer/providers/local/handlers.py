@@ -13,6 +13,7 @@ from datetime import datetime
 from tornado import (
     gen,
     web,
+    iostream,
 )
 from tornado.log import app_log
 
@@ -28,13 +29,55 @@ class LocalFileHandler(RenderingHandler):
 
     Serving notebooks from the local filesystem
     """
+    # cache key is full uri to avoid mixing download vs view paths
+    _cache_key_attr = 'uri'
+
     @property
     def localfile_path(self):
         return os.path.abspath(self.settings.get('localfile_path', ''))
 
+    @gen.coroutine
+    def download(self, abspath):
+        """Download the file at the given absolute path.
+
+        Parameters
+        ==========
+        abspath: str
+            Absolute path to the file
+        """
+        filename = os.path.basename(abspath)
+        st = os.stat(abspath)
+
+        self.set_header('Content-Length', st.st_size)
+        self.set_header('Content-Disposition',
+                        'attachment; filename={};'.format(filename))
+
+        content = web.StaticFileHandler.get_content(abspath)
+        if isinstance(content, bytes):
+            content = [content]
+        for chunk in content:
+            try:
+                self.write(chunk)
+                yield self.flush()
+            except iostream.StreamClosedError:
+                return
+
     @cached
     @gen.coroutine
     def get(self, path):
+        """Get a directory listing, rendered notebook, or raw file
+        at the given path based on the type and URL query parameters.
+
+        If the path points to an accessible directory, render its contents.
+        If the path points to an accessible notebook file, render it.
+        If the path points to an accessible file and the URL contains a
+        'download' query parameter, respond with the file as a download.
+
+        Parameters
+        ==========
+        path: str
+            Local filesystem path
+        """
         abspath = os.path.abspath(os.path.join(
             self.localfile_path,
             path
@@ -52,6 +95,11 @@ class LocalFileHandler(RenderingHandler):
             html = self.show_dir(abspath, path)
             raise gen.Return(self.cache_and_finish(html))
 
+        is_download = self.get_query_arguments('download')
+        if is_download:
+            self.download(abspath)
+            return
+
         try:
             with io.open(abspath, encoding='utf-8') as f:
                 nbdata = f.read()
@@ -61,7 +109,8 @@ class LocalFileHandler(RenderingHandler):
                 raise web.HTTPError(404)
             raise ex
 
-        yield self.finish_notebook(nbdata, download_url=path,
+        yield self.finish_notebook(nbdata,
+                                   download_url='?download',
                                    msg="file from localfile: %s" % path,
                                    public=False,
                                    format=self.format,
