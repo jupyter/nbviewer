@@ -49,6 +49,7 @@ def default_formats():
         },
         'script': {
             'label': 'Code',
+            'icon': 'code',
             'content_type': 'text/plain; charset=UTF-8'
         }
     }
