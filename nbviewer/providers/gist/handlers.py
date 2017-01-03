@@ -94,7 +94,7 @@ class GistHandler(GistClientMixin, RenderingHandler):
                 format=self.format_prefix, user=user, gist_id=gist_id)
             if filename:
                 new_url = new_url + "/" + filename
-            self.redirect(new_url)
+            self.redirect(self.from_base(new_url))
             return
 
         files = gist['files']
@@ -181,7 +181,7 @@ class GistRedirectHandler(BaseHandler):
             new_url = "%s/%s" % (new_url, file)
 
         app_log.info("Redirecting %s to %s", self.request.uri, new_url)
-        self.redirect(new_url)
+        self.redirect(self.from_base(new_url))
 
 
 def default_handlers(handlers=[]):

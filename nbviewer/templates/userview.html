@@ -4,7 +4,7 @@
 {% block entry scoped %}
   <tr>
     <td>
-      <a href="{{entry.url}}">
+      <a href="{{ from_base(entry.url) }}">
         <i class="fa fa-fw fa-book"></i>
         {{entry.name}}
       </a>

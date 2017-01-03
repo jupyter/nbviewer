@@ -34,7 +34,7 @@
       },
       {
         "text": "Probabilistic Programming",
-        "target": "github/CamDavidsonPilon/Probabilistic-Programming-and-Bayesian-Methods-for-Hackers/blob/master/Chapter1_Introduction/Chapter1.ipynb",
+        "target": "github/CamDavidsonPilon/Probabilistic-Programming-and-Bayesian-Methods-for-Hackers/blob/master/Chapter1_Introduction/Ch1_Introduction_PyMC3.ipynb",
         "img": "/static/img/example-nb/probabilistic-bayesian.png"
       }
     ]

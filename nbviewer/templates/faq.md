@@ -76,8 +76,9 @@ Please visit the [GitHub repository](https://github.com/ipython/nbviewer) for in
 ## Can I access Notebook Viewer over https?
 
 You can, but you will probably get a warning that the website does not have a valid
-certificate.  We are not sure it is worth paying for an SSL certificate as
-the viewer should not expose any sensitive information. If you need to embed an html notebook
+certificate. Alternatively, You can get a free SSL certificate from [Let's Encrypt]
+(https://letsencrypt.org/) or buy from any vendor. We strongly recommend you get it
+from [Let's Encrypt](https://letsencrypt.org/). If you need to embed an html notebook
 on another site, please use local export with `nbconvert`.
 
 ## There is a broken link.

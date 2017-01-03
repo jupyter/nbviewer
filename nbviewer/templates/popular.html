@@ -10,7 +10,7 @@
     {% for entry in entries %}
       <tr>
         <td>
-          <a href="{{entry.url}}">({{entry.count}}) {{entry.url}}</a>
+          <a href="{{ from_base(entry.url) }}">({{entry.count}}) from(entry.url)</a>
         </td>
       </tr>
     {% endfor %}

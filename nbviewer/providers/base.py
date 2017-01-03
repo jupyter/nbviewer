@@ -18,10 +18,11 @@ from datetime import datetime
 try:
     # py3
     from http.client import responses
-    from urllib.parse import urlparse, urlunparse
+    from urllib.parse import urlparse, urlunparse, quote, urlencode
 except ImportError:
     from httplib import responses
     from urlparse import urlparse, urlunparse
+    from urllib import quote, urlencode
 
 from tornado import (
     gen,
@@ -46,7 +47,7 @@ from ..render import (
     NbFormatError,
     render_notebook,
 )
-from ..utils import parse_header_links, time_block, EmptyClass
+from ..utils import parse_header_links, time_block, EmptyClass, url_path_join
 
 try:
     import pycurl
@@ -65,6 +66,7 @@ class BaseHandler(web.RequestHandler):
     def initialize(self, format=None, format_prefix=""):
         self.format = format or self.default_format
         self.format_prefix = format_prefix
+        self.http_client = httpclient.AsyncHTTPClient()
 
     # Overloaded methods
     def redirect(self, url, *args, **kwargs):
@@ -87,6 +89,44 @@ class BaseHandler(web.RequestHandler):
             *args,
             **kwargs
         )
+
+    @gen.coroutine
+    def prepare(self):
+        """Check if the user is authenticated with JupyterHub if the hub
+        API endpoint and token are configured.
+
+        Redirect unauthenticated requests to the JupyterHub login page.
+        Do nothing if not running as a JupyterHub service.
+        """
+        # if any of these are set, assume we want to do auth, even if
+        # we're misconfigured (better safe than sorry!)
+        if self.hub_api_url or self.hub_api_token or self.hub_base_url:
+            def redirect_to_login():
+                self.redirect(url_path_join(self.hub_base_url, '/hub/login') +
+                              '?' + urlencode({'next': self.request.path}))
+
+            encrypted_cookie = self.get_cookie(self.hub_cookie_name)
+            if not encrypted_cookie:
+                # no cookie == not authenticated
+                raise gen.Return(redirect_to_login())
+
+            try:
+                # if the hub returns a success code, the user is known
+                yield self.http_client.fetch(
+                    url_path_join(self.hub_api_url,
+                                    'authorizations/cookie',
+                                    self.hub_cookie_name,
+                                    quote(encrypted_cookie, safe='')),
+                    headers={
+                        'Authorization': 'token ' + self.hub_api_token
+                    }
+                )
+            except httpclient.HTTPError as ex:
+                if ex.response.code == 404:
+                    # hub does not recognize the cookie == not authenticated
+                    raise gen.Return(redirect_to_login())
+                # let all other errors surface: they're unexpected
+                raise ex
 
     # Properties
     @property
@@ -162,9 +202,34 @@ class BaseHandler(web.RequestHandler):
             self._statsd = EmptyClass()
             return self._statsd
 
+    @property
+    def base_url(self):
+        return self.settings['base_url']
+
+    @property
+    def hub_api_token(self):
+        return self.settings.get('hub_api_token')
+
+    @property
+    def hub_api_url(self):
+        return self.settings.get('hub_api_url')
+
+    @property
+    def hub_base_url(self):
+        return self.settings['hub_base_url']
+
+    @property
+    def hub_cookie_name(self):
+        return 'jupyterhub-services'
+
     #---------------------------------------------------------------
     # template rendering
     #---------------------------------------------------------------
+
+    def from_base(self, url, *args):
+        if not url.startswith('/') or url.startswith(self.base_url):
+            return url_path_join(url, *args)
+        return url_path_join(self.base_url, url, *args)
 
     def get_template(self, name):
         """Return the jinja template object for a given name"""
@@ -178,7 +243,9 @@ class BaseHandler(web.RequestHandler):
     @property
     def template_namespace(self):
         return {
-            "mathjax_url": self.mathjax_url
+            "mathjax_url": self.mathjax_url,
+            "static_url": self.static_url,
+            "from_base": self.from_base
         }
 
     def breadcrumbs(self, path, base_url):
@@ -186,11 +253,12 @@ class BaseHandler(web.RequestHandler):
         breadcrumbs = []
         if not path:
             return breadcrumbs
+
         for name in path.split('/'):
-            href = base_url = "%s/%s" % (base_url, name)
+            base_url = url_path_join(base_url, name)
             breadcrumbs.append({
-                'url' : base_url,
-                'name' : name,
+                'url': base_url,
+                'name': name,
             })
         return breadcrumbs
 
@@ -582,7 +650,7 @@ class RenderingHandler(BaseHandler):
             default_format=self.default_format,
             format_prefix=format_prefix,
             formats=dict(self.filter_formats(nb, json_notebook)),
-            format_base=self.request.uri.replace(self.format_prefix, ""),
+            format_base=self.request.uri.replace(self.format_prefix, "").replace(self.base_url, '/'),
             date=datetime.utcnow().strftime(date_fmt),
             breadcrumbs=breadcrumbs,
             **config)
