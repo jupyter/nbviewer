@@ -164,7 +164,7 @@ class LocalFileHandler(RenderingHandler):
                     continue
                 st = os.stat(absf)
                 dt = datetime.utcfromtimestamp(st.st_mtime)
-                entry['modtime'] = dt.strftime('%Y-%m-%d %H:%M:%S')
+                entry['modtime'] = dt.isoformat()
                 entry['url'] = url_path_join(base_url, path, f)
                 entry['class'] = 'fa fa-folder-open'
                 dirs.append(entry)
@@ -174,7 +174,7 @@ class LocalFileHandler(RenderingHandler):
                     continue
                 st = os.stat(absf)
                 dt = datetime.utcfromtimestamp(st.st_mtime)
-                entry['modtime'] = dt.strftime('%Y-%m-%d %H:%M:%S')
+                entry['modtime'] = dt.isoformat()
                 entry['url'] = url_path_join(base_url, path, f)
                 entry['class'] = 'fa fa-book'
                 ipynbs.append(entry)

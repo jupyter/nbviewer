@@ -26,10 +26,19 @@
           {% endif %}
         </td>
         <td>
-          <span class="text-muted">{{ entry.modtime }}</span>
+          <span class="time-col text-muted">{{ entry.modtime }}</span>
         </td>
       </tr>
     {% endfor %}
   </tbody>
 </table>
+<script type="text/javascript">
+  require(["moment"], function(moment) {
+    $(".time-col").map(function (i, el) {
+        // convert ISO datestamps to nice momentjs ones
+        el = $(el);
+        el.text(moment(new Date(el.text())).fromNow());
+    });
+  });
+</script>
 {% endblock %}
