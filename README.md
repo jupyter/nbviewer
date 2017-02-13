@@ -198,8 +198,8 @@ c.JupyterHub.services = [
         'name': 'nbviewer',
         # the interface and port nbviewer will use
         'url': 'http://127.0.0.1:9000',
-        # the api token for nbviewer to check user auth
-        'api_token': 'my-secret-nbviewer-token',
+        # the path to nbviewer repo
+        'cwd': '<path to repo>',
         # command to start the nbviewer
         'command': ['python', '-m', 'nbviewer']
     }
