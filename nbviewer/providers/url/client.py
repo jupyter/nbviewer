@@ -49,6 +49,8 @@ class NBViewerAsyncHTTPClient(object):
     # Cache upstream responses for one week
     # we still send a follow-up request to check 304,
     # so the only cost of a high value here is cache size.
+    # Having a large value allows us to re-use cached responses
+    # in case of upstream failure (e.g. rate limits).
     expiry = 3600 * 24 * 7
     
     def fetch_impl(self, request, callback):
@@ -80,14 +82,15 @@ class NBViewerAsyncHTTPClient(object):
         
         response = yield gen.Task(super(NBViewerAsyncHTTPClient, self).fetch_impl, request)
         dt = time.time() - tic
-        log = app_log.info
-        if response.code == 304 and cached_response:
-            log("Upstream 304 on %s in %.2f ms", name, 1e3 * dt)
+        if cached_response and (response.code == 304 or response.code >= 400):
+            log = app_log.info if response.code == 304 else app_log.warning
+            log("Upstream %s on %s in %.2f ms, using cached response",
+                response.code, name, 1e3 * dt)
             response = self._update_cached_response(response, cached_response)
             callback(response)
         else:
             if not response.error:
-                log("Fetched  %s in %.2f ms", name, 1e3 * dt)
+                app_log.info("Fetched %s in %.2f ms", name, 1e3 * dt)
             callback(response)
             if not response.error:
                 yield self._cache_response(cache_key, name, response)
