@@ -42,11 +42,13 @@ class NBViewerAsyncHTTPClient(object):
     Upstream requests are still made every time,
     but resources and rate limits may be saved by 304 responses.
     
-    Currently, responses are cached for a non-configurable two hours.
+    If upstream responds with 304 or an error and a cached response is available,
+    use the cached response.
+    
+    Responses are cached as long as possible.
     """
     
     cache = None
-    expiry = 7200
     
     def fetch_impl(self, request, callback):
         self.io_loop.add_callback(lambda : self._fetch_impl(request, callback))
@@ -77,14 +79,15 @@ class NBViewerAsyncHTTPClient(object):
         
         response = yield gen.Task(super(NBViewerAsyncHTTPClient, self).fetch_impl, request)
         dt = time.time() - tic
-        log = app_log.info
-        if response.code == 304 and cached_response:
-            log("Upstream 304 on %s in %.2f ms", name, 1e3 * dt)
+        if cached_response and (response.code == 304 or response.code >= 400):
+            log = app_log.info if response.code == 304 else app_log.warning
+            log("Upstream %s on %s in %.2f ms, using cached response",
+                response.code, name, 1e3 * dt)
             response = self._update_cached_response(response, cached_response)
             callback(response)
         else:
             if not response.error:
-                log("Fetched  %s in %.2f ms", name, 1e3 * dt)
+                app_log.info("Fetched %s in %.2f ms", name, 1e3 * dt)
             callback(response)
             if not response.error:
                 yield self._cache_response(cache_key, name, response)
@@ -126,17 +129,13 @@ class NBViewerAsyncHTTPClient(object):
         """Cache the response, if any cache headers we understand are present."""
         if not self.cache:
             return
-        if not any(response.headers.get(key) for key in cache_headers):
-            # no cache headers, no point in caching the response
-            return
         with time_block("Upstream cache set %s" % name):
-            # cache the response if there are any cache headers (use cache expiry?)
+            # cache the response
             try:
                 pickle_response = pickle.dumps(response, pickle.HIGHEST_PROTOCOL)
                 yield self.cache.set(
                     cache_key,
                     pickle_response,
-                    int(time.time() + self.expiry),
                 )
             except Exception:
                 app_log.error("Upstream cache failed %s" % name, exc_info=True)
