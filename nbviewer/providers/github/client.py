@@ -84,9 +84,13 @@ class AsyncGitHubClient(object):
         remaining = int(remaining_s)
         limit = int(limit_s)
         if remaining == 0:
-            jsondata = response_text(r)
-            data = json.loads(jsondata)
-            app_log.error("GitHub rate limit (%s) exceeded: %s", limit, data.get('message', 'no message'))
+            text = response_text(r)
+            try:
+                message = json.loads(text)['message']
+            except Exception:
+                # Can't extract message, log full reply
+                message = text
+            app_log.error("GitHub rate limit (%s) exceeded: %s", limit, message)
             return
         
         if 10 * remaining > limit:
