@@ -90,7 +90,7 @@ class AsyncGitHubClient(object):
             return
         
         if 10 * remaining > limit:
-            log = app_log.debug
+            log = app_log.info
         else:
             log = app_log.warn
         log("%i/%i GitHub API requests remaining", remaining, limit)

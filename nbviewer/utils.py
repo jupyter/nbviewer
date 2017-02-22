@@ -245,13 +245,17 @@ def base64_encode(s):
 
 
 @contextmanager
-def time_block(message):
+def time_block(message, debug_limit=1):
     """context manager for timing a block
 
     logs millisecond timings of the block
+    
+    If the time is longer than debug_limit,
+    then log level will be INFO,
+    otherwise it will be DEBUG.
     """
     tic = time.time()
     yield
     dt = time.time() - tic
-    log = app_log.info if dt > 1 else app_log.debug
+    log = app_log.info if dt > debug_limit else app_log.debug
     log("%s in %.2f ms", message, 1e3 * dt)

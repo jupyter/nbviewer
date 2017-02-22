@@ -66,7 +66,7 @@ class NBViewerAsyncHTTPClient(object):
             cached_response = yield self._get_cached_response(cache_key, name)
         
         if cached_response:
-            app_log.debug("Upstream cache hit %s", name)
+            app_log.info("Upstream cache hit %s", name)
             # add cache headers, if any
             for resp_key, req_key in cache_headers.items():
                 value = cached_response.headers.get(resp_key)
@@ -84,7 +84,7 @@ class NBViewerAsyncHTTPClient(object):
             callback(response)
         else:
             if not response.error:
-                log("Fetched  %s in %.2f ms", name, 1e3 * dt)
+                app_log.info("Fetched  %s in %.2f ms", name, 1e3 * dt)
             callback(response)
             if not response.error:
                 yield self._cache_response(cache_key, name, response)
