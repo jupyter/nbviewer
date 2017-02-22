@@ -291,6 +291,16 @@ def init_options():
 def main(argv=None):
     init_options()
     tornado.options.parse_command_line(argv)
+    
+    try:
+        from tornado.curl_httpclient import curl_log
+    except ImportError as e:
+        log.app_log.warning("Failed to import curl: %s", e)
+    else:
+        # debug-level curl_log logs all headers, info for upstream requests,
+        # which is just too much.
+        curl_log.setLevel(max(log.app_log.getEffectiveLevel(), logging.INFO))
+    
 
     # create and start the app
     app = make_app()
