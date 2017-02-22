@@ -83,7 +83,7 @@ class AsyncGitHubClient(object):
         
         remaining = int(remaining_s)
         limit = int(limit_s)
-        if remaining == 0:
+        if remaining == 0 and r.code >= 400:
             text = response_text(r)
             try:
                 message = json.loads(text)['message']
