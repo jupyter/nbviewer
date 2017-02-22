@@ -72,6 +72,11 @@ class NBViewerAsyncHTTPClient(object):
         
         if cached_response:
             app_log.info("Upstream cache hit %s", name)
+            user_agent = request.headers.get('User-Agent', 'bot')
+            if 'bot' in user_agent.lower():
+                app_log.info('Using cached response for bot="%s"', user_agent)
+                callback(cached_response)
+                return
             # add cache headers, if any
             for resp_key, req_key in cache_headers.items():
                 value = cached_response.headers.get(resp_key)
