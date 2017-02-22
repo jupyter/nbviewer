@@ -42,11 +42,11 @@ def log_request(handler):
     if status >= 300:
         # log referers on redirects
         ns['referer'] = request.headers.get('Referer', 'None')
-        msg = msg + ' referer={referer}'
+        msg = msg + ' referer="{referer}"'
     if status >= 400:
         # log user agent for failed requests
         ns['agent'] = request.headers.get('User-Agent', 'Unknown')
-        msg = msg + ' user-agent={agent}'
+        msg = msg + ' user-agent="{agent}"'
     if status >= 500 and status not in {502, 503}:
         # log all headers if it caused an error
         log_method(json.dumps(dict(request.headers), indent=2))
