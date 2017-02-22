@@ -47,7 +47,7 @@ def log_request(handler):
         # log user agent for failed requests
         ns['agent'] = request.headers.get('User-Agent', 'Unknown')
         msg = msg + ' user-agent={agent}'
-    if status >= 500 and status != 502:
+    if status >= 500 and status not in {502, 503}:
         # log all headers if it caused an error
         log_method(json.dumps(dict(request.headers), indent=2))
     log_method(msg.format(**ns))
