@@ -77,14 +77,14 @@ class NBViewerAsyncHTTPClient(object):
         
         response = yield gen.Task(super(NBViewerAsyncHTTPClient, self).fetch_impl, request)
         dt = time.time() - tic
-        log = app_log.info if dt > 1 else app_log.debug
+        log = app_log.info
         if response.code == 304 and cached_response:
             log("Upstream 304 on %s in %.2f ms", name, 1e3 * dt)
             response = self._update_cached_response(response, cached_response)
             callback(response)
         else:
             if not response.error:
-                app_log.info("Fetched  %s in %.2f ms", name, 1e3 * dt)
+                log("Fetched  %s in %.2f ms", name, 1e3 * dt)
             callback(response)
             if not response.error:
                 yield self._cache_response(cache_key, name, response)
