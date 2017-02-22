@@ -46,12 +46,6 @@ class NBViewerAsyncHTTPClient(object):
     """
     
     cache = None
-    # Cache upstream responses for one week
-    # we still send a follow-up request to check 304,
-    # so the only cost of a high value here is cache size.
-    # Having a large value allows us to re-use cached responses
-    # in case of upstream failure (e.g. rate limits).
-    expiry = 3600 * 24 * 7
     
     def fetch_impl(self, request, callback):
         self.io_loop.add_callback(lambda : self._fetch_impl(request, callback))
@@ -137,17 +131,13 @@ class NBViewerAsyncHTTPClient(object):
         """Cache the response, if any cache headers we understand are present."""
         if not self.cache:
             return
-        if not any(response.headers.get(key) for key in cache_headers):
-            # no cache headers, no point in caching the response
-            return
         with time_block("Upstream cache set %s" % name):
-            # cache the response if there are any cache headers (use cache expiry?)
+            # cache the response
             try:
                 pickle_response = pickle.dumps(response, pickle.HIGHEST_PROTOCOL)
                 yield self.cache.set(
                     cache_key,
                     pickle_response,
-                    int(time.time() + self.expiry),
                 )
             except Exception:
                 app_log.error("Upstream cache failed %s" % name, exc_info=True)
