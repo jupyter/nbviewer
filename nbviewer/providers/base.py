@@ -524,7 +524,7 @@ def cached(method):
             cached = None
 
         if cached is not None:
-            app_log.debug("cache hit %s", short_url)
+            app_log.info("cache hit %s", short_url)
             for key, value in cached['headers'].items():
                 self.set_header(key, value)
             self.write(cached['body'])
@@ -617,8 +617,8 @@ class RenderingHandler(BaseHandler):
 
         try:
             app_log.debug("Requesting render of %s", download_url)
-            with time_block("Rendered %s" % download_url):
-                app_log.info("rendering %d B notebook from %s", len(json_notebook), download_url)
+            with time_block("Rendered %s" % download_url, debug_limit=0):
+                app_log.info("Rendering %d B notebook from %s", len(json_notebook), download_url)
                 render_time = self.statsd.timer('rendering.nbrender.time').start()
                 nbhtml, config = yield self.pool.submit(render_notebook,
                     self.formats[format], nb, download_url,
