@@ -398,7 +398,6 @@ class BaseHandler(web.RequestHandler):
         try:
             html = self.render_template('%d.html' % status_code, **ns)
         except Exception as e:
-            app_log.warn("No template for %d", status_code)
             html = self.render_template('error.html', **ns)
         self.set_header('Content-Type', 'text/html')
         self.write(html)
