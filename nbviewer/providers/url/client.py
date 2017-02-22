@@ -46,7 +46,10 @@ class NBViewerAsyncHTTPClient(object):
     """
     
     cache = None
-    expiry = 7200
+    # Cache upstream responses for one week
+    # we still send a follow-up request to check 304,
+    # so the only cost of a high value here is cache size.
+    expiry = 3600 * 24 * 7
     
     def fetch_impl(self, request, callback):
         self.io_loop.add_callback(lambda : self._fetch_impl(request, callback))
