@@ -47,7 +47,7 @@ try:
     from .providers.url.client import NBViewerCurlAsyncHTTPClient as HTTPClientClass
 except ImportError:
     from .providers.url.client import NBViewerSimpleAsyncHTTPClient as HTTPClientClass
-
+from .ratelimit import RateLimiter
 
 from .log import log_request
 from .utils import git_info, jupyter_info, url_path_join
@@ -204,6 +204,12 @@ def make_app():
 
     # prefer the jhub defined service prefix over the CLI
     base_url = os.getenv('JUPYTERHUB_SERVICE_PREFIX', options.base_url)
+    
+    rate_limiter = RateLimiter(
+        limit=options.rate_limit,
+        interval=options.rate_limit_interval,
+        cache=cache,
+    )
 
     settings = dict(
         log_function=log_request,
@@ -228,6 +234,7 @@ def make_app():
         localfile_path=os.path.abspath(options.localfiles),
         fetch_kwargs=fetch_kwargs,
         mathjax_url=options.mathjax_url,
+        rate_limiter=rate_limiter,
         statsd_host=options.statsd_host,
         statsd_port=options.statsd_port,
         statsd_prefix=options.statsd_prefix,
@@ -268,6 +275,8 @@ def init_options():
     define("cache_expiry_min", default=10*60, help="minimum cache expiry (seconds)", type=int)
     define("cache_expiry_max", default=2*60*60, help="maximum cache expiry (seconds)", type=int)
     define("render_timeout", default=15, help="Time to wait for a render to complete before showing the 'Working...' page.", type=int)
+    define("rate_limit", default=60, help="Number of requests to allow in rate_limt_interval before limiting. Only requests that trigger a new render are counted.", type=int)
+    define("rate_limit_interval", default=600, help="Interval (in seconds) for rate limiting.", type=int)
     define("mc_threads", default=1, help="number of threads to use for Async Memcache", type=int)
     define("threads", default=1, help="number of threads to use for rendering", type=int)
     define("processes", default=0, help="use processes instead of threads for rendering", type=int)

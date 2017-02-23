@@ -170,6 +170,10 @@ class BaseHandler(web.RequestHandler):
         return self.settings.setdefault('cache_expiry_max', 120)
 
     @property
+    def rate_limiter(self):
+        return self.settings['rate_limiter']
+
+    @property
     def pool(self):
         return self.settings['pool']
 
@@ -495,6 +499,7 @@ def cached(method):
         short_url = self.truncate(uri)
 
         if self.get_argument("flush_cache", False):
+            yield self.rate_limiter.check(self)
             app_log.info("flushing cache %s", short_url)
             # call the wrapped method
             yield method(self, *args, **kwargs)
@@ -529,6 +534,7 @@ def cached(method):
             self.write(cached['body'])
         else:
             app_log.debug("cache miss %s", short_url)
+            yield self.rate_limiter.check(self)
             future = self.pending[uri] = Future()
             try:
                 # call the wrapped method
