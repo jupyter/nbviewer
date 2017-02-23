@@ -170,9 +170,11 @@ class AsyncMultipartMemcache(AsyncMemcache):
         if parts:
             compressed = b''.join(parts)
             try:
-                return zlib.decompress(compressed)
+                result = zlib.decompress(compressed)
             except zlib.error as e:
                 app_log.error("zlib decompression of %s failed: %s", key, e)
+            else:
+                raise gen.Return(result)
     
     @gen.coroutine
     def set(self, key, value, *args, **kwargs):
