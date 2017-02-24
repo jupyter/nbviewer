@@ -249,7 +249,8 @@ class BaseHandler(web.RequestHandler):
         return {
             "mathjax_url": self.mathjax_url,
             "static_url": self.static_url,
-            "from_base": self.from_base
+            "from_base": self.from_base,
+            "google_analytics_id": self.settings.get('google_analytics_id'),
         }
 
     def breadcrumbs(self, path, base_url):

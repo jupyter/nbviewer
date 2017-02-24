@@ -239,6 +239,7 @@ def make_app():
         statsd_port=options.statsd_port,
         statsd_prefix=options.statsd_prefix,
         base_url=base_url,
+        google_analytics_id=os.getenv('GOOGLE_ANALYTICS_ID'),
         hub_api_token=os.getenv('JUPYTERHUB_API_TOKEN'),
         hub_api_url=os.getenv('JUPYTERHUB_API_URL'),
         hub_base_url=os.getenv('JUPYTERHUB_BASE_URL'),
