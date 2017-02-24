@@ -1,0 +1,28 @@
+{% extends "layout.html" %}
+
+{% block body %}
+  <header class="jumbotron masthead">
+    <h1>3Blades *.ipynb viewer</h1>
+    <p>3Blades notebook sharing service</p>
+    <div class="row">
+      <div class="col-md-10 col-md-offset-1">
+        <form method="post" action="create/">
+          <div class="input-group">
+            <input class="form-control"
+             id="main-input"
+             type="text"
+             name="gistnorurl"
+             autofocus="autofocus"
+             placeholder="3Blades file"/>
+            <span class="input-group-btn">
+              <button class="btn btn-default" type="submit" type="button">
+                Go!
+              </button>
+            </span>
+          </div>
+        </form>
+      </div>
+    </div>
+  </header>
+
+{% endblock body %}

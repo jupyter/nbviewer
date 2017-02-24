@@ -11,5 +11,6 @@ __pycache__
 bin
 build
 dist
+env
 node_modules
 screenshots

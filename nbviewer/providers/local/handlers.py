@@ -8,6 +8,8 @@
 import errno
 import io
 import os
+# For use with DynamoDB
+import boto3
 from datetime import datetime
 
 from tornado import (
@@ -23,6 +25,10 @@ from ..base import (
     RenderingHandler,
 )
 
+# Get the service resource.
+dynamodb = boto3.resource('dynamodb')
+# Get environment (dev, staging or production)
+DYNAMODB_TABLE = os.environ.get("DYNAMODB_TABLE", None)
 
 class LocalFileHandler(RenderingHandler):
     """Renderer for /localfile
@@ -68,6 +74,28 @@ class LocalFileHandler(RenderingHandler):
         """Get a directory listing, rendered notebook, or raw file
         at the given path based on the type and URL query parameters.
 
+        file_name = path.split('/')[-1]
+        hash_value = file_name.split('.')[0]
+        # path = dynamo_json[hash_value]
+
+        ####
+        # BEGIN DYNAMODB
+        ####
+        table = dynamodb.Table(DYNAMODB_TABLE)
+        response = table.get_item(
+            Key={
+                'hashId': hash_value
+            }
+        )
+        item = response['Item']
+        path = item['path']
+        ####
+        # END DYNAMODB
+        ####
+
+        localfile_path = os.path.abspath(
+            self.settings.get('localfile_path', ''))
+        """
         If the path points to an accessible directory, render its contents.
         If the path points to an accessible notebook file, render it.
         If the path points to an accessible file and the URL contains a

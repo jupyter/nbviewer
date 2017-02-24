@@ -1,0 +1,28 @@
+Metadata-Version: 1.1
+Name: notebook
+Version: 4.1.0
+Summary: A web-based notebook environment for interactive computing
+Home-page: http://jupyter.org
+Author: Jupyter Development Team
+Author-email: jupyter@googlegroups.com
+License: BSD
+Description: 
+        The Jupyter Notebook is a web application that allows you to create and
+        share documents that contain live code, equations, visualizations, and
+        explanatory text. The Notebook has support for multiple programming
+        languages, sharing, and interactive widgets.
+        
+        Read `the documentation <https://jupyter-notebook.readthedocs.org>`_
+        for more information.
+            
+Keywords: Interactive,Interpreter,Shell,Web
+Platform: Linux
+Platform: Mac OS X
+Platform: Windows
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: System Administrators
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3

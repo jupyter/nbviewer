@@ -64,7 +64,13 @@ WORKDIR /srv/nbviewer
 ADD . /srv/nbviewer/
 RUN invoke less
 
+# used to mount notebooks
+RUN mkdir /srv/nbviewer/notebooks
+
 # root up until now!
 USER nobody
 
-CMD ["python3", "-m", "nbviewer", "--port=8080"]
+CMD ["python3", "-m", "nbviewer", "--port=8080", "--localfiles=/srv/nbviewer/notebooks", "--provider_rewrites=nbviewer.providers.xfer", "--providers=nbviewer.providers.url"]
+
+# customizations
+ENV NBVIEWER_TEMPLATE_PATH /srv/nbviewer/custom_templates
