@@ -1,12 +1,12 @@
 language: python
 
 node_js:
-- '0.10'
+- 6
 
 python:
-- '2.7'
-- '3.3'
-- '3.4'
+- 2.7
+- 3.5
+- 3.6
 
 before_install:
 - sudo apt-get update
