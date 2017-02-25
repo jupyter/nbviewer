@@ -2,7 +2,7 @@ elasticsearch
 futures; python_version == '2.7'
 jupyter_client
 markdown
-newrelic
+newrelic!=2.80.0.60
 nbformat>=4.2
 nbconvert
 ipython
