@@ -2,17 +2,18 @@
 
 {% import "layout.html" as layout with context %}
 
-
 {% block otherlinks %}
   {% for fmt_name, fmt in formats.items() %}
     {% if format != fmt_name %}
       {% if fmt_name == default_format %}
         {{ layout.head_icon(from_base(format_base), "View as " ~ fmt.label, fmt.icon) }}
-      {% else %}
+     {% else %}
         {{ layout.head_icon(from_base(format_prefix, fmt_name, format_base), "View as " ~ fmt.label, fmt.icon) }}
       {% endif %}
     {% endif %}
   {% endfor %}
+
+  {{ layout.head_js_icon("toggle_nbviewer_inputs()", "Show/Hide Inputs", "eye", "i") }}
 
   {% if "kernelspec" in nb.metadata %}
     {{ layout.head_icon("#", nb.metadata.kernelspec.display_name + " Kernel", "server") }}
@@ -105,6 +106,43 @@
         unpinned: "slideOutUp"
       }
     })});
+  </script>
+
+  <script>
+    $(function(){
+      var code_shown = true;
+
+      function onShow() {
+        $('div.input').show(100, function() {
+          $('div.cell ~ div.cell').css({
+            'padding-top': '',
+            'padding-bottom': '',
+            'border-top': '',
+            'border-bottom': ''
+          });
+        });
+      }
+
+      function onHide() {
+        $('div.input').hide(100, function() {
+          // Remove vertical padding and border from all but the
+          // first cell to avoid large gaps of whitespace when
+          // code is hidden. Query is similar to :not(:first-child)
+          // but works on IE7+.
+          $('div.cell ~ div.cell').css({
+            'padding-top': 0,
+            'padding-bottom': 0,
+            'border-top': 0,
+            'border-bottom': 0
+          });
+        });
+      }
+
+      window.toggle_nbviewer_inputs = function() {
+        (code_shown) ? onHide() : onShow();
+        code_shown = !code_shown
+      }
+    });
   </script>
 {% endblock extra_script %}
 
