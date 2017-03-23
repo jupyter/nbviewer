@@ -11,7 +11,6 @@
   text-align: center;
 }
 
-
 @media (max-width: 767px) {
   div.input, div.output_area {
     box-orient: vertical;
@@ -20,8 +19,60 @@
   div.prompt {
     text-align:left;
   }
-  
+
   .cell img {
     .img-responsive;
   }
+}
+
+/* Show/hide cell inputs, largely from @mpacer's
+ * https://github.com/mpacer/hiding_tags_nbconvert/blob/f37b7/toggle_hidden.tpl
+ */
+:root {
+    --in-time: .5s;
+    --out-time: .5s;
+    --max-height-small: 0px;
+    --max-height-big: 10000px;
+    --transition-path-out: cubic-bezier(0, 0.67, 0.36, 1);
+    --transition-path-in: ease-in-out;
+    --padding-hidden: 0px;
+    --padding-shown: 10px;
+}
+
+/* Adjust vertical padding on all but the first cell */
+body div.cell ~ div.cell {
+    transition: padding-top var(--in-time) var(--transition-path-in), padding-bottom var(--in-time) var(--transition-path-in);
+    -webkit-transition: padding-top var(--in-time) var(--transition-path-in), padding-bottom var(--in-time) var(--transition-path-in);
+    -moz-transition: padding-top var(--in-time) var(--transition-path-in), padding-bottom var(--in-time) var(--transition-path-in);
+    -o-transition: padding-top var(--in-time) var(--transition-path-in), padding-bottom var(--in-time) var(--transition-path-in);
+    padding-top: var(--padding-shown);
+    padding-bottom: var(--padding-shown);
+}
+
+body.hide_input_cells div.cell ~ div.cell {
+    transition: padding-top var(--in-time) var(--transition-path-out), padding-bottom var(--in-time) var(--transition-path-out);
+    -webkit-transition: padding-top var(--in-time) var(--transition-path-out), padding-bottom var(--in-time) var(--transition-path-out);
+    -moz-transition: padding-top var(--in-time) var(--transition-path-out), padding-bottom var(--in-time) var(--transition-path-out);
+    -o-transition: padding-top var(--in-time) var(--transition-path-out), padding-bottom var(--in-time) var(--transition-path-out);
+    padding-top: var(--padding-hidden);
+    padding-bottom: var(--padding-hidden);
+}
+
+/* adjust the max-height of input cells */
+body div.input {
+    transition: max-height var(--in-time) var(--transition-path-in), padding .0s step-end;
+    -webkit-transition: max-height var(--in-time) var(--transition-path-in), padding .0s step-end;
+    -moz-transition: max-height var(--in-time) var(--transition-path-in), padding .0s step-end;
+    -o-transition: max-height var(--in-time) var(--transition-path-in), padding .0s step-end;
+    max-height: var(--max-height-big);
+}
+
+body.hide_input_cells div.input {
+    overflow:hidden;
+    max-height: var(--max-height-small);
+    transition: max-height var(--out-time) var(--transition-path-out), padding var(--out-time) step-end;
+    -webkit-transition: max-height var(--out-time) var(--transition-path-out), padding var(--out-time) step-end;
+    -moz-transition: max-height var(--out-time) var(--transition-path-out), padding var(--out-time) step-end;
+    -o-transition: max-height var(--out-time) var(--transition-path-out), padding var(--out-time) step-end;
+    padding: var(--padding-hidden);
 }
