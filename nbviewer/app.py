@@ -228,6 +228,7 @@ def make_app():
         cache_expiry_max=options.cache_expiry_max,
         max_cache_uris=max_cache_uris,
         frontpage_sections=frontpage_sections,
+        no_frontpage_input=options.no_frontpage_input,
         pool=pool,
         gzip=True,
         render_timeout=options.render_timeout,
@@ -282,6 +283,7 @@ def init_options():
     define("threads", default=1, help="number of threads to use for rendering", type=int)
     define("processes", default=0, help="use processes instead of threads for rendering", type=int)
     define("frontpage", default=FRONTPAGE_JSON, help="path to json file containing frontpage content", type=str)
+    define("no_frontpage_input", default=False, help="Hide the frontpage input form (only show frontpage content)", type=bool)
     define("sslcert", help="path to ssl .crt file", type=str)
     define("sslkey", help="path to ssl .key file", type=str)
     define("no_check_certificate", default=False, help="Do not validate SSL certificates", type=bool)

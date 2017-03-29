@@ -33,7 +33,10 @@ class Custom404(BaseHandler):
 class IndexHandler(BaseHandler):
     """Render the index"""
     def get(self):
-        self.finish(self.render_template('index.html', sections=self.frontpage_sections))
+        self.finish(self.render_template(
+            'index.html',
+            sections=self.frontpage_sections,
+            no_frontpage_input=self.no_frontpage_input))
 
 
 class FAQHandler(BaseHandler):
