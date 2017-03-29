@@ -4,6 +4,7 @@
   <header class="jumbotron masthead">
     <h1>nbviewer</h1>
     <p>A simple way to share Jupyter Notebooks</p>
+    {% if not no_frontpage_input %}
     <div class="row">
       <div class="col-md-10 col-md-offset-1">
         <form method="post" action="{{ from_base('/create/') }}">
@@ -23,6 +24,7 @@
         </form>
       </div>
     </div>
+    {% endif %} 
   </header>
 
   {% for section in sections %}

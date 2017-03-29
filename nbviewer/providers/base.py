@@ -186,6 +186,10 @@ class BaseHandler(web.RequestHandler):
         return self.settings.setdefault('frontpage_sections', {})
 
     @property
+    def no_frontpage_input(self):
+        return self.settings.setdefault('no_frontpage_input', False)
+
+    @property
     def mathjax_url(self):
         return self.settings['mathjax_url']
 
