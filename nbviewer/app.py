@@ -292,7 +292,7 @@ def init_options():
     define("proxy_port", default="", help="The proxy port.", type=int)
     define("providers", default=default_providers, help="Full dotted package(s) that provide `default_handlers`", type=str, multiple=True, group="provider")
     define("provider_rewrites", default=default_rewrites, help="Full dotted package(s) that provide `uri_rewrites`", type=str, multiple=True, group="provider")
-    define("mathjax_url", default="https://cdn.mathjax.org/mathjax/latest/", help="URL base for mathjax package", type=str)
+    define("mathjax_url", default="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/", help="URL base for mathjax package", type=str)
     define("template_path", default=os.environ.get("NBVIEWER_TEMPLATE_PATH", None), help="Custom template path for the nbviewer app (not rendered notebooks)", type=str)
     define("statsd_host", default="", help="Host running statsd to send metrics to", type=str)
     define("statsd_port", default=8125, help="Port on which statsd is listening for metrics on statsd_host", type=int)
