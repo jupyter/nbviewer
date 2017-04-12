@@ -36,8 +36,11 @@ from .client import AsyncGitHubClient
 PROVIDER_CTX = {
     'provider_label': 'GitHub',
     'provider_icon': 'github',
+    'runner_icon': 'play-circle-o',
+    'runner_label': 'Binder'
 }
 
+BINDER_TMPL = u"http://mybinder.org/repo/{user}/{repo}"
 
 def _github_url():
     return os.environ.get('GITHUB_URL') if os.environ.get('GITHUB_URL', '') else "https://github.com/"
@@ -204,12 +207,18 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
         entries.extend(dirs)
         entries.extend(ipynbs)
         entries.extend(others)
+        
+        # TODO: this needs to be a (cached, async) API call
+        runner_url = None
+        if True:
+            runner_url = BINDER_TMPL.format(user=user, repo=repo)
 
         html = self.render_template("treelist.html",
             entries=entries, breadcrumbs=breadcrumbs, provider_url=provider_url,
             user=user, repo=repo, ref=ref, path=path,
             branches=branches, tags=tags, tree_type="github",
             tree_label="repositories",
+            runner_url=runner_url,
             **PROVIDER_CTX
         )
         yield self.cache_and_finish(html)
@@ -283,6 +292,11 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
             }]
             breadcrumbs.extend(self.breadcrumbs(dir_path, base_url))
 
+            # TODO: this needs to be a (cached, async) API call
+            runner_url = None
+            if True:
+                runner_url = BINDER_TMPL.format(user=user, repo=repo)
+
             try:
                 # filedata may be bytes, but we need text
                 if isinstance(filedata, bytes):
@@ -299,6 +313,7 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
                 public=True,
                 format=self.format,
                 request=self.request,
+                runner_url=runner_url,
                 **PROVIDER_CTX
             )
         else:
