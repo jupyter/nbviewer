@@ -9,7 +9,8 @@ default_providers = ['nbviewer.providers.{}'.format(prov)
                      for prov in ['url', 'github', 'gist']]
 
 default_rewrites = ['nbviewer.providers.{}'.format(prov)
-                    for prov in ['gist', 'github', 'dropbox', 'url']]
+                    for prov in ['gist', 'github', 'dropbox', 'googledrive',
+                                 'url']]
 
 
 def provider_handlers(providers):

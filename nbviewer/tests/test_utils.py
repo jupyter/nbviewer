@@ -47,6 +47,11 @@ def test_transform_ipynb_uri():
           u'/urls/dl.dropbox.com/s/zip/baz.qux'),
         ( u'https://www.dropbox.com/sh/mhviow274da2wly/CZKwRRcA0k/nested/furthernested/User%2520Interface.ipynb?dl=1',
           u'/urls/dl.dropbox.com/sh/mhviow274da2wly/CZKwRRcA0k/nested/furthernested/User%2520Interface.ipynb'),
+        # Google Drive URLS
+        (u'http://drive.google.com/file/d/0B7d519FxJIqPYktaTVg1TTV1WDA/view?usp=sharing',
+        '/url/googledrive.com/host/0B7d519FxJIqPYktaTVg1TTV1WDA'),
+        (u'https://drive.google.com/open?id=0B7d519FxJIqPcEVOZXYzdGxBdzQ',
+        u'/urls/googledrive.com/host/0B7d519FxJIqPYktaTVg1TTV1WDA'),
         # URL
         ('https://example.org/ipynb',
         u'/urls/example.org/ipynb'),
