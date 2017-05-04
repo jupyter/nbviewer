@@ -13,3 +13,5 @@ build
 dist
 node_modules
 screenshots
+# ignore downloaded notebook sources
+notebook-*
