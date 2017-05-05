@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from datetime import datetime
 import json
 import os
@@ -6,16 +8,17 @@ import time
 
 import requests
  
-# the following 4 are the actual values that pertain to your account and this specific metric
 api_key = os.environ['STATUSPAGE_API_KEY']
-page_id = 'fzcq6v7wcg65'
-metric_id = 'rfcg9djxtg6n'
+page_id = os.environ['STATUSPAGE_PAGE_ID']
+metric_id = os.environ['STATUSPAGE_METRIC_ID']
 api_base = 'api.statuspage.io'
 
 github_id = os.environ['GITHUB_OAUTH_KEY']
 github_secret = os.environ['GITHUB_OAUTH_SECRET']
 
+
 def get_rate_limit():
+    """Retrieve the current GitHub rate limit for our auth tokens"""
     r = requests.get('https://api.github.com/rate_limit',
         params={
             'client_id': github_id,
@@ -26,7 +29,9 @@ def get_rate_limit():
     resp = r.json()
     return resp['resources']['core']
 
-def post_data(limit, remaining):
+
+def post_data(limit, remaining, **ignore):
+    """Send the percent-remaining GitHub rate limit to statuspage"""
     percent = 100 * remaining / limit
     now = int(datetime.utcnow().timestamp())
     url = "https://api.statuspage.io/v1/pages/{page_id}/metrics/{metric_id}/data.json".format(
@@ -45,11 +50,17 @@ def post_data(limit, remaining):
     )
     r.raise_for_status()
 
+
+def get_and_post():
+    data = get_rate_limit()
+    print(json.dumps(data))
+    post_data(limit=data['limit'], remaining=data['remaining'])
+
+
 while True:
     try:
-        limit = get_rate_limit()
-        print(json.dumps(limit))
-        post_data(limit['limit'], limit['remaining'])
+        get_and_post()
     except Exception as e:
         print("Error: %s" % e, file=sys.stderr)
+    # post every two minutes
     time.sleep(120)
