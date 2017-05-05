@@ -8,13 +8,13 @@ import hashlib
 import shutil
 import tempfile
 import sys
-from zipfile import ZipFile
+from tarfile import TarFile
 import pip
 
 import invoke
 
-NOTEBOOK_VERSION = '4.1.0' # the notebook version whose LESS we will use
-NOTEBOOK_CHECKSUM = '24cac518544caaeca34b39931cbc1a4ac580078f2044ba09adb9dee01a72dc84' # sha256 checksum of notebook tarball
+NOTEBOOK_VERSION = '5.0.0' # the notebook version whose LESS we will use
+NOTEBOOK_CHECKSUM = '1cea3bbbd03c8e5842a1403347a8cc8134486b3ce081a2e5b1952a00ea66ed54' # sha256 checksum of notebook tarball
 
 APP_ROOT = os.path.dirname(__file__)
 NPM_BIN = os.path.join(APP_ROOT, "node_modules", ".bin")
@@ -39,20 +39,20 @@ def bower(ctx):
 def notebook_static(ctx):
     if os.path.exists(NOTEBOOK_STATIC_PATH):
         return
-    fname = 'notebook-%s.zip' % NOTEBOOK_VERSION
-    nb_zip = os.path.join(APP_ROOT, fname)
-    if not os.path.exists(nb_zip):
-        print("Downloading from pypi -> %s" % nb_zip)
+    fname = 'notebook-%s.tar.gz' % NOTEBOOK_VERSION
+    nb_archive = os.path.join(APP_ROOT, fname)
+    if not os.path.exists(nb_archive):
+        print("Downloading from pypi -> %s" % nb_archive)
         pip.main(['download', 'notebook=={}'.format(NOTEBOOK_VERSION), '--no-deps', '-d', APP_ROOT, '--no-binary', ':all:'])
-    with open(nb_zip, 'rb') as f:
+    with open(nb_archive, 'rb') as f:
         checksum = hashlib.sha256(f.read()).hexdigest()
     if checksum != NOTEBOOK_CHECKSUM:
-        print("Notebook zipfile checksum mismatch", file=sys.stderr)
+        print("Notebook sdist checksum mismatch", file=sys.stderr)
         print("Expected: %s" % NOTEBOOK_CHECKSUM, file=sys.stderr)
         print("Got: %s" % checksum, file=sys.stderr)
         sys.exit(1)
-    with ZipFile(nb_zip, 'r') as nb_zip_file:
-        print("Extract {0} in {1}".format(nb_zip, nb_zip_file.extractall()))
+    with TarFile.open(nb_archive, 'r:gz') as nb_archive_file:
+        print("Extract {0} in {1}".format(nb_archive, nb_archive_file.extractall()))
 
 
 @invoke.task
@@ -74,10 +74,8 @@ def less(ctx, debug=False):
 
     args = (extra, NOTEBOOK_STATIC_PATH)
 
-    [
+    for less_file in ["styles", "notebook", "slides"]:
         ctx.run(tmpl.format(less_file, *args))
-        for less_file in ["styles", "notebook", "slides"]
-    ]
 
 
 @invoke.task
