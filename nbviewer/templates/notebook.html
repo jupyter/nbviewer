@@ -2,7 +2,6 @@
 
 {% import "layout.html" as layout with context %}
 
-
 {% block otherlinks %}
   {% for fmt_name, fmt in formats.items() %}
     {% if format != fmt_name %}
@@ -13,6 +12,8 @@
       {% endif %}
     {% endif %}
   {% endfor %}
+
+  {{ layout.head_js_icon("$('body').toggleClass('hide_input_cells');", "Show/Hide Inputs", "eye", "i") }}
 
   {% if "kernelspec" in nb.metadata %}
     {{ layout.head_icon("#", nb.metadata.kernelspec.display_name + " Kernel", "server") }}
