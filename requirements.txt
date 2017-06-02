@@ -4,7 +4,7 @@ jupyter_client
 markdown
 newrelic!=2.80.0.60
 nbformat>=4.2
-nbconvert
+nbconvert>=5.2.1
 ipython
 pycurl
 pylibmc
