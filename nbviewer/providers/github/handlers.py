@@ -183,7 +183,7 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
                 e['url'] = quote(e['url'])
                 e['class'] = 'fa-folder-open'
                 dirs.append(e)
-            elif file['name'].endswith('.ipynb'):
+            elif self.is_notebook_file(file['name']):
                 e['url'] = u'/github/{user}/{repo}/blob/{ref}/{path}'.format(
                 user=user, repo=repo, ref=ref, path=file['path']
                 )
@@ -272,7 +272,7 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
             # filedata will be unicode
             filedata = contents
 
-        if path.endswith('.ipynb'):
+        if self.is_notebook_file(path):
             dir_path = path.rsplit('/', 1)[0]
             base_url = "/github/{user}/{repo}/tree/{ref}".format(
                 user=user, repo=repo, ref=ref,
