@@ -13,7 +13,7 @@ class URLTestCase(NBViewerTestCase):
     def test_url(self):
         url = self.url('url/jdj.mit.edu/~stevenj/IJulia Preview.ipynb')
         r = requests.get(url)
-        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.status_code, 202)
         self.assertIn('Download Notebook', r.text)
 
 
