@@ -114,7 +114,8 @@ class LocalFileHandler(RenderingHandler):
                                    msg="file from localfile: %s" % path,
                                    public=False,
                                    format=self.format,
-                                   request=self.request)
+                                   request=self.request,
+                                   title=os.path.basename(path))
 
     def show_dir(self,  abspath,  path):
         """Render the directory view template for a given filesystem path.
@@ -187,5 +188,6 @@ class LocalFileHandler(RenderingHandler):
 
         html = self.render_template('dirview.html',
                                     entries=entries,
-                                    breadcrumbs=breadcrumbs)
+                                    breadcrumbs=breadcrumbs,
+                                    title=url_path_join(path, '/'))
         return html

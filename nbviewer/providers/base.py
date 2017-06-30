@@ -603,9 +603,10 @@ class RenderingHandler(BaseHandler):
                 app_log.info("failed to test %s: %s", self.request.uri, name)
 
     @gen.coroutine
-    def finish_notebook(self, json_notebook, download_url, provider_url=None, 
+    def finish_notebook(self, json_notebook, download_url, provider_url=None,
                         provider_icon=None, provider_label=None, msg=None,
-                        breadcrumbs=None, public=False, format=None, request=None):
+                        breadcrumbs=None, public=False, format=None, request=None,
+                        title=None):
         """render a notebook from its JSON body.
 
         download_url is required, provider_url is not.
@@ -663,6 +664,7 @@ class RenderingHandler(BaseHandler):
             format_base=self.request.uri.replace(self.format_prefix, "").replace(self.base_url, '/'),
             date=datetime.utcnow().strftime(date_fmt),
             breadcrumbs=breadcrumbs,
+            title=title,
             **config)
         html_time.stop()
 
