@@ -60,8 +60,9 @@ class LocalFileHandler(RenderingHandler):
         st = os.stat(abspath)
 
         self.set_header('Content-Length', st.st_size)
+        # Escape commas to workaround Chrome issue with commas in download filenames
         self.set_header('Content-Disposition',
-                        'attachment; filename={};'.format(filename))
+                        'attachment; filename={};'.format(filename.replace(',', '_')))
 
         content = web.StaticFileHandler.get_content(abspath)
         if isinstance(content, bytes):
