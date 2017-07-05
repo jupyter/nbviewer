@@ -31,10 +31,35 @@ class LocalFileHandler(RenderingHandler):
     """
     # cache key is full uri to avoid mixing download vs view paths
     _cache_key_attr = 'uri'
+    # provider root path
+    _localfile_path = '/localfile'
 
     @property
     def localfile_path(self):
         return os.path.abspath(self.settings.get('localfile_path', ''))
+
+    def breadcrumbs(self, path):
+        """Build a list of breadcrumbs leading up to and including the
+        given local path.
+
+        Parameters
+        ----------
+        path: str
+            Relative path up to and including the leaf directory or file to include
+            in the breadcrumbs list
+
+        Returns
+        -------
+        list
+            Breadcrumbs suitable for the link_breadcrumbs() jinja macro
+        """
+        provider_path = '/localfile'
+        breadcrumbs = [{
+            'url': url_path_join(self.base_url, self._localfile_path),
+            'name': 'home'
+        }]
+        breadcrumbs.extend(super(LocalFileHandler, self).breadcrumbs(path, self._localfile_path))
+        return breadcrumbs
 
     @gen.coroutine
     def download(self, abspath):
@@ -49,8 +74,9 @@ class LocalFileHandler(RenderingHandler):
         st = os.stat(abspath)
 
         self.set_header('Content-Length', st.st_size)
+        # Escape commas to workaround Chrome issue with commas in download filenames
         self.set_header('Content-Disposition',
-                        'attachment; filename={};'.format(filename))
+                        'attachment; filename={};'.format(filename.replace(',', '_')))
 
         content = web.StaticFileHandler.get_content(abspath)
         if isinstance(content, bytes):
@@ -114,7 +140,9 @@ class LocalFileHandler(RenderingHandler):
                                    msg="file from localfile: %s" % path,
                                    public=False,
                                    format=self.format,
-                                   request=self.request)
+                                   request=self.request,
+                                   breadcrumbs=self.breadcrumbs(path),
+                                   title=os.path.basename(path))
 
     def show_dir(self,  abspath,  path):
         """Render the directory view template for a given filesystem path.
@@ -131,14 +159,6 @@ class LocalFileHandler(RenderingHandler):
         str
             Rendered HTML
         """
-        base_url = '/localfile'
-
-        breadcrumbs = [{
-            'url': url_path_join(self.base_url, base_url),
-            'name': 'home'
-        }]
-        breadcrumbs.extend(self.breadcrumbs(path, base_url))
-
         entries = []
         dirs = []
         ipynbs = []
@@ -165,7 +185,7 @@ class LocalFileHandler(RenderingHandler):
                 st = os.stat(absf)
                 dt = datetime.utcfromtimestamp(st.st_mtime)
                 entry['modtime'] = dt.isoformat()
-                entry['url'] = url_path_join(base_url, path, f)
+                entry['url'] = url_path_join(self._localfile_path, path, f)
                 entry['class'] = 'fa fa-folder-open'
                 dirs.append(entry)
             elif f.endswith('.ipynb'):
@@ -175,7 +195,7 @@ class LocalFileHandler(RenderingHandler):
                 st = os.stat(absf)
                 dt = datetime.utcfromtimestamp(st.st_mtime)
                 entry['modtime'] = dt.isoformat()
-                entry['url'] = url_path_join(base_url, path, f)
+                entry['url'] = url_path_join(self._localfile_path, path, f)
                 entry['class'] = 'fa fa-book'
                 ipynbs.append(entry)
 
@@ -187,5 +207,6 @@ class LocalFileHandler(RenderingHandler):
 
         html = self.render_template('dirview.html',
                                     entries=entries,
-                                    breadcrumbs=breadcrumbs)
+                                    breadcrumbs=self.breadcrumbs(path),
+                                    title=url_path_join(path, '/'))
         return html
