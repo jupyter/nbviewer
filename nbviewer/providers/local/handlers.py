@@ -38,13 +38,27 @@ class LocalFileHandler(RenderingHandler):
     def localfile_path(self):
         return os.path.abspath(self.settings.get('localfile_path', ''))
 
-    def localfile_breadcrumbs(self, path):
+    def breadcrumbs(self, path):
+        """Build a list of breadcrumbs leading up to and including the
+        given local path.
+
+        Parameters
+        ----------
+        path: str
+            Relative path up to and including the leaf directory or file to include
+            in the breadcrumbs list
+
+        Returns
+        -------
+        list
+            Breadcrumbs suitable for the link_breadcrumbs() jinja macro
+        """
         provider_path = '/localfile'
         breadcrumbs = [{
             'url': url_path_join(self.base_url, self._localfile_path),
             'name': 'home'
         }]
-        breadcrumbs.extend(self.breadcrumbs(path, self._localfile_path))
+        breadcrumbs.extend(super(LocalFileHandler, self).breadcrumbs(path, self._localfile_path))
         return breadcrumbs
 
     @gen.coroutine
@@ -127,7 +141,7 @@ class LocalFileHandler(RenderingHandler):
                                    public=False,
                                    format=self.format,
                                    request=self.request,
-                                   breadcrumbs=self.localfile_breadcrumbs(path),
+                                   breadcrumbs=self.breadcrumbs(path),
                                    title=os.path.basename(path))
 
     def show_dir(self,  abspath,  path):
@@ -193,6 +207,6 @@ class LocalFileHandler(RenderingHandler):
 
         html = self.render_template('dirview.html',
                                     entries=entries,
-                                    breadcrumbs=self.localfile_breadcrumbs(path),
+                                    breadcrumbs=self.breadcrumbs(path),
                                     title=url_path_join(path, '/'))
         return html
