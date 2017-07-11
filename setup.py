@@ -29,6 +29,7 @@ pkg_data = {
     )
 }
 
+
 setup_args = dict(
     name = "nbviewer",
     version = '1.0.0',
@@ -49,5 +50,12 @@ setup_args = dict(
     ],
     test_suite="nose.collector",
 )
+
+install_requires = setup_args['install_requires'] = []
+with open('requirements.txt') as f:
+    for line in f:
+        req = line.strip()
+        if not req.startswith('#'):
+            install_requires.append(req)
 
 setup(**setup_args)
