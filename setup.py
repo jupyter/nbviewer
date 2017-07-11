@@ -31,12 +31,12 @@ pkg_data = {
 
 setup_args = dict(
     name = "nbviewer",
-    version = '0.2.0',
+    version = '1.0.0',
     packages = ["nbviewer"],
     package_data = pkg_data,
     author = "The Jupyter Development Team",
-    author_email = "ipython-dev@scipy.org",
-    url = 'http://nbviewer.ipython.org',
+    author_email = "jupyter@googlegroups.com",
+    url = 'https://nbviewer.jupyter.org',
     description = "Jupyter Notebook Viewer",
     long_description = "Jupyter nbconvert as a web service",
     license = "BSD",
