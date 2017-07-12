@@ -5,11 +5,26 @@
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
+from distutils.command.sdist import sdist
+from distutils.command.build import build
 import os
+from subprocess import check_call
 import sys
 pjoin = os.path.join
 
 from setuptools import setup
+
+def preflight():
+    check_call(['npm', 'install'])
+    check_call(['invoke', 'bower'])
+    check_call(['invoke', 'less'])
+
+def invoke_first(cmd):
+    class InvokeFirst(cmd):
+        def run(self):
+            preflight()
+            return super(InvokeFirst, self).run()
+    return InvokeFirst
 
 def walk_subpkg(name):
     data_files = []
@@ -35,6 +50,7 @@ setup_args = dict(
     version = '1.0.0',
     packages = ["nbviewer"],
     package_data = pkg_data,
+    setup_requires = ['invoke'],
     author = "The Jupyter Development Team",
     author_email = "jupyter@googlegroups.com",
     url = 'https://nbviewer.jupyter.org',
@@ -49,6 +65,10 @@ setup_args = dict(
         'Programming Language :: Python :: 3.3',
     ],
     test_suite="nose.collector",
+    cmdclass = {
+        'sdist': invoke_first(sdist),
+        'build': invoke_first(build),
+    }
 )
 
 install_requires = setup_args['install_requires'] = []
