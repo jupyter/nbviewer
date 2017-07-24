@@ -45,7 +45,7 @@ def default_formats():
             'nbconvert_template': 'slides_reveal',
             'label': 'Slides',
             'icon': 'gift',
-            'test': lambda nb, json: '"slideshow"' in json,
+            'test': lambda nb, json: 'celltoolbar' in nb.metadata and nb.metadata['celltoolbar'] == 'Slideshow',
         },
         'script': {
             'label': 'Code',
