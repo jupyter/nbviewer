@@ -1,0 +1,9 @@
+FROM nbviewer_nbviewer
+
+USER root
+
+# python requirements
+ADD ./requirements-dev.txt /srv/nbviewer/
+RUN pip3 install --no-cache-dir --upgrade -r requirements-dev.txt && \
+    pip3 freeze
+

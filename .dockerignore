@@ -8,3 +8,4 @@ nbviewer.egg-info
 nbviewer/static/build
 nbviewer/static/components
 node_modules
+Makefile
