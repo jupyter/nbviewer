@@ -1,5 +1,5 @@
 {"type": "object",
- { "properties": {
+ "properties": {
    "title": {"type": "string"},
    "subtitle": {"type": "string"},
    "show_input": {"type": "boolean"},
@@ -27,6 +27,7 @@
          "links"
        ]
      }
-   },
-   "required": ["title", "sections"]
- }
+   }
+ },
+ "required": ["title", "sections"]
+}
