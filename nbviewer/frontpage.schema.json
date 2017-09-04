@@ -1,25 +1,32 @@
-{
-  "type": "array",
-  "items": {
-    "type": "object",
-    "properties": {
-      "header": {"type": "string"},
-      "links": {
-        "type": "array",
-        "items": {
-          "type": "object",
-          "properties": {
-            "text": {"type": "string"},
-            "target": {"type": "string"},
-            "img": {"type": "string"}
-          },
-          "required": ["text", "target", "img"]
-        }
-      }
-    },
-    "required": [
-      "header",
-      "links"
-    ]
-  }
-}
+{"type": "object",
+ { "properties": {
+   "title": {"type": "string"},
+   "subtitle": {"type": "string"},
+   "show_input": {"type": "boolean"},
+   "sections" : {
+     "type": "array",
+     "items": {
+       "type": "object",
+       "properties": {
+         "header": {"type": "string"},
+         "links": {
+           "type": "array",
+           "items": {
+             "type": "object",
+             "properties": {
+               "text": {"type": "string"},
+               "target": {"type": "string"},
+               "img": {"type": "string"}
+             },
+             "required": ["text", "target", "img"]
+           }
+         }
+       },
+       "required": [
+         "header",
+         "links"
+       ]
+     }
+   },
+   "required": ["title", "sections"]
+ }

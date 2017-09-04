@@ -182,12 +182,8 @@ class BaseHandler(web.RequestHandler):
         return self.settings.setdefault('max_cache_uris', set())
 
     @property
-    def frontpage_sections(self):
-        return self.settings.setdefault('frontpage_sections', {})
-
-    @property
-    def no_frontpage_input(self):
-        return self.settings.setdefault('no_frontpage_input', False)
+    def frontpage_setup(self):
+        return self.settings['frontpage_setup']
 
     @property
     def mathjax_url(self):

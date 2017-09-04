@@ -181,11 +181,20 @@ def make_app():
 
     # load frontpage sections
     with io.open(options.frontpage, 'r') as f:
-        frontpage_sections = json.load(f)
+        frontpage_setup = json.load(f)
+    # check if the json has a 'sections' field, otherwise assume it is
+    # just a list of sessions, and provide the defaults for the other
+    # fields
+    if 'sections' not in frontpage_setup:
+        frontpage_setup = {'title': 'nbviewer',
+                           'subtitle':
+                           'A simple way to share Jupyter Notebooks',
+                           'show_input': True,
+                           'sections': frontpage_setup}
 
     # cache frontpage links for the maximum allowed time
     max_cache_uris = {''}
-    for section in frontpage_sections:
+    for section in frontpage_setup['sections']:
         for link in section['links']:
             max_cache_uris.add('/' + link['target'])
 
@@ -227,8 +236,7 @@ def make_app():
         cache_expiry_min=options.cache_expiry_min,
         cache_expiry_max=options.cache_expiry_max,
         max_cache_uris=max_cache_uris,
-        frontpage_sections=frontpage_sections,
-        no_frontpage_input=options.no_frontpage_input,
+        frontpage_setup=frontpage_setup,
         pool=pool,
         gzip=True,
         render_timeout=options.render_timeout,
@@ -283,7 +291,6 @@ def init_options():
     define("threads", default=1, help="number of threads to use for rendering", type=int)
     define("processes", default=0, help="use processes instead of threads for rendering", type=int)
     define("frontpage", default=FRONTPAGE_JSON, help="path to json file containing frontpage content", type=str)
-    define("no_frontpage_input", default=False, help="Hide the frontpage input form (only show frontpage content)", type=bool)
     define("sslcert", help="path to ssl .crt file", type=str)
     define("sslkey", help="path to ssl .key file", type=str)
     define("no_check_certificate", default=False, help="Do not validate SSL certificates", type=bool)

@@ -1,10 +1,12 @@
 {% extends "layout.html" %}
 
 {% block body %}
-  {% if not no_frontpage_input %}
   <header class="jumbotron masthead">
-    <h1>nbviewer</h1>
-    <p>A simple way to share Jupyter Notebooks</p>
+    <h1>{{ title }}</h1>
+    {% if subtitle %}
+    <p>{{ subtitle }}</p>
+    {% endif %}
+    {% if show_input %}
     <div class="row">
       <div class="col-md-10 col-md-offset-1">
         <form method="post" action="{{ from_base('/create/') }}">
@@ -24,8 +26,8 @@
         </form>
       </div>
     </div>
+    {% endif %} 
   </header>
-  {% endif %} 
 
   {% for section in sections %}
     <section>
