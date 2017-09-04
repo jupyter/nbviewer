@@ -1,5 +1,7 @@
 # Jupyter Notebook Viewer
 
+[![Build Status](https://travis-ci.org/jupyter/nbviewer.svg?branch=master)](https://travis-ci.org/jupyter/nbviewer)
+
 Jupyter nbviewer is the web application behind [The Jupyter Notebook Viewer](http://nbviewer.ipython.org), which is graciously hosted by [Rackspace](https://developer.rackspace.com/?nbviewer=awesome).
 
 Run this locally to get most of the features of nbviewer on your own network.
