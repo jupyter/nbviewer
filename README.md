@@ -123,8 +123,8 @@ This will automatically relaunch the server if a change is detected on a python 
 
 #### Running the Tests
 
-`nose` is used to run the test suite, and it is easiest to extend the
-nbviewer docker to run the tests with all dependencies installed. A
+`nose` is used to run the test suite, and it is easiest to extend
+the nbviewer docker to run the tests with all dependencies installed. A
 Makefile has been provided for this purpose.  The tests currently make
 calls to external APIs such as GitHub, so it is best to use your
 Github API Token when running:
