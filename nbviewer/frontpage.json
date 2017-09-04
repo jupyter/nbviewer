@@ -1,5 +1,6 @@
 {"title": "nbviewer",
  "subtitle": "A simple way to share Jupyter Notebooks",
+ "text": "Enter the location of a Jupyter Notebook to have it rendered here:",
  "show_input": true,
  "sections":[
    {

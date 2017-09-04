@@ -2,6 +2,7 @@
  "properties": {
    "title": {"type": "string"},
    "subtitle": {"type": "string"},
+   "text": {"type": "string"},
    "show_input": {"type": "boolean"},
    "sections" : {
      "type": "array",

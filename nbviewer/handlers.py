@@ -37,6 +37,7 @@ class IndexHandler(BaseHandler):
             'index.html',
             title=self.frontpage_setup['title'],
             subtitle=self.frontpage_setup.get('subtitle', None),
+            text=self.frontpage_setup.get('text',None),
             show_input=self.frontpage_setup.get('show_input', True),
             sections=self.frontpage_setup.get('sections', [])))
 
