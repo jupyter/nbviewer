@@ -29,5 +29,5 @@
      }
    }
  },
- "required": ["title", "sections"]
+ "required": ["title"]
 }

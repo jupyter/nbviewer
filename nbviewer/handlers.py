@@ -35,10 +35,10 @@ class IndexHandler(BaseHandler):
     def get(self):
         self.finish(self.render_template(
             'index.html',
-            sections=self.frontpage_setup['sections'],
             title=self.frontpage_setup['title'],
-            subtitle=self.frontpage_setup['subtitle'],
-            show_input=self.frontpage_setup['show_input']))
+            subtitle=self.frontpage_setup.get('subtitle', None),
+            show_input=self.frontpage_setup.get('show_input', True),
+            sections=self.frontpage_setup.get('sections', [])))
 
 
 class FAQHandler(BaseHandler):
