@@ -7,7 +7,7 @@
     <h2>{{ subtitle }}</h2>
     {% endif %}
     {% if text %}
-    <p>{{ text }}</p>
+    {{ text | markdown | safe }}
     {% endif %}
     {% if show_input %}
     <div class="row">
