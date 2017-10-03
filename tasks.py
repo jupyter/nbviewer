@@ -13,8 +13,8 @@ import pip
 
 import invoke
 
-NOTEBOOK_VERSION = '5.0.0' # the notebook version whose LESS we will use
-NOTEBOOK_CHECKSUM = '1cea3bbbd03c8e5842a1403347a8cc8134486b3ce081a2e5b1952a00ea66ed54' # sha256 checksum of notebook tarball
+NOTEBOOK_VERSION = '5.1.0' # the notebook version whose LESS we will use
+NOTEBOOK_CHECKSUM = 'cf7094e06ab65d7cf8c43fefdf647736ef8a5da880ce4c8f351e10f888aaab9a' # sha256 checksum of notebook tarball
 
 APP_ROOT = os.path.dirname(__file__)
 NPM_BIN = os.path.join(APP_ROOT, "node_modules", ".bin")
