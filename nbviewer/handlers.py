@@ -4,6 +4,8 @@
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
+import os
+
 from tornado import web
 from tornado.log import app_log
 
@@ -103,7 +105,14 @@ def init_handlers(formats, providers, base_url, localfiles):
     handlers = provider_handlers(providers)
 
     # Add localfile handlers if the option is set
-    handlers = [(r'/localfile/?(.*)', LocalFileHandler)]+handlers if localfiles else handlers
+    if localfiles:
+        pre_providers = pre_providers + [
+            # support for local *.html files (in iframes) passes through StaticFileHandler
+            (r'/localfile/?(.*\.html)', web.StaticFileHandler, {'path': os.path.abspath(localfiles)}),
+            # support for all other files passes through LocalFileHandler
+            (r'/localfile/?(.*)', LocalFileHandler),
+        ]
+
 
     raw_handlers = (
         pre_providers +
