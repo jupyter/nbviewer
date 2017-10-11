@@ -17,7 +17,6 @@ from .providers.base import (
     BaseHandler,
     format_prefix,
 )
-from .providers.local import LocalFileHandler
 
 #-----------------------------------------------------------------------------
 # Handler classes
@@ -100,10 +99,11 @@ def init_handlers(formats, providers, base_url, localfiles):
         (r'/(robots\.txt|favicon\.ico)', web.StaticFileHandler)
     ]
 
-    handlers = provider_handlers(providers)
-
     # Add localfile handlers if the option is set
-    handlers = [(r'/localfile/?(.*)', LocalFileHandler)]+handlers if localfiles else handlers
+    if localfiles:
+        providers.append('nbviewer.providers.local')
+
+    handlers = provider_handlers(providers)
 
     raw_handlers = (
         pre_providers +

@@ -1,1 +1,1 @@
-from .handlers import LocalFileHandler
+from .handlers import LocalFileHandler, default_handlers
