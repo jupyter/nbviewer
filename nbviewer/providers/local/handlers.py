@@ -103,7 +103,7 @@ class LocalFileHandler(RenderingHandler):
 
         if not abspath.startswith(self.localfile_path):
             app_log.warn("directory traversal attempt: '%s'" %
-                         self.localfile_path)
+                         abspath)
             return False
 
         if not os.path.exists(abspath):
