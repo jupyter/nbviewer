@@ -101,7 +101,9 @@ def init_handlers(formats, providers, base_url, localfiles):
 
     # Add localfile handlers if the option is set
     if localfiles:
-        providers.append('nbviewer.providers.local')
+        # Put local provider first as per the comment at
+        # https://github.com/jupyter/nbviewer/pull/727#discussion_r144448440.
+        providers.insert(0, 'nbviewer.providers.local')
 
     handlers = provider_handlers(providers)
 
