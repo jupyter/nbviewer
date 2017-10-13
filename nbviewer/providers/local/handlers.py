@@ -53,7 +53,6 @@ class LocalFileHandler(RenderingHandler):
         list
             Breadcrumbs suitable for the link_breadcrumbs() jinja macro
         """
-        provider_path = '/localfile'
         breadcrumbs = [{
             'url': url_path_join(self.base_url, self._localfile_path),
             'name': 'home'
@@ -210,3 +209,12 @@ class LocalFileHandler(RenderingHandler):
                                     breadcrumbs=self.breadcrumbs(path),
                                     title=url_path_join(path, '/'))
         return html
+
+
+def default_handlers(handlers=[]):
+    """Tornado handlers"""
+
+    return handlers + [
+        (r'/localfile/?(.*)', LocalFileHandler),
+    ]
+
