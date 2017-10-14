@@ -5,10 +5,11 @@
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
+from datetime import datetime
 import errno
 import io
 import os
-from datetime import datetime
+import stat
 
 from tornado import (
     gen,
@@ -36,7 +37,7 @@ class LocalFileHandler(RenderingHandler):
 
     @property
     def localfile_path(self):
-        return os.path.abspath(self.settings.get('localfile_path', ''))
+        return os.path.realpath(self.settings.get('localfile_path', ''))
 
     def breadcrumbs(self, path):
         """Build a list of breadcrumbs leading up to and including the
@@ -61,23 +62,23 @@ class LocalFileHandler(RenderingHandler):
         return breadcrumbs
 
     @gen.coroutine
-    def download(self, abspath):
+    def download(self, fullpath):
         """Download the file at the given absolute path.
 
         Parameters
         ==========
-        abspath: str
+        fullpath: str
             Absolute path to the file
         """
-        filename = os.path.basename(abspath)
-        st = os.stat(abspath)
+        filename = os.path.basename(fullpath)
+        st = os.stat(fullpath)
 
         self.set_header('Content-Length', st.st_size)
         # Escape commas to workaround Chrome issue with commas in download filenames
         self.set_header('Content-Disposition',
                         'attachment; filename={};'.format(filename.replace(',', '_')))
 
-        content = web.StaticFileHandler.get_content(abspath)
+        content = web.StaticFileHandler.get_content(fullpath)
         if isinstance(content, bytes):
             content = [content]
         for chunk in content:
@@ -86,6 +87,42 @@ class LocalFileHandler(RenderingHandler):
                 yield self.flush()
             except iostream.StreamClosedError:
                 return
+
+    def can_show(self, path):
+        """
+        Generally determine whether the given path is displayable.
+        This function is useful for failing fast - further checks may
+        be applied at notebook render to confirm a file may be shown.
+
+        """
+        fullpath = os.path.realpath(os.path.normpath(os.path.join(
+            self.localfile_path,
+            path
+        )))
+
+        if not fullpath.startswith(self.localfile_path):
+            app_log.warn("directory traversal attempt: '%s'" %
+                         fullpath)
+            return False
+
+        if not os.path.exists(fullpath):
+            return False
+
+        if any(part.startswith('.') or part.startswith('_')
+               for part in fullpath.split(os.sep)):
+            return False
+
+        fstat = os.stat(fullpath)
+
+        # Ensure the file/directory has other read access for all.
+        if not fstat.st_mode & stat.S_IROTH:
+            return False
+
+        if os.path.isdir(fullpath) and not fstat.st_mode & stat.S_IXOTH:
+            # skip directories we can't execute (i.e. list)
+            return False
+
+        return True
 
     @cached
     @gen.coroutine
@@ -103,30 +140,22 @@ class LocalFileHandler(RenderingHandler):
         path: str
             Local filesystem path
         """
-        abspath = os.path.abspath(os.path.join(
-            self.localfile_path,
-            path
-        ))
+        fullpath = os.path.join(self.localfile_path, path)
 
-        if not abspath.startswith(self.localfile_path):
-            app_log.warn("directory traversal attempt: '%s'" %
-                         self.localfile_path)
+        if not self.can_show(fullpath):
             raise web.HTTPError(404)
 
-        if not os.path.exists(abspath):
-            raise web.HTTPError(404)
-
-        if os.path.isdir(abspath):
-            html = self.show_dir(abspath, path)
+        if os.path.isdir(fullpath):
+            html = self.show_dir(fullpath, path)
             raise gen.Return(self.cache_and_finish(html))
 
         is_download = self.get_query_arguments('download')
         if is_download:
-            self.download(abspath)
+            self.download(fullpath)
             return
 
         try:
-            with io.open(abspath, encoding='utf-8') as f:
+            with io.open(fullpath, encoding='utf-8') as f:
                 nbdata = f.read()
         except IOError as ex:
             if ex.errno == errno.EACCES:
@@ -143,12 +172,12 @@ class LocalFileHandler(RenderingHandler):
                                    breadcrumbs=self.breadcrumbs(path),
                                    title=os.path.basename(path))
 
-    def show_dir(self,  abspath,  path):
+    def show_dir(self, fullpath, path):
         """Render the directory view template for a given filesystem path.
 
         Parameters
         ==========
-        abspath: string
+        fullpath: string
             Absolute path on disk to show
         path: string
             URL path equating to the path on disk
@@ -163,24 +192,22 @@ class LocalFileHandler(RenderingHandler):
         ipynbs = []
 
         try:
-            contents = os.listdir(abspath)
+            contents = os.listdir(fullpath)
         except IOError as ex:
             if ex.errno == errno.EACCES:
                 # py2/3: can't access the dir, so don't give away its presence
                 raise web.HTTPError(404)
 
         for f in contents:
-            absf = os.path.join(abspath, f)
+            absf = os.path.join(fullpath, f)
+
+            if not self.can_show(absf):
+                continue
+
             entry = {}
             entry['name'] = f
 
-            # skip hidden or "hidden" files
-            if f.startswith('.') or f.startswith('_'):
-                continue
-            elif os.path.isdir(absf):
-                if not os.access(absf, os.X_OK | os.R_OK):
-                    # skip directories we cannot visit
-                    continue
+            if os.path.isdir(absf):
                 st = os.stat(absf)
                 dt = datetime.utcfromtimestamp(st.st_mtime)
                 entry['modtime'] = dt.isoformat()
@@ -188,9 +215,6 @@ class LocalFileHandler(RenderingHandler):
                 entry['class'] = 'fa fa-folder-open'
                 dirs.append(entry)
             elif f.endswith('.ipynb'):
-                if not os.access(absf, os.R_OK):
-                    # skip files we cannot read
-                    continue
                 st = os.stat(absf)
                 dt = datetime.utcfromtimestamp(st.st_mtime)
                 entry['modtime'] = dt.isoformat()
