@@ -86,7 +86,7 @@ def format_handlers(formats, handlers):
 
 def init_handlers(formats, providers, base_url, localfiles):
     pre_providers = [
-        ('/', IndexHandler),
+        ('/?', IndexHandler),
         ('/index.html', IndexHandler),
         (r'/faq/?', FAQHandler),
         (r'/create/?', CreateHandler),
