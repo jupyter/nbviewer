@@ -136,4 +136,4 @@ def sdist(ctx):
 def release(ctx):
     bower(ctx)
     less(ctx)
-    ctx.run('python setup.py sdist bdist register upload')
+    ctx.run('python setup.py sdist bdist_wheel upload')
