@@ -1,11 +1,10 @@
 {% extends "layout.html" %}
 
 {% block body %}
+  {% if title or subtitle or text or show_input %}
   <header class="jumbotron masthead">
-    <h1>{{ title }}</h1>
-    {% if subtitle %}
-    <h2>{{ subtitle }}</h2>
-    {% endif %}
+    {% if title %}<h1>{{ title }}</h1>{% endif %}
+    {% if subtitle %}<h2>{{ subtitle }}</h2>{% endif %}
     {% if text %}
     {{ text | markdown | safe }}
     {% endif %}
@@ -31,6 +30,7 @@
     </div>
     {% endif %} 
   </header>
+  {% endif %}
 
   {% for section in sections %}
     <section>
