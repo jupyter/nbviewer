@@ -1,0 +1,2 @@
+include versioneer.py
+include nbviewer/_version.py
