@@ -1,92 +1,97 @@
-[
-  {
-    "header":"Programming Languages",
-    "links":[
-      {
-        "text": "IPython",
-        "target": "github/ipython/ipython/blob/4.0.x/examples/IPython Kernel/Index.ipynb",
-        "img": "/static/img/example-nb/ipython-thumb.png"
-      },
-      {
-        "text": "IRuby",
-        "target": "github/SciRuby/sciruby-notebooks/blob/master/getting_started.ipynb",
-        "img": "/static/img/example-nb/iruby-nb.png"
-      },
-      {
-        "text": "IJulia",
-        "target": "url/jdj.mit.edu/~stevenj/IJulia%20Preview.ipynb",
-        "img": "/static/img/example-nb/ijulia-preview.png"
-      }
-    ]
-  },
-  {
-    "header":"Books",
-    "links":[
-      {
-        "text": "Python for Signal Processing",
-        "target": "github/unpingco/Python-for-Signal-Processing/",
-        "img": "/static/img/example-nb/python-signal.png"
-      },
-      {
-        "text": "O'Reilly Book",
-        "target": "github/ptwobrussell/Mining-the-Social-Web-2nd-Edition/tree/master/ipynb",
-        "img": "/static/img/example-nb/mining-slice.png"
-      },
-      {
-        "text": "Probabilistic Programming",
-        "target": "github/CamDavidsonPilon/Probabilistic-Programming-and-Bayesian-Methods-for-Hackers/blob/master/Chapter1_Introduction/Ch1_Introduction_PyMC3.ipynb",
-        "img": "/static/img/example-nb/probabilistic-bayesian.png"
-      }
-    ]
-  },
-  {
-    "header":"Misc",
-    "links":[
-      {
-        "text": "Data Visualization with Lightning",
-        "target": "github/lightning-viz/lightning-example-notebooks/blob/master/index.ipynb",
-        "img": "/static/img/example-nb/lightning.png"
-      },
-      {
-        "text": "Interactive data visualization with Bokeh",
-        "target": "github/bokeh/bokeh-notebooks/blob/master/index.ipynb",
-        "img": "/static/img/example-nb/bokeh.png"
-      },
-      {
-        "text": "Interactive plots with Plotly",
-        "target": "github/plotly/python-user-guide/blob/master/Index.ipynb",
-        "img": "/static/img/example-nb/plotly.png"
-      },
-      {
-        "text": "XKCD Plot With Matplotlib",
-        "target": "url/jakevdp.github.com/downloads/notebooks/XKCD_plots.ipynb",
-        "img": "/static/img/example-nb/XKCD-Matplotlib.png"
-      },
-      {
-        "text": "Python for Vision Research",
-        "target": "github/gestaltrevision/python_for_visres/blob/master/index.ipynb",
-        "img": "/static/img/example-nb/python_for_visres.png"
-      },
-      {
-        "text": "Non Parametric Regression",
-        "target": "gist/fonnesbeck/2352771",
-        "img": "/static/img/example-nb/covariance.png"
-      },
-      {
-        "text": "Partial Differential Equations Solver",
-        "target": "github/waltherg/notebooks/blob/master/2013-12-03-Crank_Nicolson.ipynb",
-        "img": "/static/img/example-nb/pde_solver_with_numpy.png"
-      },
-      {
-        "text": "Analysis of current events",
-        "target": "gist/darribas/4121857",
-        "img": "/static/img/example-nb/gaza.png"
-      },
-      {
-        "text": "Jaynes-Cummings model",
-        "target": "github/jrjohansson/qutip-lectures/blob/master/Lecture-1-Jaynes-Cumming-model.ipynb",
-        "img": "/static/img/example-nb/jaynes-cummings.png"
-      }
-    ]
-  }
-]
+{"title": "nbviewer",
+ "subtitle": "A simple way to share Jupyter Notebooks",
+ "text": "Enter the location of a Jupyter Notebook to have it rendered here:",
+ "show_input": true,
+ "sections":[
+   {
+     "header":"Programming Languages",
+     "links":[
+       {
+         "text": "IPython",
+         "target": "github/ipython/ipython/blob/4.0.x/examples/IPython Kernel/Index.ipynb",
+         "img": "/static/img/example-nb/ipython-thumb.png"
+       },
+       {
+         "text": "IRuby",
+         "target": "github/SciRuby/sciruby-notebooks/blob/master/getting_started.ipynb",
+         "img": "/static/img/example-nb/iruby-nb.png"
+       },
+       {
+         "text": "IJulia",
+         "target": "url/jdj.mit.edu/~stevenj/IJulia%20Preview.ipynb",
+         "img": "/static/img/example-nb/ijulia-preview.png"
+       }
+     ]
+   },
+   {
+     "header":"Books",
+     "links":[
+       {
+         "text": "Python for Signal Processing",
+         "target": "github/unpingco/Python-for-Signal-Processing/",
+         "img": "/static/img/example-nb/python-signal.png"
+       },
+       {
+         "text": "O'Reilly Book",
+         "target": "github/ptwobrussell/Mining-the-Social-Web-2nd-Edition/tree/master/ipynb",
+         "img": "/static/img/example-nb/mining-slice.png"
+       },
+       {
+         "text": "Probabilistic Programming",
+         "target": "github/CamDavidsonPilon/Probabilistic-Programming-and-Bayesian-Methods-for-Hackers/blob/master/Chapter1_Introduction/Ch1_Introduction_PyMC3.ipynb",
+         "img": "/static/img/example-nb/probabilistic-bayesian.png"
+       }
+     ]
+   },
+   {
+     "header":"Misc",
+     "links":[
+       {
+         "text": "Data Visualization with Lightning",
+         "target": "github/lightning-viz/lightning-example-notebooks/blob/master/index.ipynb",
+         "img": "/static/img/example-nb/lightning.png"
+       },
+       {
+         "text": "Interactive data visualization with Bokeh",
+         "target": "github/bokeh/bokeh-notebooks/blob/master/index.ipynb",
+         "img": "/static/img/example-nb/bokeh.png"
+       },
+       {
+         "text": "Interactive plots with Plotly",
+         "target": "github/plotly/python-user-guide/blob/master/Index.ipynb",
+         "img": "/static/img/example-nb/plotly.png"
+       },
+       {
+         "text": "XKCD Plot With Matplotlib",
+         "target": "url/jakevdp.github.com/downloads/notebooks/XKCD_plots.ipynb",
+         "img": "/static/img/example-nb/XKCD-Matplotlib.png"
+       },
+       {
+         "text": "Python for Vision Research",
+         "target": "github/gestaltrevision/python_for_visres/blob/master/index.ipynb",
+         "img": "/static/img/example-nb/python_for_visres.png"
+       },
+       {
+         "text": "Non Parametric Regression",
+         "target": "gist/fonnesbeck/2352771",
+         "img": "/static/img/example-nb/covariance.png"
+       },
+       {
+         "text": "Partial Differential Equations Solver",
+         "target": "github/waltherg/notebooks/blob/master/2013-12-03-Crank_Nicolson.ipynb",
+         "img": "/static/img/example-nb/pde_solver_with_numpy.png"
+       },
+       {
+         "text": "Analysis of current events",
+         "target": "gist/darribas/4121857",
+         "img": "/static/img/example-nb/gaza.png"
+       },
+       {
+         "text": "Jaynes-Cummings model",
+         "target": "github/jrjohansson/qutip-lectures/blob/master/Lecture-1-Jaynes-Cumming-model.ipynb",
+         "img": "/static/img/example-nb/jaynes-cummings.png"
+       }
+     ]
+   }
+ ]
+}
