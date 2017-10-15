@@ -1,0 +1,3 @@
+include versioneer.py
+include nbviewer/_version.py
+include requirements.txt

@@ -5,26 +5,32 @@
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
+import os
+import sys
+
+from os.path import join as pjoin
+from subprocess import check_call
+
+import versioneer
+
 from distutils.command.sdist import sdist
 from distutils.command.build import build
-import os
-from subprocess import check_call
-import sys
-pjoin = os.path.join
-
 from setuptools import setup
 
-def preflight():
-    check_call(['npm', 'install'])
-    check_call(['invoke', 'bower'])
-    check_call(['invoke', 'less'])
 
-def invoke_first(cmd):
-    class InvokeFirst(cmd):
-        def run(self):
-            preflight()
-            return super(InvokeFirst, self).run()
-    return InvokeFirst
+# def preflight():
+#     check_call(['npm', 'install'])
+#     check_call(['invoke', 'bower'])
+#     check_call(['invoke', 'less'])
+
+
+# def invoke_first(cmd):
+#     class InvokeFirst(cmd):
+#         def run(self):
+#             preflight()
+#             return super(InvokeFirst, self).run()
+#     return InvokeFirst
+
 
 def walk_subpkg(name):
     data_files = []
@@ -35,6 +41,7 @@ def walk_subpkg(name):
             data_files.append(os.path.join(sub_dir, f))
     return data_files
 
+
 pkg_data = {
     "nbviewer": (
         ['frontpage.json'] +
@@ -44,10 +51,14 @@ pkg_data = {
     )
 }
 
+# cmd_class = versioneer.get_cmdclass()
+# cmd_class['build'] = invoke_first(build)
+# cmd_class['sdist'] = invoke_first(cmd_class['sdist'])
+
 
 setup_args = dict(
     name = "nbviewer",
-    version = '1.0.0',
+    version=versioneer.get_version(),
     packages = ["nbviewer"],
     package_data = pkg_data,
     setup_requires = ['invoke'],
@@ -65,10 +76,7 @@ setup_args = dict(
         'Programming Language :: Python :: 3.3',
     ],
     test_suite="nose.collector",
-    cmdclass = {
-        'sdist': invoke_first(sdist),
-        'build': invoke_first(build),
-    }
+    cmdclass = versioneer.get_cmdclass()
 )
 
 install_requires = setup_args['install_requires'] = []

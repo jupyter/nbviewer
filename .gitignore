@@ -15,3 +15,6 @@ node_modules
 screenshots
 # ignore downloaded notebook sources
 notebook-*
+.eggs/
+MANIFEST
+package-lock.json
