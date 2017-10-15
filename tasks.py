@@ -123,3 +123,15 @@ def screenshots(ctx, root="http://localhost:5000/", dest="./screenshots"):
     ctx.run("casperjs test {script}".format(script=tmpfile))
 
     shutil.rmtree(tmpdir)
+
+
+@invoke.task
+def sdist(ctx):
+    ctx.sdist('python setup.py sdist')
+
+
+@invoke.task
+def release(ctx):
+    bower(ctx)
+    less(ctx)
+    ctx.run('python setup.py sdist bdist register upload')

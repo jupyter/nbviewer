@@ -18,18 +18,18 @@ from distutils.command.build import build
 from setuptools import setup
 
 
-def preflight():
-    check_call(['npm', 'install'])
-    check_call(['invoke', 'bower'])
-    check_call(['invoke', 'less'])
+# def preflight():
+#     check_call(['npm', 'install'])
+#     check_call(['invoke', 'bower'])
+#     check_call(['invoke', 'less'])
 
 
-def invoke_first(cmd):
-    class InvokeFirst(cmd):
-        def run(self):
-            preflight()
-            return super(InvokeFirst, self).run()
-    return InvokeFirst
+# def invoke_first(cmd):
+#     class InvokeFirst(cmd):
+#         def run(self):
+#             preflight()
+#             return super(InvokeFirst, self).run()
+#     return InvokeFirst
 
 
 def walk_subpkg(name):
@@ -51,9 +51,9 @@ pkg_data = {
     )
 }
 
-cmd_class = versioneer.get_cmdclass()
-cmd_class['build'] = invoke_first(build)
-cmd_class['sdist'] = invoke_first(cmd_class['sdist'])
+# cmd_class = versioneer.get_cmdclass()
+# cmd_class['build'] = invoke_first(build)
+# cmd_class['sdist'] = invoke_first(cmd_class['sdist'])
 
 
 setup_args = dict(
@@ -76,7 +76,7 @@ setup_args = dict(
         'Programming Language :: Python :: 3.3',
     ],
     test_suite="nose.collector",
-    cmdclass = cmd_class
+    cmdclass = versioneer.get_cmdclass()
 )
 
 install_requires = setup_args['install_requires'] = []
