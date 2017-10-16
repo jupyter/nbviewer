@@ -1,8 +1,11 @@
-nbviewer:
-  build: .
-  links:
-  - nbcache
-  ports:
-   - 8080:8080
-nbcache:
-  image: memcached
+version: '2'
+services:
+  nbviewer:
+    build: .
+    image: nbviewer
+    links:
+    - nbcache
+    ports:
+    - 8080:8080
+  nbcache:
+    image: memcached

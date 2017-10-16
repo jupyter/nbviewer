@@ -1,4 +1,4 @@
-FROM nbviewer_nbviewer
+FROM nbviewer
 
 USER root
 
