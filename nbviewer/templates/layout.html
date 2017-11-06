@@ -193,9 +193,9 @@
     (function() {
       var tags = document.querySelectorAll('script[type="application/vnd.jupyter.widget-view+json"]');
       var scriptElement = document.createElement('script');
-      var widgetState = JSON.parse(tags[0].innerHTML);
+      var widgetState = tags[0] && JSON.parse(tags[0].innerHTML);
 
-      if (widgetState.version_major < 2) {
+      if (widgetState && widgetState.version_major < 2) {
         scriptElement.src = 'https://unpkg.com/jupyter-js-widgets@*/dist/embed.js';
       } else {
         scriptElement.src = 'https://unpkg.com/@jupyter-widgets/html-manager@*/dist/embed-amd.js';
