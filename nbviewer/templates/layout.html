@@ -77,7 +77,6 @@
   <script src="{{ static_url("components/jquery/dist/jquery.min.js") }}"></script>
   <script src="{{ static_url("components/requirejs/require.js") }}"></script>
   <script src="{{ static_url("components/moment/min/moment.min.js") }}"></script>
-
 <!-- Navbar
 ================================================== -->
   <nav id="menubar" class="navbar navbar-default navbar-fixed-top" data-spy="affix">
@@ -157,7 +156,6 @@
     </footer>
   {% endblock footer %}
 
-  <script src="https://unpkg.com/jupyter-js-widgets@2.0.*/dist/embed.js"></script>
   <script src="{{ static_url("components/bootstrap/js/bootstrap.min.js") }}"></script>
   <script src="{{ static_url("components/headroom.js/dist/headroom.min.js") }}"></script>
   <script src="{{ static_url("components/headroom.js/dist/jQuery.headroom.min.js") }}"></script>
@@ -189,6 +187,22 @@
         $("body").toggleClass("scrolled", w.scrollTop() > 0);
       });
     });
+  </script>
+
+  <script>
+    (function() {
+      var tags = document.querySelectorAll('script[type="application/vnd.jupyter.widget-view+json"]');
+      var scriptElement = document.createElement('script');
+      var widgetState = tags[0] && JSON.parse(tags[0].innerHTML);
+
+      if (widgetState && widgetState.version_major < 2) {
+        scriptElement.src = 'https://unpkg.com/jupyter-js-widgets@*/dist/embed.js';
+      } else {
+        scriptElement.src = 'https://unpkg.com/@jupyter-widgets/html-manager@*/dist/embed-amd.js';
+      }
+
+      document.body.appendChild(scriptElement);
+    }());
   </script>
   <!--NEW RELIC Stop Perf Measurement-->
   {{ nrfoot()| safe }}
