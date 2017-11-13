@@ -189,21 +189,6 @@
     });
   </script>
 
-  <script>
-    (function() {
-      var mimeElement = document.querySelector('script[type="application/vnd.jupyter.widget-view+json"]');
-      var scriptElement = document.createElement('script');
-      var widgetState = mimeElement && JSON.parse(mimeElement.innerHTML);
-
-      if (widgetState && (widgetState.version_major < 2 || !widgetState.version_major)) {
-        scriptElement.src = 'https://unpkg.com/jupyter-js-widgets@*/dist/embed.js';
-      } else {
-        scriptElement.src = 'https://unpkg.com/@jupyter-widgets/html-manager@*/dist/embed-amd.js';
-      }
-
-      document.body.appendChild(scriptElement);
-    }());
-  </script>
   <!--NEW RELIC Stop Perf Measurement-->
   {{ nrfoot()| safe }}
   <!--NEW RELIC End-->
