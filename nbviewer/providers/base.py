@@ -190,6 +190,10 @@ class BaseHandler(web.RequestHandler):
         return self.settings['mathjax_url']
 
     @property
+    def ipywidgets_base_url(self):
+        return self.settings['ipywidgets_base_url']
+
+    @property
     def statsd(self):
         if hasattr(self, '_statsd'):
             return self._statsd
@@ -251,6 +255,7 @@ class BaseHandler(web.RequestHandler):
             "static_url": self.static_url,
             "from_base": self.from_base,
             "google_analytics_id": self.settings.get('google_analytics_id'),
+            "ipywidgets_base_url": self.ipywidgets_base_url,
         }
 
     def breadcrumbs(self, path, base_url):
