@@ -37,7 +37,10 @@ class LocalFileHandler(RenderingHandler):
 
     @property
     def localfile_path(self):
-        return os.path.realpath(self.settings.get('localfile_path', ''))
+        if self.settings.get('localfile_use_abspath'):
+            return os.path.abspath(self.settings.get('localfile_path', ''))
+        else:
+            return os.path.realpath(self.settings.get('localfile_path', ''))
 
     def breadcrumbs(self, path):
         """Build a list of breadcrumbs leading up to and including the
@@ -95,10 +98,16 @@ class LocalFileHandler(RenderingHandler):
         be applied at notebook render to confirm a file may be shown.
 
         """
-        fullpath = os.path.realpath(os.path.normpath(os.path.join(
-            self.localfile_path,
-            path
-        )))
+        if self.settings.get('localfile_use_abspath'):
+            fullpath = os.path.abspath(os.path.join(
+                self.localfile_path,
+                path
+            ))
+        else:
+            fullpath = os.path.realpath(os.path.normpath(os.path.join(
+                self.localfile_path,
+                path
+            )))
 
         if not fullpath.startswith(self.localfile_path):
             app_log.warn("directory traversal attempt: '%s'" %
