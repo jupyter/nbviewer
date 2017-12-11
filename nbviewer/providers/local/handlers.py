@@ -37,7 +37,7 @@ class LocalFileHandler(RenderingHandler):
 
     @property
     def localfile_path(self):
-        if self.settings.get('localfile_use_abspath'):
+        if self.settings.get('localfile_follow_symlinks'):
             return os.path.abspath(self.settings.get('localfile_path', ''))
         else:
             return os.path.realpath(self.settings.get('localfile_path', ''))
@@ -98,7 +98,7 @@ class LocalFileHandler(RenderingHandler):
         be applied at notebook render to confirm a file may be shown.
 
         """
-        if self.settings.get('localfile_use_abspath'):
+        if self.settings.get('localfile_follow_symlinks'):
             fullpath = os.path.abspath(os.path.join(
                 self.localfile_path,
                 path
