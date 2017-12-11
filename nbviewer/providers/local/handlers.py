@@ -112,7 +112,7 @@ class LocalFileHandler(RenderingHandler):
                for part in fullpath.split(os.sep)):
             return False
 
-        if self.settings.get('localfile_only_world_readable'):
+        if not self.settings.get('localfile_any_user'):
             fstat = os.stat(fullpath)
 
             # Ensure the file/directory has other read access for all.
