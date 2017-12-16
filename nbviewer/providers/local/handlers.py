@@ -112,15 +112,16 @@ class LocalFileHandler(RenderingHandler):
                for part in fullpath.split(os.sep)):
             return False
 
-        fstat = os.stat(fullpath)
+        if not self.settings.get('localfile_any_user'):
+            fstat = os.stat(fullpath)
 
-        # Ensure the file/directory has other read access for all.
-        if not fstat.st_mode & stat.S_IROTH:
-            return False
+            # Ensure the file/directory has other read access for all.
+            if not fstat.st_mode & stat.S_IROTH:
+                return False
 
-        if os.path.isdir(fullpath) and not fstat.st_mode & stat.S_IXOTH:
-            # skip directories we can't execute (i.e. list)
-            return False
+            if os.path.isdir(fullpath) and not fstat.st_mode & stat.S_IXOTH:
+                # skip directories we can't execute (i.e. list)
+                return False
 
         return True
 
