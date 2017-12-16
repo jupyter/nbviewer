@@ -38,9 +38,9 @@ class LocalFileHandler(RenderingHandler):
     @property
     def localfile_path(self):
         if self.settings.get('localfile_follow_symlinks'):
-            return os.path.abspath(self.settings.get('localfile_path', ''))
-        else:
             return os.path.realpath(self.settings.get('localfile_path', ''))
+        else:
+            return os.path.abspath(self.settings.get('localfile_path', ''))
 
     def breadcrumbs(self, path):
         """Build a list of breadcrumbs leading up to and including the
@@ -99,12 +99,12 @@ class LocalFileHandler(RenderingHandler):
 
         """
         if self.settings.get('localfile_follow_symlinks'):
-            fullpath = os.path.abspath(os.path.join(
+            fullpath = os.path.realpath(os.path.join(
                 self.localfile_path,
                 path
             ))
         else:
-            fullpath = os.path.realpath(os.path.normpath(os.path.join(
+            fullpath = os.path.abspath(os.path.normpath(os.path.join(
                 self.localfile_path,
                 path
             )))
