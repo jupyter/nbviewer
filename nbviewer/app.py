@@ -242,6 +242,7 @@ def make_app():
         render_timeout=options.render_timeout,
         localfile_path=os.path.abspath(options.localfiles),
         localfile_follow_symlinks=options.localfile_follow_symlinks,
+        localfile_any_user=options.localfile_any_user,
         fetch_kwargs=fetch_kwargs,
         mathjax_url=options.mathjax_url,
         rate_limiter=rate_limiter,
@@ -283,6 +284,7 @@ def init_options():
     define("no_cache", default=False, help="Do not cache results", type=bool)
     define("localfiles", default="", help="Allow to serve local files under /localfile/* this can be a security risk", type=str)
     define("localfile_follow_symlinks", default=False, help="Resolve/follow symbolic links to their target file using realpath", type=bool)
+    define("localfile_any_user", default=False, help="Also serve files that are not readable by 'Other' on the local file system", type=bool)
     define("host", default=default_host, help="run on the given interface", type=str)
     define("port", default=default_port, help="run on the given port", type=int)
     define("cache_expiry_min", default=10*60, help="minimum cache expiry (seconds)", type=int)
