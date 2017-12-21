@@ -1,6 +1,8 @@
 {
-  "name": "nbviewer",
-  "private": true,
+  "name": "nbviewer-deps",
+  "version": "0.1.0",
+  "description": "Jupyter nbviewer build dependencies",
+  "readme": "README.md",
   "scripts": {
     "watch-less": "./node_modules/.bin/watch 'invoke less' ./nbviewer/static/less"
   },
@@ -10,5 +12,11 @@
     "less-plugin-autoprefix": "~1.5.1",
     "less-plugin-clean-css": "~1.5.1",
     "watch": "~1.0.2"
+  },
+  "author": "Jupyter Developers",
+  "license": "BSD-3-Clause",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jupyter/nbviewer.git"
   }
 }
