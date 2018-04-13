@@ -65,7 +65,12 @@ WORKDIR /srv/nbviewer
 ADD . /srv/nbviewer/
 RUN invoke less
 
+# Expose volume
+# docker run -p 8080:8080 -v /host/directory:/srv/notebooks nbviewer
+RUN mkdir /srv/notebooks
+VOLUME /srv/notebooks
+
 # root up until now!
 USER nobody
 
-CMD ["python3", "-m", "nbviewer", "--port=8080"]
+CMD ["python3", "-m", "nbviewer", "--port=8080", "--localfiles=/srv/notebooks"]
