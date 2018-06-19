@@ -68,4 +68,6 @@ RUN invoke less
 # root up until now!
 USER nobody
 
-CMD ["python3", "-m", "nbviewer", "--port=8080"]
+EXPOSE 9000
+# CMD ["python3", "-m", "nbviewer", "--port=8080"]
+ENTRYPOINT ["python3"]
