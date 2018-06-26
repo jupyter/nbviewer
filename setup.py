@@ -5,31 +5,37 @@
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
+from distutils import log
 import os
-import sys
+import pipes
 
-from os.path import join as pjoin
 from subprocess import check_call
 
 import versioneer
 
-from distutils.command.sdist import sdist
-from distutils.command.build import build
 from setuptools import setup
+from setuptools.command.develop import develop
 
 
-# def preflight():
-#     check_call(['npm', 'install'])
-#     check_call(['invoke', 'bower'])
-#     check_call(['invoke', 'less'])
+def sh(cmd):
+    """Run a command, echoing what command is to be run"""
+    log.info("Running command %s" % ' '.join(map(pipes.quote, cmd)))
+    check_call(cmd)
 
 
-# def invoke_first(cmd):
-#     class InvokeFirst(cmd):
-#         def run(self):
-#             preflight()
-#             return super(InvokeFirst, self).run()
-#     return InvokeFirst
+def preflight():
+    log.info("Building LESS")
+    sh(['npm', 'install'])
+    sh(['invoke', 'bower'])
+    sh(['invoke', 'less'])
+
+
+def invoke_first(cmd):
+    class InvokeFirst(cmd):
+        def run(self):
+            preflight()
+            return cmd.run(self)
+    return InvokeFirst
 
 
 def walk_subpkg(name):
@@ -51,9 +57,11 @@ pkg_data = {
     )
 }
 
-# cmd_class = versioneer.get_cmdclass()
-# cmd_class['build'] = invoke_first(build)
-# cmd_class['sdist'] = invoke_first(cmd_class['sdist'])
+cmdclass = versioneer.get_cmdclass()
+# run invoke prior to develop/sdist
+cmdclass['develop'] = invoke_first(develop)
+cmdclass['build_py'] = invoke_first(cmdclass['build_py'])
+cmdclass['sdist'] = invoke_first(cmdclass['sdist'])
 
 
 setup_args = dict(
@@ -76,7 +84,7 @@ setup_args = dict(
         'Programming Language :: Python :: 3.3',
     ],
     test_suite="nose.collector",
-    cmdclass = versioneer.get_cmdclass()
+    cmdclass=cmdclass,
 )
 
 install_requires = setup_args['install_requires'] = []

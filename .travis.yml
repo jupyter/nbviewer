@@ -13,13 +13,11 @@ before_install:
 - sudo apt-get install -qq libzmq3-dev pandoc libcurl4-gnutls-dev libmemcached-dev
 - pip install --upgrade setuptools pip
 - pip install -r requirements-dev.txt
-- npm install .
 
 install:
 - pip install --upgrade setuptools pip
 - pip install -r requirements.txt
-- invoke bower
-- invoke less
+- pip install -e .
 
 script:
 - invoke test
