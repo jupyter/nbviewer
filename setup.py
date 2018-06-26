@@ -34,7 +34,7 @@ def invoke_first(cmd):
     class InvokeFirst(cmd):
         def run(self):
             preflight()
-            return super(InvokeFirst, self).run()
+            return cmd.run(self)
     return InvokeFirst
 
 
