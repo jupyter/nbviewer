@@ -6,7 +6,9 @@ about: Create a report to help us improve
 
 Hi! Thanks for using Jupyter Notebook Viewer (nbviewer) and taking the time to report a bug you've encountered. Please use the template below to tell us about the problem.
 
-If you've found a bug in a different Jupyter project (e.g., [Jupyter Notebook](http://github.com/jupyter/notebook), [JupyterLab](http://github.com/jupyterlab/jupyterlab), [JupyterHub](http://github.com/jupyterhub/jupyterhub), etc.), please open an issue using that project's issue tracker instead. 
+If you've found a bug in a different Jupyter project (e.g., [Jupyter Notebook](http://github.com/jupyter/notebook), [JupyterLab](http://github.com/jupyterlab/jupyterlab), [JupyterHub](http://github.com/jupyterhub/jupyterhub), etc.), please open an issue using that project's issue tracker instead.
+
+If you need help using or installing Jupyter Notebook Viewer, please use the [jupyter/help](https://github.com/jupyter/help) issue tracker instead.
 
 **Describe the bug**
 A clear and concise description of what the bug is.
