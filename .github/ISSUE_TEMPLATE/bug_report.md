@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Create a report to help us improve
+about: Tell us about a bug in nbviewer
 
 ---
 
