@@ -5,16 +5,16 @@ from __future__ import print_function
 
 import os
 import hashlib
+import pipes
 import shutil
 import tempfile
 import sys
 from tarfile import TarFile
-import pip
 
 import invoke
 
-NOTEBOOK_VERSION = '5.2.1' # the notebook version whose LESS we will use
-NOTEBOOK_CHECKSUM = '4ae5b81dd39b37cdd99dcffe83a5182c849947b92d46ac4d2b5093af2bb9f224' # sha256 checksum of notebook tarball
+NOTEBOOK_VERSION = '5.5.0' # the notebook version whose LESS we will use
+NOTEBOOK_CHECKSUM = 'fa915c231e64a30d19cc2c70ccab6444cbaa93e44e92b5f8233dd9147ad0e664' # sha256 checksum of notebook tarball
 
 APP_ROOT = os.path.dirname(__file__)
 NPM_BIN = os.path.join(APP_ROOT, "node_modules", ".bin")
@@ -39,12 +39,31 @@ def bower(ctx):
 def notebook_static(ctx):
     if os.path.exists(NOTEBOOK_STATIC_PATH):
         return
-    fname = 'notebook-%s.tar.gz' % NOTEBOOK_VERSION
+
+    fname = "notebook-%s.tar.gz" % NOTEBOOK_VERSION
     nb_archive = os.path.join(APP_ROOT, fname)
     if not os.path.exists(nb_archive):
         print("Downloading from pypi -> %s" % nb_archive)
-        pip.main(['download', 'notebook=={}'.format(NOTEBOOK_VERSION), '--no-deps', '-d', APP_ROOT, '--no-binary', ':all:'])
-    with open(nb_archive, 'rb') as f:
+        ctx.run(
+            " ".join(
+                map(
+                    pipes.quote,
+                    [
+                        sys.executable,
+                        "-m",
+                        "pip",
+                        "download",
+                        "notebook=={}".format(NOTEBOOK_VERSION),
+                        "--no-deps",
+                        "-d",
+                        APP_ROOT,
+                        "--no-binary",
+                        ":all:",
+                    ],
+                )
+            )
+        )
+    with open(nb_archive, "rb") as f:
         checksum = hashlib.sha256(f.read()).hexdigest()
     if checksum != NOTEBOOK_CHECKSUM:
         print("Notebook sdist checksum mismatch", file=sys.stderr)

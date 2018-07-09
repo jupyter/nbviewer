@@ -217,17 +217,23 @@ class LocalFileHandler(RenderingHandler):
             entry = {}
             entry['name'] = f
 
+            # We need to make UTC timestamps conform to true ISO-8601 by
+            # appending Z(ulu). Without a timezone, the spec says it should be
+            # treated as local time which is not what we want and causes
+            # moment.js on the frontend to show times in the past or future
+            # depending on the user's timezone.
+            # https://en.wikipedia.org/wiki/ISO_8601#Time_zone_designators
             if os.path.isdir(absf):
                 st = os.stat(absf)
                 dt = datetime.utcfromtimestamp(st.st_mtime)
-                entry['modtime'] = dt.isoformat()
+                entry['modtime'] = dt.isoformat() + 'Z'
                 entry['url'] = url_path_join(self._localfile_path, path, f)
                 entry['class'] = 'fa fa-folder-open'
                 dirs.append(entry)
             elif f.endswith('.ipynb'):
                 st = os.stat(absf)
                 dt = datetime.utcfromtimestamp(st.st_mtime)
-                entry['modtime'] = dt.isoformat()
+                entry['modtime'] = dt.isoformat() + 'Z'
                 entry['url'] = url_path_join(self._localfile_path, path, f)
                 entry['class'] = 'fa fa-book'
                 ipynbs.append(entry)
