@@ -255,6 +255,7 @@ def make_app():
         hub_api_url=os.getenv('JUPYTERHUB_API_URL'),
         hub_base_url=os.getenv('JUPYTERHUB_BASE_URL'),
         ipywidgets_base_url=options.ipywidgets_base_url,
+        content_security_policy=options.content_security_policy,
     )
 
     if options.localfiles:
@@ -311,6 +312,7 @@ def init_options():
     define("statsd_prefix", default='nbviewer', help="Prefix to use for naming metrics sent to statsd", type=str)
     define("base_url", default='/', help='URL base for the server')
     define("ipywidgets_base_url", default="https://unpkg.com/", help="URL base for ipywidgets package", type=str)
+    define("content_security_policy", default="connect-src 'none';", help="Content-Security-Policy header setting", type=str)
 
 
 def main(argv=None):

@@ -90,6 +90,9 @@ class BaseHandler(web.RequestHandler):
             **kwargs
         )
 
+    def set_default_headers(self):
+        self.add_header('Content-Security-Policy', self.content_security_policy)
+
     @gen.coroutine
     def prepare(self):
         """Check if the user is authenticated with JupyterHub if the hub
@@ -192,6 +195,10 @@ class BaseHandler(web.RequestHandler):
     @property
     def ipywidgets_base_url(self):
         return self.settings['ipywidgets_base_url']
+
+    @property
+    def content_security_policy(self):
+        return self.settings['content_security_policy']
 
     @property
     def statsd(self):
