@@ -256,6 +256,7 @@ def make_app():
         hub_base_url=os.getenv('JUPYTERHUB_BASE_URL'),
         ipywidgets_base_url=options.ipywidgets_base_url,
         content_security_policy=options.content_security_policy,
+        binder_base_url=options.binder_base_url,
     )
 
     if options.localfiles:
@@ -313,6 +314,7 @@ def init_options():
     define("base_url", default='/', help='URL base for the server')
     define("ipywidgets_base_url", default="https://unpkg.com/", help="URL base for ipywidgets package", type=str)
     define("content_security_policy", default="connect-src 'none';", help="Content-Security-Policy header setting", type=str)
+    define("binder_base_url", default="https://mybinder.org/v2", help="URL base for binder notebook execution service", type=str)
 
 
 def main(argv=None):

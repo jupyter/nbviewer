@@ -41,7 +41,7 @@ PROVIDER_CTX = {
 }
 
 
-BINDER_TMPL = 'https://mybinder.org/v2/gh/{org}/{repo}/{ref}?filepath={path}'
+BINDER_TMPL = '{binder_base_url}/gh/{org}/{repo}/{ref}?filepath={path}'
 
 
 def _github_url():
@@ -299,7 +299,13 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
                 raise web.HTTPError(400)
             yield self.finish_notebook(nbjson, raw_url,
                 provider_url=blob_url,
-                executor_url=BINDER_TMPL.format(org=user, repo=repo, ref=ref, path=quote(path)),
+                executor_url=BINDER_TMPL.format(
+                    binder_base_url=self.binder_base_url,
+                    org=user,
+                    repo=repo,
+                    ref=ref,
+                    path=quote(path)
+                ),
                 breadcrumbs=breadcrumbs,
                 msg="file from GitHub: %s" % raw_url,
                 public=True,

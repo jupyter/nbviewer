@@ -201,6 +201,10 @@ class BaseHandler(web.RequestHandler):
         return self.settings['content_security_policy']
 
     @property
+    def binder_base_url(self):
+        return self.settings['binder_base_url']
+
+    @property
     def statsd(self):
         if hasattr(self, '_statsd'):
             return self._statsd
