@@ -100,11 +100,10 @@
 
           {% block otherlinks %}
             {% if provider_url %}
-              <li>
-                <a href="{{provider_url}}" title="View on {{provider_label}}">
-                  <i class="fa fa-{{provider_icon}} fa-2x menu-icon"></i>
-                </a>
-              </li>
+              {{ head_icon(provider_url, "View on " + provider_label, provider_icon) }}
+            {% endif %}
+            {% if executor_url %}
+              {{ head_icon(executor_url, "Execute on " + executor_label, executor_icon) }}
             {% endif %}
           {% endblock %}
         </ul>

@@ -31,6 +31,7 @@ PROVIDER_CTX = {
 
 
 BINDER_TMPL = '{binder_base_url}/gist/{user}/{gist_id}/master'
+BINDER_PATH_TMPL = BINDER_TMPL+'?filepath={path}'
 
 
 class GistClientMixin(GithubClientMixin):
@@ -127,10 +128,11 @@ class GistHandler(GistClientMixin, RenderingHandler):
                     content,
                     file['raw_url'],
                     provider_url=gist['html_url'],
-                    executor_url=BINDER_TMPL.format(
+                    executor_url=BINDER_PATH_TMPL.format(
                         binder_base_url=self.binder_base_url,
                         user=user.rstrip('/'),
-                        gist_id=gist_id
+                        gist_id=gist_id,
+                        path=quote(filename)
                     ),
                     msg="gist: %s" % gist_id,
                     public=gist['public'],
@@ -178,6 +180,11 @@ class GistHandler(GistClientMixin, RenderingHandler):
                 tree_label='gists',
                 user=user.rstrip('/'),
                 provider_url=gist['html_url'],
+                executor_url=BINDER_TMPL.format(
+                        binder_base_url=self.binder_base_url,
+                        user=user.rstrip('/'),
+                        gist_id=gist_id
+                    ),
                 **PROVIDER_CTX
             )
             yield self.cache_and_finish(html)
