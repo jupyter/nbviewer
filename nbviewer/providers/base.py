@@ -614,7 +614,8 @@ class RenderingHandler(BaseHandler):
     def finish_notebook(self, json_notebook, download_url, provider_url=None,
                         provider_icon=None, provider_label=None, msg=None,
                         breadcrumbs=None, public=False, format=None, request=None,
-                        title=None):
+                        title=None, executor_url=None, executor_label=None,
+                        executor_icon=None):
         """render a notebook from its JSON body.
 
         download_url is required, provider_url is not.
@@ -665,6 +666,9 @@ class RenderingHandler(BaseHandler):
             provider_url=provider_url,
             provider_label=provider_label,
             provider_icon=provider_icon,
+            executor_url=executor_url,
+            executor_label=executor_label,
+            executor_icon=executor_icon,
             format=self.format,
             default_format=self.default_format,
             format_prefix=format_prefix,

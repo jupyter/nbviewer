@@ -36,7 +36,12 @@ from .client import AsyncGitHubClient
 PROVIDER_CTX = {
     'provider_label': 'GitHub',
     'provider_icon': 'github',
+    'executor_label': 'Binder',
+    'executor_icon': 'icon-binder',
 }
+
+
+BINDER_TMPL = 'https://mybinder.org/v2/gh/{org}/{repo}/{ref}?filepath={path}'
 
 
 def _github_url():
@@ -294,6 +299,7 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
                 raise web.HTTPError(400)
             yield self.finish_notebook(nbjson, raw_url,
                 provider_url=blob_url,
+                executor_url=BINDER_TMPL.format(org=user, repo=repo, ref=ref, path=quote(path)),
                 breadcrumbs=breadcrumbs,
                 msg="file from GitHub: %s" % raw_url,
                 public=True,

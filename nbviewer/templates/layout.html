@@ -19,6 +19,16 @@
 {%- endmacro %}
 
 
+{% macro head_image(url, name, icon) -%}
+  <li>
+    <a href="{{ from_base(url) }}" title="{{name}}"}>
+      <img src="{{ static_url('img/{}.png'.format(icon)) }}" class="menu-icon {{ icon }}" />
+      <span class="menu-text">{{name}}</span>
+    </a>
+  </li>
+{%- endmacro %}
+
+
 {% macro link_breadcrumbs(crumbs) -%}
   {% if crumbs %}
   <ol class="breadcrumb">

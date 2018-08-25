@@ -25,7 +25,12 @@ from ..github.handlers import GithubClientMixin
 PROVIDER_CTX = {
     'provider_label': 'Gist',
     'provider_icon': 'github-square',
+    'executor_label': 'Binder',
+    'executor_icon': 'icon-binder',
 }
+
+
+BINDER_TMPL = 'https://mybinder.org/v2/gist/{user}/{gist_id}/master'
 
 
 class GistClientMixin(GithubClientMixin):
@@ -122,6 +127,7 @@ class GistHandler(GistClientMixin, RenderingHandler):
                     content,
                     file['raw_url'],
                     provider_url=gist['html_url'],
+                    executor_url=BINDER_TMPL.format(user=user, gist_id=gist_id),
                     msg="gist: %s" % gist_id,
                     public=gist['public'],
                     format=self.format,
