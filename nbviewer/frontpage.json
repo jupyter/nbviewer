@@ -8,7 +8,7 @@
      "links":[
        {
          "text": "IPython",
-         "target": "github/ipython/ipython/blob/4.0.x/examples/IPython Kernel/Index.ipynb",
+         "target": "github/ipython/ipython/blob/6.x/examples/IPython%20Kernel/Index.ipynb",
          "img": "/static/img/example-nb/ipython-thumb.png"
        },
        {
