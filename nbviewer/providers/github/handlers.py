@@ -41,7 +41,8 @@ PROVIDER_CTX = {
 }
 
 
-BINDER_TMPL = '{binder_base_url}/gh/{org}/{repo}/{ref}?filepath={path}'
+BINDER_TMPL = '{binder_base_url}/gh/{org}/{repo}/{ref}'
+BINDER_PATH_TMPL = BINDER_TMPL+'?filepath={path}'
 
 
 def _github_url():
@@ -215,6 +216,12 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
             user=user, repo=repo, ref=ref, path=path,
             branches=branches, tags=tags, tree_type="github",
             tree_label="repositories",
+            executor_url=BINDER_TMPL.format(
+                binder_base_url=self.binder_base_url,
+                org=user,
+                repo=repo,
+                ref=ref,
+            ),
             **PROVIDER_CTX
         )
         yield self.cache_and_finish(html)
@@ -299,7 +306,7 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
                 raise web.HTTPError(400)
             yield self.finish_notebook(nbjson, raw_url,
                 provider_url=blob_url,
-                executor_url=BINDER_TMPL.format(
+                executor_url=BINDER_PATH_TMPL.format(
                     binder_base_url=self.binder_base_url,
                     org=user,
                     repo=repo,
