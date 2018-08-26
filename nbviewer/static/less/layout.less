@@ -72,6 +72,12 @@ td.page_links {
   width: 24px;
   height: 24px;
   margin-top: -8px;
-  background: url(../img/icon-binder.png) center right no-repeat;
+  background-image: url(../img/icon-binder.png);
+  background-repeat: no-repeat;
+  background-position: center right;
   background-size: 24px;
+  &:hover, &.active {
+    &:extend(.fa-icon-binder);
+    background-image: url(../img/icon-binder-color.png);
+  }
 }
