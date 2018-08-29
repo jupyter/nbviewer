@@ -211,17 +211,20 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
         entries.extend(ipynbs)
         entries.extend(others)
 
+        # Enable a binder navbar icon if a binder base URL is configured
+        executor_url = BINDER_TMPL.format(
+            binder_base_url=self.binder_base_url,
+            org=user,
+            repo=repo,
+            ref=ref,
+        ) if self.binder_base_url else None
+
         html = self.render_template("treelist.html",
             entries=entries, breadcrumbs=breadcrumbs, provider_url=provider_url,
             user=user, repo=repo, ref=ref, path=path,
             branches=branches, tags=tags, tree_type="github",
             tree_label="repositories",
-            executor_url=BINDER_TMPL.format(
-                binder_base_url=self.binder_base_url,
-                org=user,
-                repo=repo,
-                ref=ref,
-            ),
+            executor_url=executor_url,
             **PROVIDER_CTX
         )
         yield self.cache_and_finish(html)
@@ -295,6 +298,15 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
             }]
             breadcrumbs.extend(self.breadcrumbs(dir_path, base_url))
 
+            # Enable a binder navbar icon if a binder base URL is configured
+            executor_url = BINDER_PATH_TMPL.format(
+                binder_base_url=self.binder_base_url,
+                org=user,
+                repo=repo,
+                ref=ref,
+                path=quote(path)
+            ) if self.binder_base_url else None
+
             try:
                 # filedata may be bytes, but we need text
                 if isinstance(filedata, bytes):
@@ -306,13 +318,7 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
                 raise web.HTTPError(400)
             yield self.finish_notebook(nbjson, raw_url,
                 provider_url=blob_url,
-                executor_url=BINDER_PATH_TMPL.format(
-                    binder_base_url=self.binder_base_url,
-                    org=user,
-                    repo=repo,
-                    ref=ref,
-                    path=quote(path)
-                ),
+                executor_url=executor_url,
                 breadcrumbs=breadcrumbs,
                 msg="file from GitHub: %s" % raw_url,
                 public=True,
