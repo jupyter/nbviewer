@@ -201,6 +201,10 @@ class BaseHandler(web.RequestHandler):
         return self.settings['content_security_policy']
 
     @property
+    def binder_base_url(self):
+        return self.settings['binder_base_url']
+
+    @property
     def statsd(self):
         if hasattr(self, '_statsd'):
             return self._statsd
@@ -614,12 +618,40 @@ class RenderingHandler(BaseHandler):
     def finish_notebook(self, json_notebook, download_url, provider_url=None,
                         provider_icon=None, provider_label=None, msg=None,
                         breadcrumbs=None, public=False, format=None, request=None,
-                        title=None):
-        """render a notebook from its JSON body.
+                        title=None, executor_url=None, executor_label=None,
+                        executor_icon=None):
+        """Renders a notebook from its JSON body.
 
-        download_url is required, provider_url is not.
-
-        msg is extra information for the log message when rendering fails.
+        Parameters
+        ----------
+        json_notebook: str
+            Notebook document in JSON format
+        download_url: str
+            URL to download the notebook document
+        provider_url: str, optional
+            URL to the notebook document upstream at the provider (e.g., GitHub)
+        provider_icon: str, optional
+            CSS classname to apply to the navbar icon linking to the provider
+        provider_label: str, optional
+            Text to to apply to the navbar icon linking to the provider
+        msg: str, optional
+            Extra information to log when rendering fails
+        breadcrumbs: list of dict, optional
+            Breadcrumb 'name' and 'url' to render as links at the top of the notebook page
+        public: bool, optional
+            True if the notebook is public and its access indexed, False if not
+        format: str, optional
+            Rendering format (e.g., script, slides, html)
+        request: tornado.httputil.HTTPServerRequest, optional
+            HTTP request that triggered notebook rendering
+        title: str, optional
+            Title to use as the HTML page title (i.e., text on the browser tab)
+        executor_url: str, optional
+            URL to execute the notebook document (e.g., Binder)
+        executor_label: str, optional
+            Text to apply to the navbar icon linking to the execution service
+        executor_icon: str, optional
+            CSS classname to apply to the navbar icon linking to the execution service
         """
 
         if msg is None:
@@ -665,6 +697,9 @@ class RenderingHandler(BaseHandler):
             provider_url=provider_url,
             provider_label=provider_label,
             provider_icon=provider_icon,
+            executor_url=executor_url,
+            executor_label=executor_label,
+            executor_icon=executor_icon,
             format=self.format,
             default_format=self.default_format,
             format_prefix=format_prefix,

@@ -22,6 +22,10 @@
     {{ layout.head_icon(provider_url, "View on " + provider_label, provider_icon) }}
   {% endif %}
 
+  {% if executor_url %}
+    {{ layout.head_icon(executor_url, "Execute on " + executor_label, executor_icon) }}
+  {% endif %}
+
   {{ layout.head_icon(download_url, "Download Notebook", "download", True) }}
 {% endblock %}
 

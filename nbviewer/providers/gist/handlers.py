@@ -25,7 +25,13 @@ from ..github.handlers import GithubClientMixin
 PROVIDER_CTX = {
     'provider_label': 'Gist',
     'provider_icon': 'github-square',
+    'executor_label': 'Binder',
+    'executor_icon': 'icon-binder',
 }
+
+
+BINDER_TMPL = '{binder_base_url}/gist/{user}/{gist_id}/master'
+BINDER_PATH_TMPL = BINDER_TMPL+'?filepath={path}'
 
 
 class GistClientMixin(GithubClientMixin):
@@ -117,11 +123,20 @@ class GistHandler(GistClientMixin, RenderingHandler):
             else:
                 content = file['content']
 
+            # Enable a binder navbar icon if a binder base URL is configured
+            executor_url = BINDER_PATH_TMPL.format(
+                binder_base_url=self.binder_base_url,
+                user=user.rstrip('/'),
+                gist_id=gist_id,
+                path=quote(filename)
+            ) if self.binder_base_url else None
+
             if not many_files_gist or filename.endswith('.ipynb'):
                 yield self.finish_notebook(
                     content,
                     file['raw_url'],
                     provider_url=gist['html_url'],
+                    executor_url=executor_url,
                     msg="gist: %s" % gist_id,
                     public=gist['public'],
                     format=self.format,
@@ -161,6 +176,13 @@ class GistHandler(GistClientMixin, RenderingHandler):
             entries.extend(ipynbs)
             entries.extend(others)
 
+            # Enable a binder navbar icon if a binder base URL is configured
+            executor_url = BINDER_TMPL.format(
+                binder_base_url=self.binder_base_url,
+                user=user.rstrip('/'),
+                gist_id=gist_id
+            ) if self.binder_base_url else None
+
             html = self.render_template(
                 'treelist.html',
                 entries=entries,
@@ -168,6 +190,7 @@ class GistHandler(GistClientMixin, RenderingHandler):
                 tree_label='gists',
                 user=user.rstrip('/'),
                 provider_url=gist['html_url'],
+                executor_url=executor_url,
                 **PROVIDER_CTX
             )
             yield self.cache_and_finish(html)
