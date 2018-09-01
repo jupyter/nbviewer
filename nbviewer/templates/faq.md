@@ -2,112 +2,167 @@
 
 {% block body %}
 
-{% filter markdown(extensions=['headerid(level=3)','toc'], extension_configs= {'toc' : [('anchorlink', True)]}) %}
+{% filter markdown(extensions=['headerid(level=2)','toc'], extension_configs= {'toc' : [('anchorlink', True)]}) %}
 
 # Frequently Asked Questions
 
 [TOC]
 
-## What is this Notebook Viewer?
+## What is nbviewer?
 
-IPython Notebook Viewer is a free webservice that allows
-you to share **static html** versions of hosted notebook files.  If a
-notebook is **publicly** available, by giving its url to the Viewer, you should be
-able to view it.
+[nbviewer](https://github.com/jupyter/nbviewer)
+is a web application that lets you enter the URL of a Jupyter Notebook file,
+renders that notebook as a static HTML web page, and gives you a stable link to
+that page which you can share with others. nbviewer also supports
+browsing collections of notebooks (e.g., in a GitHub repository) and
+rendering notebooks in other formats (e.g., slides, scripts).
 
-You can also directly browse collections of notebooks in public GitHub repositories,
-for example the [IPython examples](/github/ipython/ipython/tree/2.x/examples).
+nbviewer is an open source project under the larger [Project
+Jupyter](https://jupyter.org) initiative along with other projects like [Jupyter
+Notebook](https://github.com/jupyter/notebook),
+[JupyterLab](https://github.com/jupyterlab/jupyterlab), and
+[JupyterHub](https://github.com/jupyterhub/jupyterhub).
 
-## Bookmarklet and browser extensions
+## What is nbviewer.jupyter.org?
 
-There are extensions and a bookmarklet for Chrome and Firefox   [here](http://jiffyclub.github.io/open-in-nbviewer/).
+Project Jupyter runs a free, public instance of nbviewer at
+https://nbviewer.jupyter.org. You can use it to render Jupyter
+Notebooks or browse notebook collection on GitHub. In either case, the notebooks
+must have **public** web URLs.
 
-## I got a 5xx/4xx error on a notebook.
+The homepage of nbviewer.jupyter.org includes some examples for you to try.
 
-Notebook Viewer tries to get notebooks from the url given. If the remote location
-doesn't respond or the file Notebook Viewer receives is not valid, you will get an
-error (typically 400). Check that the remote file still exists and that you can convert
-it locally with `nbconvert`.
+## How does nbviewer render notebooks?
+
+nbviewer is written in Python and JavaScript,
+uses [nbconvert](https://github.com/jupyter/nbconvert) to render notebooks, and
+uses [Tornado](https://github.com/tornadoweb/tornado) as its web server.
+
+You can [install
+nbconvert](https://nbconvert.readthedocs.io/en/stable/install.html) locally and
+run `jupyter nbconvert` to get the same functionality (and more). See the
+[nbconvert documentation](https://nbconvert.readthedocs.io/) for details.
+
+## Can nbviewer run my Python, Julia, R, Scala, etc. notebooks?
+
+nbviewer does not execute notebooks, It only renders the cell inputs and outputs
+saved in a notebook document as a web page.
+
+[mybinder.org] is another Jupyter-sponsored web service for launching full
+Jupyter Notebook servers in the cloud, preconfigured
+
+TODO
+
+## Why does the Execute on Binder button not appear for a notebook?
+
+## Why does the Execute on Binder button lead to a Binder failure?
+
+## Why does a notebook not run correctly after I click the Execute on Binder button?
+
+## Do interactive JavaScript widgets work in nbviewer rendered pages?
+
+TODO
+
+## Can I view a private notebook on nbviewer?
+
+nbviewer.jupyter.org can only render notebooks that it can access on the public
+Internet. If you are working on a notebook on your local machine, you need to
+publish that notebook somewhere with a public URL (e.g., in a [GitHub
+repository](https://github.com), as a [gist](https://gist.github.com)) in order
+for nbviewer.jupyter.org to render it.
+
+Hosting your own nbviewer server opens additional avenues for rendering private
+notebooks. For example, an nbviewer server on your university network can render
+notebook files accessible via URLs on that network. Please see the README in the
+[nbviewer repository on GitHub](https://github.com/jupyter/nbviewer) for
+instructions and options.
+
+## Why do I get a 404: Not Found error from nbviewer?
+
+The URL you are visiting most likely points to a notebook that was moved or
+deleted. If you clicked a link on a site that lead to the 404 error page, we
+suggest you contact the site auownerthor to report the broken link. If a
+notebook author gave you URL to view their work, we recommend asking them for an
+updated link.
+
+If you notice one of the links on the nbviewer.jupyter.org, please report it as
+a bug in the [nbviewer issue
+tracker](https://github.com/jupyter/nbviewer/issues).
+
+## Why do I get a 4xx error when I try to view a notebook?
+
+nbviewer fetches notebooks from upstream providers (e.g., GitHub, GitHub gists,
+a public webserver) which host the the notebook files. You will see 4xx errors
+if the provider doesn't respond, the file nbviewer receives is invalid, the file
+is not publicly accessible, and so on.
+
+If you believe nbviewer is incorrectly showing a 4xx error for an accessible,
+valid notebook URL, please file a bug in the [nbviewer issue
+tracker](https://github.com/jupyter/nbviewer/issues).
+
+## Why do I get a 5xx error when I try to view a notebook?
+
+TODO
 
 If it's a 5xx error, it's probably a [bug](https://github.com/ipython/nbviewer/issues).
 
+## Why is nbviewer showing an outdated version of my notebook?
 
-## How do you render notebooks?
+nbviewer caches rendered notebooks to cut down on rendering time for popular
+notebooks. The cache duration on nbviewer.jupyter.org is approximately 10
+minutes. To invalidate the cache and force nbviewer to re-render a notebook
+page, append `?flush_cache=true` to your URL.
 
-The Notebook Viewer uses IPython's `nbconvert` to export `.ipynb` files to HTML.
+## How do you choose the notebooks features on the nbviewer.jupyter.org homepage?
 
-If you have IPython installed you have access to the same functionality
-and many more formats by invoking
-`ipython nbconvert` at a command line. Starting in IPython 2.0, you should be
-able to export notebooks in other formats using the `file` menu in the IPython
-notebook application.
-
-## Where is this Notebook Viewer hosted?
-
-This Notebook Viewer instance is hosted on [Rackspace](https://developer.rackspace.com/?nbviewer=awesome), who kindly provide hosting for the IPython open source project. Thanks to Rackspace, we are able to operate nbconvert as a free service.
-
-## I want to remove/update a notebook from Notebook Viewer.
-
-The Notebook Viewer does not store any notebooks.
-You have to find the original place where the notebook is hosted to update/remove it.
-Updates occur automatically, but can take some time to appear, as we cache rendered
-notebooks for approximately 10 minutes. To force an update, append `?flush_cache=true` 
-to the viewer URL.
-
-## I can't share this notebook I'm working on...
-
-You can't directly share the url of a notebook you are working on as the server is
-probably running on a local machine (url starts with `127.0.0.1` or `localhost`)
-or needs authentication (you have to type a password to access your notebook).
-You will have to put the notebook file somewhere with a publicly available url.
-We recommend using [GitHub](https://github.com) or [gists](https://gist.github.com).
-
-## Can I share notebooks from a private GitHub repository?
-
-Not yet, but we would like to add this. We'll be happy to have any help you can offer.
-In the meantime, you can use a secret gist if you wish. You might be interested in running a Viewer
-on your own machine or inside your network.
-
-## Can I run my own Notebook Viewer?
-
-Yes, absolutely.
-Please visit the [GitHub repository](https://github.com/ipython/nbviewer) for instructions.
-
-## Can I access Notebook Viewer over https?
-
-You can, but you will probably get a warning that the website does not have a valid
-certificate. Alternatively, You can get a free SSL certificate from [Let's Encrypt]
-(https://letsencrypt.org/) or buy from any vendor. We strongly recommend you get it
-from [Let's Encrypt](https://letsencrypt.org/). If you need to embed an html notebook
-on another site, please use local export with `nbconvert`.
-
-## There is a broken link.
-
-Is the broken link on a notebook? If so, we suggest you contact the original author.
-Otherwise, please open an issue on [our issue tracker](https://github.com/ipython/nbviewer/issues)
-with the link to the broken page, and tell us which link is broken.
-We'll do our best to fix it.
-
-## How do you choose the featured notebooks?
+TODO
 
 Featured notebooks are notebooks we found that we like. If you think some
 should be removed, or others that should be added, feel free to contact us.
 The best way would be to directly submit a pull request on GitHub.
 
-## How can I contribute?
+## How can I remove a notebook from nbviewer?
 
-You can submit a [pull request](https://github.com/ipython/nbviewer),
-or [make a donation to IPython](http://ipython.org/donate.html) so that we can work on more awesome features.
+TODO:
 
-## Can I use the Notebook Viewer to convert my notebook to something other than html?
+The Notebook Viewer does not store any notebooks.
+You have to find the original place where the notebook is hosted to update/remove it.
+
+## Can I use nbviewer to convert my notebook to a format other than HTML?
+
+TODO
 
 Not yet, but we plan to allow that in the future. You can
 already use `ipython nbconvert` locally to export to many formats. You can still help
 us by making a donation or contributing with your time.
 
-# I have more questions...
+## Where is nbviewer.jupyter.org hosted?
 
-If something was not clear or not present, do not hesitate to reach out to the [IPython mailing list](http://mail.scipy.org/mailman/listinfo/ipython-dev) or [open an issue on GitHub](http://github.com/ipython/nbviewer/issues).
+[Rackspace](https://developer.rackspace.com/?nbviewer=awesome) graciously hosts
+nbviewer.jupyter.org. Thanks to Rackspace, we are able to provider a public
+nbviewer instance as a free service.
+
+## Can I access nbviewer.jupyter.org over https?
+
+Yes. Please do.
+
+## Can I run my own nbviewer server?
+
+Yes, absolutely. Please see the README in the [nbviewer repository on
+GitHub](https://github.com/jupyter/nbviewer) for instructions and options.
+
+## How can I report a bug with nbviewer or suggest a feature?
+
+Please select the appropriate issue template in the [nbviewer issue tracker on GitHub](https://github.com/jupyter/nbviewer).
+
+## Are there useful tools that work with nbviewer?
+
+* [Open in nbviewer](http://jiffyclub.github.io/open-in-nbviewer/) - browser extensions and bookmarklets for opening the current URL in nbviewer
+* [gist extension](https://github.com/minrk/ipython_extensions#gist) - publish a notebook as a GitHub Gist and view it on nbviewer
+
+## Where can I ask additional questions?
+
+TODO
 
 {% endfilter %}
 {% endblock %}
