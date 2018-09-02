@@ -1,71 +1,83 @@
-# Using the Ubuntu image
-FROM debian:jessie
-
-MAINTAINER Project Jupyter <jupyter@googlegroups.com>
+# Define a builder image
+FROM debian:jessie as builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG=C.UTF-8
-RUN apt-get update \
-  && apt-get install -y -q \
-    build-essential \
-    gcc \
-    git \
-    libcurl4-openssl-dev \
-    libmemcached-dev \
-    libsqlite3-dev \
-    libzmq3-dev \
-    make \
-    nodejs \
-    nodejs-legacy \
-    npm \
-    pandoc \
-    python3-dev \
-    python3-pip \
-    sqlite3 \
-    zlib1g-dev \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
-  && pip3 install --upgrade setuptools pip \
-  && hash -r \
-  && pip3 install --no-cache-dir invoke
+RUN apt-get update && \
+  apt-get install -yq --no-install-recommends \
+    curl \
+    bzip2 \
+    ca-certificates
 
+ENV MINICONDA_VERSION 4.5.4
+ENV PATH=/opt/conda/bin:$PATH
+RUN cd /tmp && \
+    curl -sSL https://repo.continuum.io/miniconda/Miniconda3-${MINICONDA_VERSION}-Linux-x86_64.sh -o /tmp/miniconda.sh && \
+    echo "a946ea1d0c4a642ddf0c3a26a18bb16d *miniconda.sh" | md5sum -c - && \
+    /bin/bash miniconda.sh -f -b -p /opt/conda && \
+    rm miniconda.sh && \
+    /opt/conda/bin/conda config --system --prepend channels conda-forge && \
+    /opt/conda/bin/conda config --system --set auto_update_conda false && \
+    /opt/conda/bin/conda config --system --set show_channel_urls true && \
+    /opt/conda/bin/conda install --quiet --yes conda="${MINICONDA_VERSION%.*}.*" && \
+    /opt/conda/bin/conda update --all --quiet --yes && \
+    conda clean -tipsy
 
-# To change the number of threads use
-# docker run -d -e NBVIEWER_THREADS=4 -p 80:8080 nbviewer
-ENV NBVIEWER_THREADS 2
-EXPOSE 8080
-
+# NodeJS toolchain
 WORKDIR /srv/nbviewer
-
-# asset toolchain
-ADD ./package.json /srv/nbviewer/
+RUN conda install nodejs git
+COPY ./package.json /srv/nbviewer/
 RUN npm install .
 
-# python requirements
+# Python requirements
 ADD ./requirements.txt /srv/nbviewer/
-RUN pip3 install --no-cache-dir --upgrade -r requirements.txt && \
-    pip3 freeze
+RUN conda install --file requirements.txt
 
-# tasks will likely require re-running everything
-ADD ./tasks.py /srv/nbviewer/
+# Add bower requirements
+COPY [ \
+  "./nbviewer/static/bower.json", \
+  "./nbviewer/static/.bowerrc", \
+  "/srv/nbviewer/nbviewer/static/" \
+]
 
-# front-end dependencies
-ADD ["./nbviewer/static/bower.json", "./nbviewer/static/.bowerrc", \
-     "/srv/nbviewer/nbviewer/static/"]
-
-# RUN invoke bower
+# Invoke bower
 WORKDIR /srv/nbviewer/nbviewer/static
 RUN ../../node_modules/.bin/bower install \
   --allow-root \
   --config.interactive=false
 
+# Build CSS
 WORKDIR /srv/nbviewer
-
-# build css
-ADD . /srv/nbviewer/
+RUN conda install invoke
+COPY ./nbviewer/static/less /srv/nbviewer/nbviewer/static/less/
+COPY ./tasks.py /srv/nbviewer/
 RUN invoke less
 
-# root up until now!
+# Remove build-only packages so that we can copy a clean conda environment
+# to the runtime image. Need to leave git intact: it's a runtime dep!
+RUN conda remove -y nodejs invoke && \
+  conda clean -ay && \
+  rm -rf /opt/conda/pkgs /opt/conda/conda-meta && \
+  rm -rf /srv/nbviewer/node_modules /srv/nbviewer/notebook-*
+
+# Copy source tree in and only keep .git so that the version
+# web resource works properly
+COPY . /srv/nbviewer
+
+# Now define the runtime image
+FROM debian:jessie
+
+COPY --from=builder /opt/conda /opt/conda
+COPY --from=builder /srv/nbviewer /srv/nbviewer
+
+LABEL maintainer="Jupyter Project <jupyter@googlegroups.com>"
+
+# To change the number of threads use
+# docker run -d -e NBVIEWER_THREADS=4 -p 80:8080 nbviewer
+ENV NBVIEWER_THREADS 2
+ENV PATH=/opt/conda/bin:$PATH
+WORKDIR /srv/nbviewer
+EXPOSE 8080
 USER nobody
 
-CMD ["python3", "-m", "nbviewer", "--port=8080"]
+CMD ["python", "-m", "nbviewer", "--port=8080"]
