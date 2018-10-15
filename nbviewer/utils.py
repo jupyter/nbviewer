@@ -112,7 +112,8 @@ def transform_ipynb_uri(uri, uri_rewrite_list):
     for reg, rewrite in uri_rewrite_list:
         matches = re.match(reg, uri)
         if matches:
-            return rewrite.format(*matches.groups())
+            uri = rewrite.format(*matches.groups())
+            break
 
     # encode query parameters as last url part
     if '?' in uri:
@@ -120,6 +121,7 @@ def transform_ipynb_uri(uri, uri_rewrite_list):
         uri = '%s/%s' % (uri, quote('?' + query))
 
     return uri
+
 
 # get_encoding_from_headers from requests.utils (1.2.3)
 # (c) 2013 Kenneth Reitz
