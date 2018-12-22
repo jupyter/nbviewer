@@ -58,6 +58,9 @@ def test_transform_ipynb_uri():
         u'/url/example.org/ipynb'),
         ('https://gist.github.com/user/1234/raw/a1b2c3/file.ipynb',
         u'/urls/gist.github.com/user/1234/raw/a1b2c3/file.ipynb'),
+        ('https://gist.github.com/user/1234/raw/a1b2c3/file.ipynb?query=string&is=1',
+        u'/urls/gist.github.com/user/1234/raw/a1b2c3/file.ipynb/%3Fquery%3Dstring%26is%3D1'),
+
     )
     uri_rewrite_list = provider_uri_rewrites(default_rewrites)
     for ipynb_uri, expected_output in test_data:
