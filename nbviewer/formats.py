@@ -35,6 +35,28 @@ def default_formats():
         Defaults to  text/html; charset=UTF-8
     """
 
+    def test_slides(nb):
+        """Determines if at least one cell has a non-blank or "-" as its
+        metadata.slideshow.slide_type value.
+
+        Parameters
+        ----------
+        nb: nbformat.notebooknode.NotebookNode
+            Top of the parsed notebook object model
+
+        Returns
+        -------
+        bool
+        """
+        for cell in nb.cells:
+            if (
+                'metadata' in cell and
+                'slideshow' in cell.metadata and
+                cell.metadata.slideshow.get('slide_type', '-') != '-'
+            ):
+                return True
+        return False
+
     return {
         'html': {
             'nbconvert_template': 'basic',
@@ -45,7 +67,7 @@ def default_formats():
             'nbconvert_template': 'slides_reveal',
             'label': 'Slides',
             'icon': 'gift',
-            'test': lambda nb, json: 'celltoolbar' in nb.metadata and nb.metadata['celltoolbar'] == 'Slideshow',
+            'test': test_slides(nb),
         },
         'script': {
             'label': 'Code',
