@@ -7,11 +7,12 @@
 
 import requests
 
-from .base import NBViewerTestCase
+from .base import NBViewerTestCase, skip_unless_github_auth
 from ..providers.local.tests.test_localfile import LocalFileDefaultTestCase
 
 
 class SlidesGistTestCase(NBViewerTestCase):
+    @skip_unless_github_auth
     def test_gist(self):
         url = self.url('/format/slides/0c5b3639b10ed3d7cc85/single-cell.ipynb')
         r = requests.get(url)
@@ -19,6 +20,7 @@ class SlidesGistTestCase(NBViewerTestCase):
         html = r.content
         self.assertIn('reveal.js', html)
 
+    @skip_unless_github_auth
     def test_html_exporter_link(self):
         url = self.url('/format/slides/0c5b3639b10ed3d7cc85/single-cell.ipynb')
         r = requests.get(url)
@@ -27,6 +29,7 @@ class SlidesGistTestCase(NBViewerTestCase):
         self.assertIn('/gist/minrk/0c5b3639b10ed3d7cc85/single-cell.ipynb', html)
         self.assertNotIn('//gist/minrk/0c5b3639b10ed3d7cc85/single-cell.ipynb', html)
 
+    @skip_unless_github_auth
     def test_no_slides_exporter_link(self):
         url = self.url('/0c5b3639b10ed3d7cc85/single-cell.ipynb')
         r = requests.get(url)
@@ -56,6 +59,7 @@ class SlidesGitHubTestCase(NBViewerTestCase):
             *parts
         )
 
+    @skip_unless_github_auth
     def test_github(self):
         url = self.ipython_example('Index.ipynb')
         r = requests.get(url)
