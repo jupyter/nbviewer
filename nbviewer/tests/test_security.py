@@ -9,7 +9,7 @@
 import os
 import requests
 
-from .base import NBViewerTestCase
+from .base import NBViewerTestCase, skip_unless_github_auth
 
 from ..providers.local.tests.test_localfile import (
     LocalFileRelativePathTestCase as LFRPTC
@@ -21,11 +21,13 @@ class XSSTestCase(NBViewerTestCase):
         self.assertEqual(r.status_code, 200)
         self.assertNotIn(pattern, r.content)
 
+    @skip_unless_github_auth
     def test_github_dirnames(self):
         self._xss(
             '/github/bburky/xss/tree/%3Cscript%3Ealert(1)%3C%2fscript%3E/'
         )
 
+    @skip_unless_github_auth
     def test_gist_filenames(self):
         self._xss('/gist/bburky/c020825874798a6544a7')
 
@@ -39,6 +41,7 @@ class LocalDirectoryTraversalTestCase(LFRPTC):
 
 
 class URLLeakTestCase(NBViewerTestCase):
+    @skip_unless_github_auth
     def test_gist(self):
         url = self.url('/github/jupyter')
         r = requests.get(url)

@@ -18,3 +18,4 @@ notebook-*
 .eggs/
 MANIFEST
 package-lock.json
+.vscode/
