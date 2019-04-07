@@ -7,7 +7,7 @@
     "watch-less": "./node_modules/.bin/watch 'invoke less' ./nbviewer/static/less"
   },
   "devDependencies": {
-    "bower": "~1.8.2",
+    "bower": "~1.8.8",
     "less": "~2",
     "less-plugin-autoprefix": "~1.5.1",
     "less-plugin-clean-css": "~1.5.1",

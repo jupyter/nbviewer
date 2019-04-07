@@ -91,14 +91,14 @@
         function addWidgetsRenderer() {
           var mimeElement = document.querySelector('script[type="application/vnd.jupyter.widget-view+json"]');
           var scriptElement = document.createElement('script');
-          var widgetRendererSrc = '{{ ipywidgets_base_url }}@jupyter-widgets/html-manager@*/dist/embed-amd.js';
+          var widgetRendererSrc = '{{ ipywidgets_base_url }}@jupyter-widgets/html-manager@{{ ipywidgets_version_spec }}/dist/embed-amd.js';
           var widgetState;
 
           try {
             widgetState = mimeElement && JSON.parse(mimeElement.innerHTML);
 
             if (widgetState && (widgetState.version_major < 2 || !widgetState.version_major)) {
-              widgetRendererSrc = '{{ ipywidgets_base_url }}jupyter-js-widgets@*/dist/embed.js';
+              widgetRendererSrc = '{{ ipywidgets_base_url }}jupyter-js-widgets@{{ ipywidgets_version_spec }}/dist/embed.js';
             }
           } catch(e) {}
 

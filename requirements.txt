@@ -7,5 +7,5 @@ nbconvert>=5.4
 ipython
 pycurl
 pylibmc
-tornado
+tornado<6.0
 statsd
