@@ -255,7 +255,8 @@ def make_app():
         hub_api_url=os.getenv('JUPYTERHUB_API_URL'),
         hub_base_url=os.getenv('JUPYTERHUB_BASE_URL'),
         ipywidgets_base_url=options.ipywidgets_base_url,
-        ipywidgets_version_spec=options.ipywidgets_version_spec,
+        jupyter_widgets_html_manager_version=options.jupyter_widgets_html_manager_version,
+        jupyter_js_widgets_version=options.jupyter_js_widgets_version,
         content_security_policy=options.content_security_policy,
         binder_base_url=options.binder_base_url,
     )
@@ -314,7 +315,8 @@ def init_options():
     define("statsd_prefix", default='nbviewer', help="Prefix to use for naming metrics sent to statsd", type=str)
     define("base_url", default='/', help='URL base for the server')
     define("ipywidgets_base_url", default="https://unpkg.com/", help="URL base for ipywidgets JS package", type=str)
-    define("ipywidgets_version_spec", default="*", help="Version specifier for ipywidgets JS package", type=str)
+    define("jupyter_js_widgets_version", default="*", help="Version specifier for jupyter-js-widgets JS package", type=str)
+    define("jupyter_widgets_html_manager_version", default="*", help="Version specifier for @jupyter-widgets/html-manager JS package", type=str)
     define("content_security_policy", default="connect-src 'none';", help="Content-Security-Policy header setting", type=str)
     define("binder_base_url", default="https://mybinder.org/v2", help="URL base for binder notebook execution service", type=str)
 
