@@ -197,8 +197,12 @@ class BaseHandler(web.RequestHandler):
         return self.settings['ipywidgets_base_url']
 
     @property
-    def ipywidgets_version_spec(self):
-        return self.settings['ipywidgets_version_spec']
+    def jupyter_js_widgets_version(self):
+        return self.settings['jupyter_js_widgets_version']
+
+    @property
+    def jupyter_widgets_html_manager_version(self):
+        return self.settings['jupyter_widgets_html_manager_version']
 
     @property
     def content_security_policy(self):
@@ -271,7 +275,8 @@ class BaseHandler(web.RequestHandler):
             "from_base": self.from_base,
             "google_analytics_id": self.settings.get('google_analytics_id'),
             "ipywidgets_base_url": self.ipywidgets_base_url,
-            "ipywidgets_version_spec": self.ipywidgets_version_spec
+            "jupyter_js_widgets_version": self.jupyter_js_widgets_version,
+            "jupyter_widgets_html_manager_version": self.jupyter_widgets_html_manager_version,
         }
 
     def breadcrumbs(self, path, base_url):
