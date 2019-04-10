@@ -13,8 +13,8 @@ from tarfile import TarFile
 
 import invoke
 
-NOTEBOOK_VERSION = '5.7.7' # the notebook version whose LESS we will use
-NOTEBOOK_CHECKSUM = '19df5755bc21bb1f711e6415f6f620bf7c71cb6c8318a25bc151fe31bdfe4047' # sha256 checksum of notebook tarball
+NOTEBOOK_VERSION = '5.7.8' # the notebook version whose LESS we will use
+NOTEBOOK_CHECKSUM = '573e0ae650c5d76b18b6e564ba6d21bf321d00847de1d215b418acb64f056eb8' # sha256 checksum of notebook tarball
 
 APP_ROOT = os.path.dirname(__file__)
 NPM_BIN = os.path.join(APP_ROOT, "node_modules", ".bin")
