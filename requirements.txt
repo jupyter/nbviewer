@@ -1,6 +1,6 @@
 elasticsearch
 jupyter_client
-markdown
+markdown>=3.0
 newrelic!=2.80.0.60
 nbformat>=4.2
 nbconvert>=5.4

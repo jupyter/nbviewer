@@ -4,7 +4,7 @@
 
 <div class="col-md-10 col-md-offset-1">
 
-{% filter markdown(extensions=['headerid(level=3)','toc'], extension_configs= {'toc' : [('anchorlink', True)]}) %}
+{% filter markdown(extensions=['toc'], extension_configs= {'toc' : [('anchorlink', True)]}) %}
 
 # Frequently Asked Questions
 
