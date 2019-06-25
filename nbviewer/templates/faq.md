@@ -183,8 +183,7 @@ Please select the appropriate issue template in the [nbviewer issue tracker on G
 
 ## Where can I ask additional questions?
 
-Please post your questions about using nbviewer in the [jupyter/help issue
-tracker](https://github.com/jupyter/help) or in the [Jupyter Google
+Please post your questions about using nbviewer in the [Jupyter Community Forum](https://discourse.jupyter.org/) or in the [Jupyter Google
 Group](https://groups.google.com/forum/#!forum/jupyter). If you would like to
 propose an enhancement to nbviewer or file a bug report, please open an [issue
 in the jupyter/nbviewer project on GitHub](https://github.com/jupyter/nbviewer).
