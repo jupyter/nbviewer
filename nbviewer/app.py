@@ -34,7 +34,8 @@ from tornado.options import define, options
 
 from jinja2 import Environment, FileSystemLoader
 
-from traitlets.config import Config
+from traitlets import Unicode
+from traitlets.config import Application
 
 from .handlers import init_handlers
 from .cache import DummyAsyncCache, AsyncMultipartMemcache, MockCache, pylibmc
@@ -80,196 +81,200 @@ def nrfoot():
 this_dir, this_filename = os.path.split(__file__)
 FRONTPAGE_JSON = os.path.join(this_dir, "frontpage.json")
 
+class NBViewer(Application):
 
-def make_app():
-    # NBConvert config
-    config = Config()
-    config.NbconvertApp.fileext = 'html'
-    config.CSSHTMLHeaderTransformer.enabled = False
-    # don't strip the files prefix - we use it for redirects
-    # config.Exporter.filters = {'strip_files_prefix': lambda s: s}
+    config_file = Unicode('nbviewer_config.py', help="The config file to load").tag(config=True)
 
-    # DEBUG env implies both autoreload and log-level
-    if os.environ.get("DEBUG"):
-        options.debug = True
-        logging.getLogger().setLevel(logging.DEBUG)
+    def init_tornado_application(self):
+        # NBConvert config
+        self.config.NbconvertApp.fileext = 'html'
+        self.config.CSSHTMLHeaderTransformer.enabled = False
 
-    # setup memcache
-    mc_pool = ThreadPoolExecutor(options.mc_threads)
-
-    # setup formats
-    formats = configure_formats(options, config, log.app_log)
-
-    if options.processes:
-        pool = ProcessPoolExecutor(options.processes)
-    else:
-        pool = ThreadPoolExecutor(options.threads)
-
-    memcache_urls = os.environ.get('MEMCACHIER_SERVERS',
-        os.environ.get('MEMCACHE_SERVERS')
-    )
-
-    # Handle linked Docker containers
-    if(os.environ.get('NBCACHE_PORT')):
-        tcp_memcache = os.environ.get('NBCACHE_PORT')
-        memcache_urls = tcp_memcache.split('tcp://')[1]
-
-    if(os.environ.get('NBINDEX_PORT')):
-        log.app_log.info("Indexing notebooks")
-        tcp_index = os.environ.get('NBINDEX_PORT')
-        index_url = tcp_index.split('tcp://')[1]
-        index_host, index_port = index_url.split(":")
-        indexer = ElasticSearch(index_host, index_port)
-    else:
-        log.app_log.info("Not indexing notebooks")
-        indexer = NoSearch()
-
-    if options.no_cache:
-        log.app_log.info("Not using cache")
-        cache = MockCache()
-    elif pylibmc and memcache_urls:
-        kwargs = dict(pool=mc_pool)
-        username = os.environ.get('MEMCACHIER_USERNAME', '')
-        password = os.environ.get('MEMCACHIER_PASSWORD', '')
-        if username and password:
-            kwargs['binary'] = True
-            kwargs['username'] = username
-            kwargs['password'] = password
-            log.app_log.info("Using SASL memcache")
-        else:
-            log.app_log.info("Using plain memecache")
-
-        cache = AsyncMultipartMemcache(memcache_urls.split(','), **kwargs)
-    else:
-        log.app_log.info("Using in-memory cache")
-        cache = DummyAsyncCache()
-
-    # setup tornado handlers and settings
-
-    template_paths = pjoin(here, 'templates')
-
-    if options.template_path is not None:
-        log.app_log.info("Using custom template path {}".format(
-            options.template_path)
-        )
-        template_paths = [options.template_path, template_paths]
-
-    static_path = pjoin(here, 'static')
-    env = Environment(
-        loader=FileSystemLoader(template_paths),
-        autoescape=True
-    )
-    env.filters['markdown'] = markdown.markdown
-    try:
-        git_data = git_info(here)
-    except Exception as e:
-        app_log.error("Failed to get git info: %s", e)
-        git_data = {}
-    else:
-        git_data['msg'] = escape(git_data['msg'])
-
-
-    if options.no_cache:
-        # force jinja to recompile template every time
-        env.globals.update(cache_size=0)
-    env.globals.update(nrhead=nrhead, nrfoot=nrfoot, git_data=git_data,
-        jupyter_info=jupyter_info(), len=len,
-    )
-    AsyncHTTPClient.configure(HTTPClientClass)
-    client = AsyncHTTPClient()
-    client.cache = cache
-
-    # load frontpage sections
-    with io.open(options.frontpage, 'r') as f:
-        frontpage_setup = json.load(f)
-    # check if the json has a 'sections' field, otherwise assume it is
-    # just a list of sessions, and provide the defaults for the other
-    # fields
-    if 'sections' not in frontpage_setup:
-        frontpage_setup = {'title': 'nbviewer',
-                           'subtitle':
-                           'A simple way to share Jupyter Notebooks',
-                           'show_input': True,
-                           'sections': frontpage_setup}
-
-    # cache frontpage links for the maximum allowed time
-    max_cache_uris = {''}
-    for section in frontpage_setup['sections']:
-        for link in section['links']:
-            max_cache_uris.add('/' + link['target'])
-
-    fetch_kwargs = dict(connect_timeout=10,)
-    if options.proxy_host:
-        fetch_kwargs.update(dict(proxy_host=options.proxy_host,
-                                 proxy_port=options.proxy_port))
-
-        log.app_log.info("Using web proxy {proxy_host}:{proxy_port}."
-                         "".format(**fetch_kwargs))
-
-    if options.no_check_certificate:
-        fetch_kwargs.update(dict(validate_cert=False))
-
-        log.app_log.info("Not validating SSL certificates")
-
-    # prefer the jhub defined service prefix over the CLI
-    base_url = os.getenv('JUPYTERHUB_SERVICE_PREFIX', options.base_url)
+        # DEBUG env implies both autoreload and log-level
+        if os.environ.get("DEBUG"):
+            options.debug = True
+            logging.getLogger().setLevel(logging.DEBUG)
     
-    rate_limiter = RateLimiter(
-        limit=options.rate_limit,
-        interval=options.rate_limit_interval,
-        cache=cache,
-    )
+        # setup memcache
+        mc_pool = ThreadPoolExecutor(options.mc_threads)
+    
+        # setup formats
+        formats = configure_formats(options, self.config, log.app_log)
+    
+        if options.processes:
+            pool = ProcessPoolExecutor(options.processes)
+        else:
+            pool = ThreadPoolExecutor(options.threads)
+    
+        memcache_urls = os.environ.get('MEMCACHIER_SERVERS',
+            os.environ.get('MEMCACHE_SERVERS')
+        )
+    
+        # Handle linked Docker containers
+        if(os.environ.get('NBCACHE_PORT')):
+            tcp_memcache = os.environ.get('NBCACHE_PORT')
+            memcache_urls = tcp_memcache.split('tcp://')[1]
+    
+        if(os.environ.get('NBINDEX_PORT')):
+            log.app_log.info("Indexing notebooks")
+            tcp_index = os.environ.get('NBINDEX_PORT')
+            index_url = tcp_index.split('tcp://')[1]
+            index_host, index_port = index_url.split(":")
+            indexer = ElasticSearch(index_host, index_port)
+        else:
+            log.app_log.info("Not indexing notebooks")
+            indexer = NoSearch()
+    
+        if options.no_cache:
+            log.app_log.info("Not using cache")
+            cache = MockCache()
+        elif pylibmc and memcache_urls:
+            kwargs = dict(pool=mc_pool)
+            username = os.environ.get('MEMCACHIER_USERNAME', '')
+            password = os.environ.get('MEMCACHIER_PASSWORD', '')
+            if username and password:
+                kwargs['binary'] = True
+                kwargs['username'] = username
+                kwargs['password'] = password
+                log.app_log.info("Using SASL memcache")
+            else:
+                log.app_log.info("Using plain memecache")
+    
+            cache = AsyncMultipartMemcache(memcache_urls.split(','), **kwargs)
+        else:
+            log.app_log.info("Using in-memory cache")
+            cache = DummyAsyncCache()
+    
+        # setup tornado handlers and settings
+    
+        template_paths = pjoin(here, 'templates')
+    
+        if options.template_path is not None:
+            log.app_log.info("Using custom template path {}".format(
+                options.template_path)
+            )
+            template_paths = [options.template_path, template_paths]
+    
+        static_path = pjoin(here, 'static')
+        env = Environment(
+            loader=FileSystemLoader(template_paths),
+            autoescape=True
+        )
+        env.filters['markdown'] = markdown.markdown
+        try:
+            git_data = git_info(here)
+        except Exception as e:
+            app_log.error("Failed to get git info: %s", e)
+            git_data = {}
+        else:
+            git_data['msg'] = escape(git_data['msg'])
+    
+    
+        if options.no_cache:
+            # force jinja to recompile template every time
+            env.globals.update(cache_size=0)
+        env.globals.update(nrhead=nrhead, nrfoot=nrfoot, git_data=git_data,
+            jupyter_info=jupyter_info(), len=len,
+        )
+        AsyncHTTPClient.configure(HTTPClientClass)
+        client = AsyncHTTPClient()
+        client.cache = cache
+    
+        # load frontpage sections
+        with io.open(options.frontpage, 'r') as f:
+            frontpage_setup = json.load(f)
+        # check if the json has a 'sections' field, otherwise assume it is
+        # just a list of sessions, and provide the defaults for the other
+        # fields
+        if 'sections' not in frontpage_setup:
+            frontpage_setup = {'title': 'nbviewer',
+                               'subtitle':
+                               'A simple way to share Jupyter Notebooks',
+                               'show_input': True,
+                               'sections': frontpage_setup}
+    
+        # cache frontpage links for the maximum allowed time
+        max_cache_uris = {''}
+        for section in frontpage_setup['sections']:
+            for link in section['links']:
+                max_cache_uris.add('/' + link['target'])
+    
+        fetch_kwargs = dict(connect_timeout=10,)
+        if options.proxy_host:
+            fetch_kwargs.update(dict(proxy_host=options.proxy_host,
+                                     proxy_port=options.proxy_port))
+    
+            log.app_log.info("Using web proxy {proxy_host}:{proxy_port}."
+                             "".format(**fetch_kwargs))
+    
+        if options.no_check_certificate:
+            fetch_kwargs.update(dict(validate_cert=False))
+    
+            log.app_log.info("Not validating SSL certificates")
+    
+        # prefer the jhub defined service prefix over the CLI
+        base_url = os.getenv('JUPYTERHUB_SERVICE_PREFIX', options.base_url)
+        
+        rate_limiter = RateLimiter(
+            limit=options.rate_limit,
+            interval=options.rate_limit_interval,
+            cache=cache,
+        )
+    
+        settings = dict(
+            log_function=log_request,
+            jinja2_env=env,
+            static_path=static_path,
+            static_url_prefix=url_path_join(base_url, '/static/'),
+            client=client,
+            formats=formats,
+            default_format=options.default_format,
+            providers=options.providers,
+            provider_rewrites=options.provider_rewrites,
+            config=self.config,
+            index=indexer,
+            cache=cache,
+            cache_expiry_min=options.cache_expiry_min,
+            cache_expiry_max=options.cache_expiry_max,
+            max_cache_uris=max_cache_uris,
+            frontpage_setup=frontpage_setup,
+            pool=pool,
+            gzip=True,
+            render_timeout=options.render_timeout,
+            localfile_path=os.path.abspath(options.localfiles),
+            localfile_follow_symlinks=options.localfile_follow_symlinks,
+            localfile_any_user=options.localfile_any_user,
+            fetch_kwargs=fetch_kwargs,
+            mathjax_url=options.mathjax_url,
+            rate_limiter=rate_limiter,
+            statsd_host=options.statsd_host,
+            statsd_port=options.statsd_port,
+            statsd_prefix=options.statsd_prefix,
+            base_url=base_url,
+            google_analytics_id=os.getenv('GOOGLE_ANALYTICS_ID'),
+            hub_api_token=os.getenv('JUPYTERHUB_API_TOKEN'),
+            hub_api_url=os.getenv('JUPYTERHUB_API_URL'),
+            hub_base_url=os.getenv('JUPYTERHUB_BASE_URL'),
+            ipywidgets_base_url=options.ipywidgets_base_url,
+            jupyter_widgets_html_manager_version=options.jupyter_widgets_html_manager_version,
+            jupyter_js_widgets_version=options.jupyter_js_widgets_version,
+            content_security_policy=options.content_security_policy,
+            binder_base_url=options.binder_base_url,
+        )
+    
+        if options.localfiles:
+            log.app_log.warning("Serving local notebooks in %s, this can be a security risk", options.localfiles)
+    
+        # handle handlers
+        handlers = init_handlers(formats, options.providers, base_url, options.localfiles)
+    
+        # create the app
+        self.tornado_application = web.Application(handlers, debug=options.debug, **settings)
 
-    settings = dict(
-        log_function=log_request,
-        jinja2_env=env,
-        static_path=static_path,
-        static_url_prefix=url_path_join(base_url, '/static/'),
-        client=client,
-        formats=formats,
-        default_format=options.default_format,
-        providers=options.providers,
-        provider_rewrites=options.provider_rewrites,
-        config=config,
-        index=indexer,
-        cache=cache,
-        cache_expiry_min=options.cache_expiry_min,
-        cache_expiry_max=options.cache_expiry_max,
-        max_cache_uris=max_cache_uris,
-        frontpage_setup=frontpage_setup,
-        pool=pool,
-        gzip=True,
-        render_timeout=options.render_timeout,
-        localfile_path=os.path.abspath(options.localfiles),
-        localfile_follow_symlinks=options.localfile_follow_symlinks,
-        localfile_any_user=options.localfile_any_user,
-        fetch_kwargs=fetch_kwargs,
-        mathjax_url=options.mathjax_url,
-        rate_limiter=rate_limiter,
-        statsd_host=options.statsd_host,
-        statsd_port=options.statsd_port,
-        statsd_prefix=options.statsd_prefix,
-        base_url=base_url,
-        google_analytics_id=os.getenv('GOOGLE_ANALYTICS_ID'),
-        hub_api_token=os.getenv('JUPYTERHUB_API_TOKEN'),
-        hub_api_url=os.getenv('JUPYTERHUB_API_URL'),
-        hub_base_url=os.getenv('JUPYTERHUB_BASE_URL'),
-        ipywidgets_base_url=options.ipywidgets_base_url,
-        jupyter_widgets_html_manager_version=options.jupyter_widgets_html_manager_version,
-        jupyter_js_widgets_version=options.jupyter_js_widgets_version,
-        content_security_policy=options.content_security_policy,
-        binder_base_url=options.binder_base_url,
-    )
-
-    if options.localfiles:
-        log.app_log.warning("Serving local notebooks in %s, this can be a security risk", options.localfiles)
-
-    # handle handlers
-    handlers = init_handlers(formats, options.providers, base_url, options.localfiles)
-
-    # create the app
-    return web.Application(handlers, debug=options.debug, **settings)
-
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.load_config_file(self.config_file)
+        self.init_tornado_application()
 
 def init_options():
     # command-line options
@@ -336,7 +341,8 @@ def main(argv=None):
     
 
     # create and start the app
-    app = make_app()
+    nbviewer = NBViewer()
+    app = nbviewer.tornado_application
 
     # load ssl options
     ssl_options = None
