@@ -24,6 +24,7 @@ from tornado.escape import url_unescape
 from ...utils import (
     quote,
     response_text,
+    url_path_join,
 )
 
 from ..base import (
@@ -39,6 +40,10 @@ class URLHandler(RenderingHandler):
     def get(self, secure, netloc, url):
         proto = 'http' + secure
         netloc = url_unescape(netloc)
+
+        if netloc == 'github.com':
+            new_url = 'github/' + url
+            self.redirect(url_path_join(self.base_url, new_url))
 
         if '/?' in url:
             url, query = url.rsplit('/?', 1)
@@ -98,7 +103,7 @@ def default_handlers(handlers=[]):
     """Tornado handlers"""
 
     return handlers + [
-        (r'/url([s]?)/([^/]+)/(.*)', URLHandler),
+        (r'/url(?P<secure>[s]?)/(?P<netloc>[^/]+)/(?P<url>.*)', URLHandler),
     ]
 
 
