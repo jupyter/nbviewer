@@ -98,7 +98,7 @@ def default_handlers(handlers=[]):
     """Tornado handlers"""
 
     return handlers + [
-        (r'/url([s]?)/([^/]+)/(.*)', URLHandler),
+        (r'/url(?P<secure>[s]?)/(?P<netloc>[^/]+)/(?P<url>.*)', URLHandler),
     ]
 
 

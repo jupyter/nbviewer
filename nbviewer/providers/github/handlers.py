@@ -8,6 +8,7 @@
 import os
 import json
 import mimetypes
+import re
 
 from tornado import (
     web,
@@ -76,14 +77,10 @@ class RawGitHubURLHandler(BaseHandler):
 
 
 class GitHubRedirectHandler(GithubClientMixin, BaseHandler):
-    """redirect github blob|tree|raw urls to /github/ API urls"""
-    def get(self, user, repo, app, ref, path):
-        if app == 'raw':
-            app = 'blob'
-        new_url = u'{format}/github/{user}/{repo}/{app}/{ref}/{path}'.format(
-            format=self.format_prefix, user=user, repo=repo, app=app,
-            ref=ref, path=path,
-        )
+    """redirect github urls to /github/ API urls"""
+    def get(self, url):
+        new_url = u'{format}/github/{url}'.format(
+            format=self.format_prefix, url=url)
         app_log.info("Redirecting %s to %s", self.request.uri, new_url)
         self.redirect(self.from_base(new_url))
 
@@ -160,6 +157,11 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
                 )
             )
             return
+
+        # Account for possibility that GitHub API redirects us to get more accurate breadcrumbs
+        # See: https://github.com/jupyter/nbviewer/issues/324
+        example_file_url = contents[0]['html_url']
+        user, repo = re.match(r"^https://github\.com/(?P<user>[^\/]+)/(?P<repo>[^\/]+)/.*", example_file_url).group('user', 'repo')
 
         base_url = u"/github/{user}/{repo}/tree/{ref}".format(
             user=user, repo=repo, ref=ref,
@@ -341,18 +343,18 @@ def default_handlers(handlers=[]):
         # fixing it here.
         # There are probably links in the wild that depend on these, so keep
         # these handlers for backwards compatibility.
-        (r'/url[s]?/github\.com/([^\/]+)/([^\/]+)/(tree|blob|raw)/([^\/]+)/(.*)', GitHubRedirectHandler),
-        (r'/url[s]?/raw\.?github\.com/([^\/]+)/([^\/]+)/(.*)', RawGitHubURLHandler),
-        (r'/url[s]?/raw\.?githubusercontent\.com/([^\/]+)/([^\/]+)/(.*)', RawGitHubURLHandler),
+        (r'/url[s]?/github\.com/(?P<url>.*)', GitHubRedirectHandler),
+        (r'/url[s]?/raw\.?github\.com/(?P<user>[^\/]+)/(?P<repo>[^\/]+)/(?P<path>.*)', RawGitHubURLHandler),
+        (r'/url[s]?/raw\.?githubusercontent\.com/(?P<user>[^\/]+)/(?P<repo>[^\/]+)/(?P<path>.*)', RawGitHubURLHandler),
     ] + handlers + [
         (r'/github/([^\/]+)', AddSlashHandler),
-        (r'/github/([^\/]+)/', GitHubUserHandler),
+        (r'/github/(?P<user>[^\/]+)/', GitHubUserHandler),
         (r'/github/([^\/]+)/([^\/]+)', AddSlashHandler),
-        (r'/github/([^\/]+)/([^\/]+)/', GitHubRepoHandler),
-        (r'/github/([^\/]+)/([^\/]+)/blob/([^\/]+)/(.*)/', RemoveSlashHandler),
-        (r'/github/([^\/]+)/([^\/]+)/blob/([^\/]+)/(.*)', GitHubBlobHandler),
+        (r'/github/(?P<user>[^\/]+)/(?P<repo>[^\/]+)/', GitHubRepoHandler),
+        (r'/github/([^\/]+)/([^\/]+)/(?:blob|raw)/([^\/]+)/(.*)/', RemoveSlashHandler),
+        (r'/github/(?P<user>[^\/]+)/(?P<repo>[^\/]+)/(?:blob|raw)/(?P<ref>[^\/]+)/(?P<path>.*)', GitHubBlobHandler),
         (r'/github/([^\/]+)/([^\/]+)/tree/([^\/]+)', AddSlashHandler),
-        (r'/github/([^\/]+)/([^\/]+)/tree/([^\/]+)/(.*)', GitHubTreeHandler),
+        (r'/github/(?P<user>[^\/]+)/(?P<repo>[^\/]+)/tree/(?P<ref>[^\/]+)/(?P<path>.*)', GitHubTreeHandler),
     ]
 
 
