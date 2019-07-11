@@ -12,17 +12,8 @@ import os
 import logging
 import markdown
 
-
-try:
-    # py3
-    from urllib.parse import urlparse
-    # https://docs.python.org/3/library/cgi.html#cgi.escape
-    # Deprecated since version 3.2: This function is unsafe because quote is
-    # false by default, and therefore deprecated. Use html.escape() instead.
-    from html import escape
-except ImportError:
-    from cgi import escape
-    from urlparse import urlparse
+from urllib.parse import urlparse
+from html import escape
 
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 
