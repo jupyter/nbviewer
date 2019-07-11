@@ -185,6 +185,12 @@ If you'd like to write a new format, open a ticket, or speak up on [gitter][]!
 We have some work yet to do to support your next big thing in notebook
 publishing, and we'd love to here from you.
 
+#### Config file
+
+Newer versions of NBViewer will be configurable using a config file, `nbviewer_config.py`. In the directory where you run the command `python -m nbviewer` to start NBViewer, also add a file `nbviewer_config.py` which uses [the standard configuration syntax for Jupyter projects](https://traitlets.readthedocs.io/en/stable/config.html). 
+
+For example, to configure the value of a configurable `foo`, add the line `c.NBViewer.foo = 'bar'` to the `nbviewer_config.py` file located where you run `python -m nbviewer`. Again, currently very few features of NBViewer are configurable this way, but we hope to steadily increase the number of configurable characteristics of NBViewer in future releases.
+
 ## Securing the Notebook Viewer
 
 You can run the viewer as a [JupyterHub 0.7+ service](https://jupyterhub.readthedocs.io/en/latest/reference/services.html). Running the viewer as a service prevents users who have not authenticated with the Hub from acccessing the nbviewer instance. This setup can be useful for protecting access to local notebooks rendered with the `--localfiles` option.

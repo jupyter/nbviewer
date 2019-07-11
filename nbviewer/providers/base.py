@@ -15,14 +15,8 @@ from cgi import escape
 from contextlib import contextmanager
 from datetime import datetime
 
-try:
-    # py3
-    from http.client import responses
-    from urllib.parse import urlparse, urlunparse, quote, urlencode
-except ImportError:
-    from httplib import responses
-    from urlparse import urlparse, urlunparse
-    from urllib import quote, urlencode
+from http.client import responses
+from urllib.parse import urlparse, urlunparse, quote, urlencode
 
 from tornado import (
     gen,

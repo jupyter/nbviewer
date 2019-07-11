@@ -5,13 +5,8 @@
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
-try:
-    # py3
-    from urllib.parse import urlparse
-    from urllib import robotparser
-except ImportError:
-    from urlparse import urlparse
-    import robotparser
+from urllib.parse import urlparse
+from urllib import robotparser
 
 from tornado import (
     gen,

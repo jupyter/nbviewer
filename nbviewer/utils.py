@@ -5,13 +5,8 @@
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
-# https://docs.python.org/3.1/library/base64.html#base64.decodestring
-try:
-    from base64 import encodebytes
-    from base64 import decodebytes
-except ImportError:
-    from base64 import encodestring as encodebytes
-    from base64 import decodestring as decodebytes
+from base64 import encodebytes
+from base64 import decodebytes
 
 import cgi
 from contextlib import contextmanager
@@ -19,22 +14,13 @@ import re
 from subprocess import check_output
 import time
 
-try:
-    from urllib.parse import (
-        parse_qs,
-        quote as stdlib_quote,
-        urlencode,
-        urlparse,
-        urlunparse,
-    )
-except ImportError:
-    from urllib import urlencode
-    from urllib2 import quote as stdlib_quote
-    from urlparse import (
-        parse_qs,
-        urlparse,
-        urlunparse,
-    )
+from urllib.parse import (
+    parse_qs,
+    quote as stdlib_quote,
+    urlencode,
+    urlparse,
+    urlunparse,
+)
 
 from tornado.log import app_log
 
