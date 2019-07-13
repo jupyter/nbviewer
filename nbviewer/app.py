@@ -32,7 +32,6 @@ from .handlers import init_handlers
 from .cache import DummyAsyncCache, AsyncMultipartMemcache, MockCache, pylibmc
 from .index import NoSearch, ElasticSearch
 from .formats import configure_formats
-
 from .providers import default_providers, default_rewrites
 
 try:
