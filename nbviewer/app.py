@@ -25,7 +25,7 @@ from tornado.options import define, options
 
 from jinja2 import Environment, FileSystemLoader
 
-from traitlets import Unicode, Any, Set, default
+from traitlets import Any, Dict, Set, Unicode, default
 from traitlets.config import Application
 
 from .handlers import init_handlers
@@ -82,6 +82,9 @@ class NBViewer(Application):
     name = Unicode('nbviewer')
 
     config_file = Unicode('nbviewer_config.py', help="The config file to load").tag(config=True)
+
+    # Use this to insert custom configuration of handlers for NBViewer extensions
+    handler_settings = Dict().tag(config=True)
 
     url_handler         = Unicode(default_value="nbviewer.providers.url.handlers.URLHandler",           help="The Tornado handler to use for viewing notebooks accessed via URL").tag(config=True)
     local_handler       = Unicode(default_value="nbviewer.providers.local.handlers.LocalFileHandler",   help="The Tornado handler to use for viewing notebooks found on a local filesystem").tag(config=True)
@@ -243,7 +246,16 @@ class NBViewer(Application):
 
     def init_tornado_application(self):
         # handle handlers
-        handlers = init_handlers(self.formats, options.providers, self.base_url, options.localfiles)
+        handler_names = dict(
+                  url_handler=self.url_handler,
+                  github_blob_handler=self.github_blob_handler,
+                  github_tree_handler=self.github_tree_handler,
+                  local_handler=self.local_handler,
+                  gist_handler=self.gist_handler,
+                  user_gists_handler=self.user_gists_handler,
+        )
+        handler_kwargs = {'handler_names' : handler_names, 'handler_settings' : self.handler_settings}
+        handlers = init_handlers(self.formats, options.providers, self.base_url, options.localfiles, **handler_kwargs)
         
         # NBConvert config
         self.config.NbconvertApp.fileext = 'html'

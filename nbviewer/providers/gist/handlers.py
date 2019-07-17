@@ -21,6 +21,7 @@ from ...utils import (
 
 from ..github.handlers import GithubClientMixin
 
+from .. import _load_handler_from_location
 
 PROVIDER_CTX = {
     'provider_label': 'Gist',
@@ -207,15 +208,18 @@ class GistRedirectHandler(BaseHandler):
         self.redirect(self.from_base(new_url))
 
 
-def default_handlers(handlers=[]):
+def default_handlers(handlers=[], **handler_names):
     """Tornado handlers"""
 
+    gist_handler = _load_handler_from_location(handler_names['gist_handler'])
+    user_gists_handler = _load_handler_from_location(handler_names['user_gists_handler'])
+
     return handlers + [
-        (r'/gist/([^\/]+/)?([0-9]+|[0-9a-f]{20,})', GistHandler),
-        (r'/gist/([^\/]+/)?([0-9]+|[0-9a-f]{20,})/(?:files/)?(.*)', GistHandler),
-        (r'/([0-9]+|[0-9a-f]{20,})', GistRedirectHandler),
-        (r'/([0-9]+|[0-9a-f]{20,})/(.*)', GistRedirectHandler),
-        (r'/gist/([^\/]+)/?', UserGistsHandler),
+        (r'/gist/([^\/]+/)?([0-9]+|[0-9a-f]{20,})', gist_handler, {}),
+        (r'/gist/([^\/]+/)?([0-9]+|[0-9a-f]{20,})/(?:files/)?(.*)', gist_handler, {}),
+        (r'/([0-9]+|[0-9a-f]{20,})', GistRedirectHandler, {}),
+        (r'/([0-9]+|[0-9a-f]{20,})/(.*)', GistRedirectHandler, {}),
+        (r'/gist/([^\/]+)/?', user_gists_handler, {}),
     ]
 
 

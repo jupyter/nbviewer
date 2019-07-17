@@ -75,31 +75,49 @@ class CreateHandler(BaseHandler):
 # Default handler URL mapping
 #-----------------------------------------------------------------------------
 
-def format_handlers(formats, handlers):
-    return [
+def format_handlers(formats, urlspecs, **handler_settings):
+    urlspecs = [
         (prefix + url, handler, {
             "format": format,
             "format_prefix": prefix
         })
         for format in formats
-        for url, handler in handlers
+        # Tornado handler URLSpec of form (route, handler_class, initalize_kwargs)
+        # https://www.tornadoweb.org/en/stable/web.html#tornado.web.URLSpec
+        # kwargs passed to initialize are None by default but can be added
+        # https://www.tornadoweb.org/en/stable/web.html#tornado.web.RequestHandler.initialize
+        for url, handler, initialize_kwargs in urlspecs
         for prefix in [format_prefix + format]
     ]
+    for handler_setting in handler_settings:
+        if handler_settings[handler_setting]:
+            # here we modify the URLSpec dict to have the key-value pairs from
+            # handler_settings in NBViewer.init_tornado_application
+            for urlspec in urlspecs:
+                urlspec[2][handler_setting] = handler_settings[handler_setting]
+    return urlspecs
 
+def init_handlers(formats, providers, base_url, localfiles, **handler_kwargs):
+    # `handler_kwargs` is a dict of dicts: first dict is `handler_names`, which
+    # specifies the handler_classes to load for the providers, the second
+    # is `handler_settings` (see comments in format_handlers)
+    # Only `handler_settings` should get added to the initialize_kwargs in the
+    # handler URLSpecs, which is why we pass only it to `format_handlers`
+    # but both it and `handler_names` to `provider_handlers`
+    handler_settings = handler_kwargs['handler_settings']
 
-def init_handlers(formats, providers, base_url, localfiles):
     pre_providers = [
-        ('/?', IndexHandler),
-        ('/index.html', IndexHandler),
-        (r'/faq/?', FAQHandler),
-        (r'/create/?', CreateHandler),
+        ('/?', IndexHandler, {}),
+        ('/index.html', IndexHandler, {}),
+        (r'/faq/?', FAQHandler, {}),
+        (r'/create/?', CreateHandler, {}),
 
         # don't let super old browsers request data-uris
-        (r'.*/data:.*;base64,.*', Custom404),
+        (r'.*/data:.*;base64,.*', Custom404, {}),
     ]
 
     post_providers = [
-        (r'/(robots\.txt|favicon\.ico)', web.StaticFileHandler)
+        (r'/(robots\.txt|favicon\.ico)', web.StaticFileHandler, {})
     ]
 
     # Add localfile handlers if the option is set
@@ -108,12 +126,12 @@ def init_handlers(formats, providers, base_url, localfiles):
         # https://github.com/jupyter/nbviewer/pull/727#discussion_r144448440.
         providers.insert(0, 'nbviewer.providers.local')
 
-    handlers = provider_handlers(providers)
+    handlers = provider_handlers(providers, **handler_kwargs)
 
     raw_handlers = (
         pre_providers +
         handlers +
-        format_handlers(formats, handlers) +
+        format_handlers(formats, handlers, **handler_settings) +
         post_providers
     )
 
@@ -122,6 +140,6 @@ def init_handlers(formats, providers, base_url, localfiles):
         pattern = url_path_join(base_url, handler[0])
         new_handler = tuple([pattern] + list(handler[1:]))
         new_handlers.append(new_handler)
-    new_handlers.append((r'.*', Custom404))
+    new_handlers.append((r'.*', Custom404, {}))
 
     return new_handlers

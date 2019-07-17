@@ -33,6 +33,7 @@ from ...utils import (
 
 from .client import AsyncGitHubClient
 
+from .. import _load_handler_from_location
 
 PROVIDER_CTX = {
     'provider_label': 'GitHub',
@@ -334,8 +335,11 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
             self.cache_and_finish(filedata)
 
 
-def default_handlers(handlers=[]):
+def default_handlers(handlers=[], **handler_names):
     """Tornado handlers"""
+
+    blob_handler = _load_handler_from_location(handler_names['github_blob_handler'])
+    tree_handler = _load_handler_from_location(handler_names['github_tree_handler'])
 
     return [
         # ideally these URIs should have been caught by an appropriate
@@ -343,18 +347,19 @@ def default_handlers(handlers=[]):
         # fixing it here.
         # There are probably links in the wild that depend on these, so keep
         # these handlers for backwards compatibility.
-        (r'/url[s]?/github\.com/(?P<url>.*)', GitHubRedirectHandler),
-        (r'/url[s]?/raw\.?github\.com/(?P<user>[^\/]+)/(?P<repo>[^\/]+)/(?P<path>.*)', RawGitHubURLHandler),
-        (r'/url[s]?/raw\.?githubusercontent\.com/(?P<user>[^\/]+)/(?P<repo>[^\/]+)/(?P<path>.*)', RawGitHubURLHandler),
+        (r'/url[s]?/github\.com/(?P<url>.*)', GitHubRedirectHandler, {}),
+        (r'/url[s]?/raw\.?github\.com/(?P<user>[^\/]+)/(?P<repo>[^\/]+)/(?P<path>.*)', RawGitHubURLHandler, {}),
+        (r'/url[s]?/raw\.?githubusercontent\.com/(?P<user>[^\/]+)/(?P<repo>[^\/]+)/(?P<path>.*)', RawGitHubURLHandler, {}),
     ] + handlers + [
-        (r'/github/([^\/]+)', AddSlashHandler),
-        (r'/github/(?P<user>[^\/]+)/', GitHubUserHandler),
-        (r'/github/([^\/]+)/([^\/]+)', AddSlashHandler),
-        (r'/github/(?P<user>[^\/]+)/(?P<repo>[^\/]+)/', GitHubRepoHandler),
-        (r'/github/([^\/]+)/([^\/]+)/(?:blob|raw)/([^\/]+)/(.*)/', RemoveSlashHandler),
-        (r'/github/(?P<user>[^\/]+)/(?P<repo>[^\/]+)/(?:blob|raw)/(?P<ref>[^\/]+)/(?P<path>.*)', GitHubBlobHandler),
-        (r'/github/([^\/]+)/([^\/]+)/tree/([^\/]+)', AddSlashHandler),
-        (r'/github/(?P<user>[^\/]+)/(?P<repo>[^\/]+)/tree/(?P<ref>[^\/]+)/(?P<path>.*)', GitHubTreeHandler),
+        (r'/github/([^\/]+)', AddSlashHandler, {}),
+        (r'/github/(?P<user>[^\/]+)/', GitHubUserHandler, {}),
+        (r'/github/([^\/]+)/([^\/]+)', AddSlashHandler, {}),
+        (r'/github/(?P<user>[^\/]+)/(?P<repo>[^\/]+)/', GitHubRepoHandler, {}),
+        (r'/github/([^\/]+)/([^\/]+)/(?:blob|raw)/([^\/]+)/(.*)/', RemoveSlashHandler, {}),
+        (r'/github/([^\/]+)/([^\/]+)/tree/([^\/]+)', AddSlashHandler, {}), 
+    ] + [
+        (r'/github/(?P<user>[^\/]+)/(?P<repo>[^\/]+)/tree/(?P<ref>[^\/]+)/(?P<path>.*)', tree_handler, {}),
+        (r'/github/(?P<user>[^\/]+)/(?P<repo>[^\/]+)/(?:blob|raw)/(?P<ref>[^\/]+)/(?P<path>.*)', blob_handler, {}),
     ]
 
 

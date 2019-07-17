@@ -26,6 +26,7 @@ from ..base import (
     RenderingHandler,
 )
 
+from .. import _load_handler_from_location
 
 class URLHandler(RenderingHandler):
     """Renderer for /url or /urls"""
@@ -89,11 +90,13 @@ class URLHandler(RenderingHandler):
                                    format=self.format)
 
 
-def default_handlers(handlers=[]):
+def default_handlers(handlers=[], **handler_names):
     """Tornado handlers"""
 
+    url_handler = _load_handler_from_location(handler_names['url_handler'])
+
     return handlers + [
-        (r'/url(?P<secure>[s]?)/(?P<netloc>[^/]+)/(?P<url>.*)', URLHandler),
+        (r'/url(?P<secure>[s]?)/(?P<netloc>[^/]+)/(?P<url>.*)', url_handler, {}),
     ]
 
 
