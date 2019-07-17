@@ -50,7 +50,6 @@ except ImportError:
     pycurl = None
     class CurlError(Exception): pass
 
-date_fmt = "%a, %d %b %Y %H:%M:%S UTC"
 format_prefix = "/format/"
 
 
@@ -61,6 +60,7 @@ class BaseHandler(web.RequestHandler):
         self.format = format or self.default_format
         self.format_prefix = format_prefix
         self.http_client = httpclient.AsyncHTTPClient()
+        self.date_fmt = "%a, %d %b %Y %H:%M:%S UTC"
 
         for handler_setting in handler_settings:
             setattr(self, handler_setting, handler_settings[handler_setting])
@@ -259,10 +259,19 @@ class BaseHandler(web.RequestHandler):
         """Return the jinja template object for a given name"""
         return self.settings['jinja2_env'].get_template(name)
 
-    def render_template(self, name, **ns):
-        ns.update(self.template_namespace)
+    def render_template(self, name, **namespace):
+        namespace.update(self.template_namespace)
         template = self.get_template(name)
-        return template.render(**ns)
+        return template.render(**namespace)
+    
+    # Wrappers to facilitate custom rendering in subclasses without having to rewrite entire GET methods
+    # This would seem to mostly involve creating different template namespaces to enable custom logic in
+    # extended templates, but there might be other possibilities
+    def render_status_code_template(self, status_code, **namespace):
+        return self.render_template('%d.html' % status_code, **namespace)
+    
+    def render_error_template(self, **namespace):
+        return self.render_template('error.html', **namespace)
 
     @property
     def template_namespace(self):
@@ -415,7 +424,7 @@ class BaseHandler(web.RequestHandler):
                 status_message = reason
 
         # build template namespace
-        ns = dict(
+        namespace = dict(
             status_code=status_code,
             status_message=status_message,
             message=message,
@@ -424,9 +433,9 @@ class BaseHandler(web.RequestHandler):
 
         # render the template
         try:
-            html = self.render_template('%d.html' % status_code, **ns)
+            html = self.render_status_code_template(status_code, **namespace)
         except Exception as e:
-            html = self.render_template('error.html', **ns)
+            html = self.render_error_template(**namespace)
         self.set_header('Content-Type', 'text/html')
         self.write(html)
 
@@ -621,12 +630,26 @@ class RenderingHandler(BaseHandler):
             except Exception as err:
                 app_log.info("failed to test %s: %s", self.request.uri, name)
 
+    # Wrappers to facilitate custom rendering in subclasses without having to rewrite entire GET methods
+    # This would seem to mostly involve creating different template namespaces to enable custom logic in
+    # extended templates, but there might be other possibilities
+    def render_notebook_template(self, body, nb, download_url, json_notebook, **namespace):
+        return self.render_template(
+            "formats/%s.html" % self.format,
+            body=body,
+            nb=nb,
+            download_url=download_url,
+            format=self.format,
+            default_format=self.default_format,
+            format_prefix=self.format_prefix,
+            formats=dict(self.filter_formats(nb, json_notebook)),
+            format_base=self.request.uri.replace(self.format_prefix, "").replace(self.base_url, '/'),
+            date=datetime.utcnow().strftime(self.date_fmt),
+            **namespace)
+                
     @gen.coroutine
-    def finish_notebook(self, json_notebook, download_url, provider_url=None,
-                        provider_icon=None, provider_label=None, msg=None,
-                        breadcrumbs=None, public=False, format=None, request=None,
-                        title=None, executor_url=None, executor_label=None,
-                        executor_icon=None):
+    def finish_notebook(self, json_notebook, download_url, msg=None,
+                        public=False, **namespace):
         """Renders a notebook from its JSON body.
 
         Parameters
@@ -679,7 +702,7 @@ class RenderingHandler(BaseHandler):
                 app_log.info("Rendering %d B notebook from %s", len(json_notebook), download_url)
                 render_time = self.statsd.timer('rendering.nbrender.time').start()
                 nbhtml, config = yield self.pool.submit(render_notebook,
-                    self.formats[format], nb, download_url,
+                    self.formats[self.format], nb, download_url,
                     config=self.config,
                 )
                 render_time.stop()
@@ -696,30 +719,16 @@ class RenderingHandler(BaseHandler):
             app_log.debug("Finished render of %s", download_url)
 
         html_time = self.statsd.timer('rendering.html.time').start()
-        html = self.render_template(
-            "formats/%s.html" % format,
+        html = self.render_notebook_template(
             body=nbhtml,
             nb=nb,
             download_url=download_url,
-            provider_url=provider_url,
-            provider_label=provider_label,
-            provider_icon=provider_icon,
-            executor_url=executor_url,
-            executor_label=executor_label,
-            executor_icon=executor_icon,
-            format=self.format,
-            default_format=self.default_format,
-            format_prefix=format_prefix,
-            formats=dict(self.filter_formats(nb, json_notebook)),
-            format_base=self.request.uri.replace(self.format_prefix, "").replace(self.base_url, '/'),
-            date=datetime.utcnow().strftime(date_fmt),
-            breadcrumbs=breadcrumbs,
-            title=title,
-            **config)
+            json_notebook=json_notebook,
+            **namespace)
         html_time.stop()
 
-        if 'content_type' in self.formats[format]:
-            self.set_header('Content-Type', self.formats[format]['content_type'])
+        if 'content_type' in self.formats[self.format]:
+            self.set_header('Content-Type', self.formats[self.format]['content_type'])
         yield self.cache_and_finish(html)
 
         # Index notebook

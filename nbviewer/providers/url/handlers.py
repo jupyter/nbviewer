@@ -86,8 +86,7 @@ class URLHandler(RenderingHandler):
         yield self.finish_notebook(nbjson, download_url=remote_url,
                                    msg="file from url: %s" % remote_url,
                                    public=public,
-                                   request=self.request,
-                                   format=self.format)
+                                   request=self.request)
 
 
 def default_handlers(handlers=[], **handler_names):
