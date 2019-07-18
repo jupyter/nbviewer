@@ -138,22 +138,7 @@ class LocalFileHandler(RenderingHandler):
 
         return True
 
-    @cached
-    @gen.coroutine
-    def get(self, path):
-        """Get a directory listing, rendered notebook, or raw file
-        at the given path based on the type and URL query parameters.
-
-        If the path points to an accessible directory, render its contents.
-        If the path points to an accessible notebook file, render it.
-        If the path points to an accessible file and the URL contains a
-        'download' query parameter, respond with the file as a download.
-
-        Parameters
-        ==========
-        path: str
-            Local filesystem path
-        """
+    def get_notebook_data(self, path):
         fullpath = os.path.join(self.localfile_path, path)
 
         if not self.can_show(fullpath):
@@ -168,7 +153,17 @@ class LocalFileHandler(RenderingHandler):
         if is_download:
             self.download(fullpath)
             return
+        
+        return fullpath
 
+    @gen.coroutine
+    def deliver_notebook(self, fullpath, path):
+        """
+        breadcrumbs: list of dict
+            Breadcrumb 'name' and 'url' to render as links at the top of the notebook page
+        title: str
+            Title to use as the HTML page title (i.e., text on the browser tab)
+        """
         try:
             with io.open(fullpath, encoding='utf-8') as f:
                 nbdata = f.read()
@@ -186,16 +181,40 @@ class LocalFileHandler(RenderingHandler):
                                    breadcrumbs=self.breadcrumbs(path),
                                    title=os.path.basename(path))
 
+    @cached
+    @gen.coroutine
+    def get(self, path):
+        """Get a directory listing, rendered notebook, or raw file
+        at the given path based on the type and URL query parameters.
+
+        If the path points to an accessible directory, render its contents.
+        If the path points to an accessible notebook file, render it.
+        If the path points to an accessible file and the URL contains a
+        'download' query parameter, respond with the file as a download.
+
+        Parameters
+        ==========
+        path: str
+            Local filesystem path
+        """
+        fullpath = self.get_notebook_data(path)
+
+        yield self.deliver_notebook(fullpath, path)
+
     # Make available to increase modularity for subclassing
     # E.g. so subclasses can implement templates with custom logic
     # without having to copy-paste the entire show_dir method
     def render_dirview_template(self, entries, breadcrumbs, title, **namespace):
-
-         return self.render_template('dirview.html',
+        """
+        breadcrumbs: list of dict
+            Breadcrumb 'name' and 'url' to render as links at the top of the notebook page
+        title: str
+            Title to use as the HTML page title (i.e., text on the browser tab)
+        """
+        return self.render_template('dirview.html',
                                     entries=entries, breadcrumbs=breadcrumbs,
                                     title=title, **namespace)
-        
-        
+
     def show_dir(self, fullpath, path, **namespace):
         """Render the directory view template for a given filesystem path.
 

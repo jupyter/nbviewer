@@ -23,18 +23,27 @@ from ..github.handlers import GithubClientMixin
 
 from .. import _load_handler_from_location
 
-
 class GistClientMixin(GithubClientMixin):
+    """
+    provider_label: str
+        Text to to apply to the navbar icon linking to the provider
+    provider_icon: str
+        CSS classname to apply to the navbar icon linking to the provider
+    executor_label: str, optional
+        Text to apply to the navbar icon linking to the execution service
+    executor_icon: str, optional
+        CSS classname to apply to the navbar icon linking to the execution service
+    """
     PROVIDER_CTX = {
         'provider_label': 'Gist',
         'provider_icon': 'github-square',
         'executor_label': 'Binder',
         'executor_icon': 'icon-binder',
     }
-    
+
     BINDER_TMPL = '{binder_base_url}/gist/{user}/{gist_id}/master'
     BINDER_PATH_TMPL = BINDER_TMPL+'?filepath={path}'
-    
+
     def client_error_message(self, exc, url, body, msg=None):
         if exc.code == 403 and 'too big' in body.lower():
             return 400, "GitHub will not serve raw gists larger than 10MB"
@@ -50,12 +59,18 @@ class UserGistsHandler(GistClientMixin, BaseHandler):
     .ipynb file extension is required for listing (not for rendering).
     """
     def render_usergists_template(self, entries, user, provider_url, prev_url,
-                                 next_url, **namespace):
+                                  next_url, **namespace):
+        """
+        provider_url: str
+            URL to the notebook document upstream at the provider (e.g., GitHub)
+        executor_url: str, optional
+            URL to execute the notebook document (e.g., Binder)
+        """
         return self.render_template("usergists.html", entries=entries, user=user,
-                                   provider_url=provider_url, prev_url=prev_url,
-                                   next_url=next_url, **self.PROVIDER_CTX,
-                                   **namespace)
-    
+                                    provider_url=provider_url, prev_url=prev_url,
+                                    next_url=next_url, **self.PROVIDER_CTX, 
+                                    **namespace)
+
     @cached
     @gen.coroutine
     def get(self, user, **namespace):
@@ -88,14 +103,17 @@ class UserGistsHandler(GistClientMixin, BaseHandler):
 
 class GistHandler(GistClientMixin, RenderingHandler):
     """render a gist notebook, or list files if a multifile gist"""
-    @cached
+
     @gen.coroutine
-    def get(self, user, gist_id, filename=''):
+    def parse_gist(self, user, gist_id, filename=''):
+
         with self.catch_client_error():
             response = yield self.github_client.get_gist(gist_id)
 
         gist = json.loads(response_text(response))
+
         gist_id=gist['id']
+
         if user is None:
             # redirect to /gist/user/gist_id if no user given
             owner_dict = gist.get('owner', {})
@@ -111,94 +129,139 @@ class GistHandler(GistClientMixin, RenderingHandler):
             return
 
         files = gist['files']
+
         many_files_gist = (len(files) > 1)
 
-        if not many_files_gist and not filename:
-            filename = list(files.keys())[0]
+        # user and gist_id get modified
+        return user, gist_id, gist, files, many_files_gist
 
-        if filename and filename in files:
-            file = files[filename]
-            if (file['type'] or '').startswith('image/'):
-                app_log.debug("Fetching raw image (%s) %s/%s: %s", file['type'], gist_id, filename, file['raw_url'])
-                response = yield self.fetch(file['raw_url'])
-                # use raw bytes for images:
-                content = response.body
-            elif file['truncated']:
-                app_log.debug("Gist %s/%s truncated, fetching %s", gist_id, filename, file['raw_url'])
-                response = yield self.fetch(file['raw_url'])
-                content = response_text(response, encoding='utf-8')
+   # Analogous to GitHubTreeHandler
+    @gen.coroutine
+    def tree_get(self, user, gist_id, gist, files):
+        """
+        provider_url:
+            URL to the notebook document upstream at the provider (e.g., GitHub)
+        executor_url: str, optional
+            URL to execute the notebook document (e.g., Binder)
+        """
+        entries = []
+        ipynbs = []
+        others = []
+
+        for file in files.values():
+            e = {}
+            e['name'] = file['filename']
+            if file['filename'].endswith('.ipynb'):
+                e['url'] = quote('/%s/%s' % (gist_id, file['filename']))
+                e['class'] = 'fa-book'
+                ipynbs.append(e)
             else:
-                content = file['content']
-
-            # Enable a binder navbar icon if a binder base URL is configured
-            executor_url = self.BINDER_PATH_TMPL.format(
-                binder_base_url=self.binder_base_url,
-                user=user.rstrip('/'),
-                gist_id=gist_id,
-                path=quote(filename)
-            ) if self.binder_base_url else None
-
-            if not many_files_gist or filename.endswith('.ipynb'):
-                yield self.finish_notebook(
-                    content,
-                    file['raw_url'],
-                    provider_url=gist['html_url'],
-                    executor_url=executor_url,
-                    msg="gist: %s" % gist_id,
-                    public=gist['public'],
-                    **self.PROVIDER_CTX
+                provider_url = u"https://gist.github.com/{user}/{gist_id}#file-{clean_name}".format(
+                    user=user,
+                    gist_id=gist_id,
+                    clean_name=clean_filename(file['filename']),
                 )
-            else:
-                self.set_header('Content-Type', file.get('type') or 'text/plain')
-                # cannot redirect because of X-Frame-Content
-                self.finish(content)
-                return
+                e['url'] = provider_url
+                e['class'] = 'fa-share'
+                others.append(e)
 
-        elif filename:
-            raise web.HTTPError(404, "No such file in gist: %s (%s)", filename, list(files.keys()))
+        entries.extend(ipynbs)
+        entries.extend(others)
+
+        # Enable a binder navbar icon if a binder base URL is configured
+        executor_url = self.BINDER_TMPL.format(
+            binder_base_url=self.binder_base_url,
+            user=user.rstrip('/'),
+            gist_id=gist_id
+        ) if self.binder_base_url else None
+
+        html = self.render_template(
+            'treelist.html',
+            entries=entries,
+            tree_type='gist',
+            tree_label='gists',
+            user=user.rstrip('/'),
+            provider_url=gist['html_url'],
+            executor_url=executor_url,
+            **self.PROVIDER_CTX
+        )
+        yield self.cache_and_finish(html)
+
+    # Analogous to GitHubBlobHandler
+    @gen.coroutine
+    def file_get(self, user, gist_id, filename, gist, many_files_gist, file):
+        content = yield self.get_notebook_data(gist_id, filename, many_files_gist, file)
+
+        if not content:
+            return
+        
+        yield self.deliver_notebook(user, gist_id, filename, gist, file, content)
+
+    @gen.coroutine
+    def get_notebook_data(self, gist_id, filename, many_files_gist, file):
+        if (file['type'] or '').startswith('image/'):
+            app_log.debug("Fetching raw image (%s) %s/%s: %s", file['type'], gist_id, filename, file['raw_url'])
+            response = yield self.fetch(file['raw_url'])
+            # use raw bytes for images:
+            content = response.body
+        elif file['truncated']:
+            app_log.debug("Gist %s/%s truncated, fetching %s", gist_id, filename, file['raw_url'])
+            response = yield self.fetch(file['raw_url'])
+            content = response_text(response, encoding='utf-8')
         else:
-            entries = []
-            ipynbs = []
-            others = []
+            content = file['content']
 
-            for file in files.values():
-                e = {}
-                e['name'] = file['filename']
-                if file['filename'].endswith('.ipynb'):
-                    e['url'] = quote('/%s/%s' % (gist_id, file['filename']))
-                    e['class'] = 'fa-book'
-                    ipynbs.append(e)
-                else:
-                    provider_url = u"https://gist.github.com/{user}/{gist_id}#file-{clean_name}".format(
-                        user=user,
-                        gist_id=gist_id,
-                        clean_name=clean_filename(file['filename']),
-                    )
-                    e['url'] = provider_url
-                    e['class'] = 'fa-share'
-                    others.append(e)
+        if many_files_gist and not filename.endswith('.ipynb'):
+            self.set_header('Content-Type', file.get('type') or 'text/plain')
+            # cannot redirect because of X-Frame-Content
+            self.finish(content)
+            return
 
-            entries.extend(ipynbs)
-            entries.extend(others)
+        else:
+            return content
 
-            # Enable a binder navbar icon if a binder base URL is configured
-            executor_url = self.BINDER_TMPL.format(
-                binder_base_url=self.binder_base_url,
-                user=user.rstrip('/'),
-                gist_id=gist_id
-            ) if self.binder_base_url else None
+    @gen.coroutine
+    def deliver_notebook(self, user, gist_id, filename, gist, file, content):
+        """
+        provider_url: str, optional
+            URL to the notebook document upstream at the provider (e.g., GitHub)
+        """
+        # Enable a binder navbar icon if a binder base URL is configured
+        executor_url = self.BINDER_PATH_TMPL.format(
+            binder_base_url=self.binder_base_url,
+            user=user.rstrip('/'),
+            gist_id=gist_id,
+            path=quote(filename)
+        ) if self.binder_base_url else None
 
-            html = self.render_template(
-                'treelist.html',
-                entries=entries,
-                tree_type='gist',
-                tree_label='gists',
-                user=user.rstrip('/'),
-                provider_url=gist['html_url'],
-                executor_url=executor_url,
-                **self.PROVIDER_CTX
-            )
-            yield self.cache_and_finish(html)
+        yield self.finish_notebook(
+            content,
+            file['raw_url'],
+            msg="gist: %s" % gist_id,
+            public=gist['public'],
+            provider_url=gist['html_url'],
+            executor_url=executor_url,
+            **self.PROVIDER_CTX)
+
+    @cached
+    @gen.coroutine
+    def get(self, user, gist_id, filename=''):
+
+        user, gist_id, gist, files, many_files_gist = yield self.parse_gist(user, gist_id, filename)
+
+        if many_files_gist and not filename:
+            yield self.tree_get(user, gist_id, gist, files)
+
+        else:
+            if not many_files_gist and not filename:
+                filename = list(files.keys())[0]
+
+            if filename not in files:
+                raise web.HTTPError(404, "No such file in gist: %s (%s)", filename, list(files.keys()))
+
+            file = files[filename]
+
+            yield self.file_get(user, gist_id, filename, gist, many_files_gist, file)
 
 
 class GistRedirectHandler(BaseHandler):

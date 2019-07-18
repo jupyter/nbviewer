@@ -35,21 +35,30 @@ from .client import AsyncGitHubClient
 
 from .. import _load_handler_from_location
 
-
 def _github_url():
     return os.environ.get('GITHUB_URL') if os.environ.get('GITHUB_URL', '') else "https://github.com/"
 
 class GithubClientMixin(object):
+    """
+    provider_label: str
+        Text to to apply to the navbar icon linking to the provider
+    provider_icon: str
+        CSS classname to apply to the navbar icon linking to the provider
+    executor_label: str, optional
+        Text to apply to the navbar icon linking to the execution service
+    executor_icon: str, optional
+        CSS classname to apply to the navbar icon linking to the execution service
+    """
     PROVIDER_CTX = {
         'provider_label': 'GitHub',
         'provider_icon': 'github',
         'executor_label': 'Binder',
         'executor_icon': 'icon-binder',
     }
-    
+
     BINDER_TMPL = '{binder_base_url}/gh/{org}/{repo}/{ref}'
     BINDER_PATH_TMPL = BINDER_TMPL+'?filepath={path}'
-    
+
     @property
     def github_client(self):
         """Create an upgraded github API client from the HTTP client"""
@@ -128,12 +137,20 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
     """list files in a github repo (like github tree)"""
     def render_treelist_template(self, entries, breadcrumbs, provider_url, user, repo, ref, path,
                                  branches, tags, executor_url, **namespace):
+        """
+        breadcrumbs: list of dict
+            Breadcrumb 'name' and 'url' to render as links at the top of the notebook page
+        provider_url: str
+            URL to the notebook document upstream at the provider (e.g., GitHub)
+        executor_url: str, optional
+            URL to execute the notebook document (e.g., Binder)
+        """
         return self.render_template("treelist.html", entries=entries, breadcrumbs=breadcrumbs,
                                     provider_url=provider_url, user=user, repo=repo, ref=ref,
                                     path=path, branches=branches, tags=tags, tree_type="github",
                                     tree_label="repositories", executor_url=executor_url,
                                     **self.PROVIDER_CTX, **namespace)
-    
+
     @cached
     @gen.coroutine
     def get(self, user, repo, ref, path, **namespace):
@@ -230,9 +247,9 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
         ) if self.binder_base_url else None
 
         html = self.render_treelist_template(
-            entries=entries, breadcrumbs=breadcrumbs, provider_url=provider_url,
-            user=user, repo=repo, ref=ref, path=path, branches=branches, tags=tags,
-            executor_url=executor_url, **namespace
+             entries=entries, breadcrumbs=breadcrumbs, provider_url=provider_url,
+             user=user, repo=repo, ref=ref, path=path, branches=branches, tags=tags,
+             executor_url=executor_url, **namespace 
         )
         yield self.cache_and_finish(html)
 
@@ -259,9 +276,8 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
     - non-notebook file, serve file unmodified
     - directory, redirect to tree
     """
-    @cached
     @gen.coroutine
-    def get(self, user, repo, ref, path):
+    def get_notebook_data(self, user, repo, ref, path):
         raw_url = u"https://raw.githubusercontent.com/{user}/{repo}/{ref}/{path}".format(
             user=user, repo=repo, ref=ref, path=quote(path)
         )
@@ -281,6 +297,18 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
             self.redirect(tree_url)
             return
 
+        return raw_url, blob_url, tree_entry
+
+    @gen.coroutine
+    def deliver_notebook(self, user, repo, ref, path, raw_url, blob_url, tree_entry):
+        """
+        provider_url:
+            URL to the notebook document upstream at the provider (e.g., GitHub)
+        breadcrumbs: list of dict
+            Breadcrumb 'name' and 'url' to render as links at the top of the notebook page
+        executor_url: str, optional
+            URL to execute the notebook document (e.g., Binder)
+        """
         # fetch file data from the blobs API
         with self.catch_client_error():
             response = yield self.github_client.fetch(tree_entry['url'])
@@ -330,12 +358,18 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
                 msg="file from GitHub: %s" % raw_url,
                 public=True,
                 **self.PROVIDER_CTX
-            )
+                )
         else:
             mime, enc = mimetypes.guess_type(path)
             self.set_header("Content-Type", mime or 'text/plain')
             self.cache_and_finish(filedata)
 
+    @cached
+    @gen.coroutine
+    def get(self, user, repo, ref, path):
+        raw_url, blob_url, tree_entry = yield self.get_notebook_data(user, repo, ref, path)
+
+        yield self.deliver_notebook(user, repo, ref, path, raw_url, blob_url, tree_entry)
 
 def default_handlers(handlers=[], **handler_names):
     """Tornado handlers"""

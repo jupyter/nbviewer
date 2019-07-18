@@ -263,13 +263,13 @@ class BaseHandler(web.RequestHandler):
         namespace.update(self.template_namespace)
         template = self.get_template(name)
         return template.render(**namespace)
-    
+
     # Wrappers to facilitate custom rendering in subclasses without having to rewrite entire GET methods
     # This would seem to mostly involve creating different template namespaces to enable custom logic in
     # extended templates, but there might be other possibilities
     def render_status_code_template(self, status_code, **namespace):
         return self.render_template('%d.html' % status_code, **namespace)
-    
+
     def render_error_template(self, **namespace):
         return self.render_template('error.html', **namespace)
 
@@ -630,10 +630,21 @@ class RenderingHandler(BaseHandler):
             except Exception as err:
                 app_log.info("failed to test %s: %s", self.request.uri, name)
 
+    # empty methods to be implemented by subclasses to make GET requests more modular
+    def format_notebook_request(self, **kwargs):
+        pass
+
+    def load_notebook(self, **kwargs):
+        pass 
+
     # Wrappers to facilitate custom rendering in subclasses without having to rewrite entire GET methods
     # This would seem to mostly involve creating different template namespaces to enable custom logic in
     # extended templates, but there might be other possibilities
     def render_notebook_template(self, body, nb, download_url, json_notebook, **namespace):
+        """
+        format: str, optional
+            Rendering format (e.g., script, slides, html)
+        """    
         return self.render_template(
             "formats/%s.html" % self.format,
             body=body,
@@ -658,30 +669,10 @@ class RenderingHandler(BaseHandler):
             Notebook document in JSON format
         download_url: str
             URL to download the notebook document
-        provider_url: str, optional
-            URL to the notebook document upstream at the provider (e.g., GitHub)
-        provider_icon: str, optional
-            CSS classname to apply to the navbar icon linking to the provider
-        provider_label: str, optional
-            Text to to apply to the navbar icon linking to the provider
         msg: str, optional
             Extra information to log when rendering fails
-        breadcrumbs: list of dict, optional
-            Breadcrumb 'name' and 'url' to render as links at the top of the notebook page
         public: bool, optional
             True if the notebook is public and its access indexed, False if not
-        format: str, optional
-            Rendering format (e.g., script, slides, html)
-        request: tornado.httputil.HTTPServerRequest, optional
-            HTTP request that triggered notebook rendering
-        title: str, optional
-            Title to use as the HTML page title (i.e., text on the browser tab)
-        executor_url: str, optional
-            URL to execute the notebook document (e.g., Binder)
-        executor_label: str, optional
-            Text to apply to the navbar icon linking to the execution service
-        executor_icon: str, optional
-            CSS classname to apply to the navbar icon linking to the execution service
         """
 
         if msg is None:
