@@ -12,7 +12,6 @@ import os
 import stat
 
 from tornado import (
-    gen,
     web,
     iostream,
 )
@@ -65,8 +64,7 @@ class LocalFileHandler(RenderingHandler):
         breadcrumbs.extend(super(LocalFileHandler, self).breadcrumbs(path, self._localfile_path))
         return breadcrumbs
 
-    @gen.coroutine
-    def download(self, fullpath):
+    async def download(self, fullpath):
         """Download the file at the given absolute path.
 
         Parameters
@@ -88,7 +86,7 @@ class LocalFileHandler(RenderingHandler):
         for chunk in content:
             try:
                 self.write(chunk)
-                yield self.flush()
+                await self.flush()
             except iostream.StreamClosedError:
                 return
 
@@ -138,7 +136,7 @@ class LocalFileHandler(RenderingHandler):
 
         return True
 
-    def get_notebook_data(self, path):
+    async def get_notebook_data(self, path):
         fullpath = os.path.join(self.localfile_path, path)
 
         if not self.can_show(fullpath):
@@ -147,17 +145,17 @@ class LocalFileHandler(RenderingHandler):
 
         if os.path.isdir(fullpath):
             html = self.show_dir(fullpath, path)
-            raise gen.Return(self.cache_and_finish(html))
+            await self.cache_and_finish(html)
+            return 
 
         is_download = self.get_query_arguments('download')
         if is_download:
-            self.download(fullpath)
+            await self.download(fullpath)
             return
-        
+
         return fullpath
 
-    @gen.coroutine
-    def deliver_notebook(self, fullpath, path):
+    async def deliver_notebook(self, fullpath, path):
         try:
             with io.open(fullpath, encoding='utf-8') as f:
                 nbdata = f.read()
@@ -173,7 +171,7 @@ class LocalFileHandler(RenderingHandler):
         #     Breadcrumb 'name' and 'url' to render as links at the top of the notebook page
         # title: str
         #     Title to use as the HTML page title (i.e., text on the browser tab)
-        yield self.finish_notebook(nbdata,
+        await self.finish_notebook(nbdata,
                                    download_url='?download',
                                    msg="file from localfile: %s" % path,
                                    public=False,
@@ -181,8 +179,7 @@ class LocalFileHandler(RenderingHandler):
                                    title=os.path.basename(path))
 
     @cached
-    @gen.coroutine
-    def get(self, path):
+    async def get(self, path):
         """Get a directory listing, rendered notebook, or raw file
         at the given path based on the type and URL query parameters.
 
@@ -196,9 +193,12 @@ class LocalFileHandler(RenderingHandler):
         path: str
             Local filesystem path
         """
-        fullpath = self.get_notebook_data(path)
+        fullpath = await self.get_notebook_data(path)
 
-        yield self.deliver_notebook(fullpath, path)
+        # get_notebook_data returns None if a directory is to be shown or a notebook is to be downloaded,
+        # i.e. if no notebook is supposed to be rendered, making deliver_notebook inappropriate
+        if fullpath:
+            await self.deliver_notebook(fullpath, path)
 
     # Make available to increase modularity for subclassing
     # E.g. so subclasses can implement templates with custom logic
@@ -237,7 +237,7 @@ class LocalFileHandler(RenderingHandler):
             contents = os.listdir(fullpath)
         except IOError as ex:
             if ex.errno == errno.EACCES:
-                # py2/3: can't access the dir, so don't give away its presence
+                # can't access the dir, so don't give away its presence
                 app_log.info("contents of path: '%s' cannot be listed from within nbviewer", fullpath)
                 raise web.HTTPError(404)
 

@@ -1,9 +1,9 @@
 # encoding: utf-8
 
-import mock
+import unittest.mock as mock
 
 from tornado.httpclient import AsyncHTTPClient
-from tornado.testing import AsyncTestCase
+from tornado.testing import AsyncTestCase, gen_test
 
 from ..client import AsyncGitHubClient
 from ....utils import quote
@@ -81,11 +81,11 @@ class GithubClientTest(AsyncTestCase):
         correct_url = 'https://api.github.com/repos/username/my_awesome_repo/tags'
         self.assertStartsWith(url, correct_url)
 
-    def test_get_tree_entry(self):
+    def test_get_tree(self):
         user = 'username'
         repo = 'my_awesome_repo'
         path = 'extra-path'
-        self.gh_client.get_tree_entry(user, repo, path)
+        self.gh_client.get_tree(user, repo, path)
         url = self._get_url()
         correct_url = 'https://api.github.com/repos/username/my_awesome_repo/git/trees/master'
         self.assertStartsWith(url, correct_url)

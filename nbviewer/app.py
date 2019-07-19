@@ -18,7 +18,6 @@ from html import escape
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 
 from tornado import web, httpserver, ioloop, log
-from tornado.httpclient import AsyncHTTPClient
 
 import tornado.options
 from tornado.options import define, options
@@ -30,14 +29,10 @@ from traitlets.config import Application
 
 from .handlers import init_handlers
 from .cache import DummyAsyncCache, AsyncMultipartMemcache, MockCache, pylibmc
-from .index import NoSearch, ElasticSearch
+from .index import NoSearch
 from .formats import configure_formats
 from .providers import default_providers, default_rewrites
-
-try:
-    from .providers.url.client import NBViewerCurlAsyncHTTPClient as HTTPClientClass
-except ImportError:
-    from .providers.url.client import NBViewerSimpleAsyncHTTPClient as HTTPClientClass
+from .providers.url.client import NBViewerAsyncHTTPClient as HTTPClientClass
 from .ratelimit import RateLimiter
 
 from .log import log_request
@@ -91,6 +86,13 @@ class NBViewer(Application):
     github_tree_handler = Unicode(default_value="nbviewer.providers.github.handlers.GitHubTreeHandler", help="The Tornado handler to use for viewing directory trees on GitHub").tag(config=True)
     gist_handler        = Unicode(default_value="nbviewer.providers.gist.handlers.GistHandler",         help="The Tornado handler to use for viewing notebooks stored as GitHub Gists").tag(config=True)
     user_gists_handler  = Unicode(default_value="nbviewer.providers.gist.handlers.UserGistsHandler",    help="The Tornado handler to use for viewing directory containing all of a user's Gists").tag(config=True)
+
+    client = Any().tag(config=True)
+    @default('client')
+    def _default_client(self):
+        client = HTTPClientClass()
+        client.cache = self.cache
+        return client
 
     index = Any().tag(config=True)
     @default('index')
@@ -158,15 +160,6 @@ class NBViewer(Application):
             cache = DummyAsyncCache()
 
         return cache
-
-    # for some reason this needs to be a computed property,
-    # and not a traitlets Any(), otherwise nbviewer won't run
-    @cached_property
-    def client(self):
-        AsyncHTTPClient.configure(HTTPClientClass)
-        client = AsyncHTTPClient()
-        client.cache = self.cache
-        return client
 
     @cached_property
     def env(self):

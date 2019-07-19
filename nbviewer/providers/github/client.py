@@ -10,7 +10,6 @@ import os
 
 from urllib.parse import urlparse
 
-from tornado.concurrent import Future
 from tornado.httpclient import AsyncHTTPClient, HTTPError
 from tornado.httputil import url_concat
 from tornado.log import app_log
@@ -128,13 +127,17 @@ class AsyncGitHubClient(object):
         path = u"users/{user}/gists".format(user=user)
         return self.github_api_request(path, callback, **kwargs)
     
-    def get_tree(self, user, repo, ref='master', recursive=False, callback=None, **kwargs):
+    def get_tree(self, user, repo, path, ref='master', recursive=False, callback=None, **kwargs):
         """Get a git tree"""
+        # only need a recursive fetch if it's not in the top-level dir
+        if '/' in path:
+            recursive = True
         path = u"repos/{user}/{repo}/git/trees/{ref}".format(**locals())
         if recursive:
             params = kwargs.setdefault('params', {})
             params['recursive'] = True
-        return self.github_api_request(path, callback, **kwargs)
+        tree = self.github_api_request(path, callback, **kwargs)
+        return tree
     
     def get_branches(self, user, repo, callback=None, **kwargs):
         """List a repo's branches"""
@@ -146,13 +149,16 @@ class AsyncGitHubClient(object):
         path = u"repos/{user}/{repo}/tags".format(user=user, repo=repo)
         return self.github_api_request(path, callback, **kwargs)
     
-    def _extract_tree_entry(self, path, tree_response):
-        """extract a single tree entry from a file list
+    def extract_tree_entry(self, path, tree_response):
+        """extract a single tree entry from
+        a tree response using for a path
         
-        For use as a callback in get_tree_entry
         raises 404 if not found
+
+        Useful for finding the blob url for a given path.
         """
         tree_response.rethrow()
+        app_log.info(tree_response)
         jsondata = response_text(tree_response)
         data = json.loads(jsondata)
         for entry in data['tree']:
@@ -160,29 +166,3 @@ class AsyncGitHubClient(object):
                 return entry
         
         raise HTTPError(404, "%s not found among %i files" % (path, len(data['tree'])))
-    
-    def get_tree_entry(self, user, repo, path, ref='master', callback=None, **kwargs):
-        """Get a single tree entry for a path
-        
-        Useful for finding the blob url for a given path.
-        """
-        # only need a recursive fetch if it's not in the top-level dir
-        if '/' in path:
-            kwargs['recursive'] = True
-        
-        f = Future()
-        def cb(response):
-            try:
-                tree_entry = self._extract_tree_entry(path, response)
-            except Exception as e:
-                f.set_exception(e)
-                return
-            if callback:
-                result = callback(tree_entry)
-            else:
-                result = tree_entry
-            f.set_result(result)
-        
-        self.get_tree(user, repo, ref=ref, callback=cb, **kwargs)
-        return f
-    

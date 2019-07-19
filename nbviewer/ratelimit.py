@@ -5,7 +5,6 @@
 
 import hashlib
 
-from tornado.gen import coroutine
 from tornado.log import app_log
 from tornado.web import HTTPError
 
@@ -28,8 +27,7 @@ class RateLimiter(object):
             hashlib.md5(agent.encode('utf8', 'replace')).hexdigest(),
         )
     
-    @coroutine
-    def check(self, handler):
+    async def check(self, handler):
         """Check the rate limit for a handler.
         
         Identifies the source by ip and user-agent.
@@ -39,11 +37,11 @@ class RateLimiter(object):
         if not self.limit:
             return
         key = self.key_for_handler(handler)
-        added = yield self.cache.add(key, 1, self.interval)
+        added = await self.cache.add(key, 1, self.interval)
         if not added:
             # it's been seen before, use incr
             try:
-                count = yield self.cache.incr(key)
+                count = await self.cache.incr(key)
             except Exception as e:
                 app_log.warning("Failed to increment rate limit for %s", key)
                 return

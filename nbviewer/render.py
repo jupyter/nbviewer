@@ -5,8 +5,6 @@
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
-import re
-
 from tornado.log import app_log
 from nbconvert.exporters import Exporter
 

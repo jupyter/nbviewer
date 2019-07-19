@@ -9,10 +9,10 @@ import os
 import json
 import mimetypes
 import re
+import asyncio
 
 from tornado import (
     web,
-    gen,
 )
 from tornado.log import app_log
 from tornado.escape import url_unescape
@@ -109,14 +109,13 @@ class GitHubRedirectHandler(GithubClientMixin, BaseHandler):
 class GitHubUserHandler(GithubClientMixin, BaseHandler):
     """list a user's github repos"""
     @cached
-    @gen.coroutine
-    def get(self, user):
+    async def get(self, user):
         page = self.get_argument("page", None)
         params = {'sort' : 'updated'}
         if page:
             params['page'] = page
         with self.catch_client_error():
-            response = yield self.github_client.get_repos(user, params=params)
+            response = await self.github_client.get_repos(user, params=params)
 
         prev_url, next_url = self.get_page_links(response)
         repos = json.loads(response_text(response))
@@ -134,7 +133,7 @@ class GitHubUserHandler(GithubClientMixin, BaseHandler):
             next_url=next_url, prev_url=prev_url,
             **self.PROVIDER_CTX
         )
-        yield self.cache_and_finish(html)
+        await self.cache_and_finish(html)
 
 
 class GitHubRepoHandler(BaseHandler):
@@ -164,18 +163,17 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
                                     **self.PROVIDER_CTX, **namespace)
 
     @cached
-    @gen.coroutine
-    def get(self, user, repo, ref, path, **namespace):
+    async def get(self, user, repo, ref, path, **namespace):
         if not self.request.uri.endswith('/'):
             self.redirect(self.request.uri + '/')
             return
         path = path.rstrip('/')
         with self.catch_client_error():
-            response = yield self.github_client.get_contents(user, repo, path, ref=ref)
+            response = await self.github_client.get_contents(user, repo, path, ref=ref)
 
         contents = json.loads(response_text(response))
 
-        branches, tags = yield self.refs(user, repo)
+        branches, tags = await self.refs(user, repo)
 
         for nav_ref in branches + tags:
             nav_ref["url"] = (u"/github/{user}/{repo}/tree/{ref}/{path}"
@@ -263,20 +261,19 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
              user=user, repo=repo, ref=ref, path=path, branches=branches, tags=tags,
              executor_url=executor_url, **namespace 
         )
-        yield self.cache_and_finish(html)
+        await self.cache_and_finish(html)
 
-    @gen.coroutine
-    def refs(self, user, repo):
+    async def refs(self, user, repo):
         """get branches and tags for this user/repo"""
         ref_types = ("branches", "tags")
         ref_data = [None, None]
 
         for i, ref_type in enumerate(ref_types):
             with self.catch_client_error():
-                response = yield getattr(self.github_client, "get_%s" % ref_type)(user, repo)
+                response = await getattr(self.github_client, "get_%s" % ref_type)(user, repo)
             ref_data[i] = json.loads(response_text(response))
 
-        raise gen.Return(ref_data)
+        return ref_data
 
 
 class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
@@ -288,8 +285,7 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
     - non-notebook file, serve file unmodified
     - directory, redirect to tree
     """
-    @gen.coroutine
-    def get_notebook_data(self, user, repo, ref, path):
+    async def get_notebook_data(self, user, repo, ref, path):
         raw_url = u"https://raw.githubusercontent.com/{user}/{repo}/{ref}/{path}".format(
             user=user, repo=repo, ref=ref, path=quote(path)
         )
@@ -297,9 +293,10 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
             user=user, repo=repo, ref=ref, path=quote(path), github_url=self.github_url
         )
         with self.catch_client_error():
-            tree_entry = yield self.github_client.get_tree_entry(
+            tree = await self.github_client.get_tree(
                 user, repo, path=url_unescape(path), ref=ref
             )
+            tree_entry = self.github_client.extract_tree_entry(path=url_unescape(path), tree_response=tree)
 
         if tree_entry['type'] == 'tree':
             tree_url = "/github/{user}/{repo}/tree/{ref}/{path}/".format(
@@ -311,11 +308,10 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
 
         return raw_url, blob_url, tree_entry
 
-    @gen.coroutine
-    def deliver_notebook(self, user, repo, ref, path, raw_url, blob_url, tree_entry):
+    async def deliver_notebook(self, user, repo, ref, path, raw_url, blob_url, tree_entry):
         # fetch file data from the blobs API
         with self.catch_client_error():
-            response = yield self.github_client.fetch(tree_entry['url'])
+            response = await self.github_client.fetch(tree_entry['url'])
 
         data = json.loads(response_text(response))
         contents = data['content']
@@ -355,6 +351,7 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
             except Exception as e:
                 app_log.error("Failed to decode notebook: %s", raw_url, exc_info=True)
                 raise web.HTTPError(400)
+
             # Explanation of some kwargs passed into `finish_notebook`:
             # provider_url:
             #     URL to the notebook document upstream at the provider (e.g., GitHub)
@@ -362,7 +359,7 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
             #     Breadcrumb 'name' and 'url' to render as links at the top of the notebook page
             # executor_url: str, optional
             #     URL to execute the notebook document (e.g., Binder)
-            yield self.finish_notebook(nbjson, raw_url,
+            await self.finish_notebook(nbjson, raw_url,
                 provider_url=blob_url,
                 executor_url=executor_url,
                 breadcrumbs=breadcrumbs,
@@ -373,14 +370,13 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
         else:
             mime, enc = mimetypes.guess_type(path)
             self.set_header("Content-Type", mime or 'text/plain')
-            self.cache_and_finish(filedata)
+            await self.cache_and_finish(filedata)
 
     @cached
-    @gen.coroutine
-    def get(self, user, repo, ref, path):
-        raw_url, blob_url, tree_entry = yield self.get_notebook_data(user, repo, ref, path)
+    async def get(self, user, repo, ref, path):
+        raw_url, blob_url, tree_entry = await self.get_notebook_data(user, repo, ref, path)
 
-        yield self.deliver_notebook(user, repo, ref, path, raw_url, blob_url, tree_entry)
+        await self.deliver_notebook(user, repo, ref, path, raw_url, blob_url, tree_entry)
 
 def default_handlers(handlers=[], **handler_names):
     """Tornado handlers"""
