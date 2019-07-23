@@ -13,7 +13,7 @@ import time
 
 import asyncio
 
-from tornado.httpclient import HTTPRequest, HTTPError
+from tornado.httpclient import HTTPRequest
 from tornado.curl_httpclient import CurlAsyncHTTPClient
 from tornado.log import app_log
 
@@ -108,7 +108,6 @@ class NBViewerAsyncHTTPClient(object):
         try:
             cached_pickle = await self.cache.get(cache_key)
             if cached_pickle:
-                app_log.info("Type of self.cache is: %s", type(self.cache))
                 return pickle.loads(cached_pickle)
         except Exception:
             app_log.error("Upstream cache get failed %s", name, exc_info=True)

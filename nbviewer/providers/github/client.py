@@ -158,7 +158,6 @@ class AsyncGitHubClient(object):
         Useful for finding the blob url for a given path.
         """
         tree_response.rethrow()
-        app_log.info(tree_response)
         jsondata = response_text(tree_response)
         data = json.loads(jsondata)
         for entry in data['tree']:

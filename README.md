@@ -181,15 +181,21 @@ Formats are ways to present notebooks to the user.
 - `script`
 
 #### Writing a new Format
-If you'd like to write a new format, open a ticket, or speak up on [gitter][]!
+If you'd like to write a new format, open a ticket, or speak up on [gitter](https://gitter.im/jupyter/nbviewer)!
 We have some work yet to do to support your next big thing in notebook
 publishing, and we'd love to hear from you.
 
-#### Config file
+## Config File and Command Line Configuration
 
-Newer versions of NBViewer will be configurable using a config file, `nbviewer_config.py`. In the directory where you run the command `python -m nbviewer` to start NBViewer, also add a file `nbviewer_config.py` which uses [the standard configuration syntax for Jupyter projects](https://traitlets.readthedocs.io/en/stable/config.html). 
+NBViewer is configurable using a config file, by default called `nbviewer_config.py`. You can modify the name and location of the config file that NBViewer looks for using the `--config-file` command line flag. (The location is always a relative path, i.e. relative to where the command `python -m nbviewer` is run, and never an absolute path.) 
 
-For example, to configure the value of a configurable `foo`, add the line `c.NBViewer.foo = 'bar'` to the `nbviewer_config.py` file located where you run `python -m nbviewer`. Again, currently very few features of NBViewer are configurable this way, but we hope to steadily increase the number of configurable characteristics of NBViewer in future releases.
+If you don't know which attributes of NBViewer you can configure using the config file, run `python -m nbviewer --generate-config` (or `python -m nbviewer --generate-config --config-file="my_custom_name.py"`) to write a default config file which has all of the configurable options commented out and set to their default values. To change a configurable option to a new value, uncomment the corresponding line and change the default value to the new value. 
+
+You can also run `python -m nbviewer --help-all` to see all of the configurable options. This is a more comprehensive version of `python -m nbviewer --help`, which gives a list of the most common ones along with flags and aliases you can use to set their values temporarily via the command line.
+
+The config file uses [the standard configuration syntax for Jupyter projects](https://traitlets.readthedocs.io/en/stable/config.html). For example, to configure the default port used to be 9000, add the line `c.NBViewer.port = 9000` to the config file. If you want to do this just once, you can also run `python -m nbviewer --NBViewer.port=9000` at the command line. (`NBViewer.port` also has the alias `port`, making it also possible to do, in this specific case, `python -m nbviewer --port=9000`. However not all configurable options have shorthand aliases like this; you can check using the outputs of `python -m nbviewer --help` and `python -m nbviewer --help-all` to see which ones do and which ones don't.)
+
+One thing this allows you to do, for example, is to write your custom implementations of any of the standard page rendering handlers included in NBViewer, e.g. by subclassing the original handlers to include custom logic along with custom output possibilities, and then have these custom handlers always loaded by default, by modifying the corresponding lines in the config file. This is effectively another way to extend NBViewer.
 
 ## Securing the Notebook Viewer
 

@@ -10,7 +10,6 @@ class AsyncNbviewerTestCase(testing.AsyncHTTPTestCase):
     def get_app(self):
         """ create an nbviewer tornado app instance for testing
         """
-        app.init_options()
         return app.NBViewer().tornado_application
 
     def assertIn(self, observed, expected, *args, **kwargs):

@@ -5,8 +5,6 @@ import os
 import json
 
 from tornado import web
-from tornado.log import app_log
-
 
 from ..base import (
     BaseHandler,
@@ -213,12 +211,12 @@ class GistHandler(GistClientMixin, RenderingHandler):
         gist_id, filename, many_files_gist, file are all passed to file_get
         """
         if (file['type'] or '').startswith('image/'):
-            app_log.debug("Fetching raw image (%s) %s/%s: %s", file['type'], gist_id, filename, file['raw_url'])
+            self.log.debug("Fetching raw image (%s) %s/%s: %s", file['type'], gist_id, filename, file['raw_url'])
             response = await self.fetch(file['raw_url'])
             # use raw bytes for images:
             content = response.body
         elif file['truncated']:
-            app_log.debug("Gist %s/%s truncated, fetching %s", gist_id, filename, file['raw_url'])
+            self.log.debug("Gist %s/%s truncated, fetching %s", gist_id, filename, file['raw_url'])
             response = await self.fetch(file['raw_url'])
             content = response_text(response, encoding='utf-8')
         else:
@@ -289,7 +287,7 @@ class GistRedirectHandler(BaseHandler):
         if file:
             new_url = "%s/%s" % (new_url, file)
 
-        app_log.info("Redirecting %s to %s", self.request.uri, new_url)
+        self.log.info("Redirecting %s to %s", self.request.uri, new_url)
         self.redirect(self.from_base(new_url))
 
 
