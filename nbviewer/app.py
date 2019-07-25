@@ -156,6 +156,12 @@ class NBViewer(Application):
     gist_handler        = Unicode(default_value="nbviewer.providers.gist.handlers.GistHandler",         help="The Tornado handler to use for viewing notebooks stored as GitHub Gists").tag(config=True)
     user_gists_handler  = Unicode(default_value="nbviewer.providers.gist.handlers.UserGistsHandler",    help="The Tornado handler to use for viewing directory containing all of a user's Gists").tag(config=True)
 
+    custom404_handler   = Unicode(default_value="nbviewer.handlers.Custom404",                          help="The Tornado handler to use for rendering 404 templates.").tag(config=True)
+    index_handler       = Unicode(default_value="nbviewer.handlers.IndexHandler",                       help="The Tornado handler to use for rendering the frontpage section.").tag(config=True)
+    faq_handler         = Unicode(default_value="nbviewer.handlers.FAQHandler",                         help="The Tornado handler to use for rendering and viewing the FAQ section.").tag(config=True)
+    create_handler      = Unicode(default_value="nbviewer.handlers.CreateHandler",                      help="The Tornado handler to use for creation via frontpage form.").tag(config=True)
+    github_user_handler = Unicode(default_value="nbviewer.providers.github.handlers.GitHubUserHandler", help="The Tornado handler to use for viewing all of a user's repositories on GitHub.").tag(config=True)
+
     answer_yes = Bool(default_value=False, help="Answer yes to any questions (e.g. confirm overwrite).").tag(config=True)
 
     # base_url specified by the user
@@ -444,11 +450,16 @@ class NBViewer(Application):
     def init_tornado_application(self):
         # handle handlers
         handler_names = dict(
-                  url_handler=self.url_handler,
+                  create_handler=self.create_handler,
+                  custom404_handler=self.custom404_handler,
+                  faq_handler=self.faq_handler,
+                  gist_handler=self.gist_handler,
                   github_blob_handler=self.github_blob_handler,
                   github_tree_handler=self.github_tree_handler,
+                  github_user_handler=self.github_user_handler,
+                  index_handler=self.index_handler,
                   local_handler=self.local_handler,
-                  gist_handler=self.gist_handler,
+                  url_handler=self.url_handler,
                   user_gists_handler=self.user_gists_handler,
         )
         handler_kwargs = {'handler_names' : handler_names, 'handler_settings' : self.handler_settings}
@@ -507,7 +518,7 @@ class NBViewer(Application):
 
         if self.localfiles:
             self.log.warning("Serving local notebooks in %s, this can be a security risk", self.localfiles)
-
+        
         # create the app
         self.tornado_application = web.Application(handlers, **settings)
 

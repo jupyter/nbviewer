@@ -82,7 +82,7 @@ class BaseHandler(web.RequestHandler):
             purl.fragment
         ))
 
-        return super(BaseHandler, self).redirect(
+        return super().redirect(
             eurl,
             *args,
             **kwargs
@@ -588,7 +588,7 @@ class RenderingHandler(BaseHandler):
         return self.settings.setdefault('render_timeout', 0)
 
     def initialize(self, **kwargs):
-        super(RenderingHandler, self).initialize(**kwargs)
+        super().initialize(**kwargs)
         loop = IOLoop.current()
         if self.render_timeout:
             self.slow_timeout = loop.add_timeout(
