@@ -44,6 +44,11 @@ from .ratelimit import RateLimiter
 from .log import log_request
 from .utils import git_info, jupyter_info, url_path_join
 
+try: # Python 3.8
+    from functools import cached_property
+except ImportError:
+    from .utils import cached_property
+
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
@@ -115,13 +120,13 @@ class NBViewer(Application):
     def _load_static_url_prefix(self):
         return url_path_join(self.base_url, '/static/')
 
-    @property
+    @cached_property
     def base_url(self):
         # prefer the JupyterHub defined service prefix over the CLI
         base_url = os.getenv("JUPYTERHUB_SERVICE_PREFIX", options.base_url)
         return base_url
 
-    @property
+    @cached_property
     def cache(self):
         memcache_urls = os.environ.get('MEMCACHIER_SERVERS', os.environ.get('MEMCACHE_SERVERS'))
         # Handle linked Docker containers
@@ -154,14 +159,14 @@ class NBViewer(Application):
 
     # for some reason this needs to be a computed property,
     # and not a traitlets Any(), otherwise nbviewer won't run
-    @property
+    @cached_property
     def client(self):
         AsyncHTTPClient.configure(HTTPClientClass)
         client = AsyncHTTPClient()
         client.cache = self.cache
         return client
 
-    @property
+    @cached_property
     def env(self):
         env = Environment(loader=FileSystemLoader(self.template_paths), autoescape=True)
         env.filters['markdown'] = markdown.markdown
@@ -180,7 +185,7 @@ class NBViewer(Application):
 
         return env
 
-    @property
+    @cached_property
     def fetch_kwargs(self):
         fetch_kwargs = dict(connect_timeout=10,)
         if options.proxy_host:
@@ -194,13 +199,13 @@ class NBViewer(Application):
 
         return fetch_kwargs
 
-    @property
+    @cached_property
     def formats(self):
         formats = configure_formats(options, self.config, log.app_log)
         return formats
 
     # load frontpage sections
-    @property
+    @cached_property
     def frontpage_setup(self):
         with io.open(options.frontpage, 'r') as f:
             frontpage_setup = json.load(f)
@@ -213,7 +218,7 @@ class NBViewer(Application):
                               }
         return frontpage_setup
 
-    @property
+    @cached_property
     def pool(self):
         if options.processes:
             pool = ProcessPoolExecutor(options.processes)
@@ -221,12 +226,12 @@ class NBViewer(Application):
             pool = ThreadPoolExecutor(options.threads)
         return pool
 
-    @property
+    @cached_property
     def rate_limiter(self):
         rate_limiter = RateLimiter(limit=options.rate_limit, interval=options.rate_limit_interval, cache=self.cache)
         return rate_limiter
 
-    @property
+    @cached_property
     def template_paths(self):
         template_paths = pjoin(here, 'templates')
         if options.template_path is not None:
