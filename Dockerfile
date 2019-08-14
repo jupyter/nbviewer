@@ -13,7 +13,7 @@ ENV MINICONDA_VERSION 4.7.10
 ENV PATH=/opt/conda/bin:$PATH
 RUN cd /tmp && \
     curl -sSL https://repo.continuum.io/miniconda/Miniconda3-${MINICONDA_VERSION}-Linux-x86_64.sh -o /tmp/miniconda.sh && \
-    echo "1c945f2b3335c7b2b15130b1b2dc5cf4" | md5sum -c - && \
+    echo "3bc6ffc6cda8efa467926dfd92a30bca" | md5sum -c - && \
     /bin/bash miniconda.sh -f -b -p /opt/conda && \
     rm miniconda.sh && \
     /opt/conda/bin/conda config --system --prepend channels conda-forge && \
