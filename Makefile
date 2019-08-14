@@ -8,7 +8,7 @@ APP=nbviewer
 # qoomon/docker-host
 
 build:
-	docker build -t ${NAMESPACE}/${APP} .
+	docker build --no-cache -t ${NAMESPACE}/${APP} .
 run:
 	docker run --name=${APP} --detach=false --link dockerhost -p 5000:5000 ${NAMESPACE}/${APP}
 clean:

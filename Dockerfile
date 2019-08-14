@@ -20,7 +20,7 @@ RUN cd /tmp && \
     /opt/conda/bin/conda config --system --set auto_update_conda false && \
     /opt/conda/bin/conda config --system --set show_channel_urls true && \
     /opt/conda/bin/conda install --quiet --yes conda="${MINICONDA_VERSION%.*}.*" && \
-    /opt/conda/bin/conda update --all --quiet --yes && \
+    # /opt/conda/bin/conda update --all --quiet --yes && \
     conda clean -tipsy
 
 # NodeJS toolchain
