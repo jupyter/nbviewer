@@ -6,10 +6,7 @@
 #-----------------------------------------------------------------------------
 
 import zlib
-try:
-    from time import monotonic
-except ImportError:
-    from time import time as monotonic
+from time import monotonic
 
 from concurrent.futures import ThreadPoolExecutor
 from tornado.concurrent import Future

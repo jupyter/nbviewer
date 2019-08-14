@@ -22,6 +22,10 @@
     {{ layout.head_icon(provider_url, "View on " + provider_label, provider_icon) }}
   {% endif %}
 
+  {% if executor_url %}
+    {{ layout.head_icon(executor_url, "Execute on " + executor_label, executor_icon) }}
+  {% endif %}
+
   {{ layout.head_icon(download_url, "Download Notebook", "download", True) }}
 {% endblock %}
 
@@ -37,7 +41,7 @@
   <meta name="twitter:description" content="{{ description | default('Check out this Jupyter notebook!') }}">
 
   {# Optional fields #}
-  <meta name="twitter:domain" content="nbviewer.ipython.org">
+  <meta name="twitter:domain" content="nbviewer.jupyter.org">
   <meta name="twitter:image:src" content="{{ thumbnail | default('http://ipython.org/ipython-doc/dev/_images/ipynb_icon_128x128.png') }}">
 
   {% block style_base %}
@@ -87,14 +91,14 @@
         function addWidgetsRenderer() {
           var mimeElement = document.querySelector('script[type="application/vnd.jupyter.widget-view+json"]');
           var scriptElement = document.createElement('script');
-          var widgetRendererSrc = '{{ ipywidgets_base_url }}@jupyter-widgets/html-manager@*/dist/embed-amd.js';
+          var widgetRendererSrc = '{{ ipywidgets_base_url }}@jupyter-widgets/html-manager@{{ jupyter_widgets_html_manager_version }}/dist/embed-amd.js';
           var widgetState;
 
           try {
             widgetState = mimeElement && JSON.parse(mimeElement.innerHTML);
 
             if (widgetState && (widgetState.version_major < 2 || !widgetState.version_major)) {
-              widgetRendererSrc = '{{ ipywidgets_base_url }}jupyter-js-widgets@*/dist/embed.js';
+              widgetRendererSrc = '{{ ipywidgets_base_url }}jupyter-js-widgets@{{ jupyter_js_widgets_version }}/dist/embed.js';
             }
           } catch(e) {}
 

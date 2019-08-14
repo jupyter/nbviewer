@@ -8,6 +8,7 @@
 import os
 import json
 import mimetypes
+import re
 
 from tornado import (
     web,
@@ -36,7 +37,13 @@ from .client import AsyncGitHubClient
 PROVIDER_CTX = {
     'provider_label': 'GitHub',
     'provider_icon': 'github',
+    'executor_label': 'Binder',
+    'executor_icon': 'icon-binder',
 }
+
+
+BINDER_TMPL = '{binder_base_url}/gh/{org}/{repo}/{ref}'
+BINDER_PATH_TMPL = BINDER_TMPL+'?filepath={path}'
 
 
 def _github_url():
@@ -70,14 +77,10 @@ class RawGitHubURLHandler(BaseHandler):
 
 
 class GitHubRedirectHandler(GithubClientMixin, BaseHandler):
-    """redirect github blob|tree|raw urls to /github/ API urls"""
-    def get(self, user, repo, app, ref, path):
-        if app == 'raw':
-            app = 'blob'
-        new_url = u'{format}/github/{user}/{repo}/{app}/{ref}/{path}'.format(
-            format=self.format_prefix, user=user, repo=repo, app=app,
-            ref=ref, path=path,
-        )
+    """redirect github urls to /github/ API urls"""
+    def get(self, url):
+        new_url = u'{format}/github/{url}'.format(
+            format=self.format_prefix, url=url)
         app_log.info("Redirecting %s to %s", self.request.uri, new_url)
         self.redirect(self.from_base(new_url))
 
@@ -155,6 +158,11 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
             )
             return
 
+        # Account for possibility that GitHub API redirects us to get more accurate breadcrumbs
+        # See: https://github.com/jupyter/nbviewer/issues/324
+        example_file_url = contents[0]['html_url']
+        user, repo = re.match(r"^https://github\.com/(?P<user>[^\/]+)/(?P<repo>[^\/]+)/.*", example_file_url).group('user', 'repo')
+
         base_url = u"/github/{user}/{repo}/tree/{ref}".format(
             user=user, repo=repo, ref=ref,
         )
@@ -205,11 +213,20 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
         entries.extend(ipynbs)
         entries.extend(others)
 
+        # Enable a binder navbar icon if a binder base URL is configured
+        executor_url = BINDER_TMPL.format(
+            binder_base_url=self.binder_base_url,
+            org=user,
+            repo=repo,
+            ref=ref,
+        ) if self.binder_base_url else None
+
         html = self.render_template("treelist.html",
             entries=entries, breadcrumbs=breadcrumbs, provider_url=provider_url,
             user=user, repo=repo, ref=ref, path=path,
             branches=branches, tags=tags, tree_type="github",
             tree_label="repositories",
+            executor_url=executor_url,
             **PROVIDER_CTX
         )
         yield self.cache_and_finish(html)
@@ -283,6 +300,15 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
             }]
             breadcrumbs.extend(self.breadcrumbs(dir_path, base_url))
 
+            # Enable a binder navbar icon if a binder base URL is configured
+            executor_url = BINDER_PATH_TMPL.format(
+                binder_base_url=self.binder_base_url,
+                org=user,
+                repo=repo,
+                ref=ref,
+                path=quote(path)
+            ) if self.binder_base_url else None
+
             try:
                 # filedata may be bytes, but we need text
                 if isinstance(filedata, bytes):
@@ -294,6 +320,7 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
                 raise web.HTTPError(400)
             yield self.finish_notebook(nbjson, raw_url,
                 provider_url=blob_url,
+                executor_url=executor_url,
                 breadcrumbs=breadcrumbs,
                 msg="file from GitHub: %s" % raw_url,
                 public=True,
@@ -316,18 +343,18 @@ def default_handlers(handlers=[]):
         # fixing it here.
         # There are probably links in the wild that depend on these, so keep
         # these handlers for backwards compatibility.
-        (r'/url[s]?/github\.com/([^\/]+)/([^\/]+)/(tree|blob|raw)/([^\/]+)/(.*)', GitHubRedirectHandler),
-        (r'/url[s]?/raw\.?github\.com/([^\/]+)/([^\/]+)/(.*)', RawGitHubURLHandler),
-        (r'/url[s]?/raw\.?githubusercontent\.com/([^\/]+)/([^\/]+)/(.*)', RawGitHubURLHandler),
+        (r'/url[s]?/github\.com/(?P<url>.*)', GitHubRedirectHandler),
+        (r'/url[s]?/raw\.?github\.com/(?P<user>[^\/]+)/(?P<repo>[^\/]+)/(?P<path>.*)', RawGitHubURLHandler),
+        (r'/url[s]?/raw\.?githubusercontent\.com/(?P<user>[^\/]+)/(?P<repo>[^\/]+)/(?P<path>.*)', RawGitHubURLHandler),
     ] + handlers + [
         (r'/github/([^\/]+)', AddSlashHandler),
-        (r'/github/([^\/]+)/', GitHubUserHandler),
+        (r'/github/(?P<user>[^\/]+)/', GitHubUserHandler),
         (r'/github/([^\/]+)/([^\/]+)', AddSlashHandler),
-        (r'/github/([^\/]+)/([^\/]+)/', GitHubRepoHandler),
-        (r'/github/([^\/]+)/([^\/]+)/blob/([^\/]+)/(.*)/', RemoveSlashHandler),
-        (r'/github/([^\/]+)/([^\/]+)/blob/([^\/]+)/(.*)', GitHubBlobHandler),
+        (r'/github/(?P<user>[^\/]+)/(?P<repo>[^\/]+)/', GitHubRepoHandler),
+        (r'/github/([^\/]+)/([^\/]+)/(?:blob|raw)/([^\/]+)/(.*)/', RemoveSlashHandler),
+        (r'/github/(?P<user>[^\/]+)/(?P<repo>[^\/]+)/(?:blob|raw)/(?P<ref>[^\/]+)/(?P<path>.*)', GitHubBlobHandler),
         (r'/github/([^\/]+)/([^\/]+)/tree/([^\/]+)', AddSlashHandler),
-        (r'/github/([^\/]+)/([^\/]+)/tree/([^\/]+)/(.*)', GitHubTreeHandler),
+        (r'/github/(?P<user>[^\/]+)/(?P<repo>[^\/]+)/tree/(?P<ref>[^\/]+)/(?P<path>.*)', GitHubTreeHandler),
     ]
 
 

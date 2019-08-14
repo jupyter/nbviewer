@@ -11,7 +11,7 @@ class AsyncNbviewerTestCase(testing.AsyncHTTPTestCase):
         """ create an nbviewer tornado app instance for testing
         """
         app.init_options()
-        return app.make_app()
+        return app.NBViewer().tornado_application
 
     def assertIn(self, observed, expected, *args, **kwargs):
         """ test whether the observed contains the expected, in utf-8

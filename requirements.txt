@@ -1,12 +1,11 @@
 elasticsearch
-futures; python_version == '2.7'
 jupyter_client
-markdown
+markdown>=3.0
 newrelic!=2.80.0.60
 nbformat>=4.2
-nbconvert>=5.2.1
+nbconvert>=5.4
 ipython
 pycurl
 pylibmc
-tornado
+tornado<6.0
 statsd

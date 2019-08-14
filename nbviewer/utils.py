@@ -5,13 +5,8 @@
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
-# https://docs.python.org/3.1/library/base64.html#base64.decodestring
-try:
-    from base64 import encodebytes
-    from base64 import decodebytes
-except ImportError:
-    from base64 import encodestring as encodebytes
-    from base64 import decodestring as decodebytes
+from base64 import encodebytes
+from base64 import decodebytes
 
 import cgi
 from contextlib import contextmanager
@@ -19,22 +14,13 @@ import re
 from subprocess import check_output
 import time
 
-try:
-    from urllib.parse import (
-        parse_qs,
-        quote as stdlib_quote,
-        urlencode,
-        urlparse,
-        urlunparse,
-    )
-except ImportError:
-    from urllib import urlencode
-    from urllib2 import quote as stdlib_quote
-    from urlparse import (
-        parse_qs,
-        urlparse,
-        urlunparse,
-    )
+from urllib.parse import (
+    parse_qs,
+    quote as stdlib_quote,
+    urlencode,
+    urlparse,
+    urlunparse,
+)
 
 from tornado.log import app_log
 
@@ -112,7 +98,8 @@ def transform_ipynb_uri(uri, uri_rewrite_list):
     for reg, rewrite in uri_rewrite_list:
         matches = re.match(reg, uri)
         if matches:
-            return rewrite.format(*matches.groups())
+            uri = rewrite.format(*matches.groups())
+            break
 
     # encode query parameters as last url part
     if '?' in uri:
@@ -120,6 +107,7 @@ def transform_ipynb_uri(uri, uri_rewrite_list):
         uri = '%s/%s' % (uri, quote('?' + query))
 
     return uri
+
 
 # get_encoding_from_headers from requests.utils (1.2.3)
 # (c) 2013 Kenneth Reitz

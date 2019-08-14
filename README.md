@@ -146,7 +146,7 @@ Providers are sources of notebooks and directories of notebooks and directories.
 
 #### Writing a new Provider
 There are several already additional providers
-[proposed/requested](https://github.com/jupyter/nbviewer/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+label%3Aprovider). Some providers are more involved than others, and some,
+[proposed/requested](https://github.com/jupyter/nbviewer/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+label%3Atag%3AProvider). Some providers are more involved than others, and some,
 such as those which would require user authentication, will take some work to
 support properly.
 
@@ -185,6 +185,12 @@ If you'd like to write a new format, open a ticket, or speak up on [gitter][]!
 We have some work yet to do to support your next big thing in notebook
 publishing, and we'd love to here from you.
 
+#### Config file
+
+Newer versions of NBViewer will be configurable using a config file, `nbviewer_config.py`. In the directory where you run the command `python -m nbviewer` to start NBViewer, also add a file `nbviewer_config.py` which uses [the standard configuration syntax for Jupyter projects](https://traitlets.readthedocs.io/en/stable/config.html). 
+
+For example, to configure the value of a configurable `foo`, add the line `c.NBViewer.foo = 'bar'` to the `nbviewer_config.py` file located where you run `python -m nbviewer`. Again, currently very few features of NBViewer are configurable this way, but we hope to steadily increase the number of configurable characteristics of NBViewer in future releases.
+
 ## Securing the Notebook Viewer
 
 You can run the viewer as a [JupyterHub 0.7+ service](https://jupyterhub.readthedocs.io/en/latest/reference/services.html). Running the viewer as a service prevents users who have not authenticated with the Hub from acccessing the nbviewer instance. This setup can be useful for protecting access to local notebooks rendered with the `--localfiles` option.
@@ -206,4 +212,4 @@ c.JupyterHub.services = [
 ]
 ```
 
-The nbviewer instance will automatically read the [various `JUPYTERHUB_*` environment variables](http://jupyterhub.readthedocs.io/en/latest/services.html#launching-a-hub-managed-service) and configure itself accordingly. You can also run the nbviewer instance as an [externally managed JupyterHub service](http://jupyterhub.readthedocs.io/en/latest/services.html#externally-managed-services), but must set the requisite environment variables yourself.
+The nbviewer instance will automatically read the [various `JUPYTERHUB_*` environment variables](http://jupyterhub.readthedocs.io/en/latest/reference/services.html#launching-a-hub-managed-service) and configure itself accordingly. You can also run the nbviewer instance as an [externally managed JupyterHub service](http://jupyterhub.readthedocs.io/en/latest/reference/services.html#externally-managed-services), but must set the requisite environment variables yourself.

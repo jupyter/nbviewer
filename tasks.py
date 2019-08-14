@@ -13,8 +13,8 @@ from tarfile import TarFile
 
 import invoke
 
-NOTEBOOK_VERSION = '5.5.0' # the notebook version whose LESS we will use
-NOTEBOOK_CHECKSUM = 'fa915c231e64a30d19cc2c70ccab6444cbaa93e44e92b5f8233dd9147ad0e664' # sha256 checksum of notebook tarball
+NOTEBOOK_VERSION = '5.7.8' # the notebook version whose LESS we will use
+NOTEBOOK_CHECKSUM = '573e0ae650c5d76b18b6e564ba6d21bf321d00847de1d215b418acb64f056eb8' # sha256 checksum of notebook tarball
 
 APP_ROOT = os.path.dirname(__file__)
 NPM_BIN = os.path.join(APP_ROOT, "node_modules", ".bin")
@@ -93,7 +93,7 @@ def less(ctx, debug=False):
 
     args = (extra, NOTEBOOK_STATIC_PATH)
 
-    for less_file in ["styles", "notebook", "slides"]:
+    for less_file in ["styles", "notebook", "slides", "custom"]:
         ctx.run(tmpl.format(less_file, *args))
 
 
