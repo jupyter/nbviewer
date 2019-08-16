@@ -76,16 +76,18 @@ class CreateHandler(BaseHandler):
 #-----------------------------------------------------------------------------
 
 def format_handlers(formats, urlspecs, **handler_settings):
+    """
+    Tornado handler URLSpec of form (route, handler_class, initalize_kwargs)
+    https://www.tornadoweb.org/en/stable/web.html#tornado.web.URLSpec
+    kwargs passed to initialize are None by default but can be added
+    https://www.tornadoweb.org/en/stable/web.html#tornado.web.RequestHandler.initialize
+    """
     urlspecs = [
         (prefix + url, handler, {
             "format": format,
             "format_prefix": prefix
         })
         for format in formats
-        # Tornado handler URLSpec of form (route, handler_class, initalize_kwargs)
-        # https://www.tornadoweb.org/en/stable/web.html#tornado.web.URLSpec
-        # kwargs passed to initialize are None by default but can be added
-        # https://www.tornadoweb.org/en/stable/web.html#tornado.web.RequestHandler.initialize
         for url, handler, initialize_kwargs in urlspecs
         for prefix in [format_prefix + format]
     ]
@@ -98,12 +100,14 @@ def format_handlers(formats, urlspecs, **handler_settings):
     return urlspecs
 
 def init_handlers(formats, providers, base_url, localfiles, **handler_kwargs):
-    # `handler_kwargs` is a dict of dicts: first dict is `handler_names`, which
-    # specifies the handler_classes to load for the providers, the second
-    # is `handler_settings` (see comments in format_handlers)
-    # Only `handler_settings` should get added to the initialize_kwargs in the
-    # handler URLSpecs, which is why we pass only it to `format_handlers`
-    # but both it and `handler_names` to `provider_handlers`
+    """
+    `handler_kwargs` is a dict of dicts: first dict is `handler_names`, which
+    specifies the handler_classes to load for the providers, the second
+    is `handler_settings` (see comments in format_handlers)
+    Only `handler_settings` should get added to the initialize_kwargs in the
+    handler URLSpecs, which is why we pass only it to `format_handlers`
+    but both it and `handler_names` to `provider_handlers`
+    """
     handler_settings = handler_kwargs['handler_settings']
 
     pre_providers = [

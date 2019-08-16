@@ -20,10 +20,11 @@ def provider_handlers(providers, **handler_kwargs):
        augmented list of handlers: this allows the addition of, for
        example, custom URLs which should be intercepted before being
        handed to the basic `url` handler
+
+      `handler_kwargs` is a dict of dicts: first dict is `handler_names`, which
+      specifies the handler_classes to load for the providers, the second
+      is `handler_settings` (see comments in `format_handlers` in nbviewer/handlers.py)
     """
-    # `handler_kwargs` is a dict of dicts: first dict is `handler_names`, which
-    # specifies the handler_classes to load for the providers, the second
-    # is `handler_settings` (see comments in `format_handlers` in nbviewer/handlers.py)
     handler_names = handler_kwargs['handler_names']
     handler_settings = handler_kwargs['handler_settings']
 
@@ -56,8 +57,9 @@ def _load_provider_feature(feature, providers, **handler_names):
 
        The feature will be passed a list of feature implementations and must
        return that list, suitably modified.
+
+      `handler_names` is the same as the `handler_names` attribute of the NBViewer class
     """
-    # `handler_names` is the same as the `handler_names` attribute of the NBViewer class
 
     # Ex: provider = 'nbviewer.providers.url' 
     # provider.rsplit(',', 1) = ['nbviewer.providers', 'url']
