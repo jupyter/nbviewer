@@ -8,6 +8,8 @@
 from base64 import encodebytes
 from base64 import decodebytes
 
+from functools import lru_cache
+
 import cgi
 from contextlib import contextmanager
 import re
@@ -247,3 +249,6 @@ def time_block(message, debug_limit=1):
     dt = time.time() - tic
     log = app_log.info if dt > debug_limit else app_log.debug
     log("%s in %.2f ms", message, 1e3 * dt)
+
+def cached_property(method):
+    return property(lru_cache(1)(method))
