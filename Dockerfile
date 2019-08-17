@@ -81,5 +81,4 @@ EXPOSE 8080
 USER nobody
 
 EXPOSE 9000
-# CMD ["python3", "-m", "nbviewer", "--port=8080"]
-ENTRYPOINT ["python3"]
+CMD ["python3", "-m", "nbviewer", "--port=8080"]
