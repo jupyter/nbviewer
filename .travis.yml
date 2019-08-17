@@ -9,7 +9,7 @@ python:
 
 before_install:
 - sudo apt-get update
-- sudo apt-get install -qq libzmq3-dev pandoc libcurl4-gnutls-dev libmemcached-dev
+- sudo apt-get install -qq libzmq3-dev pandoc libcurl4-gnutls-dev libmemcached-dev libgnutls28-dev
 - pip install --upgrade setuptools pip
 - pip install -r requirements-dev.txt
 
