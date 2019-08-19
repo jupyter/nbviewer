@@ -9,11 +9,11 @@ RUN apt-get update && \
     bzip2 \
     ca-certificates
 
-ENV MINICONDA_VERSION 4.5.4
+ENV MINICONDA_VERSION 4.7.10
 ENV PATH=/opt/conda/bin:$PATH
 RUN cd /tmp && \
     curl -sSL https://repo.continuum.io/miniconda/Miniconda3-${MINICONDA_VERSION}-Linux-x86_64.sh -o /tmp/miniconda.sh && \
-    echo "a946ea1d0c4a642ddf0c3a26a18bb16d *miniconda.sh" | md5sum -c - && \
+    echo "1c945f2b3335c7b2b15130b1b2dc5cf4 *miniconda.sh" | md5sum -c - && \
     /bin/bash miniconda.sh -f -b -p /opt/conda && \
     rm miniconda.sh && \
     /opt/conda/bin/conda config --system --prepend channels conda-forge && \
@@ -80,4 +80,5 @@ WORKDIR /srv/nbviewer
 EXPOSE 8080
 USER nobody
 
+EXPOSE 9000
 CMD ["python", "-m", "nbviewer", "--port=8080"]
