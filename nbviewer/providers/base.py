@@ -57,10 +57,13 @@ format_prefix = "/format/"
 class BaseHandler(web.RequestHandler):
     """Base Handler class with common utilities"""
 
-    def initialize(self, format=None, format_prefix=""):
+    def initialize(self, format=None, format_prefix="", **handler_settings):
         self.format = format or self.default_format
         self.format_prefix = format_prefix
         self.http_client = httpclient.AsyncHTTPClient()
+
+        for handler_setting in handler_settings:
+            setattr(self, handler_setting, handler_settings[handler_setting])
 
     # Overloaded methods
     def redirect(self, url, *args, **kwargs):

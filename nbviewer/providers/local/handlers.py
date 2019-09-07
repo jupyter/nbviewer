@@ -24,6 +24,7 @@ from ..base import (
     RenderingHandler,
 )
 
+from .. import _load_handler_from_location
 
 class LocalFileHandler(RenderingHandler):
     """Renderer for /localfile
@@ -257,10 +258,12 @@ class LocalFileHandler(RenderingHandler):
         return html
 
 
-def default_handlers(handlers=[]):
+def default_handlers(handlers=[], **handler_names):
     """Tornado handlers"""
 
+    local_handler = _load_handler_from_location(handler_names['local_handler'])
+
     return handlers + [
-        (r'/localfile/?(.*)', LocalFileHandler),
+        (r'/localfile/?(.*)', local_handler, {}),
     ]
 
