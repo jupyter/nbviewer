@@ -153,7 +153,7 @@ class NBViewer(Application):
             else:
                 log.app_log.info("Using plain memcache")
 
-            cache = AsyncMultiPartMemcache(memcache_urls.split(','), **kwargs)
+            cache = AsyncMultipartMemcache(memcache_urls.split(','), **kwargs)
         else:
             log.app_log.info("Using in-memory cache")
             cache = DummyAsyncCache()
