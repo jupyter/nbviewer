@@ -35,22 +35,21 @@ from .client import AsyncGitHubClient
 
 from .. import _load_handler_from_location
 
-PROVIDER_CTX = {
-    'provider_label': 'GitHub',
-    'provider_icon': 'github',
-    'executor_label': 'Binder',
-    'executor_icon': 'icon-binder',
-}
-
-
-BINDER_TMPL = '{binder_base_url}/gh/{org}/{repo}/{ref}'
-BINDER_PATH_TMPL = BINDER_TMPL+'?filepath={path}'
-
 
 def _github_url():
     return os.environ.get('GITHUB_URL') if os.environ.get('GITHUB_URL', '') else "https://github.com/"
 
 class GithubClientMixin(object):
+    PROVIDER_CTX = {
+        'provider_label': 'GitHub',
+        'provider_icon': 'github',
+        'executor_label': 'Binder',
+        'executor_icon': 'icon-binder',
+    }
+    
+    BINDER_TMPL = '{binder_base_url}/gh/{org}/{repo}/{ref}'
+    BINDER_PATH_TMPL = BINDER_TMPL+'?filepath={path}'
+    
     @property
     def github_client(self):
         """Create an upgraded github API client from the HTTP client"""
@@ -112,7 +111,7 @@ class GitHubUserHandler(GithubClientMixin, BaseHandler):
         html = self.render_template("userview.html",
             entries=entries, provider_url=provider_url, 
             next_url=next_url, prev_url=prev_url,
-            **PROVIDER_CTX
+            **self.PROVIDER_CTX
         )
         yield self.cache_and_finish(html)
 
@@ -127,9 +126,17 @@ class GitHubRepoHandler(BaseHandler):
 
 class GitHubTreeHandler(GithubClientMixin, BaseHandler):
     """list files in a github repo (like github tree)"""
+    def render_treelist_template(self, entries, breadcrumbs, provider_url, user, repo, ref, path,
+                                 branches, tags, executor_url, **namespace):
+        return self.render_template("treelist.html", entries=entries, breadcrumbs=breadcrumbs,
+                                    provider_url=provider_url, user=user, repo=repo, ref=ref,
+                                    path=path, branches=branches, tags=tags, tree_type="github",
+                                    tree_label="repositories", executor_url=executor_url,
+                                    **self.PROVIDER_CTX, **namespace)
+    
     @cached
     @gen.coroutine
-    def get(self, user, repo, ref, path):
+    def get(self, user, repo, ref, path, **namespace):
         if not self.request.uri.endswith('/'):
             self.redirect(self.request.uri + '/')
             return
@@ -215,20 +222,17 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
         entries.extend(others)
 
         # Enable a binder navbar icon if a binder base URL is configured
-        executor_url = BINDER_TMPL.format(
+        executor_url = self.BINDER_TMPL.format(
             binder_base_url=self.binder_base_url,
             org=user,
             repo=repo,
             ref=ref,
         ) if self.binder_base_url else None
 
-        html = self.render_template("treelist.html",
+        html = self.render_treelist_template(
             entries=entries, breadcrumbs=breadcrumbs, provider_url=provider_url,
-            user=user, repo=repo, ref=ref, path=path,
-            branches=branches, tags=tags, tree_type="github",
-            tree_label="repositories",
-            executor_url=executor_url,
-            **PROVIDER_CTX
+            user=user, repo=repo, ref=ref, path=path, branches=branches, tags=tags,
+            executor_url=executor_url, **namespace
         )
         yield self.cache_and_finish(html)
 
@@ -302,7 +306,7 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
             breadcrumbs.extend(self.breadcrumbs(dir_path, base_url))
 
             # Enable a binder navbar icon if a binder base URL is configured
-            executor_url = BINDER_PATH_TMPL.format(
+            executor_url = self.BINDER_PATH_TMPL.format(
                 binder_base_url=self.binder_base_url,
                 org=user,
                 repo=repo,
@@ -325,9 +329,7 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
                 breadcrumbs=breadcrumbs,
                 msg="file from GitHub: %s" % raw_url,
                 public=True,
-                format=self.format,
-                request=self.request,
-                **PROVIDER_CTX
+                **self.PROVIDER_CTX
             )
         else:
             mime, enc = mimetypes.guess_type(path)

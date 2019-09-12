@@ -23,19 +23,18 @@ from ..github.handlers import GithubClientMixin
 
 from .. import _load_handler_from_location
 
-PROVIDER_CTX = {
-    'provider_label': 'Gist',
-    'provider_icon': 'github-square',
-    'executor_label': 'Binder',
-    'executor_icon': 'icon-binder',
-}
-
-
-BINDER_TMPL = '{binder_base_url}/gist/{user}/{gist_id}/master'
-BINDER_PATH_TMPL = BINDER_TMPL+'?filepath={path}'
-
 
 class GistClientMixin(GithubClientMixin):
+    PROVIDER_CTX = {
+        'provider_label': 'Gist',
+        'provider_icon': 'github-square',
+        'executor_label': 'Binder',
+        'executor_icon': 'icon-binder',
+    }
+    
+    BINDER_TMPL = '{binder_base_url}/gist/{user}/{gist_id}/master'
+    BINDER_PATH_TMPL = BINDER_TMPL+'?filepath={path}'
+    
     def client_error_message(self, exc, url, body, msg=None):
         if exc.code == 403 and 'too big' in body.lower():
             return 400, "GitHub will not serve raw gists larger than 10MB"
@@ -50,9 +49,16 @@ class UserGistsHandler(GistClientMixin, BaseHandler):
 
     .ipynb file extension is required for listing (not for rendering).
     """
+    def render_usergists_template(self, entries, user, provider_url, prev_url,
+                                 next_url, **namespace):
+        return self.render_template("usergists.html", entries=entries, user=user,
+                                   provider_url=provider_url, prev_url=prev_url,
+                                   next_url=next_url, **self.PROVIDER_CTX,
+                                   **namespace)
+    
     @cached
     @gen.coroutine
-    def get(self, user):
+    def get(self, user, **namespace):
         page = self.get_argument("page", None)
         params = {}
         if page:
@@ -74,8 +80,8 @@ class UserGistsHandler(GistClientMixin, BaseHandler):
                     description=gist['description'] or '',
                 ))
         provider_url = u"https://gist.github.com/{user}".format(user=user)
-        html = self.render_template("usergists.html",
-            entries=entries, user=user, provider_url=provider_url, prev_url=prev_url, next_url=next_url, **PROVIDER_CTX
+        html = self.render_usergists_template(entries=entries, user=user, provider_url=provider_url, 
+                                              prev_url=prev_url, next_url=next_url, **namespace
         )
         yield self.cache_and_finish(html)
 
@@ -125,7 +131,7 @@ class GistHandler(GistClientMixin, RenderingHandler):
                 content = file['content']
 
             # Enable a binder navbar icon if a binder base URL is configured
-            executor_url = BINDER_PATH_TMPL.format(
+            executor_url = self.BINDER_PATH_TMPL.format(
                 binder_base_url=self.binder_base_url,
                 user=user.rstrip('/'),
                 gist_id=gist_id,
@@ -140,9 +146,7 @@ class GistHandler(GistClientMixin, RenderingHandler):
                     executor_url=executor_url,
                     msg="gist: %s" % gist_id,
                     public=gist['public'],
-                    format=self.format,
-                    request=self.request,
-                    **PROVIDER_CTX
+                    **self.PROVIDER_CTX
                 )
             else:
                 self.set_header('Content-Type', file.get('type') or 'text/plain')
@@ -178,7 +182,7 @@ class GistHandler(GistClientMixin, RenderingHandler):
             entries.extend(others)
 
             # Enable a binder navbar icon if a binder base URL is configured
-            executor_url = BINDER_TMPL.format(
+            executor_url = self.BINDER_TMPL.format(
                 binder_base_url=self.binder_base_url,
                 user=user.rstrip('/'),
                 gist_id=gist_id
@@ -192,7 +196,7 @@ class GistHandler(GistClientMixin, RenderingHandler):
                 user=user.rstrip('/'),
                 provider_url=gist['html_url'],
                 executor_url=executor_url,
-                **PROVIDER_CTX
+                **self.PROVIDER_CTX
             )
             yield self.cache_and_finish(html)
 

@@ -183,12 +183,20 @@ class LocalFileHandler(RenderingHandler):
                                    download_url='?download',
                                    msg="file from localfile: %s" % path,
                                    public=False,
-                                   format=self.format,
-                                   request=self.request,
                                    breadcrumbs=self.breadcrumbs(path),
                                    title=os.path.basename(path))
 
-    def show_dir(self, fullpath, path):
+    # Make available to increase modularity for subclassing
+    # E.g. so subclasses can implement templates with custom logic
+    # without having to copy-paste the entire show_dir method
+    def render_dirview_template(self, entries, breadcrumbs, title, **namespace):
+
+         return self.render_template('dirview.html',
+                                    entries=entries, breadcrumbs=breadcrumbs,
+                                    title=title, **namespace)
+        
+        
+    def show_dir(self, fullpath, path, **namespace):
         """Render the directory view template for a given filesystem path.
 
         Parameters
@@ -251,10 +259,10 @@ class LocalFileHandler(RenderingHandler):
         entries.extend(dirs)
         entries.extend(ipynbs)
 
-        html = self.render_template('dirview.html',
-                                    entries=entries,
-                                    breadcrumbs=self.breadcrumbs(path),
-                                    title=url_path_join(path, '/'))
+        html = self.render_dirview_template(entries=entries,
+                                            breadcrumbs=self.breadcrumbs(path),
+                                            title=url_path_join(path, '/'),
+                                            **namespace)
         return html
 
 
