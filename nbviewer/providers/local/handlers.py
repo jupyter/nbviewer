@@ -158,12 +158,6 @@ class LocalFileHandler(RenderingHandler):
 
     @gen.coroutine
     def deliver_notebook(self, fullpath, path):
-        """
-        breadcrumbs: list of dict
-            Breadcrumb 'name' and 'url' to render as links at the top of the notebook page
-        title: str
-            Title to use as the HTML page title (i.e., text on the browser tab)
-        """
         try:
             with io.open(fullpath, encoding='utf-8') as f:
                 nbdata = f.read()
@@ -174,6 +168,11 @@ class LocalFileHandler(RenderingHandler):
                 raise web.HTTPError(404)
             raise ex
 
+        # Explanation of some kwargs passed into `finish_notebook`:
+        # breadcrumbs: list of dict
+        #     Breadcrumb 'name' and 'url' to render as links at the top of the notebook page
+        # title: str
+        #     Title to use as the HTML page title (i.e., text on the browser tab)
         yield self.finish_notebook(nbdata,
                                    download_url='?download',
                                    msg="file from localfile: %s" % path,

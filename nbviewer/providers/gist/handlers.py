@@ -24,16 +24,18 @@ from ..github.handlers import GithubClientMixin
 from .. import _load_handler_from_location
 
 class GistClientMixin(GithubClientMixin):
-    """
-    provider_label: str
-        Text to to apply to the navbar icon linking to the provider
-    provider_icon: str
-        CSS classname to apply to the navbar icon linking to the provider
-    executor_label: str, optional
-        Text to apply to the navbar icon linking to the execution service
-    executor_icon: str, optional
-        CSS classname to apply to the navbar icon linking to the execution service
-    """
+    
+    # PROVIDER_CTX is a dictionary whose entries are passed as keyword arguments
+    # to the render_template method of the GistHandler. The following describe
+    # the information contained in each of these keyword arguments:
+    # provider_label: str
+    #     Text to to apply to the navbar icon linking to the provider
+    # provider_icon: str
+    #     CSS classname to apply to the navbar icon linking to the provider
+    # executor_label: str, optional
+    #     Text to apply to the navbar icon linking to the execution service
+    # executor_icon: str, optional
+    #     CSS classname to apply to the navbar icon linking to the execution service
     PROVIDER_CTX = {
         'provider_label': 'Gist',
         'provider_icon': 'github-square',
@@ -63,7 +65,7 @@ class UserGistsHandler(GistClientMixin, BaseHandler):
         """
         provider_url: str
             URL to the notebook document upstream at the provider (e.g., GitHub)
-        executor_url: str, optional
+        executor_url: str, optional (kwarg passed into `namespace`)
             URL to execute the notebook document (e.g., Binder)
         """
         return self.render_template("usergists.html", entries=entries, user=user,
@@ -139,10 +141,7 @@ class GistHandler(GistClientMixin, RenderingHandler):
     @gen.coroutine
     def tree_get(self, user, gist_id, gist, files):
         """
-        provider_url:
-            URL to the notebook document upstream at the provider (e.g., GitHub)
-        executor_url: str, optional
-            URL to execute the notebook document (e.g., Binder)
+        user, gist_id, gist, and files are (most) of the values returned by parse_gist
         """
         entries = []
         ipynbs = []
@@ -175,6 +174,10 @@ class GistHandler(GistClientMixin, RenderingHandler):
             gist_id=gist_id
         ) if self.binder_base_url else None
 
+        # provider_url:
+        #     URL to the notebook document upstream at the provider (e.g., GitHub)
+        # executor_url: str, optional
+        #     URL to execute the notebook document (e.g., Binder)
         html = self.render_template(
             'treelist.html',
             entries=entries,
@@ -197,8 +200,12 @@ class GistHandler(GistClientMixin, RenderingHandler):
         
         yield self.deliver_notebook(user, gist_id, filename, gist, file, content)
 
+    # Only called by file_get
     @gen.coroutine
     def get_notebook_data(self, gist_id, filename, many_files_gist, file):
+        """
+        gist_id, filename, many_files_gist, file are all passed to file_get
+        """
         if (file['type'] or '').startswith('image/'):
             app_log.debug("Fetching raw image (%s) %s/%s: %s", file['type'], gist_id, filename, file['raw_url'])
             response = yield self.fetch(file['raw_url'])
@@ -220,11 +227,13 @@ class GistHandler(GistClientMixin, RenderingHandler):
         else:
             return content
 
+    # Only called by file_get
     @gen.coroutine
     def deliver_notebook(self, user, gist_id, filename, gist, file, content):
         """
-        provider_url: str, optional
-            URL to the notebook document upstream at the provider (e.g., GitHub)
+        user, gist_id, filename, gist, file, are the same values as those 
+        passed into file_get, whereas content is returned from 
+        get_notebook_data using user, gist_id, filename, gist, and file.
         """
         # Enable a binder navbar icon if a binder base URL is configured
         executor_url = self.BINDER_PATH_TMPL.format(
@@ -234,6 +243,8 @@ class GistHandler(GistClientMixin, RenderingHandler):
             path=quote(filename)
         ) if self.binder_base_url else None
 
+        # provider_url: str, optional
+        #     URL to the notebook document upstream at the provider (e.g., GitHub)
         yield self.finish_notebook(
             content,
             file['raw_url'],
@@ -246,7 +257,10 @@ class GistHandler(GistClientMixin, RenderingHandler):
     @cached
     @gen.coroutine
     def get(self, user, gist_id, filename=''):
-
+        """
+        Encompasses both the case of a single file gist, handled by
+        `file_get`, as well as a many-file gist, handled by `tree_get`.
+        """
         user, gist_id, gist, files, many_files_gist = yield self.parse_gist(user, gist_id, filename)
 
         if many_files_gist and not filename:

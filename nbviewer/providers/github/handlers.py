@@ -39,16 +39,18 @@ def _github_url():
     return os.environ.get('GITHUB_URL') if os.environ.get('GITHUB_URL', '') else "https://github.com/"
 
 class GithubClientMixin(object):
-    """
-    provider_label: str
-        Text to to apply to the navbar icon linking to the provider
-    provider_icon: str
-        CSS classname to apply to the navbar icon linking to the provider
-    executor_label: str, optional
-        Text to apply to the navbar icon linking to the execution service
-    executor_icon: str, optional
-        CSS classname to apply to the navbar icon linking to the execution service
-    """
+
+    # PROVIDER_CTX is a dictionary whose entries are passed as keyword arguments
+    # to the render_template method of the GistHandler. The following describe
+    # the information contained in each of these keyword arguments:
+    # provider_label: str
+    #     Text to to apply to the navbar icon linking to the provider
+    # provider_icon: str
+    #     CSS classname to apply to the navbar icon linking to the provider
+    # executor_label: str, optional
+    #     Text to apply to the navbar icon linking to the execution service
+    # executor_icon: str, optional
+    #     CSS classname to apply to the navbar icon linking to the execution service
     PROVIDER_CTX = {
         'provider_label': 'GitHub',
         'provider_icon': 'github',
@@ -301,14 +303,6 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
 
     @gen.coroutine
     def deliver_notebook(self, user, repo, ref, path, raw_url, blob_url, tree_entry):
-        """
-        provider_url:
-            URL to the notebook document upstream at the provider (e.g., GitHub)
-        breadcrumbs: list of dict
-            Breadcrumb 'name' and 'url' to render as links at the top of the notebook page
-        executor_url: str, optional
-            URL to execute the notebook document (e.g., Binder)
-        """
         # fetch file data from the blobs API
         with self.catch_client_error():
             response = yield self.github_client.fetch(tree_entry['url'])
@@ -351,6 +345,13 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
             except Exception as e:
                 app_log.error("Failed to decode notebook: %s", raw_url, exc_info=True)
                 raise web.HTTPError(400)
+            # Explanation of some kwargs passed into `finish_notebook`:
+            # provider_url:
+            #     URL to the notebook document upstream at the provider (e.g., GitHub)
+            # breadcrumbs: list of dict
+            #     Breadcrumb 'name' and 'url' to render as links at the top of the notebook page
+            # executor_url: str, optional
+            #     URL to execute the notebook document (e.g., Binder)
             yield self.finish_notebook(nbjson, raw_url,
                 provider_url=blob_url,
                 executor_url=executor_url,

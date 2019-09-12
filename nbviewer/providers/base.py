@@ -57,6 +57,8 @@ class BaseHandler(web.RequestHandler):
     """Base Handler class with common utilities"""
 
     def initialize(self, format=None, format_prefix="", **handler_settings):
+        # format: str, optional
+        #     Rendering format (e.g. script, slides, html)
         self.format = format or self.default_format
         self.format_prefix = format_prefix
         self.http_client = httpclient.AsyncHTTPClient()
@@ -631,20 +633,34 @@ class RenderingHandler(BaseHandler):
                 app_log.info("failed to test %s: %s", self.request.uri, name)
 
     # empty methods to be implemented by subclasses to make GET requests more modular
-    def format_notebook_request(self, **kwargs):
+    def get_notebook_data(self, **kwargs):
+        """
+        Pass as kwargs variables needed to define those variables which will be necessary for 
+        the provider to find the notebook. (E.g. path for LocalHandler, user and repo for GitHub.) 
+        Return variables the provider needs to find and load the notebook. Then run custom logic
+        in GET or pass the output of get_notebook_data immediately to deliver_notebook.
+
+        First part of any provider's GET method. 
+
+        Custom logic, if applicable, is middle part of any provider's GET method, and usually
+        is implemented or overwritten in subclasses, while get_notebook_data and deliver_notebook
+        will often remain unchanged from the parent class (e.g. for a custom GitHub provider).
+        """
         pass
 
-    def load_notebook(self, **kwargs):
+    def deliver_notebook(self, **kwargs):
+        """
+        Pass as kwargs the return values of get_notebook_data to this method. Get the JSON data
+        from the provider to render the notebook. Finish with a call to self.finish_notebook.
+
+        Last part of any provider's GET method.
+        """
         pass 
 
     # Wrappers to facilitate custom rendering in subclasses without having to rewrite entire GET methods
     # This would seem to mostly involve creating different template namespaces to enable custom logic in
     # extended templates, but there might be other possibilities
     def render_notebook_template(self, body, nb, download_url, json_notebook, **namespace):
-        """
-        format: str, optional
-            Rendering format (e.g., script, slides, html)
-        """    
         return self.render_template(
             "formats/%s.html" % self.format,
             body=body,
