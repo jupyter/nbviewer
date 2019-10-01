@@ -41,7 +41,7 @@
             <li class="col-md-4">
               <p class="marketing-byline">{{link.text}}</p>
               <a class="thumbnail" href="{{ from_base(link.target) }}" target="_blank">
-                <img src="{{ from_base(link.img) }}" />
+                <img src="{{ static_url(link.img) }}" />
               </a>
             </li>
           {% endfor %}

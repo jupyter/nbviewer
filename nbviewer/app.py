@@ -44,6 +44,8 @@ try: # Python 3.8
 except ImportError:
     from .utils import cached_property
 
+from notebook.base.handlers import FileFindHandler as StaticFileHandler
+
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
@@ -263,12 +265,16 @@ class NBViewer(Application):
 
     sslkey = Unicode(help="Path to ssl .key file.").tag(config=True)
 
-    static_path = Unicode(default_value=pjoin(here, 'static')).tag(config=True)
+    static_path = Unicode(default_value=os.environ.get("NBVIEWER_STATIC_PATH", ""), help="Custom path for loading additional static files.").tag(config=True)
 
-    static_url_prefix = Unicode().tag(config=True)
-    @default('static_url_prefix')
+    static_url_prefix = Unicode(default_value='/static/').tag(config=True)
+
+    # Not exposed to end user for configuration, since needs to access base_url
+    _static_url_prefix = Unicode()
+    @default('_static_url_prefix')
     def _load_static_url_prefix(self):
-        return url_path_join(self._base_url, '/static/')
+        # Last '/' ensures that NBViewer still works regardless of whether user chooses e.g. '/static2/' or '/static2' as their custom prefix
+        return url_path_join(self._base_url, self.static_url_prefix, '/')
 
     statsd_host = Unicode(default_value="", help="Host running statsd to send metrics to.").tag(config=True)
 
@@ -414,11 +420,24 @@ class NBViewer(Application):
         return rate_limiter
 
     @cached_property
+    def static_paths(self):
+        default_static_path = pjoin(here, 'static')
+        if self.static_path:
+            self.log.info("Using custom static path {}".format(self.static_path))
+            static_paths = [self.static_path, default_static_path]
+        else:
+            static_paths = [default_static_path]
+
+        return static_paths
+
+    @cached_property
     def template_paths(self):
-        template_paths = pjoin(here, 'templates')
+        default_template_path = pjoin(here, 'templates')
         if self.template_path:
             self.log.info("Using custom template path {}".format(self.template_path))
-            template_paths = [self.template_path, template_paths]
+            template_paths = [self.template_path, default_template_path]
+        else:
+            template_paths = [default_template_path]
 
         return template_paths
 
@@ -509,8 +528,10 @@ class NBViewer(Application):
                   providers=self.providers,
                   rate_limiter=self.rate_limiter,
                   render_timeout=self.render_timeout,
-                  static_path=self.static_path,
-                  static_url_prefix=self.static_url_prefix,
+                  static_handler_class = StaticFileHandler,
+                  # FileFindHandler expects list of static paths, so self.static_path*s* is correct
+                  static_path=self.static_paths,
+                  static_url_prefix=self._static_url_prefix,
                   statsd_host=self.statsd_host,
                   statsd_port=self.statsd_port,
                   statsd_prefix=self.statsd_prefix,

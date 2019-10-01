@@ -238,6 +238,10 @@ class BaseHandler(web.RequestHandler):
         return self.settings['rate_limiter']
 
     @property
+    def static_url_prefix(self):
+        return self.settings['static_url_prefix']
+
+    @property
     def statsd(self):
         if hasattr(self, '_statsd'):
             return self._statsd
@@ -278,6 +282,10 @@ class BaseHandler(web.RequestHandler):
 
     def render_error_template(self, **namespace):
         return self.render_template('error.html', **namespace)
+
+    # Overwrite the static_url from Tornado to work better with our custom StaticFileHandler
+    def static_url(self, url):
+        return url_path_join(self.static_url_prefix, url)
 
     @property
     def template_namespace(self):
