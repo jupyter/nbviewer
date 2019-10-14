@@ -494,6 +494,8 @@ class NBViewer(Application):
    
         # input traitlets to settings
         settings = dict(
+                  # Allow FileFindHandler to load static directories from e.g. a Docker container
+                  allow_remote_access=True,
                   base_url=self._base_url,
                   binder_base_url=self.binder_base_url,
                   cache=self.cache,
