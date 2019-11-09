@@ -36,9 +36,6 @@ from .client import AsyncGitHubClient
 from .. import _load_handler_from_location
 
 
-def _github_url():
-    return os.environ.get('GITHUB_URL') if os.environ.get('GITHUB_URL', '') else "https://github.com/"
-
 class GithubClientMixin(object):
     PROVIDER_CTX = {
         'provider_label': 'GitHub',
@@ -50,6 +47,19 @@ class GithubClientMixin(object):
     BINDER_TMPL = '{binder_base_url}/gh/{org}/{repo}/{ref}'
     BINDER_PATH_TMPL = BINDER_TMPL+'?filepath={path}'
     
+    @property
+    def github_url(self):
+        if getattr(self, "_github_url", None) is None:
+            if os.environ.get('GITHUB_URL', ''):
+                self._github_url = os.environ.get('GITHUB_URL')
+            elif self.github_client.github_api_url == 'https://api.github.com/':
+                self._github_url = "https://github.com/"
+            else:
+                # Github Enterprise
+                # https://developer.github.com/enterprise/2.18/v3/enterprise-admin/#endpoint-urls
+                self._github_url = re.sub(r'api/v3/$', '', self.github_client.github_api_url)
+        return self._github_url
+
     @property
     def github_client(self):
         """Create an upgraded github API client from the HTTP client"""
@@ -107,7 +117,7 @@ class GitHubUserHandler(GithubClientMixin, BaseHandler):
                 name=repo['name'],
             ))
   
-        provider_url = u"{github_url}{user}".format(user=user, github_url = _github_url())
+        provider_url = u"{github_url}{user}".format(user=user, github_url=self.github_url)
         html = self.render_template("userview.html",
             entries=entries, provider_url=provider_url, 
             next_url=next_url, prev_url=prev_url,
@@ -169,14 +179,14 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
         # Account for possibility that GitHub API redirects us to get more accurate breadcrumbs
         # See: https://github.com/jupyter/nbviewer/issues/324
         example_file_url = contents[0]['html_url']
-        user, repo = re.match(r"^https://github\.com/(?P<user>[^\/]+)/(?P<repo>[^\/]+)/.*", example_file_url).group('user', 'repo')
+        user, repo = re.match(r"^" + self.github_url + "(?P<user>[^\/]+)/(?P<repo>[^\/]+)/.*", example_file_url).group('user', 'repo')
 
         base_url = u"/github/{user}/{repo}/tree/{ref}".format(
             user=user, repo=repo, ref=ref,
         )
 
         provider_url = u"{github_url}{user}/{repo}/tree/{ref}/{path}".format(
-            user=user, repo=repo, ref=ref, path=path, github_url = _github_url()
+            user=user, repo=repo, ref=ref, path=path, github_url=self.github_url
         )
 
         breadcrumbs = [{
@@ -266,7 +276,7 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
             user=user, repo=repo, ref=ref, path=quote(path)
         )
         blob_url = u"{github_url}{user}/{repo}/blob/{ref}/{path}".format(
-            user=user, repo=repo, ref=ref, path=quote(path), github_url=_github_url()
+            user=user, repo=repo, ref=ref, path=quote(path), github_url=self.github_url
         )
         with self.catch_client_error():
             tree_entry = yield self.github_client.get_tree_entry(
