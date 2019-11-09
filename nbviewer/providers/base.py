@@ -216,7 +216,6 @@ class BaseHandler(web.RequestHandler):
         if hasattr(self, '_statsd'):
             return self._statsd
         if self.settings['statsd_host']:
-            print(self.settings)
             self._statsd = statsd.StatsClient(
                 self.settings['statsd_host'],
                 self.settings['statsd_port'],
