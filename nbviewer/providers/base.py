@@ -57,6 +57,8 @@ class BaseHandler(web.RequestHandler):
     """Base Handler class with common utilities"""
 
     def initialize(self, format=None, format_prefix="", **handler_settings):
+        # format: str, optional
+        #     Rendering format (e.g. script, slides, html)
         self.format = format or self.default_format
         self.format_prefix = format_prefix
         self.http_client = httpclient.AsyncHTTPClient()
@@ -263,13 +265,13 @@ class BaseHandler(web.RequestHandler):
         namespace.update(self.template_namespace)
         template = self.get_template(name)
         return template.render(**namespace)
-    
+
     # Wrappers to facilitate custom rendering in subclasses without having to rewrite entire GET methods
     # This would seem to mostly involve creating different template namespaces to enable custom logic in
     # extended templates, but there might be other possibilities
     def render_status_code_template(self, status_code, **namespace):
         return self.render_template('%d.html' % status_code, **namespace)
-    
+
     def render_error_template(self, **namespace):
         return self.render_template('error.html', **namespace)
 
@@ -630,6 +632,31 @@ class RenderingHandler(BaseHandler):
             except Exception as err:
                 app_log.info("failed to test %s: %s", self.request.uri, name)
 
+    # empty methods to be implemented by subclasses to make GET requests more modular
+    def get_notebook_data(self, **kwargs):
+        """
+        Pass as kwargs variables needed to define those variables which will be necessary for 
+        the provider to find the notebook. (E.g. path for LocalHandler, user and repo for GitHub.) 
+        Return variables the provider needs to find and load the notebook. Then run custom logic
+        in GET or pass the output of get_notebook_data immediately to deliver_notebook.
+
+        First part of any provider's GET method. 
+
+        Custom logic, if applicable, is middle part of any provider's GET method, and usually
+        is implemented or overwritten in subclasses, while get_notebook_data and deliver_notebook
+        will often remain unchanged from the parent class (e.g. for a custom GitHub provider).
+        """
+        pass
+
+    def deliver_notebook(self, **kwargs):
+        """
+        Pass as kwargs the return values of get_notebook_data to this method. Get the JSON data
+        from the provider to render the notebook. Finish with a call to self.finish_notebook.
+
+        Last part of any provider's GET method.
+        """
+        pass 
+
     # Wrappers to facilitate custom rendering in subclasses without having to rewrite entire GET methods
     # This would seem to mostly involve creating different template namespaces to enable custom logic in
     # extended templates, but there might be other possibilities
@@ -658,30 +685,10 @@ class RenderingHandler(BaseHandler):
             Notebook document in JSON format
         download_url: str
             URL to download the notebook document
-        provider_url: str, optional
-            URL to the notebook document upstream at the provider (e.g., GitHub)
-        provider_icon: str, optional
-            CSS classname to apply to the navbar icon linking to the provider
-        provider_label: str, optional
-            Text to to apply to the navbar icon linking to the provider
         msg: str, optional
             Extra information to log when rendering fails
-        breadcrumbs: list of dict, optional
-            Breadcrumb 'name' and 'url' to render as links at the top of the notebook page
         public: bool, optional
             True if the notebook is public and its access indexed, False if not
-        format: str, optional
-            Rendering format (e.g., script, slides, html)
-        request: tornado.httputil.HTTPServerRequest, optional
-            HTTP request that triggered notebook rendering
-        title: str, optional
-            Title to use as the HTML page title (i.e., text on the browser tab)
-        executor_url: str, optional
-            URL to execute the notebook document (e.g., Binder)
-        executor_label: str, optional
-            Text to apply to the navbar icon linking to the execution service
-        executor_icon: str, optional
-            CSS classname to apply to the navbar icon linking to the execution service
         """
 
         if msg is None:
