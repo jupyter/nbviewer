@@ -1,6 +1,7 @@
 # Copyright (c) Jupyter Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+import os
 import json
 
 from tornado import web, gen
@@ -79,9 +80,11 @@ class UserGistsHandler(GistClientMixin, BaseHandler):
                     notebooks=notebooks,
                     description=gist['description'] or '',
                 ))
-        provider_url = u"https://gist.github.com/{user}".format(user=user)
+        gist_url = os.environ.get('GIST_URL', 'https://gist.github.com/')
+        provider_url = gist_url + u"{user}".format(user=user)
         html = self.render_usergists_template(entries=entries, user=user, provider_url=provider_url, 
                                               prev_url=prev_url, next_url=next_url, **namespace
+
         )
         yield self.cache_and_finish(html)
 
@@ -169,7 +172,8 @@ class GistHandler(GistClientMixin, RenderingHandler):
                     e['class'] = 'fa-book'
                     ipynbs.append(e)
                 else:
-                    provider_url = u"https://gist.github.com/{user}/{gist_id}#file-{clean_name}".format(
+                    gist_url = os.environ.get('GIST_URL', 'https://gist.github.com/')
+                    provider_url = gist_url + u"{user}/{gist_id}#file-{clean_name}".format(
                         user=user,
                         gist_id=gist_id,
                         clean_name=clean_filename(file['filename']),
@@ -228,9 +232,19 @@ def default_handlers(handlers=[], **handler_names):
 
 
 def uri_rewrites(rewrites=[]):
-    return [
+    gist_rewrites = [
         (r'^([a-f0-9]+)/?$',
             u'/{0}'),
-        ('^https?://gist.github.com/([^\/]+/)?([a-f0-9]+)/?$',
+        (r'^https?://gist.github.com/([^\/]+/)?([a-f0-9]+)/?$',
             u'/{1}'),
-    ] + rewrites
+    ] 
+    # github enterprise
+    if os.environ.get('GIST_URL', '') != '':
+        gist_url = os.environ.get('GIST_URL')
+        gist_rewrites.extend([
+            # embedded in URL
+            (r'^' + gist_url + r'([^\/]+/)?([a-f0-9]+)/?$',
+                u'/{1}'),
+        ])
+
+    return gist_rewrites + rewrites
