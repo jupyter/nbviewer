@@ -408,7 +408,7 @@ def uri_rewrites(rewrites=[]):
 
             # user
             (r'^' + github_url
-                + r'([\w\-]+)$',
+                + r'([\w\-]+)/?$',
                 u'/github/{0}/'),
         ])
     return rewrites + github_rewrites
