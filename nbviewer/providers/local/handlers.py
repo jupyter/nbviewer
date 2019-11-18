@@ -138,6 +138,48 @@ class LocalFileHandler(RenderingHandler):
 
         return True
 
+    def get_notebook_data(self, path):
+        fullpath = os.path.join(self.localfile_path, path)
+
+        if not self.can_show(fullpath):
+            app_log.info("path: '%s' is not visible from within nbviewer", fullpath)
+            raise web.HTTPError(404)
+
+        if os.path.isdir(fullpath):
+            html = self.show_dir(fullpath, path)
+            raise gen.Return(self.cache_and_finish(html))
+
+        is_download = self.get_query_arguments('download')
+        if is_download:
+            self.download(fullpath)
+            return
+        
+        return fullpath
+
+    @gen.coroutine
+    def deliver_notebook(self, fullpath, path):
+        try:
+            with io.open(fullpath, encoding='utf-8') as f:
+                nbdata = f.read()
+        except IOError as ex:
+            if ex.errno == errno.EACCES:
+                # py2/3: can't read the file, so don't give away it exists
+                app_log.info("path : '%s' is not readable from within nbviewer", fullpath)
+                raise web.HTTPError(404)
+            raise ex
+
+        # Explanation of some kwargs passed into `finish_notebook`:
+        # breadcrumbs: list of dict
+        #     Breadcrumb 'name' and 'url' to render as links at the top of the notebook page
+        # title: str
+        #     Title to use as the HTML page title (i.e., text on the browser tab)
+        yield self.finish_notebook(nbdata,
+                                   download_url='?download',
+                                   msg="file from localfile: %s" % path,
+                                   public=False,
+                                   breadcrumbs=self.breadcrumbs(path),
+                                   title=os.path.basename(path))
+
     @cached
     @gen.coroutine
     def get(self, path):
@@ -154,48 +196,24 @@ class LocalFileHandler(RenderingHandler):
         path: str
             Local filesystem path
         """
-        fullpath = os.path.join(self.localfile_path, path)
+        fullpath = self.get_notebook_data(path)
 
-        if not self.can_show(fullpath):
-            app_log.info("path: '%s' is not visible from within nbviewer", fullpath)
-            raise web.HTTPError(404)
-
-        if os.path.isdir(fullpath):
-            html = self.show_dir(fullpath, path)
-            raise gen.Return(self.cache_and_finish(html))
-
-        is_download = self.get_query_arguments('download')
-        if is_download:
-            self.download(fullpath)
-            return
-
-        try:
-            with io.open(fullpath, encoding='utf-8') as f:
-                nbdata = f.read()
-        except IOError as ex:
-            if ex.errno == errno.EACCES:
-                # py2/3: can't read the file, so don't give away it exists
-                app_log.info("path : '%s' is not readable from within nbviewer", fullpath)
-                raise web.HTTPError(404)
-            raise ex
-
-        yield self.finish_notebook(nbdata,
-                                   download_url='?download',
-                                   msg="file from localfile: %s" % path,
-                                   public=False,
-                                   breadcrumbs=self.breadcrumbs(path),
-                                   title=os.path.basename(path))
+        yield self.deliver_notebook(fullpath, path)
 
     # Make available to increase modularity for subclassing
     # E.g. so subclasses can implement templates with custom logic
     # without having to copy-paste the entire show_dir method
     def render_dirview_template(self, entries, breadcrumbs, title, **namespace):
-
-         return self.render_template('dirview.html',
+        """
+        breadcrumbs: list of dict
+            Breadcrumb 'name' and 'url' to render as links at the top of the notebook page
+        title: str
+            Title to use as the HTML page title (i.e., text on the browser tab)
+        """
+        return self.render_template('dirview.html',
                                     entries=entries, breadcrumbs=breadcrumbs,
                                     title=title, **namespace)
-        
-        
+
     def show_dir(self, fullpath, path, **namespace):
         """Render the directory view template for a given filesystem path.
 

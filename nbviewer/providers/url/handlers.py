@@ -30,9 +30,8 @@ from .. import _load_handler_from_location
 
 class URLHandler(RenderingHandler):
     """Renderer for /url or /urls"""
-    @cached
     @gen.coroutine
-    def get(self, secure, netloc, url):
+    def get_notebook_data(self, secure, netloc, url):
         proto = 'http' + secure
         netloc = url_unescape(netloc)
 
@@ -74,7 +73,10 @@ class URLHandler(RenderingHandler):
         except Exception as e:
             app_log.error(e)
 
+        return remote_url, public
 
+    @gen.coroutine
+    def deliver_notebook(self, remote_url, public):
         response = yield self.fetch(remote_url)
 
         try:
@@ -88,6 +90,12 @@ class URLHandler(RenderingHandler):
                                    public=public,
                                    request=self.request)
 
+    @cached
+    @gen.coroutine
+    def get(self, secure, netloc, url):
+        remote_url, public = yield self.get_notebook_data(secure, netloc, url)
+
+        yield self.deliver_notebook(remote_url, public)
 
 def default_handlers(handlers=[], **handler_names):
     """Tornado handlers"""

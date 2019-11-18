@@ -35,21 +35,42 @@ from .client import AsyncGitHubClient
 
 from .. import _load_handler_from_location
 
-
-def _github_url():
-    return os.environ.get('GITHUB_URL') if os.environ.get('GITHUB_URL', '') else "https://github.com/"
-
 class GithubClientMixin(object):
+
+    # PROVIDER_CTX is a dictionary whose entries are passed as keyword arguments
+    # to the render_template method of the GistHandler. The following describe
+    # the information contained in each of these keyword arguments:
+    # provider_label: str
+    #     Text to to apply to the navbar icon linking to the provider
+    # provider_icon: str
+    #     CSS classname to apply to the navbar icon linking to the provider
+    # executor_label: str, optional
+    #     Text to apply to the navbar icon linking to the execution service
+    # executor_icon: str, optional
+    #     CSS classname to apply to the navbar icon linking to the execution service
     PROVIDER_CTX = {
         'provider_label': 'GitHub',
         'provider_icon': 'github',
         'executor_label': 'Binder',
         'executor_icon': 'icon-binder',
     }
-    
+
     BINDER_TMPL = '{binder_base_url}/gh/{org}/{repo}/{ref}'
     BINDER_PATH_TMPL = BINDER_TMPL+'?filepath={path}'
-    
+
+    @property
+    def github_url(self):
+        if getattr(self, "_github_url", None) is None:
+            if os.environ.get('GITHUB_URL', ''):
+                self._github_url = os.environ.get('GITHUB_URL')
+            elif self.github_client.github_api_url == 'https://api.github.com/':
+                self._github_url = "https://github.com/"
+            else:
+                # Github Enterprise
+                # https://developer.github.com/enterprise/2.18/v3/enterprise-admin/#endpoint-urls
+                self._github_url = re.sub(r'api/v3/$', '', self.github_client.github_api_url)
+        return self._github_url
+
     @property
     def github_client(self):
         """Create an upgraded github API client from the HTTP client"""
@@ -107,7 +128,7 @@ class GitHubUserHandler(GithubClientMixin, BaseHandler):
                 name=repo['name'],
             ))
   
-        provider_url = u"{github_url}{user}".format(user=user, github_url = _github_url())
+        provider_url = u"{github_url}{user}".format(user=user, github_url=self.github_url)
         html = self.render_template("userview.html",
             entries=entries, provider_url=provider_url, 
             next_url=next_url, prev_url=prev_url,
@@ -128,12 +149,20 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
     """list files in a github repo (like github tree)"""
     def render_treelist_template(self, entries, breadcrumbs, provider_url, user, repo, ref, path,
                                  branches, tags, executor_url, **namespace):
+        """
+        breadcrumbs: list of dict
+            Breadcrumb 'name' and 'url' to render as links at the top of the notebook page
+        provider_url: str
+            URL to the notebook document upstream at the provider (e.g., GitHub)
+        executor_url: str, optional
+            URL to execute the notebook document (e.g., Binder)
+        """
         return self.render_template("treelist.html", entries=entries, breadcrumbs=breadcrumbs,
                                     provider_url=provider_url, user=user, repo=repo, ref=ref,
                                     path=path, branches=branches, tags=tags, tree_type="github",
                                     tree_label="repositories", executor_url=executor_url,
                                     **self.PROVIDER_CTX, **namespace)
-    
+
     @cached
     @gen.coroutine
     def get(self, user, repo, ref, path, **namespace):
@@ -169,14 +198,14 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
         # Account for possibility that GitHub API redirects us to get more accurate breadcrumbs
         # See: https://github.com/jupyter/nbviewer/issues/324
         example_file_url = contents[0]['html_url']
-        user, repo = re.match(r"^https://github\.com/(?P<user>[^\/]+)/(?P<repo>[^\/]+)/.*", example_file_url).group('user', 'repo')
+        user, repo = re.match(r"^" + self.github_url + "(?P<user>[^\/]+)/(?P<repo>[^\/]+)/.*", example_file_url).group('user', 'repo')
 
         base_url = u"/github/{user}/{repo}/tree/{ref}".format(
             user=user, repo=repo, ref=ref,
         )
 
         provider_url = u"{github_url}{user}/{repo}/tree/{ref}/{path}".format(
-            user=user, repo=repo, ref=ref, path=path, github_url = _github_url()
+            user=user, repo=repo, ref=ref, path=path, github_url=self.github_url
         )
 
         breadcrumbs = [{
@@ -230,9 +259,9 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
         ) if self.binder_base_url else None
 
         html = self.render_treelist_template(
-            entries=entries, breadcrumbs=breadcrumbs, provider_url=provider_url,
-            user=user, repo=repo, ref=ref, path=path, branches=branches, tags=tags,
-            executor_url=executor_url, **namespace
+             entries=entries, breadcrumbs=breadcrumbs, provider_url=provider_url,
+             user=user, repo=repo, ref=ref, path=path, branches=branches, tags=tags,
+             executor_url=executor_url, **namespace 
         )
         yield self.cache_and_finish(html)
 
@@ -259,9 +288,8 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
     - non-notebook file, serve file unmodified
     - directory, redirect to tree
     """
-    @cached
     @gen.coroutine
-    def get(self, user, repo, ref, path):
+    def get_notebook_data(self, user, repo, ref, path):
         if os.environ.get('GITHUB_API_URL', '') == '':
             raw_pattern = u"https://raw.githubusercontent.com/{user}/{repo}/{ref}/{path}"
         else: #Github Enterprise has a different URL pattern for accessing raw files
@@ -270,7 +298,7 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
             user=user, repo=repo, ref=ref, path=quote(path), github_url=self.github_url
         )
         blob_url = u"{github_url}{user}/{repo}/blob/{ref}/{path}".format(
-            user=user, repo=repo, ref=ref, path=quote(path), github_url=_github_url()
+            user=user, repo=repo, ref=ref, path=quote(path), github_url=self.github_url
         )
         with self.catch_client_error():
             tree_entry = yield self.github_client.get_tree_entry(
@@ -285,6 +313,10 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
             self.redirect(tree_url)
             return
 
+        return raw_url, blob_url, tree_entry
+
+    @gen.coroutine
+    def deliver_notebook(self, user, repo, ref, path, raw_url, blob_url, tree_entry):
         # fetch file data from the blobs API
         with self.catch_client_error():
             response = yield self.github_client.fetch(tree_entry['url'])
@@ -327,6 +359,13 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
             except Exception as e:
                 app_log.error("Failed to decode notebook: %s", raw_url, exc_info=True)
                 raise web.HTTPError(400)
+            # Explanation of some kwargs passed into `finish_notebook`:
+            # provider_url:
+            #     URL to the notebook document upstream at the provider (e.g., GitHub)
+            # breadcrumbs: list of dict
+            #     Breadcrumb 'name' and 'url' to render as links at the top of the notebook page
+            # executor_url: str, optional
+            #     URL to execute the notebook document (e.g., Binder)
             yield self.finish_notebook(nbjson, raw_url,
                 provider_url=blob_url,
                 executor_url=executor_url,
@@ -334,12 +373,18 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
                 msg="file from GitHub: %s" % raw_url,
                 public=True,
                 **self.PROVIDER_CTX
-            )
+                )
         else:
             mime, enc = mimetypes.guess_type(path)
             self.set_header("Content-Type", mime or 'text/plain')
             self.cache_and_finish(filedata)
 
+    @cached
+    @gen.coroutine
+    def get(self, user, repo, ref, path):
+        raw_url, blob_url, tree_entry = yield self.get_notebook_data(user, repo, ref, path)
+
+        yield self.deliver_notebook(user, repo, ref, path, raw_url, blob_url, tree_entry)
 
 def default_handlers(handlers=[], **handler_names):
     """Tornado handlers"""

@@ -25,7 +25,7 @@ $ docker run -p 8080:8080 -e 'GITHUB_OAUTH_KEY=YOURKEY' \
                           jupyter/nbviewer
 ```
 
-Or to use your GitHub personal access token, you can set just `GITHUB_API_TOKEN`.
+Or to use your GitHub personal access token, you can just set `GITHUB_API_TOKEN`.
 
 
 ## GitHub Enterprise
@@ -70,7 +70,7 @@ $ docker run -p 8080:8080 nbviewer
 The Notebook Viewer uses `memcached` in production. To locally try out this
 setup, a [docker-compose](https://docs.docker.com/compose/) configuration is
 provided to easily start/stop the `nbviewer` and `memcached` containers
-together from a your current branch. You will need to install `docker` prior
+together from your current branch. You will need to install `docker` prior
 to this.
 
 #### Run
@@ -145,7 +145,7 @@ Providers are sources of notebooks and directories of notebooks and directories.
 - `local`
 
 #### Writing a new Provider
-There are several already additional providers
+There are already several providers
 [proposed/requested](https://github.com/jupyter/nbviewer/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+label%3Atag%3AProvider). Some providers are more involved than others, and some,
 such as those which would require user authentication, will take some work to
 support properly.
@@ -183,7 +183,7 @@ Formats are ways to present notebooks to the user.
 #### Writing a new Format
 If you'd like to write a new format, open a ticket, or speak up on [gitter][]!
 We have some work yet to do to support your next big thing in notebook
-publishing, and we'd love to here from you.
+publishing, and we'd love to hear from you.
 
 #### Config file
 
@@ -193,7 +193,7 @@ For example, to configure the value of a configurable `foo`, add the line `c.NBV
 
 ## Securing the Notebook Viewer
 
-You can run the viewer as a [JupyterHub 0.7+ service](https://jupyterhub.readthedocs.io/en/latest/reference/services.html). Running the viewer as a service prevents users who have not authenticated with the Hub from acccessing the nbviewer instance. This setup can be useful for protecting access to local notebooks rendered with the `--localfiles` option.
+You can run the viewer as a [JupyterHub 0.7+ service](https://jupyterhub.readthedocs.io/en/latest/reference/services.html). Running the viewer as a service prevents users who have not authenticated with the Hub from accessing the nbviewer instance. This setup can be useful for protecting access to local notebooks rendered with the `--localfiles` option.
 
 Add an entry like the following to your `jupyterhub_config.py` to have it start nbviewer as a managed service:
 
