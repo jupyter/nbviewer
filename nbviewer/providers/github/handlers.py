@@ -433,17 +433,27 @@ def uri_rewrites(rewrites=[]):
     ]
     # github enterprise
     if os.environ.get('GITHUB_API_URL', '') != '':
-        github_api_url = os.environ.get('GITHUB_API_URL')
+        github_base_url = os.environ.get('GITHUB_API_URL').split('api/v3')[0]
 
         github_rewrites.extend([
             # raw view
-            (r'^' + github_api_url.split('/api/v3/')[0]
-                + '/([^\/]+)/([^\/]+)/raw/([^\/]+)/(.*)',
+            (r'^' + github_base_url
+                + r'([^\/]+)/([^\/]+)/raw/([^\/]+)/(.*)',
                 u'/github/{0}/{1}/blob/{2}/{3}'),
 
             # trees & blobs
-            (r'^' + github_api_url.split('/api/v3/')[0]
-                + '/([\w\-]+)/([^\/]+)/(blob|tree)/(.*)$',
+            (r'^' + github_base_url
+                + r'([\w\-]+)/([^\/]+)/(blob|tree)/(.*)$',
                 u'/github/{0}/{1}/{2}/{3}'),
+
+            # user/repo
+            (r'^' + github_base_url
+                + r'([\w\-]+)/([^\/]+)/?$',
+                u'/github/{0}/{1}/tree/master'),
+
+            # user
+            (r'^' + github_base_url
+                + r'([\w\-]+)/?$',
+                u'/github/{0}/'),
         ])
     return rewrites + github_rewrites
