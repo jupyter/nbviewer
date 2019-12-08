@@ -29,6 +29,7 @@ from ...utils import (
     base64_decode,
     quote,
     response_text,
+    url_path_join,
 )
 
 from .client import AsyncGitHubClient
@@ -286,9 +287,14 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
     - directory, redirect to tree
     """
     async def get_notebook_data(self, user, repo, ref, path):
-        raw_url = u"https://raw.githubusercontent.com/{user}/{repo}/{ref}/{path}".format(
-            user=user, repo=repo, ref=ref, path=quote(path)
-        )
+        if os.environ.get('GITHUB_API_URL', '') == '':
+            raw_url = u"https://raw.githubusercontent.com/{user}/{repo}/{ref}/{path}".format(
+                user=user, repo=repo, ref=ref, path=quote(path)
+            )
+        else: #Github Enterprise has a different URL pattern for accessing raw files
+            raw_url = url_path_join(
+                self.github_url, user, repo, 'raw', ref, quote(path)
+            )
         blob_url = u"{github_url}{user}/{repo}/blob/{ref}/{path}".format(
             user=user, repo=repo, ref=ref, path=quote(path), github_url=self.github_url
         )
@@ -429,17 +435,27 @@ def uri_rewrites(rewrites=[]):
     ]
     # github enterprise
     if os.environ.get('GITHUB_API_URL', '') != '':
-        github_api_url = os.environ.get('GITHUB_API_URL')
+        github_base_url = os.environ.get('GITHUB_API_URL').split('api/v3')[0]
 
         github_rewrites.extend([
             # raw view
-            (r'^' + github_api_url.split('/api/v3/')[0]
-                + '/([^\/]+)/([^\/]+)/raw/([^\/]+)/(.*)',
+            (r'^' + github_base_url
+                + r'([^\/]+)/([^\/]+)/raw/([^\/]+)/(.*)',
                 u'/github/{0}/{1}/blob/{2}/{3}'),
 
             # trees & blobs
-            (r'^' + github_api_url.split('/api/v3/')[0]
-                + '/([\w\-]+)/([^\/]+)/(blob|tree)/(.*)$',
+            (r'^' + github_base_url
+                + r'([\w\-]+)/([^\/]+)/(blob|tree)/(.*)$',
                 u'/github/{0}/{1}/{2}/{3}'),
+
+            # user/repo
+            (r'^' + github_base_url
+                + r'([\w\-]+)/([^\/]+)/?$',
+                u'/github/{0}/{1}/tree/master'),
+
+            # user
+            (r'^' + github_base_url
+                + r'([\w\-]+)/?$',
+                u'/github/{0}/'),
         ])
     return rewrites + github_rewrites
