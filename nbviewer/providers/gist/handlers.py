@@ -1,6 +1,7 @@
 # Copyright (c) Jupyter Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+import os
 import json
 
 from tornado import web, gen
@@ -17,6 +18,7 @@ from ...utils import (
     clean_filename,
     quote,
     response_text,
+    url_path_join,
 )
 
 from ..github.handlers import GithubClientMixin
@@ -96,9 +98,14 @@ class UserGistsHandler(GistClientMixin, BaseHandler):
                     notebooks=notebooks,
                     description=gist['description'] or '',
                 ))
-        provider_url = u"https://gist.github.com/{user}".format(user=user)
+        if self.github_url == 'https://github.com/':
+            gist_base_url = 'https://gist.github.com/'
+        else:
+            gist_base_url = url_path_join(self.github_url, 'gist/')
+        provider_url = url_path_join(gist_base_url, u"{user}".format(user=user))
         html = self.render_usergists_template(entries=entries, user=user, provider_url=provider_url, 
                                               prev_url=prev_url, next_url=next_url, **namespace
+
         )
         yield self.cache_and_finish(html)
 
@@ -155,11 +162,15 @@ class GistHandler(GistClientMixin, RenderingHandler):
                 e['class'] = 'fa-book'
                 ipynbs.append(e)
             else:
-                provider_url = u"https://gist.github.com/{user}/{gist_id}#file-{clean_name}".format(
+                if self.github_url == 'https://github.com/':
+                    gist_base_url = 'https://gist.github.com/'
+                else:
+                    gist_base_url = url_path_join(self.github_url, 'gist/')
+                provider_url = url_path_join(gist_base_url, u"{user}/{gist_id}#file-{clean_name}".format(
                     user=user,
                     gist_id=gist_id,
                     clean_name=clean_filename(file['filename']),
-                )
+                ))
                 e['url'] = provider_url
                 e['class'] = 'fa-share'
                 others.append(e)
@@ -305,9 +316,19 @@ def default_handlers(handlers=[], **handler_names):
 
 
 def uri_rewrites(rewrites=[]):
-    return [
+    gist_rewrites = [
         (r'^([a-f0-9]+)/?$',
             u'/{0}'),
-        ('^https?://gist.github.com/([^\/]+/)?([a-f0-9]+)/?$',
+        (r'^https?://gist.github.com/([^\/]+/)?([a-f0-9]+)/?$',
             u'/{1}'),
-    ] + rewrites
+    ] 
+    # github enterprise
+    if os.environ.get('GITHUB_API_URL', '') != '':
+        gist_base_url = url_path_join(os.environ.get('GITHUB_API_URL').split('/api/v3')[0], 'gist/')
+        gist_rewrites.extend([
+            # Fetching the Gist ID which is embedded in the URL, but with a different base URL
+            (r'^' + gist_base_url + r'([^\/]+/)?([a-f0-9]+)/?$',
+                u'/{1}'),
+        ])
+
+    return gist_rewrites + rewrites
