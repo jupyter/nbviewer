@@ -29,6 +29,7 @@ from ...utils import (
     base64_decode,
     quote,
     response_text,
+    url_path_join,
 )
 
 from .client import AsyncGitHubClient
@@ -290,9 +291,14 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
     """
     @gen.coroutine
     def get_notebook_data(self, user, repo, ref, path):
-        raw_url = u"https://raw.githubusercontent.com/{user}/{repo}/{ref}/{path}".format(
-            user=user, repo=repo, ref=ref, path=quote(path)
-        )
+        if os.environ.get('GITHUB_API_URL', '') == '':
+            raw_url = u"https://raw.githubusercontent.com/{user}/{repo}/{ref}/{path}".format(
+                user=user, repo=repo, ref=ref, path=quote(path)
+            )
+        else: #Github Enterprise has a different URL pattern for accessing raw files
+            raw_url = url_path_join(
+                self.github_url, user, repo, 'raw', ref, quote(path)
+            )
         blob_url = u"{github_url}{user}/{repo}/blob/{ref}/{path}".format(
             user=user, repo=repo, ref=ref, path=quote(path), github_url=self.github_url
         )
