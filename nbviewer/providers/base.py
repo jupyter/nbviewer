@@ -10,6 +10,7 @@ import pickle
 import socket
 import time
 import statsd
+import asyncio
 
 from cgi import escape
 from contextlib import contextmanager
@@ -19,7 +20,6 @@ from http.client import responses
 from urllib.parse import urlparse, urlunparse, quote, urlencode
 
 from tornado import (
-    gen,
     httpclient,
     web,
 )
@@ -92,8 +92,7 @@ class BaseHandler(web.RequestHandler):
     def set_default_headers(self):
         self.add_header('Content-Security-Policy', self.content_security_policy)
 
-    @gen.coroutine
-    def prepare(self):
+    async def prepare(self):
         """Check if the user is authenticated with JupyterHub if the hub
         API endpoint and token are configured.
 
@@ -110,11 +109,11 @@ class BaseHandler(web.RequestHandler):
             encrypted_cookie = self.get_cookie(self.hub_cookie_name)
             if not encrypted_cookie:
                 # no cookie == not authenticated
-                raise gen.Return(redirect_to_login())
+                return redirect_to_login()
 
             try:
                 # if the hub returns a success code, the user is known
-                yield self.http_client.fetch(
+                await self.http_client.fetch(
                     url_path_join(self.hub_api_url,
                                     'authorizations/cookie',
                                     self.hub_cookie_name,
@@ -126,7 +125,7 @@ class BaseHandler(web.RequestHandler):
             except httpclient.HTTPError as ex:
                 if ex.response.code == 404:
                     # hub does not recognize the cookie == not authenticated
-                    raise gen.Return(redirect_to_login())
+                    return redirect_to_login()
                 # let all other errors surface: they're unexpected
                 raise ex
 
@@ -393,8 +392,7 @@ class BaseHandler(web.RequestHandler):
     def fetch_kwargs(self):
         return self.settings.setdefault('fetch_kwargs', {})
 
-    @gen.coroutine
-    def fetch(self, url, **overrides):
+    async def fetch(self, url, **overrides):
         """fetch a url with our async client
 
         handle default arguments and wrapping exceptions
@@ -403,8 +401,8 @@ class BaseHandler(web.RequestHandler):
         kw.update(self.fetch_kwargs)
         kw.update(overrides)
         with self.catch_client_error():
-            response = yield self.client.fetch(url, **kw)
-        raise gen.Return(response)
+            response = await self.client.fetch(url, **kw)
+        return response
 
     def write_error(self, status_code, **kwargs):
         """render custom error pages"""
@@ -471,13 +469,8 @@ class BaseHandler(web.RequestHandler):
             s = "%s...%s" % (s[:limit//2], s[limit//2:])
         return s
 
-    @gen.coroutine
-    def cache_and_finish(self, content=''):
+    async def cache_and_finish(self, content=''):
         """finish a request and cache the result
-
-        does not actually call finish - if used in @web.asynchronous,
-        finish must be called separately. But we never use @web.asynchronous,
-        because we are using gen.coroutine for async.
 
         currently only works if:
 
@@ -512,7 +505,7 @@ class BaseHandler(web.RequestHandler):
         log("caching (expiry=%is) %s", expiry, short_url)
         try:
             with time_block("cache set %s" % short_url):
-                yield self.cache.set(
+                await self.cache.set(
                     self.cache_key, cache_data, int(time.time() + expiry),
                 )
         except Exception:
@@ -527,16 +520,15 @@ def cached(method):
     This only handles getting from the cache, not writing to it.
     Writing to the cache must be handled in the decorated method.
     """
-    @gen.coroutine
-    def cached_method(self, *args, **kwargs):
+    async def cached_method(self, *args, **kwargs):
         uri = self.request.path
         short_url = self.truncate(uri)
 
         if self.get_argument("flush_cache", False):
-            yield self.rate_limiter.check(self)
+            await self.rate_limiter.check(self)
             app_log.info("flushing cache %s", short_url)
             # call the wrapped method
-            yield method(self, *args, **kwargs)
+            await method(self, *args, **kwargs)
             return
         
         pending_future = self.pending.get(uri, None)
@@ -544,7 +536,7 @@ def cached(method):
         if pending_future:
             app_log.info("Waiting for concurrent request at %s", short_url)
             tic = loop.time()
-            yield pending_future
+            await pending_future
             toc = loop.time()
             app_log.info("Waited %.3fs for concurrent request at %s",
                  toc-tic, short_url
@@ -552,7 +544,7 @@ def cached(method):
 
         try:
             with time_block("cache get %s" % short_url):
-                cached_pickle = yield self.cache.get(self.cache_key)
+                cached_pickle = await self.cache.get(self.cache_key)
             if cached_pickle is not None:
                 cached = pickle.loads(cached_pickle)
             else:
@@ -568,11 +560,11 @@ def cached(method):
             self.write(cached['body'])
         else:
             app_log.debug("cache miss %s", short_url)
-            yield self.rate_limiter.check(self)
+            await self.rate_limiter.check(self)
             future = self.pending[uri] = Future()
             try:
                 # call the wrapped method
-                yield method(self, *args, **kwargs)
+                await method(self, *args, **kwargs)
             finally:
                 self.pending.pop(uri, None)
                 # notify waiters
@@ -673,8 +665,7 @@ class RenderingHandler(BaseHandler):
             date=datetime.utcnow().strftime(self.date_fmt),
             **namespace)
                 
-    @gen.coroutine
-    def finish_notebook(self, json_notebook, download_url, msg=None,
+    async def finish_notebook(self, json_notebook, download_url, msg=None,
                         public=False, **namespace):
         """Renders a notebook from its JSON body.
 
@@ -707,9 +698,9 @@ class RenderingHandler(BaseHandler):
             with time_block("Rendered %s" % download_url, debug_limit=0):
                 app_log.info("Rendering %d B notebook from %s", len(json_notebook), download_url)
                 render_time = self.statsd.timer('rendering.nbrender.time').start()
-                nbhtml, config = yield self.pool.submit(render_notebook,
-                    self.formats[self.format], nb, download_url,
-                    config=self.config,
+                loop = asyncio.get_event_loop()
+                nbhtml, config = await loop.run_in_executor(self.pool, render_notebook,
+                    self.formats[self.format], nb, download_url, self.config,
                 )
                 render_time.stop()
         except NbFormatError as e:
@@ -735,7 +726,7 @@ class RenderingHandler(BaseHandler):
 
         if 'content_type' in self.formats[self.format]:
             self.set_header('Content-Type', self.formats[self.format]['content_type'])
-        yield self.cache_and_finish(html)
+        await self.cache_and_finish(html)
 
         # Index notebook
         self.index.index_notebook(download_url, nb, public)

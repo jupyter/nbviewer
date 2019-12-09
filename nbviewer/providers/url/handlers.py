@@ -9,7 +9,6 @@ from urllib.parse import urlparse
 from urllib import robotparser
 
 from tornado import (
-    gen,
     httpclient,
     web,
 )
@@ -30,8 +29,7 @@ from .. import _load_handler_from_location
 
 class URLHandler(RenderingHandler):
     """Renderer for /url or /urls"""
-    @gen.coroutine
-    def get_notebook_data(self, secure, netloc, url):
+    async def get_notebook_data(self, secure, netloc, url):
         proto = 'http' + secure
         netloc = url_unescape(netloc)
 
@@ -60,7 +58,7 @@ class URLHandler(RenderingHandler):
         public = False # Assume non-public
 
         try:
-            robots_response = yield self.fetch(robots_url)
+            robots_response = await self.fetch(robots_url)
             robotstxt = response_text(robots_response)
             rfp = robotparser.RobotFileParser()
             rfp.set_url(robots_url)
@@ -75,9 +73,8 @@ class URLHandler(RenderingHandler):
 
         return remote_url, public
 
-    @gen.coroutine
-    def deliver_notebook(self, remote_url, public):
-        response = yield self.fetch(remote_url)
+    async def deliver_notebook(self, remote_url, public):
+        response = await self.fetch(remote_url)
 
         try:
             nbjson = response_text(response, encoding='utf-8')
@@ -85,17 +82,16 @@ class URLHandler(RenderingHandler):
             app_log.error("Notebook is not utf8: %s", remote_url, exc_info=True)
             raise web.HTTPError(400)
 
-        yield self.finish_notebook(nbjson, download_url=remote_url,
+        await self.finish_notebook(nbjson, download_url=remote_url,
                                    msg="file from url: %s" % remote_url,
                                    public=public,
                                    request=self.request)
 
     @cached
-    @gen.coroutine
-    def get(self, secure, netloc, url):
-        remote_url, public = yield self.get_notebook_data(secure, netloc, url)
+    async def get(self, secure, netloc, url):
+        remote_url, public = await self.get_notebook_data(secure, netloc, url)
 
-        yield self.deliver_notebook(remote_url, public)
+        await self.deliver_notebook(remote_url, public)
 
 def default_handlers(handlers=[], **handler_names):
     """Tornado handlers"""

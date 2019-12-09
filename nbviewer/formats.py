@@ -5,7 +5,6 @@
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
-import re
 import os
 
 from nbconvert.exporters.export import exporter_map

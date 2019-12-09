@@ -11,10 +11,11 @@ import hashlib
 import pickle
 import time
 
-from tornado.simple_httpclient import SimpleAsyncHTTPClient
-from tornado.log import app_log
+import asyncio
 
-from tornado import gen
+from tornado.httpclient import HTTPRequest, HTTPError
+from tornado.curl_httpclient import CurlAsyncHTTPClient
+from tornado.log import app_log
 
 from nbviewer.utils import time_block
 
@@ -47,26 +48,42 @@ class NBViewerAsyncHTTPClient(object):
     
     Responses are cached as long as possible.
     """
-    
+
     cache = None
-    
-    def fetch_impl(self, request, callback):
-        self.io_loop.add_callback(lambda : self._fetch_impl(request, callback))
-    
-    @gen.coroutine
-    def _fetch_impl(self, request, callback):
-        tic = time.time()
+
+    def __init__(self, client=None):
+        self.client = client or CurlAsyncHTTPClient()
+
+    def fetch(self, url, callback=None, params=None, **kwargs):
+        request = HTTPRequest(url, **kwargs)
+
         if request.user_agent is None:
             request.user_agent = 'Tornado-Async-Client'
-        
+
+        # The future which will become the response upon awaiting.
+        response_future = asyncio.ensure_future(self.smart_fetch(request, callback))
+
+        return response_future
+
+    async def smart_fetch(self, request, callback):
+        """
+        Before fetching request, first look to see whether it's already in cache.
+        If so load the response from cache. Only otherwise attempt to fetch the request.
+        When response code isn't 304 or 400, cache response before loading, else just load.
+        """
+        tic = time.time()
+
         # when logging, use the URL without params
         name = request.url.split('?')[0]
-        cached_response = None
         app_log.debug("Fetching %s", name)
+
+        # look for a cached response
+        cached_response = None
         cache_key = hashlib.sha256(request.url.encode('utf8')).hexdigest()
-        with time_block("Upstream cache get %s" % name):
-            cached_response = yield self._get_cached_response(cache_key, name)
-        
+        cached_response = await self._get_cached_response(cache_key, name)
+        toc = time.time()
+        app_log.info("Upstream cache get %s %.2f ms", name, 1e3 * (toc-tic))
+
         if cached_response:
             app_log.info("Upstream cache hit %s", name)
             # add cache headers, if any
@@ -74,58 +91,29 @@ class NBViewerAsyncHTTPClient(object):
                 value = cached_response.headers.get(resp_key)
                 if value:
                     request.headers[req_key] = value
+            return cached_response
         else:
-            app_log.debug("Upstream cache miss %s", name)
-        
-        response = yield gen.Task(super(NBViewerAsyncHTTPClient, self).fetch_impl, request)
-        dt = time.time() - tic
-        if cached_response and (response.code == 304 or response.code >= 400):
-            log = app_log.info if response.code == 304 else app_log.warning
-            log("Upstream %s on %s in %.2f ms, using cached response",
-                response.code, name, 1e3 * dt)
-            response = self._update_cached_response(response, cached_response)
-            callback(response)
-        else:
-            if not response.error:
-                app_log.info("Fetched %s in %.2f ms", name, 1e3 * dt)
-            callback(response)
-            if not response.error:
-                yield self._cache_response(cache_key, name, response)
-    
-    def _update_cached_response(self, three_o_four, cached_response):
-        """Apply any changes to the cached response from the 304
+            app_log.info("Upstream cache miss %s", name)
 
-        Return the HTTPResponse to be used.
+            response = await self.client.fetch(request, callback)
+            dt = time.time() - tic
+            app_log.info("Fetched %s in %.2f ms", name, 1e3 * dt)
+            await self._cache_response(cache_key, name, response)
+            return response
 
-        Currently this hardcodes more recent GitHub rate limit headers,
-        and that's it.
-        Is there a better way for this to be in the right place?
-
-        """
-        # Copy GitHub rate-limit headers from 304 to the cached response
-        # So we don't log stale rate limits.
-        for key, value in three_o_four.headers.items():
-            if key.lower().startswith('x-ratelimit-'):
-                cached_response.headers[key] = value
-
-        return cached_response
-
-    @gen.coroutine
-    def _get_cached_response(self, cache_key, name):
+    async def _get_cached_response(self, cache_key, name):
         """Get the cached response, if any"""
         if not self.cache:
             return
         try:
-            cached_pickle = yield self.cache.get(cache_key)
+            cached_pickle = await self.cache.get(cache_key)
             if cached_pickle:
-                raise gen.Return(pickle.loads(cached_pickle))
-        except gen.Return:
-            raise # FIXME: remove gen.Return when we drop py2 support
+                app_log.info("Type of self.cache is: %s", type(self.cache))
+                return pickle.loads(cached_pickle)
         except Exception:
             app_log.error("Upstream cache get failed %s", name, exc_info=True)
     
-    @gen.coroutine
-    def _cache_response(self, cache_key, name, response):
+    async def _cache_response(self, cache_key, name, response):
         """Cache the response, if any cache headers we understand are present."""
         if not self.cache:
             return
@@ -133,22 +121,10 @@ class NBViewerAsyncHTTPClient(object):
             # cache the response
             try:
                 pickle_response = pickle.dumps(response, pickle.HIGHEST_PROTOCOL)
-                yield self.cache.set(
+                await self.cache.set(
                     cache_key,
                     pickle_response,
                 )
             except Exception:
                 app_log.error("Upstream cache failed %s" % name, exc_info=True)
-
-
-class NBViewerSimpleAsyncHTTPClient(NBViewerAsyncHTTPClient, SimpleAsyncHTTPClient):
-    pass
-
-try:
-    from tornado.curl_httpclient import CurlAsyncHTTPClient
-except ImportError:
-    pass
-else:
-    class NBViewerCurlAsyncHTTPClient(NBViewerAsyncHTTPClient, CurlAsyncHTTPClient):
-        pass
 

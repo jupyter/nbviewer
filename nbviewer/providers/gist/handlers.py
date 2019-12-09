@@ -4,7 +4,7 @@
 import os
 import json
 
-from tornado import web, gen
+from tornado import web
 from tornado.log import app_log
 
 
@@ -76,15 +76,14 @@ class UserGistsHandler(GistClientMixin, BaseHandler):
                                     **namespace)
 
     @cached
-    @gen.coroutine
-    def get(self, user, **namespace):
+    async def get(self, user, **namespace):
         page = self.get_argument("page", None)
         params = {}
         if page:
             params['page'] = page
 
         with self.catch_client_error():
-            response = yield self.github_client.get_gists(user, params=params)
+            response = await self.github_client.get_gists(user, params=params)
 
         prev_url, next_url = self.get_page_links(response)
 
@@ -107,17 +106,16 @@ class UserGistsHandler(GistClientMixin, BaseHandler):
                                               prev_url=prev_url, next_url=next_url, **namespace
 
         )
-        yield self.cache_and_finish(html)
+        await self.cache_and_finish(html)
 
 
 class GistHandler(GistClientMixin, RenderingHandler):
     """render a gist notebook, or list files if a multifile gist"""
 
-    @gen.coroutine
-    def parse_gist(self, user, gist_id, filename=''):
+    async def parse_gist(self, user, gist_id, filename=''):
 
         with self.catch_client_error():
-            response = yield self.github_client.get_gist(gist_id)
+            response = await self.github_client.get_gist(gist_id)
 
         gist = json.loads(response_text(response))
 
@@ -145,8 +143,7 @@ class GistHandler(GistClientMixin, RenderingHandler):
         return user, gist_id, gist, files, many_files_gist
 
    # Analogous to GitHubTreeHandler
-    @gen.coroutine
-    def tree_get(self, user, gist_id, gist, files):
+    async def tree_get(self, user, gist_id, gist, files):
         """
         user, gist_id, gist, and files are (most) of the values returned by parse_gist
         """
@@ -199,32 +196,30 @@ class GistHandler(GistClientMixin, RenderingHandler):
             executor_url=executor_url,
             **self.PROVIDER_CTX
         )
-        yield self.cache_and_finish(html)
+        await self.cache_and_finish(html)
 
     # Analogous to GitHubBlobHandler
-    @gen.coroutine
-    def file_get(self, user, gist_id, filename, gist, many_files_gist, file):
-        content = yield self.get_notebook_data(gist_id, filename, many_files_gist, file)
+    async def file_get(self, user, gist_id, filename, gist, many_files_gist, file):
+        content = await self.get_notebook_data(gist_id, filename, many_files_gist, file)
 
         if not content:
             return
         
-        yield self.deliver_notebook(user, gist_id, filename, gist, file, content)
+        await self.deliver_notebook(user, gist_id, filename, gist, file, content)
 
     # Only called by file_get
-    @gen.coroutine
-    def get_notebook_data(self, gist_id, filename, many_files_gist, file):
+    async def get_notebook_data(self, gist_id, filename, many_files_gist, file):
         """
         gist_id, filename, many_files_gist, file are all passed to file_get
         """
         if (file['type'] or '').startswith('image/'):
             app_log.debug("Fetching raw image (%s) %s/%s: %s", file['type'], gist_id, filename, file['raw_url'])
-            response = yield self.fetch(file['raw_url'])
+            response = await self.fetch(file['raw_url'])
             # use raw bytes for images:
             content = response.body
         elif file['truncated']:
             app_log.debug("Gist %s/%s truncated, fetching %s", gist_id, filename, file['raw_url'])
-            response = yield self.fetch(file['raw_url'])
+            response = await self.fetch(file['raw_url'])
             content = response_text(response, encoding='utf-8')
         else:
             content = file['content']
@@ -239,8 +234,7 @@ class GistHandler(GistClientMixin, RenderingHandler):
             return content
 
     # Only called by file_get
-    @gen.coroutine
-    def deliver_notebook(self, user, gist_id, filename, gist, file, content):
+    async def deliver_notebook(self, user, gist_id, filename, gist, file, content):
         """
         user, gist_id, filename, gist, file, are the same values as those 
         passed into file_get, whereas content is returned from 
@@ -256,7 +250,7 @@ class GistHandler(GistClientMixin, RenderingHandler):
 
         # provider_url: str, optional
         #     URL to the notebook document upstream at the provider (e.g., GitHub)
-        yield self.finish_notebook(
+        await self.finish_notebook(
             content,
             file['raw_url'],
             msg="gist: %s" % gist_id,
@@ -266,16 +260,15 @@ class GistHandler(GistClientMixin, RenderingHandler):
             **self.PROVIDER_CTX)
 
     @cached
-    @gen.coroutine
-    def get(self, user, gist_id, filename=''):
+    async def get(self, user, gist_id, filename=''):
         """
         Encompasses both the case of a single file gist, handled by
         `file_get`, as well as a many-file gist, handled by `tree_get`.
         """
-        user, gist_id, gist, files, many_files_gist = yield self.parse_gist(user, gist_id, filename)
+        user, gist_id, gist, files, many_files_gist = await self.parse_gist(user, gist_id, filename)
 
         if many_files_gist and not filename:
-            yield self.tree_get(user, gist_id, gist, files)
+            await self.tree_get(user, gist_id, gist, files)
 
         else:
             if not many_files_gist and not filename:
@@ -286,7 +279,7 @@ class GistHandler(GistClientMixin, RenderingHandler):
 
             file = files[filename]
 
-            yield self.file_get(user, gist_id, filename, gist, many_files_gist, file)
+            await self.file_get(user, gist_id, filename, gist, many_files_gist, file)
 
 
 class GistRedirectHandler(BaseHandler):
