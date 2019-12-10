@@ -12,7 +12,7 @@ import time
 import statsd
 import asyncio
 
-from cgi import escape
+from html import escape
 from contextlib import contextmanager
 from datetime import datetime
 
