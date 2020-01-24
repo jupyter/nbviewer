@@ -86,6 +86,7 @@ class NBViewer(Application):
     github_tree_handler = Unicode(default_value="nbviewer.providers.github.handlers.GitHubTreeHandler", help="The Tornado handler to use for viewing directory trees on GitHub").tag(config=True)
     gist_handler        = Unicode(default_value="nbviewer.providers.gist.handlers.GistHandler",         help="The Tornado handler to use for viewing notebooks stored as GitHub Gists").tag(config=True)
     user_gists_handler  = Unicode(default_value="nbviewer.providers.gist.handlers.UserGistsHandler",    help="The Tornado handler to use for viewing directory containing all of a user's Gists").tag(config=True)
+    gitlab_handler      = Unicode(default_value="nbviewer.providers.gitlab.handlers.GitlabHandler",     help="The Tornado handler to use for viewing notebooks in a GitLab instance").tag(config=True)
 
     client = Any().tag(config=True)
     @default('client')
@@ -245,6 +246,7 @@ class NBViewer(Application):
                   local_handler=self.local_handler,
                   gist_handler=self.gist_handler,
                   user_gists_handler=self.user_gists_handler,
+                  gitlab_handler=self.gitlab_handler,
         )
         handler_kwargs = {'handler_names' : handler_names, 'handler_settings' : self.handler_settings}
         handlers = init_handlers(self.formats, options.providers, self.base_url, options.localfiles, **handler_kwargs)

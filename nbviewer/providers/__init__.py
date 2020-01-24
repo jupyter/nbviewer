@@ -6,10 +6,10 @@
 #-----------------------------------------------------------------------------
 
 default_providers = ['nbviewer.providers.{}'.format(prov)
-                     for prov in ['url', 'github', 'gist']]
+                     for prov in ['url', 'github', 'gist', 'gitlab']]
 
 default_rewrites = ['nbviewer.providers.{}'.format(prov)
-                    for prov in ['gist', 'github', 'dropbox', 'url']]
+                    for prov in ['gitlab', 'gist', 'github', 'dropbox', 'url']]
 
 
 def provider_handlers(providers, **handler_kwargs):
