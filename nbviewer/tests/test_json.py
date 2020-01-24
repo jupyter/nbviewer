@@ -49,6 +49,5 @@ class BowerJSONTestCase(JSONTestCase):
 class BowerRcJSONTestCase(JSONTestCase):
     json = "nbviewer/static/.bowerrc"
 
-
 class NpmJSONTestCase(JSONTestCase):
     json = "package.json"
