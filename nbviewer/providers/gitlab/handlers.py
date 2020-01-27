@@ -5,25 +5,17 @@ from tornado.log import app_log
 from ..base import RenderingHandler, cached
 from ...utils import response_text
 from .. import _load_handler_from_location
+from .client import GitlabClient
 
 
 class GitlabHandler(RenderingHandler):
 
     async def get_notebook_data(self, host, group, repo, blob, branch, path):
 
-        token = os.environ.get("GITLAB_TOKEN")
-
-        base_url = "https://{host}/api/v4".format(host=host)
-
-        projects_url = ("{base_url}/projects?private_token={token}"
-                        .format(base_url=base_url, token=token))
-
-        app_log.info("Fetching " + projects_url)
+        client = GitlabClient(host)
 
         try:
-            projects_response = await self.fetch(projects_url)
-            projects_text = response_text(projects_response)
-            projects = json.loads(projects_text)
+            projects = await client.projects()
 
             path_with_namespace = "{group}/{repo}".format(group=group, repo=repo)
 
@@ -35,18 +27,7 @@ class GitlabHandler(RenderingHandler):
             else:
                 raise Exception("Project path not found: " + path_with_namespace)
 
-            prj = project["id"]
-            tree_url = ("{base_url}/projects/{prj}/repository/tree?recursive=true&ref={branch}&per_page=1000&private_token={token}"
-                        .format(base_url=base_url,
-                                prj=prj,
-                                branch=branch,
-                                token=token))
-
-            app_log.info("Fetching " + tree_url)
-
-            tree_response = await self.fetch(tree_url)
-            tree_text = response_text(tree_response)
-            tree = json.loads(tree_text)
+            tree = await client.tree(project["id"], branch)
 
             blob = None
             for item in tree:
@@ -56,13 +37,7 @@ class GitlabHandler(RenderingHandler):
             else:
                 raise Exception("Blob not found: " + path)
 
-            sha = blob["id"]
-
-            raw_url = "{base_url}/projects/{prj}/repository/blobs/{sha}/raw?private_token={token}"
-            return raw_url.format(base_url=base_url,
-                                  prj=prj,
-                                  sha=sha,
-                                  token=token)
+            return client.raw_file_url(project["id"], blob["id"])
 
         except Exception as e:
             app_log.error(e)
