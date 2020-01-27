@@ -17,7 +17,7 @@ from .client import GitlabClient
 
 class GitlabHandler(RenderingHandler):
 
-    async def get_notebook_data(self, host, group, repo, blob, branch, path):
+    async def get_notebook_data(self, host, group, repo, path_type, branch, path):
 
         client = GitlabClient(host)
 
@@ -70,8 +70,8 @@ class GitlabHandler(RenderingHandler):
 
 
     @cached
-    async def get(self, host, group, repo, blob, branch, path):
-        raw_url = await self.get_notebook_data(host, group, repo, blob, branch, path)
+    async def get(self, host, group, repo, path_type, branch, path):
+        raw_url = await self.get_notebook_data(host, group, repo, path_type, branch, path)
         await self.deliver_notebook(raw_url)
 
 def uri_rewrites(rewrites=[]):
@@ -85,5 +85,10 @@ def uri_rewrites(rewrites=[]):
 def default_handlers(handlers=[], **handler_names):
     gitlab_handler = _load_handler_from_location(handler_names['gitlab_handler'])
     return handlers + [
-        (r'/gitlab/(?P<host>[\w_\-.]+)/(?P<group>[\w_\-.]+)/(?P<repo>[\w_\-]+)/(?P<blob>blob)/(?P<branch>[\w_\-()]+)/(?P<path>.*)', gitlab_handler, {}),
+        (r'/gitlab/(?P<host>[\w_\-.]+)'
+          '/(?P<group>[\w_\-.]+)'
+          '/(?P<repo>[\w_\-]+)'
+          '/(?P<path_type>blob|tree)'
+          '/(?P<branch>[\w_\-()]+)'
+          '/(?P<path>.*)', gitlab_handler, {}),
     ]
