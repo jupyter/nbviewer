@@ -8,6 +8,7 @@
 import json
 import os
 from tornado import web
+from tornado.httpclient import HTTPClientError
 from tornado.log import app_log
 from ..base import RenderingHandler, cached
 from ...utils import response_text
@@ -17,42 +18,55 @@ from .client import GitlabClient
 
 class GitlabHandler(RenderingHandler):
 
-    async def get_notebook_data(self, host, group, repo, path_type, branch, path):
+    async def lookup_notebook(self, client, path_with_namespace, branch, filepath):
+        """Attempt to find the notebook by searching project trees.
+        Used when an instance is misconfigured and paths are getting sanitised."""
+        projects = await client.projects()
 
+        project = None
+        for p in projects:
+            if p["path_with_namespace"] == path_with_namespace:
+                project = p
+                break
+        else:
+            raise Exception("Project path not found: " + path_with_namespace)
+
+        tree = await client.tree(project["id"], branch, recursive=True)
+
+        blob = None
+        for item in tree:
+            if item["path"] == filepath:
+                blob = item
+                break
+        else:
+            raise Exception("Blob not found: " + filepath)
+
+        return client.raw_file_url(project["id"], blob["id"])
+
+    async def get_notebook_data(self, host, group, repo, path_type, branch, filepath):
         client = GitlabClient(host)
 
+        path_with_namespace = "{group}/{repo}".format(group=group, repo=repo)
+
         try:
-            projects = await client.projects()
-
-            path_with_namespace = "{group}/{repo}".format(group=group, repo=repo)
-
-            project = None
-            for p in projects:
-                if p["path_with_namespace"] == path_with_namespace:
-                    project = p
-                    break
+            fileinfo = await client.fileinfo(path_with_namespace, filepath, branch)
+            return client.raw_file_url(path_with_namespace, fileinfo["blob_id"])
+        except HTTPClientError as http_error:
+            if http_error.code == 404:
+                try:
+                    # Sometimes the url-encoded paths get sanitized, so give this a try
+                    app_log.warn("Unable to access {filepath} in {path_with_namespace} directly, attempting lookup"
+                                 .format(filepath=filepath,
+                                         path_with_namespace=path_with_namespace))
+                    return await self.lookup_notebook(client, path_with_namespace, branch, filepath)
+                except Exception as e:
+                    app_log.error(e)
             else:
-                raise Exception("Project path not found: " + path_with_namespace)
-
-            tree = await client.tree(project["id"], branch)
-
-            blob = None
-            for item in tree:
-                if item["path"] == path:
-                    blob = item
-                    break
-            else:
-                raise Exception("Blob not found: " + path)
-
-            return client.raw_file_url(project["id"], blob["id"])
-
+                app_log.error(http_error)
         except Exception as e:
             app_log.error(e)
 
-
     async def deliver_notebook(self, remote_url):
-        app_log.info("Fetching notebook: " + remote_url)
-
         response = await self.fetch(remote_url)
 
         try:
@@ -66,8 +80,6 @@ class GitlabHandler(RenderingHandler):
                                    msg="file from url: " + remote_url,
                                    public=False,
                                    request=self.request)
-
-
 
     @cached
     async def get(self, host, group, repo, path_type, branch, path):

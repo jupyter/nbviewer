@@ -7,7 +7,8 @@
 
 import json
 import os
-from tornado.httpclient import AsyncHTTPClient, HTTPError
+from urllib.parse import quote_plus
+from tornado.httpclient import AsyncHTTPClient, HTTPClientError
 from tornado.log import app_log
 from ...utils import response_text
 
@@ -35,41 +36,74 @@ class GitlabClient(object):
 
     async def _fetch_json(self, url):
         """Fetch JSON content at URL."""
-        app_log.info("Fetching " + url)
-        response = await self.client.fetch(url)
-        text = response_text(response)
-        content = json.loads(text)
-        return content
+        try:
+            response = await self.client.fetch(url)
+            text = response_text(response)
+            content = json.loads(text)
+            return content
+        except HTTPClientError as ex:
+            # log and raise because this can get lost in async
+            app_log.error(ex)
+            raise ex
 
     async def projects(self):
         """List all projects accessible on this GitLab instance."""
-        projects_url = ("{base}/projects?private_token={token}"
+        projects_url = ("{base}/projects"
+                        "?private_token={token}"
+                        "&simple=true"
                         .format(base=self.api_url, token=self.token))
         return await self._fetch_json(projects_url)
 
-    async def tree(self, project_id, branch):
+    async def tree(self, project_id, branch="master", recursive=False):
         """List all files in the given branch and project.
 
-        project_id: int
+        project_id: int or str
         branch: str
         """
+        if type(project_id) is str:
+            project_id = quote_plus(project_id)
+
         tree_url = ("{base}/projects/{project_id}/repository/tree"
-                    "?recursive=true"
+                    "?private_token={token}"
+                    "&recursive={recursive}"
                     "&ref={branch}"
                     "&per_page=1000"
-                    "&private_token={token}"
                     .format(base=self.api_url,
                             project_id=project_id,
-                            branch=branch,
+                            recursive=str(recursive),
+                            branch=quote_plus(branch),
                             token=self.token))
         return await self._fetch_json(tree_url)
+
+    async def fileinfo(self, project_id, filepath, branch="master"):
+        """Information for file in given branch and project.
+
+        project_id: int or str
+        branch: str
+        filepath: str
+        """
+        if type(project_id) is str:
+            project_id = quote_plus(project_id)
+
+        file_url = ("{base}/projects/{project_id}/repository/files/{filepath}"
+                    "?private_token={token}"
+                    "&ref={branch}"
+                    .format(base=self.api_url,
+                            project_id=project_id,
+                            branch=quote_plus(branch),
+                            filepath=quote_plus(filepath),
+                            token=self.token))
+        return await self._fetch_json(file_url)
 
     def raw_file_url(self, project_id, blob_sha):
         """URL of the raw file matching given blob SHA in project.
 
-        project_id: int
+        project_id: int or str
         blob_sha: str
         """
+        if type(project_id) is str:
+            project_id = quote_plus(project_id)
+
         raw_url = ("{base}/projects/{project_id}"
                    "/repository/blobs/{blob_sha}/raw?private_token={token}")
         return raw_url.format(base=self.api_url,
