@@ -14,7 +14,9 @@ from ...utils import response_text
 
 
 class GitlabClient(object):
-    """Asynchronous client for a private GitLab instance using V4 REST API."""
+    """Asynchronous client for a private GitLab instance using V4 REST API.
+
+    Please see https://docs.gitlab.com/ee/api/ for details."""
 
     def __init__(self, host, token=None, client=None):
         """Init a GitlabClient.
@@ -54,11 +56,13 @@ class GitlabClient(object):
                         .format(base=self.api_url, token=self.token))
         return await self._fetch_json(projects_url)
 
-    async def tree(self, project_id, branch="master", recursive=False):
+    async def tree(self, project_id, branch="master", path=None, recursive=False):
         """List all files in the given branch and project.
 
         project_id: int or str
-        branch: str
+        branch: optional str
+        path: optional str (defaults to root)
+        recursive: optional bool
         """
         if type(project_id) is str:
             project_id = quote_plus(project_id)
@@ -73,6 +77,11 @@ class GitlabClient(object):
                             recursive=str(recursive),
                             branch=quote_plus(branch),
                             token=self.token))
+
+        if path is not None:
+            tree_url = "{url}&path={path}".format(url=tree_url,
+                                                  path=quote_plus(path))
+
         return await self._fetch_json(tree_url)
 
     async def fileinfo(self, project_id, filepath, branch="master"):

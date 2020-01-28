@@ -43,9 +43,7 @@ class GitlabHandler(RenderingHandler):
 
         return client.raw_file_url(project["id"], blob["id"])
 
-    async def get_notebook_data(self, host, group, repo, path_type, branch, filepath):
-        client = GitlabClient(host)
-
+    async def get_notebook_data(self, client, group, repo, branch, filepath):
         path_with_namespace = "{group}/{repo}".format(group=group, repo=repo)
 
         try:
@@ -66,8 +64,18 @@ class GitlabHandler(RenderingHandler):
         except Exception as e:
             app_log.error(e)
 
-    async def deliver_notebook(self, remote_url):
+    async def deliver_notebook(self, host, group, repo, branch, path, remote_url):
         response = await self.fetch(remote_url)
+
+        base_url = ("/gitlab/{host}/{group}/{repo}/tree/{branch}/"
+                    .format(host=host,
+                            group=group,
+                            repo=repo,
+                            branch=branch))
+
+        breadcrumbs = [{"url": base_url, "name": repo}]
+        dirpath = path.rsplit('/', 1)[0]
+        breadcrumbs.extend(self.breadcrumbs(dirpath, base_url))
 
         try:
             nbjson = response_text(response, encoding='utf-8')
@@ -79,12 +87,70 @@ class GitlabHandler(RenderingHandler):
                                    download_url=remote_url,
                                    msg="file from url: " + remote_url,
                                    public=False,
+                                   breadcrumbs=breadcrumbs,
                                    request=self.request)
+
+    def render_dirview_template(self, entries, title, breadcrumbs):
+        return self.render_template('dirview.html',
+                                    entries=entries,
+                                    breadcrumbs=breadcrumbs,
+                                    title=title)
+
+    async def show_dir(self, client, group, repo, branch, dirpath):
+        path_with_namespace = "{group}/{repo}".format(group=group, repo=repo)
+        tree = await client.tree(path_with_namespace, branch, dirpath)
+
+        full_url = "/gitlab/{host}/{group}/{repo}/{path_type}/{branch}/{path}"
+        external_url = "https://{host}/{group}/{repo}/{path_type}/{branch}/{path}"
+
+        base_url = ("/gitlab/{host}/{group}/{repo}/tree/{branch}/"
+                    .format(host=client.host,
+                            group=group,
+                            repo=repo,
+                            branch=branch))
+
+        breadcrumbs = [{"url": base_url, "name": repo}]
+        breadcrumbs.extend(self.breadcrumbs(dirpath, base_url))
+
+        entries = []
+        for item in tree:
+            if item["type"] == "tree":
+                entry_class = "fa fa-folder-open"
+                url = item["path"]
+            elif item["type"] == "blob" and item["path"].endswith("ipynb"):
+                entry_class = "fa fa-book"
+                url = full_url.format(host=client.host,
+                                      group=group,
+                                      repo=repo,
+                                      path_type="blob",
+                                      branch=branch,
+                                      path=item["path"])
+            else:
+                entry_class = "fa fa-share"
+                url = external_url.format(host=client.host,
+                                          group=group,
+                                          repo=repo,
+                                          path_type="blob",
+                                          branch=branch,
+                                          path=item["path"])
+
+            entries.append({"name": item["name"],
+                            "url": url,
+                            "class": entry_class})
+
+        html = self.render_dirview_template(entries=entries,
+                                            title=dirpath,
+                                            breadcrumbs=breadcrumbs)
+        await self.cache_and_finish(html)
 
     @cached
     async def get(self, host, group, repo, path_type, branch, path):
-        raw_url = await self.get_notebook_data(host, group, repo, path_type, branch, path)
-        await self.deliver_notebook(raw_url)
+        client = GitlabClient(host)
+        if path_type == "blob":
+            raw_url = await self.get_notebook_data(client, group, repo, branch, path)
+            await self.deliver_notebook(host, group, repo, branch, path, raw_url)
+        else:
+            await self.show_dir(client, group, repo, branch, path)
 
 def uri_rewrites(rewrites=[]):
     gitlab_rewrites = [
