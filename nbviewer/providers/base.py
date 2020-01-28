@@ -130,105 +130,50 @@ class BaseHandler(web.RequestHandler):
                 raise ex
 
     # Properties
-    @property
-    def pending(self):
-        return self.settings.setdefault('pending', {})
 
     @property
-    def formats(self):
-        return self.settings['formats']
-
-    @property
-    def providers(self):
-        return self.settings['providers']
-
-    @property
-    def default_format(self):
-        return self.settings['default_format']
-
-    @property
-    def config(self):
-        return self.settings['config']
-
-    @property
-    def client(self):
-        return self.settings['client']
-
-    @property
-    def index(self):
-        return self.settings['index']
-
-    @property
-    def cache(self):
-        return self.settings['cache']
-
-    @property
-    def cache_expiry_min(self):
-        return self.settings.setdefault('cache_expiry_min', 60)
-
-    @property
-    def cache_expiry_max(self):
-        return self.settings.setdefault('cache_expiry_max', 120)
-
-    @property
-    def rate_limiter(self):
-        return self.settings['rate_limiter']
-
-    @property
-    def pool(self):
-        return self.settings['pool']
-
-    @property
-    def max_cache_uris(self):
-        return self.settings.setdefault('max_cache_uris', set())
-
-    @property
-    def frontpage_setup(self):
-        return self.settings['frontpage_setup']
-
-    @property
-    def mathjax_url(self):
-        return self.settings['mathjax_url']
-
-    @property
-    def ipywidgets_base_url(self):
-        return self.settings['ipywidgets_base_url']
-
-    @property
-    def jupyter_js_widgets_version(self):
-        return self.settings['jupyter_js_widgets_version']
-
-    @property
-    def jupyter_widgets_html_manager_version(self):
-        return self.settings['jupyter_widgets_html_manager_version']
-
-    @property
-    def content_security_policy(self):
-        return self.settings['content_security_policy']
+    def base_url(self):
+        return self.settings['base_url']
 
     @property
     def binder_base_url(self):
         return self.settings['binder_base_url']
 
     @property
-    def statsd(self):
-        if hasattr(self, '_statsd'):
-            return self._statsd
-        if self.settings['statsd_host']:
-            self._statsd = statsd.StatsClient(
-                self.settings['statsd_host'],
-                self.settings['statsd_port'],
-                self.settings['statsd_prefix'] + '.' + type(self).__name__
-            )
-            return self._statsd
-        else:
-            # return an empty mock object!
-            self._statsd = EmptyClass()
-            return self._statsd
+    def cache(self):
+        return self.settings['cache']
 
     @property
-    def base_url(self):
-        return self.settings['base_url']
+    def cache_expiry_max(self):
+        return self.settings.setdefault('cache_expiry_max', 120)
+
+    @property
+    def cache_expiry_min(self):
+        return self.settings.setdefault('cache_expiry_min', 60)
+
+    @property
+    def client(self):
+        return self.settings['client']
+
+    @property
+    def config(self):
+        return self.settings['config']
+
+    @property
+    def content_security_policy(self):
+        return self.settings['content_security_policy']
+
+    @property
+    def default_format(self):
+        return self.settings['default_format']
+
+    @property
+    def formats(self):
+        return self.settings['formats']
+
+    @property
+    def frontpage_setup(self):
+        return self.settings['frontpage_setup']
 
     @property
     def hub_api_token(self):
@@ -245,6 +190,62 @@ class BaseHandler(web.RequestHandler):
     @property
     def hub_cookie_name(self):
         return 'jupyterhub-services'
+
+    @property
+    def index(self):
+        return self.settings['index']
+
+    @property
+    def ipywidgets_base_url(self):
+        return self.settings['ipywidgets_base_url']
+
+    @property
+    def jupyter_js_widgets_version(self):
+        return self.settings['jupyter_js_widgets_version']
+
+    @property
+    def jupyter_widgets_html_manager_version(self):
+        return self.settings['jupyter_widgets_html_manager_version']
+
+    @property
+    def mathjax_url(self):
+        return self.settings['mathjax_url']
+
+    @property
+    def max_cache_uris(self):
+        return self.settings.setdefault('max_cache_uris', set())
+
+    @property
+    def pending(self):
+        return self.settings.setdefault('pending', {})
+
+    @property
+    def pool(self):
+        return self.settings['pool']
+
+    @property
+    def providers(self):
+        return self.settings['providers']
+
+    @property
+    def rate_limiter(self):
+        return self.settings['rate_limiter']
+
+    @property
+    def statsd(self):
+        if hasattr(self, '_statsd'):
+            return self._statsd
+        if self.settings['statsd_host']:
+            self._statsd = statsd.StatsClient(
+                self.settings['statsd_host'],
+                self.settings['statsd_port'],
+                self.settings['statsd_prefix'] + '.' + type(self).__name__
+            )
+            return self._statsd
+        else:
+            # return an empty mock object!
+            self._statsd = EmptyClass()
+            return self._statsd
 
     #---------------------------------------------------------------
     # template rendering
