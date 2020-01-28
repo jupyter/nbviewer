@@ -109,6 +109,10 @@ class GitHubRedirectHandler(GithubClientMixin, BaseHandler):
 
 class GitHubUserHandler(GithubClientMixin, BaseHandler):
     """list a user's github repos"""
+    def render_github_user_template(self, entries, provider_url, next_url, prev_url, **namespace):
+        return self.render_template("userview.html", entries=entries, provider_url=provider_url,
+                    next_url=next_url, prev_url=prev_url, **self.PROVIDER_CTX, **namespace)
+
     @cached
     async def get(self, user):
         page = self.get_argument("page", None)
@@ -129,10 +133,9 @@ class GitHubUserHandler(GithubClientMixin, BaseHandler):
             ))
   
         provider_url = u"{github_url}{user}".format(user=user, github_url=self.github_url)
-        html = self.render_template("userview.html",
+        html = self.render_github_user_template(
             entries=entries, provider_url=provider_url, 
             next_url=next_url, prev_url=prev_url,
-            **self.PROVIDER_CTX
         )
         await self.cache_and_finish(html)
 
@@ -164,7 +167,7 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
                                     **self.PROVIDER_CTX, **namespace)
 
     @cached
-    async def get(self, user, repo, ref, path, **namespace):
+    async def get(self, user, repo, ref, path):
         if not self.request.uri.endswith('/'):
             self.redirect(self.request.uri + '/')
             return
@@ -260,8 +263,7 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
         html = self.render_treelist_template(
              entries=entries, breadcrumbs=breadcrumbs, provider_url=provider_url,
              user=user, repo=repo, ref=ref, path=path, branches=branches, tags=tags,
-             executor_url=executor_url, **namespace 
-        )
+             executor_url=executor_url)
         await self.cache_and_finish(html)
 
     async def refs(self, user, repo):
@@ -389,6 +391,7 @@ def default_handlers(handlers=[], **handler_names):
 
     blob_handler = _load_handler_from_location(handler_names['github_blob_handler'])
     tree_handler = _load_handler_from_location(handler_names['github_tree_handler'])
+    user_handler = _load_handler_from_location(handler_names['github_user_handler'])
 
     return [
         # ideally these URIs should have been caught by an appropriate
@@ -401,7 +404,7 @@ def default_handlers(handlers=[], **handler_names):
         (r'/url[s]?/raw\.?githubusercontent\.com/(?P<user>[^\/]+)/(?P<repo>[^\/]+)/(?P<path>.*)', RawGitHubURLHandler, {}),
     ] + handlers + [
         (r'/github/([^\/]+)', AddSlashHandler, {}),
-        (r'/github/(?P<user>[^\/]+)/', GitHubUserHandler, {}),
+        (r'/github/(?P<user>[^\/]+)/', user_handler, {}),
         (r'/github/([^\/]+)/([^\/]+)', AddSlashHandler, {}),
         (r'/github/(?P<user>[^\/]+)/(?P<repo>[^\/]+)/', GitHubRepoHandler, {}),
         (r'/github/([^\/]+)/([^\/]+)/(?:blob|raw)/([^\/]+)/(.*)/', RemoveSlashHandler, {}),
