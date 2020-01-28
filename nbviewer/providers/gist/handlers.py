@@ -52,7 +52,7 @@ class GistClientMixin(GithubClientMixin):
         if exc.code == 403 and 'too big' in body.lower():
             return 400, "GitHub will not serve raw gists larger than 10MB"
 
-        return super(GistClientMixin, self).client_error_message(
+        return super().client_error_message(
             exc, url, body, msg
         )
 

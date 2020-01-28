@@ -70,13 +70,13 @@ class JupyterHubServiceTestCase(NBViewerTestCase):
     @classmethod
     def setup_class(cls):
         os.environ.update(cls.HUB_SETTINGS)
-        super(JupyterHubServiceTestCase, cls).setup_class()
+        super().setup_class()
 
     @classmethod
     def teardown_class(cls):
         for key in cls.HUB_SETTINGS.keys():
             del os.environ[key]
-        super(JupyterHubServiceTestCase, cls).teardown_class()
+        super().teardown_class()
 
     def test_login_redirect(self):
         url = self.url('/services/nbviewer-test/github/jupyter')

@@ -155,7 +155,7 @@ class AsyncMultipartMemcache(AsyncMemcache):
     def __init__(self, *args, **kwargs):
         self.chunk_size = kwargs.pop('chunk_size', 950000)
         self.max_chunks = kwargs.pop('max_chunks', 16)
-        super(AsyncMultipartMemcache, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
     
     async def get(self, key, *args, **kwargs):
         keys = [('%s.%i' % (key, idx)).encode()

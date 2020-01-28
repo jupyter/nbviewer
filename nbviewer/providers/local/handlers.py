@@ -61,7 +61,7 @@ class LocalFileHandler(RenderingHandler):
             'url': url_path_join(self.base_url, self._localfile_path),
             'name': 'home'
         }]
-        breadcrumbs.extend(super(LocalFileHandler, self).breadcrumbs(path, self._localfile_path))
+        breadcrumbs.extend(super().breadcrumbs(path, self._localfile_path))
         return breadcrumbs
 
     async def download(self, fullpath):

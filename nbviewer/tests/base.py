@@ -31,7 +31,7 @@ class NBViewerTestCase(TestCase):
     port = 12341
 
     def assertIn(self, observed, expected, *args, **kwargs):
-        return super(NBViewerTestCase, self).assertIn(
+        return super().assertIn(
             to_unicode(observed),
             to_unicode(expected),
             *args,
@@ -39,7 +39,7 @@ class NBViewerTestCase(TestCase):
         )
 
     def assertNotIn(self, observed, expected, *args, **kwargs):
-        return super(NBViewerTestCase, self).assertNotIn(
+        return super().assertNotIn(
             to_unicode(observed),
             to_unicode(expected),
             *args,
