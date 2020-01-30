@@ -2,6 +2,7 @@ import os
 import sys
 
 from tempfile import NamedTemporaryFile
+from subprocess import PIPE
 from subprocess import Popen
 
 # Also copied mostly from JupyterHub since again -- if not broken, don't fix.
@@ -34,5 +35,6 @@ def test_generate_config():
         cfg_text = f.read()
     os.remove(cfg_file)
     assert cfg_file in out
-    assert 'NBViewer.name' in cfg_text
+    assert 'NBViewer.name' not in cfg_text # This shouldn't be configurable
+    assert 'NBViewer.local_handler' in cfg_text
     assert 'NBViewer.static_path' in cfg_text

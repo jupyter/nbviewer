@@ -334,7 +334,7 @@ class NBViewer(Application):
         self.tornado_application = web.Application(handlers, debug=options.debug, **settings)
 
     # Mostly copied from JupyterHub because if it isn't broken then don't fix it
-    def write_config(self):
+    def write_config_file(self):
         """Write our default config to a .py config file"""
         config_file_dir = os.path.dirname(os.path.abspath(options.config_file))
         if not os.path.isdir(config_file_dir):
