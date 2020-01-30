@@ -382,12 +382,15 @@ def init_options():
         # already run
         return
 
-    # check if JupyterHub service options are available to use as defaults
-    if 'JUPYTERHUB_SERVICE_URL' in os.environ:
-        url = urlparse(os.environ['JUPYTERHUB_SERVICE_URL'])
-        default_host, default_port = url.hostname, url.port
-    else:
-        default_host, default_port = '0.0.0.0', 5000
+    # Make this a cached property of NBViewer during traitlets refactor
+    def default_endpoint():
+        # check if JupyterHub service options are available to use as defaults
+        if 'JUPYTERHUB_SERVICE_URL' in os.environ:
+            url = urlparse(os.environ['JUPYTERHUB_SERVICE_URL'])
+            default_host, default_port = url.hostname, url.port
+        else:
+            default_host, default_port = '0.0.0.0', 5000
+        return {'host': default_host, 'port': default_port}
 
     define("answer_yes", default=False, help="Answer yes to any questions (e.g. confirm overwrite).", type=bool)
     define("base_url", default='/', help='URL base for the server')
@@ -400,7 +403,7 @@ def init_options():
     define("default_format", default="html", help="format to use for legacy / URLs", type=str)
     define("frontpage", default=FRONTPAGE_JSON, help="path to json file containing frontpage content", type=str)
     define("generate_config", default=False, help="Generate default config file and then stop.", type=bool)
-    define("host", default=default_host, help="run on the given interface", type=str)
+    define("host", default=default_endpoint()['host'], help="run on the given interface", type=str)
     define("ipywidgets_base_url", default="https://unpkg.com/", help="URL base for ipywidgets JS package", type=str)
     define("jupyter_js_widgets_version", default="*", help="Version specifier for jupyter-js-widgets JS package", type=str)
     define("jupyter_widgets_html_manager_version", default="*", help="Version specifier for @jupyter-widgets/html-manager JS package", type=str)
@@ -411,7 +414,7 @@ def init_options():
     define("mc_threads", default=1, help="number of threads to use for Async Memcache", type=int)
     define("no_cache", default=False, help="Do not cache results", type=bool)
     define("no_check_certificate", default=False, help="Do not validate SSL certificates", type=bool)
-    define("port", default=default_port, help="run on the given port", type=int)
+    define("port", default=default_endpoint()['port'], help="run on the given port", type=int)
     define("processes", default=0, help="use processes instead of threads for rendering", type=int)
     define("provider_rewrites", default=default_rewrites, help="Full dotted package(s) that provide `uri_rewrites`", type=str, multiple=True, group="provider")
     define("providers", default=default_providers, help="Full dotted package(s) that provide `default_handlers`", type=str, multiple=True, group="provider")

@@ -191,7 +191,7 @@ If you'd like to write a new format, open a ticket, or speak up on [gitter](http
 We have some work yet to do to support your next big thing in notebook
 publishing, and we'd love to hear from you.
 
-#### Config file
+## Config File and Command Line Configuration
 
 NBViewer is configurable using a config file, by default called `nbviewer_config.py`. You can modify the name and location of the config file that NBViewer looks for using the `--config-file` command line flag. (The location is always a relative path, i.e. relative to where the command `python -m nbviewer` is run, and never an absolute path.) 
 
