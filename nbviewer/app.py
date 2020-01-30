@@ -77,8 +77,6 @@ class NBViewer(Application):
 
     name = Unicode('nbviewer')
 
-    config_file = Unicode('nbviewer_config.py', help="The config file to load").tag(config=True)
-
     # Use this to insert custom configuration of handlers for NBViewer extensions
     handler_settings = Dict().tag(config=True)
 
@@ -335,9 +333,47 @@ class NBViewer(Application):
         # create the app
         self.tornado_application = web.Application(handlers, debug=options.debug, **settings)
 
+    # Mostly copied from JupyterHub because if it isn't broken then don't fix it
+    def write_config(self):
+        """Write our default config to a .py config file"""
+        config_file_dir = os.path.dirname(os.path.abspath(options.config_file))
+        if not os.path.isdir(config_file_dir):
+            self.exit("{} does not exist. The destination directory must exist before generating config file.".format(config_file_dir))
+        if os.path.exists(options.config_file) and not options.answer_yes:
+            answer = ''
+
+            def ask():
+                prompt = "Overwrite %s with default config? [y/N]" % options.config_file
+                try:
+                    return input(prompt).lower() or 'n'
+                except KeyboardInterrupt:
+                    print('')  # empty line
+                    return 'n'
+
+            answer = ask()
+            while not answer.startswith(('y', 'n')):
+                print("Please answer 'yes' or 'no'")
+                answer = ask()
+            if answer.startswith('n'):
+                self.exit("Not overwriting config file with default.")
+
+        # Inherited method from traitlets.Application
+        config_text = self.generate_config_file()
+        if isinstance(config_text, bytes):
+            config_text = config_text.decode('utf8')
+        print("Writing default config to: %s" % options.config_file)
+        with open(options.config_file, mode='w') as f:
+            f.write(config_text)
+        self.exit("Wrote default config file.")
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.load_config_file(self.config_file)
+
+        if options.generate_config:
+            self.write_config_file()
+
+        # Inherited method from traitlets.Application
+        self.load_config_file(options.config_file)
         self.init_tornado_application()
 
 def init_options():
@@ -353,14 +389,17 @@ def init_options():
     else:
         default_host, default_port = '0.0.0.0', 5000
 
+    define("answer_yes", default=False, help="Answer yes to any questions (e.g. confirm overwrite).", type=bool)
     define("base_url", default='/', help='URL base for the server')
     define("binder_base_url", default="https://mybinder.org/v2", help="URL base for binder notebook execution service", type=str)
     define("cache_expiry_max", default=2*60*60, help="maximum cache expiry (seconds)", type=int)
     define("cache_expiry_min", default=10*60, help="minimum cache expiry (seconds)", type=int)
+    define("config_file", default='nbviewer_config.py', help="The config file to load", type=str)
     define("content_security_policy", default="connect-src 'none';", help="Content-Security-Policy header setting", type=str)
     define("debug", default=False, help="run in debug mode", type=bool)
     define("default_format", default="html", help="format to use for legacy / URLs", type=str)
     define("frontpage", default=FRONTPAGE_JSON, help="path to json file containing frontpage content", type=str)
+    define("generate_config", default=False, help="Generate default config file and then stop.", type=bool)
     define("host", default=default_host, help="run on the given interface", type=str)
     define("ipywidgets_base_url", default="https://unpkg.com/", help="URL base for ipywidgets JS package", type=str)
     define("jupyter_js_widgets_version", default="*", help="Version specifier for jupyter-js-widgets JS package", type=str)
