@@ -132,14 +132,13 @@ class NBViewer(Application):
     _static_url_prefix = Unicode()
     @default('_static_url_prefix')
     def _load_static_url_prefix(self):
-        # Last '/' ensures that NBViewer still works regardless of whether user chooses e.g. '/static2/' pr '/static2' as their custom prefix
-        return url_path_join(self.base_url, self.static_url_prefix, '/')
+        # Last '/' ensures that NBViewer still works regardless of whether user chooses e.g. '/static2/' or '/static2' as their custom prefix
+        return url_path_join(self._base_url, self.static_url_prefix, '/')
 
+    # prefer the JupyterHub defined service prefix over the CLI
     @cached_property
-    def base_url(self):
-        # prefer the JupyterHub defined service prefix over the CLI
-        base_url = os.getenv("JUPYTERHUB_SERVICE_PREFIX", options.base_url)
-        return base_url
+    def _base_url(self):
+        return os.getenv("JUPYTERHUB_SERVICE_PREFIX", options.base_url)
 
     @cached_property
     def cache(self):
@@ -273,7 +272,7 @@ class NBViewer(Application):
                   user_gists_handler=self.user_gists_handler,
         )
         handler_kwargs = {'handler_names' : handler_names, 'handler_settings' : self.handler_settings}
-        handlers = init_handlers(self.formats, options.providers, self.base_url, options.localfiles, **handler_kwargs)
+        handlers = init_handlers(self.formats, options.providers, self._base_url, options.localfiles, **handler_kwargs)
         
         # NBConvert config
         self.config.NbconvertApp.fileext = 'html'
@@ -288,7 +287,7 @@ class NBViewer(Application):
         settings = dict(
                   # Allow FileFindHandler to load static directories from e.g. a Docker container
                   allow_remote_access=True,
-                  base_url=self.base_url,
+                  base_url=self._base_url,
                   binder_base_url=options.binder_base_url,
                   cache=self.cache,
                   cache_expiry_max=options.cache_expiry_max,
