@@ -3,6 +3,7 @@
 import unittest.mock as mock
 
 from tornado.httpclient import AsyncHTTPClient
+from tornado.log import app_log
 from tornado.testing import AsyncTestCase
 
 from ..client import AsyncGitHubClient
@@ -18,7 +19,7 @@ class GithubClientTest(AsyncTestCase):
         
         # patch the enviornment so that we get a known url prefix.
         with mock.patch('os.environ.get', return_value='https://api.github.com/'):
-            self.gh_client = AsyncGitHubClient(client=self.http_client)
+            self.gh_client = AsyncGitHubClient(log=app_log, client=self.http_client)
 
     def _get_url(self):
         """Get the last url requested from the mock http client."""

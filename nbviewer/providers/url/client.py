@@ -15,7 +15,6 @@ import asyncio
 
 from tornado.httpclient import HTTPRequest, HTTPError
 from tornado.curl_httpclient import CurlAsyncHTTPClient
-from tornado.log import app_log
 
 from nbviewer.utils import time_block
 
@@ -51,7 +50,8 @@ class NBViewerAsyncHTTPClient(object):
 
     cache = None
 
-    def __init__(self, client=None):
+    def __init__(self, log, client=None):
+        self.log = log
         self.client = client or CurlAsyncHTTPClient()
 
     def fetch(self, url, params=None, **kwargs):
@@ -75,17 +75,17 @@ class NBViewerAsyncHTTPClient(object):
 
         # when logging, use the URL without params
         name = request.url.split('?')[0]
-        app_log.debug("Fetching %s", name)
+        self.log.debug("Fetching %s", name)
 
         # look for a cached response
         cached_response = None
         cache_key = hashlib.sha256(request.url.encode('utf8')).hexdigest()
         cached_response = await self._get_cached_response(cache_key, name)
         toc = time.time()
-        app_log.info("Upstream cache get %s %.2f ms", name, 1e3 * (toc-tic))
+        self.log.info("Upstream cache get %s %.2f ms", name, 1e3 * (toc-tic))
 
         if cached_response:
-            app_log.info("Upstream cache hit %s", name)
+            self.log.info("Upstream cache hit %s", name)
             # add cache headers, if any
             for resp_key, req_key in cache_headers.items():
                 value = cached_response.headers.get(resp_key)
@@ -93,11 +93,11 @@ class NBViewerAsyncHTTPClient(object):
                     request.headers[req_key] = value
             return cached_response
         else:
-            app_log.info("Upstream cache miss %s", name)
+            self.log.info("Upstream cache miss %s", name)
 
             response = await self.client.fetch(request)
             dt = time.time() - tic
-            app_log.info("Fetched %s in %.2f ms", name, 1e3 * dt)
+            self.log.info("Fetched %s in %.2f ms", name, 1e3 * dt)
             await self._cache_response(cache_key, name, response)
             return response
 
@@ -108,16 +108,16 @@ class NBViewerAsyncHTTPClient(object):
         try:
             cached_pickle = await self.cache.get(cache_key)
             if cached_pickle:
-                app_log.info("Type of self.cache is: %s", type(self.cache))
+                self.log.info("Type of self.cache is: %s", type(self.cache))
                 return pickle.loads(cached_pickle)
         except Exception:
-            app_log.error("Upstream cache get failed %s", name, exc_info=True)
-
+            self.log.error("Upstream cache get failed %s", name, exc_info=True)
+    
     async def _cache_response(self, cache_key, name, response):
         """Cache the response, if any cache headers we understand are present."""
         if not self.cache:
             return
-        with time_block("Upstream cache set %s" % name):
+        with time_block("Upstream cache set %s" % name, logger=self.log):
             # cache the response
             try:
                 pickle_response = pickle.dumps(response, pickle.HIGHEST_PROTOCOL)
@@ -126,5 +126,5 @@ class NBViewerAsyncHTTPClient(object):
                     pickle_response,
                 )
             except Exception:
-                app_log.error("Upstream cache failed %s" % name, exc_info=True)
+                self.log.error("Upstream cache failed %s" % name, exc_info=True)
 

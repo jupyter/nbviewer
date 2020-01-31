@@ -14,7 +14,6 @@ import asyncio
 from tornado import (
     web,
 )
-from tornado.log import app_log
 from tornado.escape import url_unescape
 
 from ..base import (
@@ -76,7 +75,7 @@ class GithubClientMixin(object):
     def github_client(self):
         """Create an upgraded github API client from the HTTP client"""
         if getattr(self, "_github_client", None) is None:
-            self._github_client = AsyncGitHubClient(self.client)
+            self._github_client = AsyncGitHubClient(self.log, self.client)
         return self._github_client
     
     def client_error_message(self, exc, url, body, msg=None):
@@ -94,7 +93,7 @@ class RawGitHubURLHandler(BaseHandler):
         new_url = u'{format}/github/{user}/{repo}/blob/{path}'.format(
             format=self.format_prefix, user=user, repo=repo, path=path,
         )
-        app_log.info("Redirecting %s to %s", self.request.uri, new_url)
+        self.log.info("Redirecting %s to %s", self.request.uri, new_url)
         self.redirect(self.from_base(new_url))
 
 
@@ -103,7 +102,7 @@ class GitHubRedirectHandler(GithubClientMixin, BaseHandler):
     def get(self, url):
         new_url = u'{format}/github/{url}'.format(
             format=self.format_prefix, url=url)
-        app_log.info("Redirecting %s to %s", self.request.uri, new_url)
+        self.log.info("Redirecting %s to %s", self.request.uri, new_url)
         self.redirect(self.from_base(new_url))
 
 
@@ -144,7 +143,7 @@ class GitHubRepoHandler(BaseHandler):
     """redirect /github/user/repo to .../tree/master"""
     def get(self, user, repo):
         new_url = self.from_base('/', self.format_prefix, 'github', user, repo, 'tree', 'master')
-        app_log.info("Redirecting %s to %s", self.request.uri, new_url)
+        self.log.info("Redirecting %s to %s", self.request.uri, new_url)
         self.redirect(new_url)
 
 
@@ -186,7 +185,7 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
                 ))
 
         if not isinstance(contents, list):
-            app_log.info(
+            self.log.info(
                 "{format}/{user}/{repo}/{ref}/{path} not tree, redirecting to blob",
                 extra=dict(format=self.format_prefix, user=user, repo=repo, ref=ref, path=path)
             )
@@ -310,7 +309,7 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
             tree_url = "/github/{user}/{repo}/tree/{ref}/{path}/".format(
                 user=user, repo=repo, ref=ref, path=quote(path),
             )
-            app_log.info("%s is a directory, redirecting to %s", self.request.path, tree_url)
+            self.log.info("%s is a directory, redirecting to %s", self.request.path, tree_url)
             self.redirect(tree_url)
             return
 
@@ -357,7 +356,7 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
                 else:
                     nbjson = filedata
             except Exception as e:
-                app_log.error("Failed to decode notebook: %s", raw_url, exc_info=True)
+                self.log.error("Failed to decode notebook: %s", raw_url, exc_info=True)
                 raise web.HTTPError(400)
 
             # Explanation of some kwargs passed into `finish_notebook`:
@@ -382,7 +381,12 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
 
     @cached
     async def get(self, user, repo, ref, path):
-        raw_url, blob_url, tree_entry = await self.get_notebook_data(user, repo, ref, path)
+        notebook_data = await self.get_notebook_data(user, repo, ref, path)
+
+        if notebook_data is not None:
+            raw_url, blob_url, tree_entry = notebook_data
+        else:
+            return
 
         await self.deliver_notebook(user, repo, ref, path, raw_url, blob_url, tree_entry)
 
