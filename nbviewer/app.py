@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2013 The IPython Development Team
+#  Copyright (C) Jupyter Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
@@ -36,7 +36,7 @@ from .formats import default_formats
 from nbconvert.exporters.export import exporter_map
 
 from .providers import default_providers, default_rewrites
-from .providers.url.client import NBViewerAsyncHTTPClient as HTTPClientClass
+from .client import NBViewerAsyncHTTPClient as HTTPClientClass
 from .ratelimit import RateLimiter
 
 from .log import log_request
@@ -248,7 +248,7 @@ class NBViewer(Application):
     # Ditto the above: https://github.com/ipython/traitlets/blob/master/traitlets/config/application.py#L197
     @default('log_format')
     def _log_format_default(self):
-        """override default log format to include time and color, plus always display the log level, not just when it's high"""
+        """override default log format to include time and color, plus to always display the log level, not just when it's high"""
         return "%(color)s[%(levelname)1.1s %(asctime)s.%(msecs).03d %(name)s %(module)s:%(lineno)d]%(end_color)s %(message)s"
 
     # For consistency with JupyterHub logs
