@@ -25,6 +25,7 @@ NOTEBOOK_STATIC_PATH = os.path.join(APP_ROOT, 'notebook-%s' % NOTEBOOK_VERSION, 
 def test(ctx):
     ctx.run("nosetests -v")
 
+
 @invoke.task
 def bower(ctx):
     ctx.run(

@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2020 The IPython Development Team
+#  Copyright (C) Jupyter Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
@@ -31,6 +31,7 @@ class Custom404(BaseHandler):
 
 class IndexHandler(BaseHandler):
     """Render the index"""
+
     def render_index_template(self, **namespace):
         return self.render_template(
             'index.html',
@@ -43,7 +44,6 @@ class IndexHandler(BaseHandler):
 
     def get(self):
         self.finish(self.render_index_template())
-
 
 class FAQHandler(BaseHandler):
     """Render the markdown FAQ page"""
@@ -115,13 +115,13 @@ def init_handlers(formats, providers, base_url, localfiles, **handler_kwargs):
     handler_settings = handler_kwargs['handler_settings']
     handler_names = handler_kwargs['handler_names']
 
-    index_handler     = _load_handler_from_location(handler_names['index_handler'])
-    faq_handler       = _load_handler_from_location(handler_names['faq_handler'])
-    create_handler    = _load_handler_from_location(handler_names['create_handler'])
+    create_handler = _load_handler_from_location(handler_names['create_handler'])
     custom404_handler = _load_handler_from_location(handler_names['custom404_handler'])
+    faq_handler = _load_handler_from_location(handler_names['faq_handler'])
+    index_handler = _load_handler_from_location(handler_names['index_handler'])
 
     # If requested endpoint matches multiple routes, it only gets handled by handler
-    # corresponding to first matching route. So order of URLSpecs in this list matters.
+    # corresponding to the first matching route. So order of URLSpecs in this list matters.
     pre_providers = [
         ('/?', index_handler, {}),
         ('/index.html', index_handler, {}),

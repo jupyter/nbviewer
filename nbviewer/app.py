@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2020 The IPython Development Team
+#  Copyright (C) Jupyter Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
@@ -151,18 +151,17 @@ class NBViewer(Application):
     # Use this to insert custom configuration of handlers for NBViewer extensions
     handler_settings = Dict().tag(config=True)
 
-    url_handler         = Unicode(default_value="nbviewer.providers.url.handlers.URLHandler",           help="The Tornado handler to use for viewing notebooks accessed via URL").tag(config=True)
-    local_handler       = Unicode(default_value="nbviewer.providers.local.handlers.LocalFileHandler",   help="The Tornado handler to use for viewing notebooks found on a local filesystem").tag(config=True)
+    create_handler      = Unicode(default_value="nbviewer.handlers.CreateHandler",                      help="The Tornado handler to use for creation via frontpage form.").tag(config=True)
+    custom404_handler   = Unicode(default_value="nbviewer.handlers.Custom404",                          help="The Tornado handler to use for rendering 404 templates.").tag(config=True)
+    faq_handler         = Unicode(default_value="nbviewer.handlers.FAQHandler",                         help="The Tornado handler to use for rendering and viewing the FAQ section.").tag(config=True)
+    gist_handler        = Unicode(default_value="nbviewer.providers.gist.handlers.GistHandler",         help="The Tornado handler to use for viewing notebooks stored as GitHub Gists").tag(config=True)
     github_blob_handler = Unicode(default_value="nbviewer.providers.github.handlers.GitHubBlobHandler", help="The Tornado handler to use for viewing notebooks stored as blobs on GitHub").tag(config=True)
     github_tree_handler = Unicode(default_value="nbviewer.providers.github.handlers.GitHubTreeHandler", help="The Tornado handler to use for viewing directory trees on GitHub").tag(config=True)
-    gist_handler        = Unicode(default_value="nbviewer.providers.gist.handlers.GistHandler",         help="The Tornado handler to use for viewing notebooks stored as GitHub Gists").tag(config=True)
-    user_gists_handler  = Unicode(default_value="nbviewer.providers.gist.handlers.UserGistsHandler",    help="The Tornado handler to use for viewing directory containing all of a user's Gists").tag(config=True)
-
-    custom404_handler   = Unicode(default_value="nbviewer.handlers.Custom404",                          help="The Tornado handler to use for rendering 404 templates.").tag(config=True)
-    index_handler       = Unicode(default_value="nbviewer.handlers.IndexHandler",                       help="The Tornado handler to use for rendering the frontpage section.").tag(config=True)
-    faq_handler         = Unicode(default_value="nbviewer.handlers.FAQHandler",                         help="The Tornado handler to use for rendering and viewing the FAQ section.").tag(config=True)
-    create_handler      = Unicode(default_value="nbviewer.handlers.CreateHandler",                      help="The Tornado handler to use for creation via frontpage form.").tag(config=True)
     github_user_handler = Unicode(default_value="nbviewer.providers.github.handlers.GitHubUserHandler", help="The Tornado handler to use for viewing all of a user's repositories on GitHub.").tag(config=True)
+    index_handler       = Unicode(default_value="nbviewer.handlers.IndexHandler",                       help="The Tornado handler to use for rendering the frontpage section.").tag(config=True)
+    local_handler       = Unicode(default_value="nbviewer.providers.local.handlers.LocalFileHandler",   help="The Tornado handler to use for viewing notebooks found on a local filesystem").tag(config=True)
+    url_handler         = Unicode(default_value="nbviewer.providers.url.handlers.URLHandler",           help="The Tornado handler to use for viewing notebooks accessed via URL").tag(config=True)
+    user_gists_handler  = Unicode(default_value="nbviewer.providers.gist.handlers.UserGistsHandler",    help="The Tornado handler to use for viewing directory containing all of a user's Gists").tag(config=True)
 
     answer_yes = Bool(default_value=False, help="Answer yes to any questions (e.g. confirm overwrite).").tag(config=True)
 
@@ -383,7 +382,7 @@ class NBViewer(Application):
                               }
         return frontpage_setup
 
-    # Attribute inherited from Application, automatically used to style logs
+    # Attribute inherited from traitlets.config.Application, automatically used to style logs
     # https://github.com/ipython/traitlets/blob/master/traitlets/config/application.py#L191
     _log_formatter_cls = LogFormatter
     # Need Tornado LogFormatter for color logs, keys 'color' and 'end_color' in log_format
@@ -455,7 +454,7 @@ class NBViewer(Application):
         self.config.TemplateExporter.template_path = [
             os.path.join(os.path.dirname(__file__), "templates", "nbconvert")
         ]
-    
+
         for key, format in formats.items():
             exporter_cls = format.get("exporter", exporter_map[key])
             if self.processes:
@@ -546,14 +545,15 @@ class NBViewer(Application):
         self.tornado_application = web.Application(handlers, **settings)
 
     def init_logging(self):
-        # Note that we inherit a self.log attribute from Application
+
+        # Note that we inherit a self.log attribute from traitlets.config.Application
         # https://github.com/ipython/traitlets/blob/master/traitlets/config/application.py#L209
         # as well as a log_level attribute
         # https://github.com/ipython/traitlets/blob/master/traitlets/config/application.py#L177
 
         # This prevents double log messages because tornado use a root logger that
-        # self.log is a child of. The logging module dipatches log messages to a log
-        # and all of its ancenstors until propagate is set to False.
+        # self.log is a child of. The logging module dispatches log messages to a log
+        # and all of its ancestors until propagate is set to False.
         self.log.propagate = False
 
         tornado_log = logging.getLogger('tornado')
@@ -574,11 +574,7 @@ class NBViewer(Application):
         """Write our default config to a .py config file"""
         config_file_dir = os.path.dirname(os.path.abspath(self.config_file))
         if not os.path.isdir(config_file_dir):
-            self.exit(
-                "{} does not exist. The destination directory must exist before generating config file.".format(
-                    config_file_dir
-                )
-            )
+            self.exit("{} does not exist. The destination directory must exist before generating config file.".format(config_file_dir))
         if os.path.exists(self.config_file) and not self.answer_yes:
             answer = ''
 
@@ -614,6 +610,7 @@ class NBViewer(Application):
         if self.generate_config:
             self.write_config_file()
 
+        # Inherited method from traitlets.config.Application
         self.load_config_file(self.config_file)
         self.init_logging()
         self.init_tornado_application()

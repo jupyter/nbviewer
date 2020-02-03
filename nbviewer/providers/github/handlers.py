@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2020 The IPython Development Team
+#  Copyright (C) Jupyter Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
@@ -107,12 +107,9 @@ class GitHubRedirectHandler(GithubClientMixin, BaseHandler):
 
 class GitHubUserHandler(GithubClientMixin, BaseHandler):
     """list a user's github repos"""
-    def render_github_user_template(self, entries, provider_url,
-                                    next_url, prev_url, **namespace):
-        return self.render_template("userview.html",
-                entries=entries, provider_url=provider_url,
-                next_url=next_url, prev_url=prev_url,
-                **self.PROVIDER_CTX, **namespace)
+    def render_github_user_template(self, entries, provider_url, next_url, prev_url, **namespace):
+        return self.render_template("userview.html", entries=entries, provider_url=provider_url,
+                    next_url=next_url, prev_url=prev_url, **self.PROVIDER_CTX, **namespace)
 
     @cached
     async def get(self, user):
@@ -134,7 +131,7 @@ class GitHubUserHandler(GithubClientMixin, BaseHandler):
             ))
   
         provider_url = u"{github_url}{user}".format(user=user, github_url=self.github_url)
-        html = self.render_template("userview.html",
+        html = self.render_github_user_template(
             entries=entries, provider_url=provider_url, 
             next_url=next_url, prev_url=prev_url,
             **self.PROVIDER_CTX

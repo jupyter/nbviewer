@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2020 The IPython Development Team
+#  Copyright (C) Jupyter Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
@@ -150,6 +150,27 @@ class BaseHandler(web.RequestHandler):
         return self.settings.setdefault('cache_expiry_min', 60)
 
     @property
+    def cache_headers(self):
+        # are there other headers to cache?
+        h = {}
+        for key in ('Content-Type',):
+            if key in self._headers:
+                h[key] = self._headers[key]
+        return h
+
+    _cache_key = None
+    _cache_key_attr = 'uri'
+    @property
+    def cache_key(self):
+        """Use checksum for cache key because cache has size limit on keys
+        """
+
+        if self._cache_key is None:
+            to_hash = utf8(getattr(self.request, self._cache_key_attr))
+            self._cache_key = hashlib.sha1(to_hash).hexdigest()
+        return self._cache_key
+
+    @property
     def client(self):
         return self.settings['client']
 
@@ -256,6 +277,19 @@ class BaseHandler(web.RequestHandler):
             # return an empty mock object!
             self._statsd = EmptyClass()
             return self._statsd
+
+    @property
+    def template_namespace(self):
+        return {
+            "mathjax_url": self.mathjax_url,
+            "static_url": self.static_url,
+            "from_base": self.from_base,
+            "google_analytics_id": self.settings.get('google_analytics_id'),
+            "ipywidgets_base_url": self.ipywidgets_base_url,
+            "jupyter_js_widgets_version": self.jupyter_js_widgets_version,
+            "jupyter_widgets_html_manager_version": self.jupyter_widgets_html_manager_version,
+        }
+
     #---------------------------------------------------------------
     # template rendering
     #---------------------------------------------------------------
@@ -283,21 +317,9 @@ class BaseHandler(web.RequestHandler):
     def render_error_template(self, **namespace):
         return self.render_template('error.html', **namespace)
 
-    # Overwrite the static_url from Tornado to work better with our custom StaticFileHandler
+    # Overwrite the static_url method from Tornado to work better with our custom StaticFileHandler
     def static_url(self, url):
         return url_path_join(self.static_url_prefix, url)
-
-    @property
-    def template_namespace(self):
-        return {
-            "mathjax_url": self.mathjax_url,
-            "static_url": self.static_url,
-            "from_base": self.from_base,
-            "google_analytics_id": self.settings.get('google_analytics_id'),
-            "ipywidgets_base_url": self.ipywidgets_base_url,
-            "jupyter_js_widgets_version": self.jupyter_js_widgets_version,
-            "jupyter_widgets_html_manager_version": self.jupyter_widgets_html_manager_version,
-        }
 
     def breadcrumbs(self, path, base_url):
         """Generate a list of breadcrumbs"""
@@ -452,27 +474,6 @@ class BaseHandler(web.RequestHandler):
     #---------------------------------------------------------------
     # response caching
     #---------------------------------------------------------------
-
-    @property
-    def cache_headers(self):
-        # are there other headers to cache?
-        h = {}
-        for key in ('Content-Type',):
-            if key in self._headers:
-                h[key] = self._headers[key]
-        return h
-
-    _cache_key = None
-    _cache_key_attr = 'uri'
-    @property
-    def cache_key(self):
-        """Use checksum for cache key because cache has size limit on keys
-        """
-
-        if self._cache_key is None:
-            to_hash = utf8(getattr(self.request, self._cache_key_attr))
-            self._cache_key = hashlib.sha1(to_hash).hexdigest()
-        return self._cache_key
 
     def truncate(self, s, limit=256):
         """Truncate long strings"""
