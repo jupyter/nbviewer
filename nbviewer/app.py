@@ -120,7 +120,35 @@ class NBViewer(Application):
         'debug' : (
             {'Application' : {'log_level' : logging.DEBUG}},
             "Set log-level to debug, for the most verbose logging."
-    ),
+        ),
+        'generate-config' : (
+            {'NBViewer' : {'generate_config' : True}},
+            "Generate default config file."
+        ),
+        'localfile-any-user' : (
+            {'NBViewer' : {'localfile_any_user' : True}},
+            "Also serve files that are not readable by 'Other' on the local file system."
+        ),
+        'localfile-follow-symlinks' : (
+            {'NBViewer' : {'localfile_follow_symlinks' : True}},
+            "Resolve/follow symbolic links to their target file using realpath."
+        ),
+        'no-cache' : (
+            {'NBViewer' : {'no_cache' : True}},
+            "Do not cache results."
+        ),
+        'no-check-certificate' : (
+            {'NBViewer' : {'no_check_certificate' : True}},
+            "Do not validate SSL certificates."
+        ),
+        'y' : (
+            {'NBViewer' : {'answer_yes' : True}},
+            "Answer yes to any questions (e.g. confirm overwrite)."
+        ),
+        'yes' : (
+            {'NBViewer' : {'answer_yes' : True}},
+            "Answer yes to any questions (e.g. confirm overwrite)."
+        ),
     })
 
     # Use this to insert custom configuration of handlers for NBViewer extensions
