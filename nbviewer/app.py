@@ -77,7 +77,7 @@ FRONTPAGE_JSON = os.path.join(this_dir, "frontpage.json")
 
 class NBViewer(Application):
 
-    name = Unicode('nbviewer')
+    name = Unicode('NBViewer')
 
     aliases = Dict({
         'base-url' : 'NBViewer.base_url',
@@ -166,12 +166,33 @@ class NBViewer(Application):
     url_handler         = Unicode(default_value="nbviewer.providers.url.handlers.URLHandler",           help="The Tornado handler to use for viewing notebooks accessed via URL").tag(config=True)
     user_gists_handler  = Unicode(default_value="nbviewer.providers.gist.handlers.UserGistsHandler",    help="The Tornado handler to use for viewing directory containing all of a user's Gists").tag(config=True)
 
+    answer_yes = Bool(default_value=False, help="Answer yes to any questions (e.g. confirm overwrite).").tag(config=True)
+
+    # base_url specified by the user
+    base_url = Unicode(default_value="/", help='URL base for the server').tag(config=True)
+
+    binder_base_url = Unicode(default_value="https://mybinder.org/v2", help="URL base for binder notebook execution service.").tag(config=True)
+
+    cache_expiry_max = Int(default_value=2*60*60, help="Maximum cache expiry (seconds).").tag(config=True)
+
+    cache_expiry_min = Int(default_value=10*60, help="Minimum cache expiry (seconds).").tag(config=True)
+
     client = Any().tag(config=True)
     @default('client')
     def _default_client(self):
         client = HTTPClientClass(log=self.log)
         client.cache = self.cache
         return client
+
+    config_file = Unicode(default_value='nbviewer_config.py', help="The config file to load.").tag(config=True)
+
+    content_security_policy = Unicode(default_value="connect-src 'none';", help="Content-Security-Policy header setting.").tag(config=True)
+
+    default_format = Unicode(default_value="html", help="Format to use for legacy / URLs.").tag(config=True)
+
+    frontpage = Unicode(default_value=FRONTPAGE_JSON, help="Path to json file containing frontpage content.").tag(config=True)
+
+    generate_config = Bool(default_value=False, help="Generate default config file.").tag(config=True)
 
     index = Any().tag(config=True)
     @default('index')
@@ -186,6 +207,20 @@ class NBViewer(Application):
             indexer = NoSearch()
         return indexer
 
+    ipywidgets_base_url = Unicode(default_value="https://unpkg.com/", help="URL base for ipywidgets JS package.").tag(config=True)
+
+    jupyter_js_widgets_version = Unicode(default_value="*", help="Version specifier for jupyter-js-widgets JS package.").tag(config=True)
+
+    jupyter_widgets_html_manager_version = Unicode(default_value="*", help="Version specifier for @jupyter-widgets/html-manager JS package.").tag(config=True)
+
+    localfile_any_user = Bool(default_value=False, help="Also serve files that are not readable by 'Other' on the local file system.").tag(config=True)
+
+    localfile_follow_symlinks = Bool(default_value=False, help="Resolve/follow symbolic links to their target file using realpath.").tag(config=True)
+
+    localfiles = Unicode(default_value="", help="Allow to serve local files under /localfile/* this can be a security risk.").tag(config=True)
+
+    mathjax_url = Unicode(default_value="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/", help="URL base for mathjax package.").tag(config=True)
+
     # cache frontpage links for the maximum allowed time
     max_cache_uris = Set().tag(config=True)
     @default('max_cache_uris')
@@ -196,7 +231,31 @@ class NBViewer(Application):
                 max_cache_uris.add('/' + link['target'])
         return max_cache_uris
 
-    processes = Int(default_value=0, help="use processes instead of threads for rendering").tag(config=True)
+    mc_threads = Int(default_value=1, help="Number of threads to use for Async Memcache.").tag(config=True)
+
+    no_cache = Bool(default_value=False, help="Do not cache results.").tag(config=True)
+
+    no_check_certificate = Bool(default_value=False, help="Do not validate SSL certificates.").tag(config=True)
+
+    processes = Int(default_value=0, help="Use processes instead of threads for rendering.").tag(config=True)
+
+    provider_rewrites = List(trait=Unicode, default_value=default_rewrites, help="Full dotted package(s) that provide `uri_rewrites`.").tag(config=True)
+
+    providers = List(trait=Unicode, default_value=default_providers, help="Full dotted package(s) that provide `default_handlers`.").tag(config=True)
+
+    proxy_host = Unicode(default_value="", help="The proxy URL.").tag(config=True)
+
+    proxy_port = Int(default_value=-1, help="The proxy port.").tag(config=True)
+
+    rate_limit = Int(default_value=60, help="Number of requests to allow in rate_limit_interval before limiting. Only requests that trigger a new render are counted.").tag(config=True)
+
+    rate_limit_interval = Int(default_value=600, help="Interval (in seconds) for rate limiting.").tag(config=True)
+
+    render_timeout = Int(default_value=15, help="Time to wait for a render to complete before showing the 'Working...' page.").tag(config=True)
+
+    sslcert = Unicode(help="Path to ssl .crt file.").tag(config=True)
+
+    sslkey = Unicode(help="Path to ssl .key file.").tag(config=True)
 
     static_path = Unicode(default_value=os.environ.get("NBVIEWER_STATIC_PATH", ""), help="Custom path for loading additional static files.").tag(config=True)
 
@@ -207,6 +266,16 @@ class NBViewer(Application):
     def _load_static_url_prefix(self):
         # Last '/' ensures that NBViewer still works regardless of whether user chooses e.g. '/static2/' or '/static2' as their custom prefix
         return url_path_join(self._base_url, self.static_url_prefix, '/')
+
+    statsd_host = Unicode(default_value="", help="Host running statsd to send metrics to.").tag(config=True)
+
+    statsd_port = Int(default_value=8125, help="Port on which statsd is listening for metrics on statsd_host.").tag(config=True)
+
+    statsd_prefix = Unicode(default_value='nbviewer', help="Prefix to use for naming metrics sent to statsd.").tag(config=True)
+
+    template_path = Unicode(default_value=os.environ.get("NBVIEWER_TEMPLATE_PATH", ""), help="Custom template path for the nbviewer app (not rendered notebooks).").tag(config=True)
+
+    threads = Int(default_value=1, help="Number of threads to use for rendering.").tag(config=True)
 
     # prefer the JupyterHub defined service prefix over the CLI
     @cached_property
@@ -466,7 +535,7 @@ class NBViewer(Application):
 
         # This prevents double log messages because tornado use a root logger that
         # self.log is a child of. The logging module dispatches log messages to a log
-        # and all of its ancestors until propagate is set to False
+        # and all of its ancestors until propagate is set to False.
         self.log.propagate = False
 
         tornado_log = logging.getLogger('tornado')
@@ -482,7 +551,7 @@ class NBViewer(Application):
         curl_log.setLevel(
             max(self.log_level, logging.INFO))
 
-    # Mostly copied from JupyterHub because if it isn't broken then don't fix it
+    # Mostly copied from JupyterHub because if it isn't broken then don't fix it.
     def write_config_file(self):
         """Write our default config to a .py config file"""
         config_file_dir = os.path.dirname(os.path.abspath(options.config_file))
@@ -521,7 +590,7 @@ class NBViewer(Application):
         if options.generate_config:
             self.write_config_file()
 
-        # Inherited method from traitlets.Application
+        # Inherited method from traitlets.config.Application
         self.load_config_file(options.config_file)
         self.init_logging()
         self.init_tornado_application()
