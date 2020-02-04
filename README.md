@@ -187,7 +187,9 @@ publishing, and we'd love to hear from you.
 
 #### Config file
 
-Newer versions of NBViewer will be configurable using a config file, `nbviewer_config.py`. In the directory where you run the command `python -m nbviewer` to start NBViewer, also add a file `nbviewer_config.py` which uses [the standard configuration syntax for Jupyter projects](https://traitlets.readthedocs.io/en/stable/config.html). 
+You can also run `python -m nbviewer --help-all` to see all of the configurable options. This is a more comprehensive version of `python -m nbviewer --help`, which gives a list of the most common ones along with flags and aliases you can use to set their values temporarily via the command line.
+
+The config file uses [the standard configuration syntax for Jupyter projects](https://traitlets.readthedocs.io/en/stable/config.html). For example, to configure the default port used to be 9000, add the line `c.NBViewer.port = 9000` to the config file. If you want to do this just once, you can also run `python -m nbviewer --NBViewer.port=9000` at the command line. (`NBViewer.port` also has the alias `port`, making it also possible to do, in this specific case, `python -m nbviewer --port=9000`. However not all configurable options have shorthand aliases like this; you can check using the outputs of `python -m nbviewer --help` and `python -m nbviewer --help-all` to see which ones do and which ones don't.)
 
 For example, to configure the value of a configurable `foo`, add the line `c.NBViewer.foo = 'bar'` to the `nbviewer_config.py` file located where you run `python -m nbviewer`. Again, currently very few features of NBViewer are configurable this way, but we hope to steadily increase the number of configurable characteristics of NBViewer in future releases.
 
