@@ -8,8 +8,6 @@
 
 import requests
 
-from unittest import SkipTest
-
 from ....tests.base import NBViewerTestCase, FormatHTMLMixin, skip_unless_github_auth
 
 class GitHubTestCase(NBViewerTestCase):
