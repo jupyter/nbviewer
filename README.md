@@ -181,7 +181,7 @@ Formats are ways to present notebooks to the user.
 - `script`
 
 #### Writing a new Format
-If you'd like to write a new format, open a ticket, or speak up on [gitter][]!
+If you'd like to write a new format, open a ticket, or speak up on [gitter](https://gitter.im/jupyter/nbviewer)!
 We have some work yet to do to support your next big thing in notebook
 publishing, and we'd love to hear from you.
 
