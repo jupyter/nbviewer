@@ -16,7 +16,7 @@ class AsyncNbviewerTestCase(testing.AsyncHTTPTestCase):
     def assertIn(self, observed, expected, *args, **kwargs):
         """ test whether the observed contains the expected, in utf-8
         """
-        return super(AsyncNbviewerTestCase, self).assertIn(
+        return super().assertIn(
             to_unicode(observed),
             to_unicode(expected),
             *args,
@@ -26,7 +26,7 @@ class AsyncNbviewerTestCase(testing.AsyncHTTPTestCase):
     def assertNotIn(self, observed, expected, *args, **kwargs):
         """ test whether the observed does not contain the expected, in utf-8
         """
-        return super(AsyncNbviewerTestCase, self).assertNotIn(
+        return super().assertNotIn(
             to_unicode(observed),
             to_unicode(expected),
             *args,

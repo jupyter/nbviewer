@@ -20,7 +20,7 @@ class CustomTemplateStub(object):
 class TemplatePathCLITestCase(NBViewerTestCase, CustomTemplateStub):
     @classmethod
     def get_server_args(cls):
-        return super(TemplatePathCLITestCase, cls).get_server_args() + [
+        return super().get_server_args() + [
             '--template_path={}'.format(tmpl_fixture),
         ]
 

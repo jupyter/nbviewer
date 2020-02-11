@@ -3,7 +3,7 @@
 import unittest.mock as mock
 
 from tornado.httpclient import AsyncHTTPClient
-from tornado.testing import AsyncTestCase, gen_test
+from tornado.testing import AsyncTestCase
 
 from ..client import AsyncGitHubClient
 from ....utils import quote
@@ -12,7 +12,7 @@ from ....utils import quote
 class GithubClientTest(AsyncTestCase):
     """Tests that the github API client makes the correct http requests."""
     def setUp(self):
-        super(GithubClientTest, self).setUp()
+        super().setUp()
         # Need a mock HTTPClient for the github client to talk to.
         self.http_client = mock.create_autospec(AsyncHTTPClient)
         

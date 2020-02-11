@@ -83,7 +83,7 @@ class GithubClientMixin(object):
         if exc.code == 403 and 'rate limit' in body.lower():
             return 503, "GitHub API rate limit exceeded. Try again soon."
 
-        return super(GithubClientMixin, self).client_error_message(
+        return super().client_error_message(
             exc, url, body, msg
         )
 
