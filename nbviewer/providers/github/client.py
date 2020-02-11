@@ -23,40 +23,44 @@ from ...utils import url_path_join, quote, response_text
 class AsyncGitHubClient(object):
     """AsyncHTTPClient wrapper with methods for common requests"""
     auth = None
-    
+
     def __init__(self, client=None):
         self.client = client or AsyncHTTPClient()
         self.github_api_url = os.environ.get('GITHUB_API_URL', 'https://api.github.com/')
         self.authenticate()
-    
+
     def authenticate(self):
         self.auth = {
             'client_id': os.environ.get('GITHUB_OAUTH_KEY', ''),
             'client_secret': os.environ.get('GITHUB_OAUTH_SECRET', ''),
-            'access_token' : os.environ.get('GITHUB_API_TOKEN', ''),
+            'access_token': os.environ.get('GITHUB_API_TOKEN', ''),
         }
-        self.auth = {k:v for k,v in self.auth.items() if v}
-    
+
     def fetch(self, url, callback=None, params=None, **kwargs):
         """Add GitHub auth to self.client.fetch"""
-        host = urlparse(url).hostname
-
         if not url.startswith(self.github_api_url):
             raise ValueError(
                 "Only fetch GitHub urls with GitHub auth (%s)" % url
             )
         params = {} if params is None else params
         kwargs.setdefault('user_agent', 'Tornado-Async-GitHub-Client')
-        if self.auth:
-            params.update(self.auth)
+
+        if self.auth['client_id'] and self.auth['client_secret']:
+            kwargs['auth_username'] = self.auth['client_id']
+            kwargs['auth_password'] = self.auth['client_secret']
+
+        if self.auth['access_token']:
+            headers = kwargs.setdefault('headers', {})
+            headers['Authorization'] = 'token ' + self.auth['access_token']
+
         url = url_concat(url, params)
         future = self.client.fetch(url, callback, **kwargs)
         future.add_done_callback(self._log_rate_limit)
         return future
-    
+
     def _log_rate_limit(self, future):
         """log GitHub rate limit headers
-        
+
         - error if 0 remaining
         - warn if 10% or less remain
         - debug otherwise
