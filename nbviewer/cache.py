@@ -5,6 +5,7 @@
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
+import asyncio
 import zlib
 from time import monotonic
 
