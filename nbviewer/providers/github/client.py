@@ -36,7 +36,7 @@ class AsyncGitHubClient(object):
             'access_token': os.environ.get('GITHUB_API_TOKEN', ''),
         }
 
-    def fetch(self, url, callback=None, params=None, **kwargs):
+    def fetch(self, url, params=None, **kwargs):
         """Add GitHub auth to self.client.fetch"""
         if not url.startswith(self.github_api_url):
             raise ValueError(
@@ -54,7 +54,7 @@ class AsyncGitHubClient(object):
             headers['Authorization'] = 'token ' + self.auth['access_token']
 
         url = url_concat(url, params)
-        future = self.client.fetch(url, callback, **kwargs)
+        future = self.client.fetch(url, **kwargs)
         future.add_done_callback(self._log_rate_limit)
         return future
 
@@ -99,39 +99,39 @@ class AsyncGitHubClient(object):
             log = app_log.warn
         log("%i/%i GitHub API requests remaining", remaining, limit)
 
-    def github_api_request(self, path, callback=None, **kwargs):
+    def github_api_request(self, path, **kwargs):
         """Make a GitHub API request to URL
         
         URL is constructed from url and params, if specified.
-        callback and **kwargs are passed to client.fetch unmodified.
+        **kwargs are passed to client.fetch unmodified.
         """
         url = url_path_join(self.github_api_url, quote(path))
-        return self.fetch(url, callback, **kwargs)
+        return self.fetch(url, **kwargs)
 
-    def get_gist(self, gist_id, callback=None, **kwargs):
+    def get_gist(self, gist_id, **kwargs):
         """Get a gist"""
         path = u'gists/{}'.format(gist_id)
-        return self.github_api_request(path, callback, **kwargs)
+        return self.github_api_request(path, **kwargs)
     
-    def get_contents(self, user, repo, path, callback=None, ref=None, **kwargs):
+    def get_contents(self, user, repo, path, ref=None, **kwargs):
         """Make contents API request - either file contents or directory listing"""
         path = u'repos/{user}/{repo}/contents/{path}'.format(**locals())
         if ref is not None:
             params = kwargs.setdefault('params', {})
             params['ref'] = ref
-        return self.github_api_request(path, callback, **kwargs)
+        return self.github_api_request(path, **kwargs)
     
-    def get_repos(self, user, callback=None, **kwargs):
+    def get_repos(self, user, **kwargs):
         """List a user's repos"""
         path = u"users/{user}/repos".format(user=user)
-        return self.github_api_request(path, callback, **kwargs)
+        return self.github_api_request(path, **kwargs)
     
-    def get_gists(self, user, callback=None, **kwargs):
+    def get_gists(self, user, **kwargs):
         """List a user's gists"""
         path = u"users/{user}/gists".format(user=user)
-        return self.github_api_request(path, callback, **kwargs)
+        return self.github_api_request(path, **kwargs)
     
-    def get_tree(self, user, repo, path, ref='master', recursive=False, callback=None, **kwargs):
+    def get_tree(self, user, repo, path, ref='master', recursive=False, **kwargs):
         """Get a git tree"""
         # only need a recursive fetch if it's not in the top-level dir
         if '/' in path:
@@ -140,18 +140,18 @@ class AsyncGitHubClient(object):
         if recursive:
             params = kwargs.setdefault('params', {})
             params['recursive'] = True
-        tree = self.github_api_request(path, callback, **kwargs)
+        tree = self.github_api_request(path, **kwargs)
         return tree
     
-    def get_branches(self, user, repo, callback=None, **kwargs):
+    def get_branches(self, user, repo, **kwargs):
         """List a repo's branches"""
         path = u"repos/{user}/{repo}/branches".format(user=user, repo=repo)
-        return self.github_api_request(path, callback, **kwargs)
+        return self.github_api_request(path, **kwargs)
     
-    def get_tags(self, user, repo, callback=None, **kwargs):
+    def get_tags(self, user, repo, **kwargs):
         """List a repo's branches"""
         path = u"repos/{user}/{repo}/tags".format(user=user, repo=repo)
-        return self.github_api_request(path, callback, **kwargs)
+        return self.github_api_request(path, **kwargs)
     
     def extract_tree_entry(self, path, tree_response):
         """extract a single tree entry from
