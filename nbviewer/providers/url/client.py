@@ -54,18 +54,18 @@ class NBViewerAsyncHTTPClient(object):
     def __init__(self, client=None):
         self.client = client or CurlAsyncHTTPClient()
 
-    def fetch(self, url, callback=None, params=None, **kwargs):
+    def fetch(self, url, params=None, **kwargs):
         request = HTTPRequest(url, **kwargs)
 
         if request.user_agent is None:
             request.user_agent = 'Tornado-Async-Client'
 
         # The future which will become the response upon awaiting.
-        response_future = asyncio.ensure_future(self.smart_fetch(request, callback))
+        response_future = asyncio.ensure_future(self.smart_fetch(request))
 
         return response_future
 
-    async def smart_fetch(self, request, callback):
+    async def smart_fetch(self, request):
         """
         Before fetching request, first look to see whether it's already in cache.
         If so load the response from cache. Only otherwise attempt to fetch the request.
@@ -95,7 +95,7 @@ class NBViewerAsyncHTTPClient(object):
         else:
             app_log.info("Upstream cache miss %s", name)
 
-            response = await self.client.fetch(request, callback)
+            response = await self.client.fetch(request)
             dt = time.time() - tic
             app_log.info("Fetched %s in %.2f ms", name, 1e3 * dt)
             await self._cache_response(cache_key, name, response)
@@ -112,7 +112,7 @@ class NBViewerAsyncHTTPClient(object):
                 return pickle.loads(cached_pickle)
         except Exception:
             app_log.error("Upstream cache get failed %s", name, exc_info=True)
-    
+
     async def _cache_response(self, cache_key, name, response):
         """Cache the response, if any cache headers we understand are present."""
         if not self.cache:
