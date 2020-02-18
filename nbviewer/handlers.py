@@ -24,8 +24,8 @@ from .providers.base import (
 
 class Custom404(BaseHandler):
     """Render our 404 template"""
-    async def prepare(self):
-        await super().prepare()
+    def prepare(self):
+        # skip parent prepare() step, just render the 404
         raise web.HTTPError(404)
 
 
