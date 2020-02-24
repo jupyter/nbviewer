@@ -48,12 +48,16 @@ class GitlabClient(object):
             app_log.error(ex)
             raise ex
 
-    async def projects(self):
-        """List all projects accessible on this GitLab instance."""
+    async def projects(self, search=None):
+        """List projects accessible on this GitLab instance."""
         projects_url = ("{base}/projects"
                         "?private_token={token}"
                         "&simple=true"
                         .format(base=self.api_url, token=self.token))
+
+        if search is not None:
+            projects_url = projects_url + "&search={}".format(search)
+
         return await self._fetch_json(projects_url)
 
     async def tree(self, project_id, branch="master", path=None, recursive=False):

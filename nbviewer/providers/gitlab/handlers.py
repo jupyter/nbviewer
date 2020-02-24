@@ -18,13 +18,15 @@ from .client import GitlabClient
 
 class GitlabHandler(RenderingHandler):
 
-    async def lookup_notebook(self, client, path_with_namespace, branch, filepath):
+    async def lookup_notebook(self, client, group, repo, branch, filepath):
         """Attempt to find the notebook by searching project trees.
         Used when an instance is misconfigured and paths are getting sanitised."""
-        projects = await client.projects()
+        projects = await client.projects(search=repo)
 
         project = None
+        path_with_namespace = "{0}/{1}".format(group, repo)
         for p in projects:
+            print(p["path_with_namespace"])
             if p["path_with_namespace"] == path_with_namespace:
                 project = p
                 break
@@ -56,7 +58,7 @@ class GitlabHandler(RenderingHandler):
                     app_log.warn("Unable to access {filepath} in {path_with_namespace} directly, attempting lookup"
                                  .format(filepath=filepath,
                                          path_with_namespace=path_with_namespace))
-                    return await self.lookup_notebook(client, path_with_namespace, branch, filepath)
+                    return await self.lookup_notebook(client, group, repo, branch, filepath)
                 except Exception as e:
                     app_log.error(e)
             else:
