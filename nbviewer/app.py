@@ -80,9 +80,14 @@ class NBViewer(Application):
     # Use this to insert custom configuration of handlers for NBViewer extensions
     handler_settings = Dict().tag(config=True)
 
+    create_handler      = Unicode(default_value="nbviewer.handlers.CreateHandler",                      help="The Tornado handler to use for creation via frontpage form.").tag(config=True)
+    custom404_handler   = Unicode(default_value="nbviewer.handlers.Custom404",                          help="The Tornado handler to use for rendering 404 templates.").tag(config=True)
+    faq_handler         = Unicode(default_value="nbviewer.handlers.FAQHandler",                         help="The Tornado handler to use for rendering and viewing the FAQ section.").tag(config=True)
     gist_handler        = Unicode(default_value="nbviewer.providers.gist.handlers.GistHandler",         help="The Tornado handler to use for viewing notebooks stored as GitHub Gists").tag(config=True)
     github_blob_handler = Unicode(default_value="nbviewer.providers.github.handlers.GitHubBlobHandler", help="The Tornado handler to use for viewing notebooks stored as blobs on GitHub").tag(config=True)
     github_tree_handler = Unicode(default_value="nbviewer.providers.github.handlers.GitHubTreeHandler", help="The Tornado handler to use for viewing directory trees on GitHub").tag(config=True)
+    github_user_handler = Unicode(default_value="nbviewer.providers.github.handlers.GitHubUserHandler", help="The Tornado handler to use for viewing all of a user's repositories on GitHub.").tag(config=True)
+    index_handler       = Unicode(default_value="nbviewer.handlers.IndexHandler",                       help="The Tornado handler to use for rendering the frontpage section.").tag(config=True)
     local_handler       = Unicode(default_value="nbviewer.providers.local.handlers.LocalFileHandler",   help="The Tornado handler to use for viewing notebooks found on a local filesystem").tag(config=True)
     url_handler         = Unicode(default_value="nbviewer.providers.url.handlers.URLHandler",           help="The Tornado handler to use for viewing notebooks accessed via URL").tag(config=True)
     user_gists_handler  = Unicode(default_value="nbviewer.providers.gist.handlers.UserGistsHandler",    help="The Tornado handler to use for viewing directory containing all of a user's Gists").tag(config=True)
@@ -239,9 +244,14 @@ class NBViewer(Application):
     def init_tornado_application(self):
         # handle handlers
         handler_names = dict(
+                  create_handler=self.create_handler,
+                  custom404_handler=self.custom404_handler,
+                  faq_handler=self.faq_handler,
                   gist_handler=self.gist_handler,
                   github_blob_handler=self.github_blob_handler,
                   github_tree_handler=self.github_tree_handler,
+                  github_user_handler=self.github_user_handler,
+                  index_handler=self.index_handler,
                   local_handler=self.local_handler,
                   url_handler=self.url_handler,
                   user_gists_handler=self.user_gists_handler,

@@ -12,6 +12,7 @@ from .utils import transform_ipynb_uri, url_path_join
 from .providers import (
     provider_handlers,
     provider_uri_rewrites,
+    _load_handler_from_location,
 )
 from .providers.base import (
     BaseHandler,
@@ -31,15 +32,19 @@ class Custom404(BaseHandler):
 
 class IndexHandler(BaseHandler):
     """Render the index"""
-    def get(self):
-        self.finish(self.render_template(
+
+    def render_index_template(self, **namespace):
+        return self.render_template(
             'index.html',
             title=self.frontpage_setup.get('title', None),
             subtitle=self.frontpage_setup.get('subtitle', None),
             text=self.frontpage_setup.get('text', None),
             show_input=self.frontpage_setup.get('show_input', True),
-            sections=self.frontpage_setup.get('sections', [])))
+            sections=self.frontpage_setup.get('sections', []),
+            **namespace)
 
+    def get(self):
+        self.finish(self.render_index_template())
 
 class FAQHandler(BaseHandler):
     """Render the markdown FAQ page"""
@@ -109,15 +114,23 @@ def init_handlers(formats, providers, base_url, localfiles, **handler_kwargs):
     but both it and `handler_names` to `provider_handlers`
     """
     handler_settings = handler_kwargs['handler_settings']
+    handler_names = handler_kwargs['handler_names']
 
+    create_handler = _load_handler_from_location(handler_names['create_handler'])
+    custom404_handler = _load_handler_from_location(handler_names['custom404_handler'])
+    faq_handler = _load_handler_from_location(handler_names['faq_handler'])
+    index_handler = _load_handler_from_location(handler_names['index_handler'])
+
+    # If requested endpoint matches multiple routes, it only gets handled by handler
+    # corresponding to the first matching route. So order of URLSpecs in this list matters.
     pre_providers = [
-        ('/?', IndexHandler, {}),
-        ('/index.html', IndexHandler, {}),
-        (r'/faq/?', FAQHandler, {}),
-        (r'/create/?', CreateHandler, {}),
+        ('/?', index_handler, {}),
+        ('/index.html', index_handler, {}),
+        (r'/faq/?', faq_handler, {}),
+        (r'/create/?', create_handler, {}),
 
         # don't let super old browsers request data-uris
-        (r'.*/data:.*;base64,.*', Custom404, {}),
+        (r'.*/data:.*;base64,.*', custom404_handler, {}),
     ]
 
     post_providers = [
@@ -144,6 +157,6 @@ def init_handlers(formats, providers, base_url, localfiles, **handler_kwargs):
         pattern = url_path_join(base_url, handler[0])
         new_handler = tuple([pattern] + list(handler[1:]))
         new_handlers.append(new_handler)
-    new_handlers.append((r'.*', Custom404, {}))
+    new_handlers.append((r'.*', custom404_handler, {}))
 
     return new_handlers
