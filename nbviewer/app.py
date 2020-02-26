@@ -43,7 +43,7 @@ try: # Python 3.8
 except ImportError:
     from .utils import cached_property
 
-from notebook.base.handlers import FileFindHandler as StaticFileHandler
+from jupyter_server.base.handlers import FileFindHandler as StaticFileHandler
 
 #-----------------------------------------------------------------------------
 # Code
