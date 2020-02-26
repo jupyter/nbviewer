@@ -80,11 +80,11 @@ class NBViewer(Application):
     # Use this to insert custom configuration of handlers for NBViewer extensions
     handler_settings = Dict().tag(config=True)
 
-    url_handler         = Unicode(default_value="nbviewer.providers.url.handlers.URLHandler",           help="The Tornado handler to use for viewing notebooks accessed via URL").tag(config=True)
-    local_handler       = Unicode(default_value="nbviewer.providers.local.handlers.LocalFileHandler",   help="The Tornado handler to use for viewing notebooks found on a local filesystem").tag(config=True)
+    gist_handler        = Unicode(default_value="nbviewer.providers.gist.handlers.GistHandler",         help="The Tornado handler to use for viewing notebooks stored as GitHub Gists").tag(config=True)
     github_blob_handler = Unicode(default_value="nbviewer.providers.github.handlers.GitHubBlobHandler", help="The Tornado handler to use for viewing notebooks stored as blobs on GitHub").tag(config=True)
     github_tree_handler = Unicode(default_value="nbviewer.providers.github.handlers.GitHubTreeHandler", help="The Tornado handler to use for viewing directory trees on GitHub").tag(config=True)
-    gist_handler        = Unicode(default_value="nbviewer.providers.gist.handlers.GistHandler",         help="The Tornado handler to use for viewing notebooks stored as GitHub Gists").tag(config=True)
+    local_handler       = Unicode(default_value="nbviewer.providers.local.handlers.LocalFileHandler",   help="The Tornado handler to use for viewing notebooks found on a local filesystem").tag(config=True)
+    url_handler         = Unicode(default_value="nbviewer.providers.url.handlers.URLHandler",           help="The Tornado handler to use for viewing notebooks accessed via URL").tag(config=True)
     user_gists_handler  = Unicode(default_value="nbviewer.providers.gist.handlers.UserGistsHandler",    help="The Tornado handler to use for viewing directory containing all of a user's Gists").tag(config=True)
 
     client = Any().tag(config=True)
@@ -239,11 +239,11 @@ class NBViewer(Application):
     def init_tornado_application(self):
         # handle handlers
         handler_names = dict(
-                  url_handler=self.url_handler,
+                  gist_handler=self.gist_handler,
                   github_blob_handler=self.github_blob_handler,
                   github_tree_handler=self.github_tree_handler,
                   local_handler=self.local_handler,
-                  gist_handler=self.gist_handler,
+                  url_handler=self.url_handler,
                   user_gists_handler=self.user_gists_handler,
         )
         handler_kwargs = {'handler_names' : handler_names, 'handler_settings' : self.handler_settings}
@@ -260,53 +260,44 @@ class NBViewer(Application):
    
         # input traitlets to settings
         settings = dict(
-                  config=self.config,
-                  index=self.index,
-                  max_cache_uris=self.max_cache_uris,
-                  static_path=self.static_path,
-                  static_url_prefix=self.static_url_prefix,
-        )
-        # input computed properties to settings
-        settings.update(
                   base_url=self.base_url,
+                  binder_base_url=options.binder_base_url,
                   cache=self.cache,
+                  cache_expiry_max=options.cache_expiry_max,
+                  cache_expiry_min=options.cache_expiry_min,
                   client=self.client,
+                  config=self.config,
+                  content_security_policy=options.content_security_policy,
+                  default_format=options.default_format,
                   fetch_kwargs=self.fetch_kwargs,
                   formats=self.formats,
                   frontpage_setup=self.frontpage_setup,
-                  jinja2_env=self.env,
-                  pool=self.pool,
-                  rate_limiter=self.rate_limiter,
-        )
-        # input settings from CLI options
-        settings.update(
-                  binder_base_url=options.binder_base_url,
-                  cache_expiry_max=options.cache_expiry_max,
-                  cache_expiry_min=options.cache_expiry_min,
-                  content_security_policy=options.content_security_policy,
-                  default_format=options.default_format,
-                  ipywidgets_base_url=options.ipywidgets_base_url,
-                  jupyter_js_widgets_version=options.jupyter_js_widgets_version,
-                  jupyter_widgets_html_manager_version=options.jupyter_widgets_html_manager_version,
-                  localfile_any_user=options.localfile_any_user,
-                  localfile_follow_symlinks=options.localfile_follow_symlinks,
-                  localfile_path=os.path.abspath(options.localfiles),
-                  mathjax_url=options.mathjax_url,
-                  provider_rewrites=options.provider_rewrites,
-                  providers=options.providers,
-                  render_timeout=options.render_timeout,
-                  statsd_host=options.statsd_host,
-                  statsd_port=options.statsd_port,
-                  statsd_prefix=options.statsd_prefix,
-        )
-        # additional settings
-        settings.update(
                   google_analytics_id=os.getenv('GOOGLE_ANALYTICS_ID'),
                   gzip=True,
                   hub_api_token=os.getenv('JUPYTERHUB_API_TOKEN'),
                   hub_api_url=os.getenv('JUPYTERHUB_API_URL'),
                   hub_base_url=os.getenv('JUPYTERHUB_BASE_URL'),
+                  index=self.index,
+                  ipywidgets_base_url=options.ipywidgets_base_url,
+                  jinja2_env=self.env,
+                  jupyter_js_widgets_version=options.jupyter_js_widgets_version,
+                  jupyter_widgets_html_manager_version=options.jupyter_widgets_html_manager_version,
+                  localfile_any_user=options.localfile_any_user,
+                  localfile_follow_symlinks=options.localfile_follow_symlinks,
+                  localfile_path=os.path.abspath(options.localfiles),
                   log_function=log_request,
+                  mathjax_url=options.mathjax_url,
+                  max_cache_uris=self.max_cache_uris,
+                  pool=self.pool,
+                  provider_rewrites=options.provider_rewrites,
+                  providers=options.providers,
+                  rate_limiter=self.rate_limiter,
+                  render_timeout=options.render_timeout,
+                  static_path=self.static_path,
+                  static_url_prefix=self.static_url_prefix,
+                  statsd_host=options.statsd_host,
+                  statsd_port=options.statsd_port,
+                  statsd_prefix=options.statsd_prefix,
         )
 
         if options.localfiles:
@@ -333,41 +324,41 @@ def init_options():
     else:
         default_host, default_port = '0.0.0.0', 5000
 
-    define("debug", default=False, help="run in debug mode", type=bool)
-    define("no_cache", default=False, help="Do not cache results", type=bool)
-    define("localfiles", default="", help="Allow to serve local files under /localfile/* this can be a security risk", type=str)
-    define("localfile_follow_symlinks", default=False, help="Resolve/follow symbolic links to their target file using realpath", type=bool)
-    define("localfile_any_user", default=False, help="Also serve files that are not readable by 'Other' on the local file system", type=bool)
-    define("host", default=default_host, help="run on the given interface", type=str)
-    define("port", default=default_port, help="run on the given port", type=int)
-    define("cache_expiry_min", default=10*60, help="minimum cache expiry (seconds)", type=int)
-    define("cache_expiry_max", default=2*60*60, help="maximum cache expiry (seconds)", type=int)
-    define("render_timeout", default=15, help="Time to wait for a render to complete before showing the 'Working...' page.", type=int)
-    define("rate_limit", default=60, help="Number of requests to allow in rate_limt_interval before limiting. Only requests that trigger a new render are counted.", type=int)
-    define("rate_limit_interval", default=600, help="Interval (in seconds) for rate limiting.", type=int)
-    define("mc_threads", default=1, help="number of threads to use for Async Memcache", type=int)
-    define("threads", default=1, help="number of threads to use for rendering", type=int)
-    define("processes", default=0, help="use processes instead of threads for rendering", type=int)
-    define("frontpage", default=FRONTPAGE_JSON, help="path to json file containing frontpage content", type=str)
-    define("sslcert", help="path to ssl .crt file", type=str)
-    define("sslkey", help="path to ssl .key file", type=str)
-    define("no_check_certificate", default=False, help="Do not validate SSL certificates", type=bool)
-    define("default_format", default="html", help="format to use for legacy / URLs", type=str)
-    define("proxy_host", default="", help="The proxy URL.", type=str)
-    define("proxy_port", default="", help="The proxy port.", type=int)
-    define("providers", default=default_providers, help="Full dotted package(s) that provide `default_handlers`", type=str, multiple=True, group="provider")
-    define("provider_rewrites", default=default_rewrites, help="Full dotted package(s) that provide `uri_rewrites`", type=str, multiple=True, group="provider")
-    define("mathjax_url", default="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/", help="URL base for mathjax package", type=str)
-    define("template_path", default=os.environ.get("NBVIEWER_TEMPLATE_PATH", None), help="Custom template path for the nbviewer app (not rendered notebooks)", type=str)
-    define("statsd_host", default="", help="Host running statsd to send metrics to", type=str)
-    define("statsd_port", default=8125, help="Port on which statsd is listening for metrics on statsd_host", type=int)
-    define("statsd_prefix", default='nbviewer', help="Prefix to use for naming metrics sent to statsd", type=str)
     define("base_url", default='/', help='URL base for the server')
+    define("binder_base_url", default="https://mybinder.org/v2", help="URL base for binder notebook execution service", type=str)
+    define("cache_expiry_max", default=2*60*60, help="maximum cache expiry (seconds)", type=int)
+    define("cache_expiry_min", default=10*60, help="minimum cache expiry (seconds)", type=int)
+    define("content_security_policy", default="connect-src 'none';", help="Content-Security-Policy header setting", type=str)
+    define("debug", default=False, help="run in debug mode", type=bool)
+    define("default_format", default="html", help="format to use for legacy / URLs", type=str)
+    define("frontpage", default=FRONTPAGE_JSON, help="path to json file containing frontpage content", type=str)
+    define("host", default=default_host, help="run on the given interface", type=str)
     define("ipywidgets_base_url", default="https://unpkg.com/", help="URL base for ipywidgets JS package", type=str)
     define("jupyter_js_widgets_version", default="*", help="Version specifier for jupyter-js-widgets JS package", type=str)
     define("jupyter_widgets_html_manager_version", default="*", help="Version specifier for @jupyter-widgets/html-manager JS package", type=str)
-    define("content_security_policy", default="connect-src 'none';", help="Content-Security-Policy header setting", type=str)
-    define("binder_base_url", default="https://mybinder.org/v2", help="URL base for binder notebook execution service", type=str)
+    define("localfile_any_user", default=False, help="Also serve files that are not readable by 'Other' on the local file system", type=bool)
+    define("localfile_follow_symlinks", default=False, help="Resolve/follow symbolic links to their target file using realpath", type=bool)
+    define("localfiles", default="", help="Allow to serve local files under /localfile/* this can be a security risk", type=str)
+    define("mathjax_url", default="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/", help="URL base for mathjax package", type=str)
+    define("mc_threads", default=1, help="number of threads to use for Async Memcache", type=int)
+    define("no_cache", default=False, help="Do not cache results", type=bool)
+    define("no_check_certificate", default=False, help="Do not validate SSL certificates", type=bool)
+    define("port", default=default_port, help="run on the given port", type=int)
+    define("processes", default=0, help="use processes instead of threads for rendering", type=int)
+    define("provider_rewrites", default=default_rewrites, help="Full dotted package(s) that provide `uri_rewrites`", type=str, multiple=True, group="provider")
+    define("providers", default=default_providers, help="Full dotted package(s) that provide `default_handlers`", type=str, multiple=True, group="provider")
+    define("proxy_host", default="", help="The proxy URL.", type=str)
+    define("proxy_port", default="", help="The proxy port.", type=int)
+    define("rate_limit", default=60, help="Number of requests to allow in rate_limt_interval before limiting. Only requests that trigger a new render are counted.", type=int)
+    define("rate_limit_interval", default=600, help="Interval (in seconds) for rate limiting.", type=int)
+    define("render_timeout", default=15, help="Time to wait for a render to complete before showing the 'Working...' page.", type=int)
+    define("sslcert", help="path to ssl .crt file", type=str)
+    define("sslkey", help="path to ssl .key file", type=str)
+    define("statsd_host", default="", help="Host running statsd to send metrics to", type=str)
+    define("statsd_port", default=8125, help="Port on which statsd is listening for metrics on statsd_host", type=int)
+    define("statsd_prefix", default='nbviewer', help="Prefix to use for naming metrics sent to statsd", type=str)
+    define("template_path", default=os.environ.get("NBVIEWER_TEMPLATE_PATH", None), help="Custom template path for the nbviewer app (not rendered notebooks)", type=str)
+    define("threads", default=1, help="number of threads to use for rendering", type=int)
 
 
 def main(argv=None):
