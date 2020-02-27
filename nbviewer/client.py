@@ -13,7 +13,7 @@ import time
 
 import asyncio
 
-from tornado.httpclient import HTTPRequest, HTTPError
+from tornado.httpclient import HTTPRequest
 from tornado.curl_httpclient import CurlAsyncHTTPClient
 
 from nbviewer.utils import time_block
