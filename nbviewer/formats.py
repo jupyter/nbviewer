@@ -5,11 +5,6 @@
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
-import os
-
-from nbconvert.exporters.export import exporter_map
-
-
 def default_formats():
     """
     Return the currently-implemented formats.
@@ -76,29 +71,3 @@ def default_formats():
             'content_type': 'text/plain; charset=UTF-8'
         }
     }
-
-
-def configure_formats(options, config, log, formats=None):
-    """
-    Format-specific configuration.
-    """
-    if formats is None:
-        formats = default_formats()
-
-    # This would be better defined in a class
-    config.HTMLExporter.template_file = 'basic'
-    config.SlidesExporter.template_file = 'slides_reveal'
-
-    config.TemplateExporter.template_path = [
-        os.path.join(os.path.dirname(__file__), "templates", "nbconvert")
-    ]
-
-    for key, format in formats.items():
-        exporter_cls = format.get("exporter", exporter_map[key])
-        if options.processes:
-            # can't pickle exporter instances,
-            formats[key]["exporter"] = exporter_cls
-        else:
-            formats[key]["exporter"] = exporter_cls(config=config, log=log)
-
-    return formats

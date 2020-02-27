@@ -24,13 +24,15 @@ from tornado.options import define, options
 
 from jinja2 import Environment, FileSystemLoader
 
-from traitlets import Any, Dict, Set, Unicode, default
+from traitlets import Any, Bool, Dict, Int, List, Set, Unicode, default
 from traitlets.config import Application
 
 from .handlers import init_handlers
 from .cache import DummyAsyncCache, AsyncMultipartMemcache, MockCache, pylibmc
 from .index import NoSearch
-from .formats import configure_formats
+from .formats import default_formats
+from nbconvert.exporters.export import exporter_map
+
 from .providers import default_providers, default_rewrites
 from .providers.url.client import NBViewerAsyncHTTPClient as HTTPClientClass
 from .ratelimit import RateLimiter
@@ -122,10 +124,11 @@ class NBViewer(Application):
                 max_cache_uris.add('/' + link['target'])
         return max_cache_uris
 
+    processes = Int(default_value=0, help="use processes instead of threads for rendering").tag(config=True)
+
     static_path = Unicode(default_value=os.environ.get("NBVIEWER_STATIC_PATH", ""), help="Custom path for loading additional static files.").tag(config=True)
 
     static_url_prefix = Unicode(default_value='/static/').tag(config=True)
-
     # Not exposed to end user for configuration, since needs to access base_url
     _static_url_prefix = Unicode()
     @default('_static_url_prefix')
@@ -204,8 +207,7 @@ class NBViewer(Application):
 
     @cached_property
     def formats(self):
-        formats = configure_formats(options, self.config, log.app_log)
-        return formats
+        return self.configure_formats(log.app_log)
 
     # load frontpage sections
     @cached_property
@@ -223,8 +225,8 @@ class NBViewer(Application):
 
     @cached_property
     def pool(self):
-        if options.processes:
-            pool = ProcessPoolExecutor(options.processes)
+        if self.processes:
+            pool = ProcessPoolExecutor(self.processes)
         else:
             pool = ThreadPoolExecutor(options.threads)
         return pool
@@ -253,6 +255,31 @@ class NBViewer(Application):
         else:
             template_paths = [default_template_path]
         return template_paths
+
+    def configure_formats(self, log, formats=None):
+        """
+        Format-specific configuration.
+        """
+        if formats is None:
+            formats = default_formats()
+
+        # This would be better defined in a class
+        self.config.HTMLExporter.template_file = 'basic'
+        self.config.SlidesExporter.template_file = 'slides_reveal'
+
+        self.config.TemplateExporter.template_path = [
+            os.path.join(os.path.dirname(__file__), "templates", "nbconvert")
+        ]
+
+        for key, format in formats.items():
+            exporter_cls = format.get("exporter", exporter_map[key])
+            if self.processes:
+                # can't pickle exporter instances,
+                formats[key]["exporter"] = exporter_cls
+            else:
+                formats[key]["exporter"] = exporter_cls(config=self.config, log=log)
+
+        return formats
 
     def init_tornado_application(self):
         # handle handlers
@@ -415,7 +442,6 @@ def init_options():
     define("no_cache", default=False, help="Do not cache results", type=bool)
     define("no_check_certificate", default=False, help="Do not validate SSL certificates", type=bool)
     define("port", default=default_endpoint()['port'], help="run on the given port", type=int)
-    define("processes", default=0, help="use processes instead of threads for rendering", type=int)
     define("provider_rewrites", default=default_rewrites, help="Full dotted package(s) that provide `uri_rewrites`", type=str, multiple=True, group="provider")
     define("providers", default=default_providers, help="Full dotted package(s) that provide `default_handlers`", type=str, multiple=True, group="provider")
     define("proxy_host", default="", help="The proxy URL.", type=str)
