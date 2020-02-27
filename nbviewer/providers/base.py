@@ -232,6 +232,10 @@ class BaseHandler(web.RequestHandler):
         return self.settings['rate_limiter']
 
     @property
+    def static_url_prefix(self):
+        return self.settings['static_url_prefix']
+
+    @property
     def statsd(self):
         if hasattr(self, '_statsd'):
             return self._statsd
@@ -285,6 +289,10 @@ class BaseHandler(web.RequestHandler):
             "jupyter_js_widgets_version": self.jupyter_js_widgets_version,
             "jupyter_widgets_html_manager_version": self.jupyter_widgets_html_manager_version,
         }
+
+    # Overwrite the static_url method from Tornado to work better with our custom StaticFileHandler
+    def static_url(self, url):
+        return url_path_join(self.static_url_prefix, url)
 
     def breadcrumbs(self, path, base_url):
         """Generate a list of breadcrumbs"""

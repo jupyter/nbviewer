@@ -1,5 +1,6 @@
 elasticsearch
 jupyter_client
+jupyter_server>=0.2.0
 markdown>=3.0
 newrelic!=2.80.0.60
 nbformat>=4.2

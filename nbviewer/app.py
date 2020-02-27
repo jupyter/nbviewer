@@ -43,6 +43,8 @@ try: # Python 3.8
 except ImportError:
     from .utils import cached_property
 
+from jupyter_server.base.handlers import FileFindHandler as StaticFileHandler
+
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
@@ -122,12 +124,16 @@ class NBViewer(Application):
                 max_cache_uris.add('/' + link['target'])
         return max_cache_uris
 
-    static_path = Unicode(default_value=pjoin(here, 'static')).tag(config=True)
+    static_path = Unicode(default_value=os.environ.get("NBVIEWER_STATIC_PATH", ""), help="Custom path for loading additional static files.").tag(config=True)
 
-    static_url_prefix = Unicode().tag(config=True)
-    @default('static_url_prefix')
+    static_url_prefix = Unicode(default_value='/static/').tag(config=True)
+
+    # Not exposed to end user for configuration, since needs to access base_url
+    _static_url_prefix = Unicode()
+    @default('_static_url_prefix')
     def _load_static_url_prefix(self):
-        return url_path_join(self.base_url, '/static/')
+        # Last '/' ensures that NBViewer still works regardless of whether user chooses e.g. '/static2/' pr '/static2' as their custom prefix
+        return url_path_join(self.base_url, self.static_url_prefix, '/')
 
     @cached_property
     def base_url(self):
@@ -232,14 +238,24 @@ class NBViewer(Application):
         return rate_limiter
 
     @cached_property
+    def static_paths(self):
+        default_static_path = pjoin(here, 'static')
+        if self.static_path:
+            log.app_log.info("Using custom static path {}".format(self.static_path))
+            static_paths = [self.static_path, default_static_path]
+        else:
+            static_paths = [default_static_path]
+        return static_paths
+
+    @cached_property
     def template_paths(self):
-        template_paths = pjoin(here, 'templates')
+        default_template_path = pjoin(here, 'templates')
         if options.template_path is not None:
             log.app_log.info("Using custom template path {}".format(options.template_path))
-            template_paths = [options.template_path, template_paths]
-
+            template_paths = [options.template_path, default_template_path]
+        else:
+            template_paths = [default_template_path]
         return template_paths
-
 
     def init_tornado_application(self):
         # handle handlers
@@ -270,6 +286,8 @@ class NBViewer(Application):
    
         # input traitlets to settings
         settings = dict(
+                  # Allow FileFindHandler to load static directories from e.g. a Docker container
+                  allow_remote_access=True,
                   base_url=self.base_url,
                   binder_base_url=options.binder_base_url,
                   cache=self.cache,
@@ -303,8 +321,10 @@ class NBViewer(Application):
                   providers=options.providers,
                   rate_limiter=self.rate_limiter,
                   render_timeout=options.render_timeout,
-                  static_path=self.static_path,
-                  static_url_prefix=self.static_url_prefix,
+                  static_handler_class = StaticFileHandler,
+                  # FileFindHandler expects list of static paths, so self.static_path*s* is correct
+                  static_path=self.static_paths,
+                  static_url_prefix=self._static_url_prefix,
                   statsd_host=options.statsd_host,
                   statsd_port=options.statsd_port,
                   statsd_prefix=options.statsd_prefix,
