@@ -43,6 +43,12 @@ $ docker run -p 8080:8080 -e 'GITHUB_OAUTH_KEY=YOURKEY' \
 
 With this configured all GitHub API requests will go to your Enterprise instance so you can view all of your internal notebooks.
 
+## Base URL
+
+If the environment variable `JUPYTERHUB_SERVICE_PREFIX` is specified, then NBViewer _always_ uses the value of this environment variable as the base URL.
+
+In the case that there is no value for `JUPYTERHUB_SERVICE_PREFIX`, then as a backup the value of the `--base-url` flag passed to the `python -m nbviewer` command on the command line will be used as the base URL.
+
 ## Local Development
 
 ### With Docker
