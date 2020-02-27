@@ -12,7 +12,6 @@ from tornado import (
     httpclient,
     web,
 )
-from tornado.log import app_log
 from tornado.escape import url_unescape
 
 from ...utils import (
@@ -65,11 +64,11 @@ class URLHandler(RenderingHandler):
             rfp.parse(robotstxt.splitlines())
             public = rfp.can_fetch('*', remote_url)
         except httpclient.HTTPError as e:
-            app_log.debug("Robots.txt not available for {}".format(remote_url),
+            self.log.debug("Robots.txt not available for {}".format(remote_url),
                     exc_info=True)
             public = True
         except Exception as e:
-            app_log.error(e)
+            self.log.error(e)
 
         return remote_url, public
 
@@ -79,7 +78,7 @@ class URLHandler(RenderingHandler):
         try:
             nbjson = response_text(response, encoding='utf-8')
         except UnicodeDecodeError:
-            app_log.error("Notebook is not utf8: %s", remote_url, exc_info=True)
+            self.log.error("Notebook is not utf8: %s", remote_url, exc_info=True)
             raise web.HTTPError(400)
 
         await self.finish_notebook(nbjson, download_url=remote_url,

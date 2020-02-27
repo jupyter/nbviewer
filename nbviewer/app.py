@@ -17,7 +17,9 @@ from html import escape
 
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 
-from tornado import web, httpserver, ioloop, log
+from tornado import web, httpserver, ioloop
+from tornado.log import access_log, app_log, LogFormatter
+from tornado.curl_httpclient import curl_log
 
 import tornado.options
 from tornado.options import define, options
@@ -50,8 +52,6 @@ from jupyter_server.base.handlers import FileFindHandler as StaticFileHandler
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
-access_log = log.access_log
-app_log = log.app_log
 
 here = os.path.dirname(__file__)
 pjoin = os.path.join
@@ -79,6 +79,17 @@ class NBViewer(Application):
 
     name = Unicode('nbviewer')
 
+    aliases = Dict({
+        'log-level' : 'Application.log_level',
+    })
+
+    flags = Dict({
+        'debug' : (
+            {'Application' : {'log_level' : logging.DEBUG}},
+            "Set log-level to debug, for the most verbose logging."
+    ),
+    })
+
     # Use this to insert custom configuration of handlers for NBViewer extensions
     handler_settings = Dict().tag(config=True)
 
@@ -97,7 +108,7 @@ class NBViewer(Application):
     client = Any().tag(config=True)
     @default('client')
     def _default_client(self):
-        client = HTTPClientClass()
+        client = HTTPClientClass(log=self.log)
         client.cache = self.cache
         return client
 
@@ -105,12 +116,12 @@ class NBViewer(Application):
     @default('index')
     def _load_index(self):
         if os.environ.get('NBINDEX_PORT'):
-            log.app_log.info("Indexing notebooks")
+            self.log.info("Indexing notebooks")
             tcp_index = os.environ.get('NBINDEX_PORT')
             index_url = tcp_index.split('tcp://')[1]
             index_host, index_port = index_url.split(":")
         else:
-            log.app_log.info("Not indexing notebooks")
+            self.log.info("Not indexing notebooks")
             indexer = NoSearch()
         return indexer
 
@@ -149,7 +160,7 @@ class NBViewer(Application):
             tcp_memcache = os.environ.get('NBCACHE_PORT')
             memcache_urls = tcp_memcache.split('tcp://')[1]
         if options.no_cache:
-            log.app_log.info("Not using cache")
+            self.log.info("Not using cache")
             cache = MockCache()
         elif pylibmc and memcache_urls:
             # setup memcache
@@ -161,13 +172,13 @@ class NBViewer(Application):
                 kwargs['binary'] = True
                 kwargs['username'] = username
                 kwargs['password'] = password
-                log.app_log.info("Using SASL memcache")
+                self.log.info("Using SASL memcache")
             else:
-                log.app_log.info("Using plain memcache")
+                self.log.info("Using plain memcache")
 
             cache = AsyncMultipartMemcache(memcache_urls.split(','), **kwargs)
         else:
-            log.app_log.info("Using in-memory cache")
+            self.log.info("Using in-memory cache")
             cache = DummyAsyncCache()
 
         return cache
@@ -179,7 +190,7 @@ class NBViewer(Application):
         try:
             git_data = git_info(here)
         except Exception as e:
-            app_log.error("Failed to get git info: %s", e)
+            self.log.error("Failed to get git info: %s", e)
             git_data = {}
         else:
             git_data['msg'] = escape(git_data['msg'])
@@ -196,18 +207,18 @@ class NBViewer(Application):
         fetch_kwargs = dict(connect_timeout=10,)
         if options.proxy_host:
             fetch_kwargs.update(proxy_host=options.proxy_host, proxy_port=options.proxy_port)
-            log.app_log.info("Using web proxy {proxy_host}:{proxy_port}."
+            self.log.info("Using web proxy {proxy_host}:{proxy_port}."
                              "".format(**fetch_kwargs))
         
         if options.no_check_certificate:
             fetch_kwargs.update(validate_cert=False)
-            log.app_log.info("Not validating SSL certificates")
+            self.log.info("Not validating SSL certificates")
 
         return fetch_kwargs
 
     @cached_property
     def formats(self):
-        return self.configure_formats(log.app_log)
+        return self.configure_formats()
 
     # load frontpage sections
     @cached_property
@@ -222,6 +233,29 @@ class NBViewer(Application):
                               'show_input':True, 'sections':frontpage_setup
                               }
         return frontpage_setup
+
+    # Attribute inherited from traitlets.config.Application, automatically used to style logs
+    # https://github.com/ipython/traitlets/blob/master/traitlets/config/application.py#L191
+    _log_formatter_cls = LogFormatter
+    # Need Tornado LogFormatter for color logs, keys 'color' and 'end_color' in log_format
+
+    # Observed traitlet inherited again from traitlets.config.Application
+    # https://github.com/ipython/traitlets/blob/master/traitlets/config/application.py#L177
+    @default('log_level')
+    def _log_level_default(self):
+        return logging.INFO
+
+    # Ditto the above: https://github.com/ipython/traitlets/blob/master/traitlets/config/application.py#L197
+    @default('log_format')
+    def _log_format_default(self):
+        """override default log format to include time and color, plus always display the log level, not just when it's high"""
+        return "%(color)s[%(levelname)1.1s %(asctime)s.%(msecs).03d %(name)s %(module)s:%(lineno)d]%(end_color)s %(message)s"
+
+    # For consistency with JupyterHub logs
+    @default('log_datefmt')
+    def _log_datefmt_default(self):
+        """Exclude date from default date format"""
+        return "%Y-%m-%d %H:%M:%S"
 
     @cached_property
     def pool(self):
@@ -240,23 +274,25 @@ class NBViewer(Application):
     def static_paths(self):
         default_static_path = pjoin(here, 'static')
         if self.static_path:
-            log.app_log.info("Using custom static path {}".format(self.static_path))
+            self.log.info("Using custom static path {}".format(self.static_path))
             static_paths = [self.static_path, default_static_path]
         else:
             static_paths = [default_static_path]
+
         return static_paths
 
     @cached_property
     def template_paths(self):
         default_template_path = pjoin(here, 'templates')
         if options.template_path is not None:
-            log.app_log.info("Using custom template path {}".format(options.template_path))
+            self.log.info("Using custom template path {}".format(options.template_path))
             template_paths = [options.template_path, default_template_path]
         else:
             template_paths = [default_template_path]
+
         return template_paths
 
-    def configure_formats(self, log, formats=None):
+    def configure_formats(self, formats=None):
         """
         Format-specific configuration.
         """
@@ -277,8 +313,8 @@ class NBViewer(Application):
                 # can't pickle exporter instances,
                 formats[key]["exporter"] = exporter_cls
             else:
-                formats[key]["exporter"] = exporter_cls(config=self.config, log=log)
-
+                formats[key]["exporter"] = exporter_cls(config=self.config, log=self.log)
+    
         return formats
 
     def init_tornado_application(self):
@@ -305,8 +341,7 @@ class NBViewer(Application):
 
         # DEBUG env implies both autoreload and log-level
         if os.environ.get("DEBUG"):
-            options.debug = True
-            logging.getLogger().setLevel(logging.DEBUG)
+            self.log.setLevel(logging.DEBUG)
    
         # input traitlets to settings
         settings = dict(
@@ -337,6 +372,7 @@ class NBViewer(Application):
                   localfile_any_user=options.localfile_any_user,
                   localfile_follow_symlinks=options.localfile_follow_symlinks,
                   localfile_path=os.path.abspath(options.localfiles),
+                  log=self.log,
                   log_function=log_request,
                   mathjax_url=options.mathjax_url,
                   max_cache_uris=self.max_cache_uris,
@@ -355,10 +391,35 @@ class NBViewer(Application):
         )
 
         if options.localfiles:
-            log.app_log.warning("Serving local notebooks in %s, this can be a security risk", options.localfiles)
-    
+            self.log.warning("Serving local notebooks in %s, this can be a security risk", options.localfiles)
+        
         # create the app
-        self.tornado_application = web.Application(handlers, debug=options.debug, **settings)
+        self.tornado_application = web.Application(handlers, **settings)
+
+    def init_logging(self):
+
+        # Note that we inherit a self.log attribute from traitlets.config.Application
+        # https://github.com/ipython/traitlets/blob/master/traitlets/config/application.py#L209
+        # as well as a log_level attribute
+        # https://github.com/ipython/traitlets/blob/master/traitlets/config/application.py#L177
+
+        # This prevents double log messages because tornado use a root logger that
+        # self.log is a child of. The logging module dispatches log messages to a log
+        # and all of its ancestors until propagate is set to False
+        self.log.propagate = False
+
+        tornado_log = logging.getLogger('tornado')
+        # hook up tornado's loggers to our app handlers
+        for log in (app_log, access_log, tornado_log, curl_log):
+            # ensure all log statements identify the application they come from
+            log.name = self.log.name
+            log.parent = self.log
+            log.propagate = True
+            log.setLevel(self.log_level)
+
+        # disable curl debug, which logs all headers, info for upstream requests, which is TOO MUCH
+        curl_log.setLevel(
+            max(self.log_level, logging.INFO))
 
     # Mostly copied from JupyterHub because if it isn't broken then don't fix it
     def write_config_file(self):
@@ -401,6 +462,7 @@ class NBViewer(Application):
 
         # Inherited method from traitlets.Application
         self.load_config_file(options.config_file)
+        self.init_logging()
         self.init_tornado_application()
 
 def init_options():
@@ -426,7 +488,7 @@ def init_options():
     define("cache_expiry_min", default=10*60, help="minimum cache expiry (seconds)", type=int)
     define("config_file", default='nbviewer_config.py', help="The config file to load", type=str)
     define("content_security_policy", default="connect-src 'none';", help="Content-Security-Policy header setting", type=str)
-    define("debug", default=False, help="run in debug mode", type=bool)
+#    define("debug", default=False, help="run in debug mode", type=bool)
     define("default_format", default="html", help="format to use for legacy / URLs", type=str)
     define("frontpage", default=FRONTPAGE_JSON, help="path to json file containing frontpage content", type=str)
     define("generate_config", default=False, help="Generate default config file and then stop.", type=bool)
@@ -462,16 +524,6 @@ def main(argv=None):
     init_options()
     tornado.options.parse_command_line(argv)
     
-    try:
-        from tornado.curl_httpclient import curl_log
-    except ImportError as e:
-        log.app_log.warning("Failed to import curl: %s", e)
-    else:
-        # debug-level curl_log logs all headers, info for upstream requests,
-        # which is just too much.
-        curl_log.setLevel(max(log.app_log.getEffectiveLevel(), logging.INFO))
-    
-
     # create and start the app
     nbviewer = NBViewer()
     app = nbviewer.tornado_application
@@ -485,7 +537,7 @@ def main(argv=None):
         }
 
     http_server = httpserver.HTTPServer(app, xheaders=True, ssl_options=ssl_options)
-    log.app_log.info("Listening on %s:%i, path %s", options.host, options.port,
+    nbviewer.log.info("Listening on %s:%i, path %s", options.host, options.port,
                      app.settings['base_url'])
     http_server.listen(options.port, options.host)
     ioloop.IOLoop.current().start()

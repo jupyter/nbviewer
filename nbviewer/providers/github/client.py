@@ -12,7 +12,6 @@ from urllib.parse import urlparse
 
 from tornado.httpclient import AsyncHTTPClient, HTTPError
 from tornado.httputil import url_concat
-from tornado.log import app_log
 
 from ...utils import url_path_join, quote, response_text
 
@@ -23,8 +22,9 @@ from ...utils import url_path_join, quote, response_text
 class AsyncGitHubClient(object):
     """AsyncHTTPClient wrapper with methods for common requests"""
     auth = None
-
-    def __init__(self, client=None):
+    
+    def __init__(self, log, client=None):
+        self.log = log
         self.client = client or AsyncHTTPClient()
         self.github_api_url = os.environ.get('GITHUB_API_URL', 'https://api.github.com/')
         self.authenticate()
@@ -76,7 +76,7 @@ class AsyncGitHubClient(object):
         remaining_s = r.headers.get('X-RateLimit-Remaining', '')
         if not remaining_s or not limit_s:
             if r.code < 300:
-                app_log.warn("No rate limit headers. Did GitHub change? %s",
+                self.log.warn("No rate limit headers. Did GitHub change? %s",
                     json.dumps(dict(r.headers), indent=1)
                 )
             return
@@ -90,13 +90,13 @@ class AsyncGitHubClient(object):
             except Exception:
                 # Can't extract message, log full reply
                 message = text
-            app_log.error("GitHub rate limit (%s) exceeded: %s", limit, message)
+            self.log.error("GitHub rate limit (%s) exceeded: %s", limit, message)
             return
         
         if 10 * remaining > limit:
-            log = app_log.info
+            log = self.log.info
         else:
-            log = app_log.warn
+            log = self.log.warn
         log("%i/%i GitHub API requests remaining", remaining, limit)
 
     def github_api_request(self, path, **kwargs):
@@ -162,7 +162,7 @@ class AsyncGitHubClient(object):
         Useful for finding the blob url for a given path.
         """
         tree_response.rethrow()
-        app_log.info(tree_response)
+        self.log.debug(tree_response)
         jsondata = response_text(tree_response)
         data = json.loads(jsondata)
         for entry in data['tree']:

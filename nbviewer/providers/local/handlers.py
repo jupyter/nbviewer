@@ -15,7 +15,6 @@ from tornado import (
     web,
     iostream,
 )
-from tornado.log import app_log
 
 from ...utils import url_path_join
 from ..base import (
@@ -109,12 +108,12 @@ class LocalFileHandler(RenderingHandler):
             )))
 
         if not fullpath.startswith(self.localfile_path):
-            app_log.warn("directory traversal attempt: '%s'" %
+            self.log.warn("Directory traversal attempt: '%s'" %
                          fullpath)
             return False
 
         if not os.path.exists(fullpath):
-            app_log.warn("path: '%s' does not exist", fullpath)
+            self.log.warn("Path: '%s' does not exist", fullpath)
             return False
 
         if any(part.startswith('.') or part.startswith('_')
@@ -126,12 +125,12 @@ class LocalFileHandler(RenderingHandler):
 
             # Ensure the file/directory has other read access for all.
             if not fstat.st_mode & stat.S_IROTH:
-                app_log.warn("path: '%s' does not have read permissions", fullpath)
+                self.log.warn("Path: '%s' does not have read permissions", fullpath)
                 return False
 
             if os.path.isdir(fullpath) and not fstat.st_mode & stat.S_IXOTH:
                 # skip directories we can't execute (i.e. list)
-                app_log.warn("path: '%s' does not have execute permissions", fullpath)
+                self.log.warn("Path: '%s' does not have execute permissions", fullpath)
                 return False
 
         return True
@@ -140,7 +139,7 @@ class LocalFileHandler(RenderingHandler):
         fullpath = os.path.join(self.localfile_path, path)
 
         if not self.can_show(fullpath):
-            app_log.info("path: '%s' is not visible from within nbviewer", fullpath)
+            self.log.info("Path: '%s' is not visible from within nbviewer", fullpath)
             raise web.HTTPError(404)
 
         if os.path.isdir(fullpath):
@@ -161,8 +160,8 @@ class LocalFileHandler(RenderingHandler):
                 nbdata = f.read()
         except IOError as ex:
             if ex.errno == errno.EACCES:
-                # py2/3: can't read the file, so don't give away it exists
-                app_log.info("path : '%s' is not readable from within nbviewer", fullpath)
+                # py3: can't read the file, so don't give away it exists
+                self.log.info("Path : '%s' is not readable from within nbviewer", fullpath)
                 raise web.HTTPError(404)
             raise ex
 
@@ -238,7 +237,7 @@ class LocalFileHandler(RenderingHandler):
         except IOError as ex:
             if ex.errno == errno.EACCES:
                 # can't access the dir, so don't give away its presence
-                app_log.info("contents of path: '%s' cannot be listed from within nbviewer", fullpath)
+                self.log.info("Contents of path: '%s' cannot be listed from within nbviewer", fullpath)
                 raise web.HTTPError(404)
 
         for f in contents:

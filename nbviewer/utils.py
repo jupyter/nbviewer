@@ -24,9 +24,6 @@ from urllib.parse import (
     urlunparse,
 )
 
-from tornado.log import app_log
-
-
 STRIP_PARAMS = [
     'client_id',
     'client_secret',
@@ -235,7 +232,7 @@ def base64_encode(s):
 
 
 @contextmanager
-def time_block(message, debug_limit=1):
+def time_block(message, logger, debug_limit=1):
     """context manager for timing a block
 
     logs millisecond timings of the block
@@ -247,7 +244,7 @@ def time_block(message, debug_limit=1):
     tic = time.time()
     yield
     dt = time.time() - tic
-    log = app_log.info if dt > debug_limit else app_log.debug
+    log = logger.info if dt > debug_limit else logger.debug
     log("%s in %.2f ms", message, 1e3 * dt)
 
 def cached_property(method):

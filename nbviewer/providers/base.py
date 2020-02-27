@@ -30,7 +30,6 @@ from tornado.escape import (
     utf8,
 )
 from tornado.ioloop import IOLoop
-from tornado.log import app_log
 
 from nbformat import (
     current_nbformat,
@@ -212,6 +211,10 @@ class BaseHandler(web.RequestHandler):
         return self.settings['mathjax_url']
 
     @property
+    def log(self):
+        return self.settings['log']
+
+    @property
     def max_cache_uris(self):
         return self.settings.setdefault('max_cache_uris', set())
 
@@ -381,7 +384,7 @@ class BaseHandler(web.RequestHandler):
 
         slim_body = escape(body[:300])
 
-        app_log.warn("Fetching %s failed with %s. Body=%s", url, msg, slim_body)
+        self.log.warn("Fetching %s failed with %s. Body=%s", url, msg, slim_body)
         raise web.HTTPError(code, msg)
 
     @contextmanager
@@ -510,17 +513,17 @@ class BaseHandler(web.RequestHandler):
             'headers' : self.cache_headers,
             'body' : content,
         }, pickle.HIGHEST_PROTOCOL)
-        log = app_log.info if expiry > self.cache_expiry_min else app_log.debug
-        log("caching (expiry=%is) %s", expiry, short_url)
+        log = self.log.info if expiry > self.cache_expiry_min else self.log.debug
+        log("Caching (expiry=%is) %s", expiry, short_url)
         try:
-            with time_block("cache set %s" % short_url):
+            with time_block("Cache set %s" % short_url, logger=self.log):
                 await self.cache.set(
                     self.cache_key, cache_data, int(time.time() + expiry),
                 )
         except Exception:
-            app_log.error("cache set for %s failed", short_url, exc_info=True)
+            self.log.error("Cache set for %s failed", short_url, exc_info=True)
         else:
-            app_log.debug("cache set finished %s", short_url)
+            self.log.debug("Cache set finished %s", short_url)
 
 
 def cached(method):
@@ -535,7 +538,7 @@ def cached(method):
 
         if self.get_argument("flush_cache", False):
             await self.rate_limiter.check(self)
-            app_log.info("flushing cache %s", short_url)
+            self.log.info("Flushing cache %s", short_url)
             # call the wrapped method
             await method(self, *args, **kwargs)
             return
@@ -543,32 +546,32 @@ def cached(method):
         pending_future = self.pending.get(uri, None)
         loop = IOLoop.current()
         if pending_future:
-            app_log.info("Waiting for concurrent request at %s", short_url)
+            self.log.info("Waiting for concurrent request at %s", short_url)
             tic = loop.time()
             await pending_future
             toc = loop.time()
-            app_log.info("Waited %.3fs for concurrent request at %s",
+            self.log.info("Waited %.3fs for concurrent request at %s",
                  toc-tic, short_url
             )
 
         try:
-            with time_block("cache get %s" % short_url):
+            with time_block("Cache get %s" % short_url, logger=self.log):
                 cached_pickle = await self.cache.get(self.cache_key)
             if cached_pickle is not None:
                 cached = pickle.loads(cached_pickle)
             else:
                 cached = None
         except Exception as e:
-            app_log.error("Exception getting %s from cache", short_url, exc_info=True)
+            self.log.error("Exception getting %s from cache", short_url, exc_info=True)
             cached = None
 
         if cached is not None:
-            app_log.info("cache hit %s", short_url)
+            self.log.info("Cache hit %s", short_url)
             for key, value in cached['headers'].items():
                 self.set_header(key, value)
             self.write(cached['body'])
         else:
-            app_log.debug("cache miss %s", short_url)
+            self.log.debug("Cache miss %s", short_url)
             await self.rate_limiter.check(self)
             future = self.pending[uri] = Future()
             try:
@@ -609,7 +612,7 @@ class RenderingHandler(BaseHandler):
         """
         if self._finished:
             return
-        app_log.info("finishing early %s", self.request.uri)
+        self.log.info("Finishing early %s", self.request.uri)
         html = self.render_template('slow_notebook.html')
         self.set_status(202) # Accepted
         self.finish(html)
@@ -630,7 +633,7 @@ class RenderingHandler(BaseHandler):
                 if test is None or test(nb, raw):
                     yield (name, format)
             except Exception as err:
-                app_log.info("failed to test %s: %s", self.request.uri, name)
+                self.log.info("Failed to test %s: %s", self.request.uri, name)
 
     # empty methods to be implemented by subclasses to make GET requests more modular
     def get_notebook_data(self, **kwargs):
@@ -698,14 +701,14 @@ class RenderingHandler(BaseHandler):
             nb = reads(json_notebook, current_nbformat)
             parse_time.stop()
         except ValueError:
-            app_log.error("Failed to render %s", msg, exc_info=True)
+            self.log.error("Failed to render %s", msg, exc_info=True)
             self.statsd.incr('rendering.parsing.fail')
             raise web.HTTPError(400, "Error reading JSON notebook")
 
         try:
-            app_log.debug("Requesting render of %s", download_url)
-            with time_block("Rendered %s" % download_url, debug_limit=0):
-                app_log.info("Rendering %d B notebook from %s", len(json_notebook), download_url)
+            self.log.debug("Requesting render of %s", download_url)
+            with time_block("Rendered %s" % download_url, logger=self.log, debug_limit=0):
+                self.log.info("Rendering %d B notebook from %s", len(json_notebook), download_url)
                 render_time = self.statsd.timer('rendering.nbrender.time').start()
                 loop = asyncio.get_event_loop()
                 nbhtml, config = await loop.run_in_executor(self.pool, render_notebook,
@@ -714,15 +717,15 @@ class RenderingHandler(BaseHandler):
                 render_time.stop()
         except NbFormatError as e:
             self.statsd.incr('rendering.nbrender.fail', 1)
-            app_log.error("Invalid notebook %s: %s", msg, e)
+            self.log.error("Invalid notebook %s: %s", msg, e)
             raise web.HTTPError(400, str(e))
         except Exception as e:
             self.statsd.incr('rendering.nbrender.fail', 1)
-            app_log.error("Failed to render %s", msg, exc_info=True)
+            self.log.error("Failed to render %s", msg, exc_info=True)
             raise web.HTTPError(400, str(e))
         else:
             self.statsd.incr('rendering.nbrender.success', 1)
-            app_log.debug("Finished render of %s", download_url)
+            self.log.debug("Finished render of %s", download_url)
 
         html_time = self.statsd.timer('rendering.html.time').start()
         html = self.render_notebook_template(
@@ -747,7 +750,7 @@ class FilesRedirectHandler(BaseHandler):
     matches behavior of old app, currently unused.
     """
     def get(self, before_files, after_files):
-        app_log.info("Redirecting %s to %s", before_files, after_files)
+        self.log.info("Redirecting %s to %s", before_files, after_files)
         self.redirect("%s/%s" % (before_files, after_files))
 
 

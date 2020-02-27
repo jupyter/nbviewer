@@ -18,6 +18,7 @@ from unittest import TestCase, skipIf
 
 from tornado.escape import to_unicode
 from tornado.ioloop import IOLoop
+from tornado.log import app_log
 import tornado.options
 
 from nbviewer.utils import url_path_join
@@ -146,6 +147,6 @@ def skip_unless_github_auth(f):
     callable
         unittest.skipIf decorated function
     """
-    cl = AsyncGitHubClient()
+    cl = AsyncGitHubClient(log=app_log)
     can_auth = 'access_token' in cl.auth or ('client_id' in cl.auth and 'client_secret' in cl.auth)
     return skipIf(not can_auth, 'github creds not available')(f)

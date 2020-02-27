@@ -5,7 +5,6 @@
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 from tornado import web
-from tornado.log import app_log
 
 from .utils import transform_ipynb_uri, url_path_join
 
@@ -62,7 +61,7 @@ class CreateHandler(BaseHandler):
     def post(self):
         value = self.get_argument('gistnorurl', '')
         redirect_url = transform_ipynb_uri(value, self.get_provider_rewrites())
-        app_log.info("create %s => %s", value, redirect_url)
+        self.log.info("create %s => %s", value, redirect_url)
         self.redirect(url_path_join(self.base_url, redirect_url))
 
     def get_provider_rewrites(self):
