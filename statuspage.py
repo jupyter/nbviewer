@@ -19,11 +19,9 @@ github_secret = os.environ['GITHUB_OAUTH_SECRET']
 
 def get_rate_limit():
     """Retrieve the current GitHub rate limit for our auth tokens"""
-    r = requests.get('https://api.github.com/rate_limit',
-        params={
-            'client_id': github_id,
-            'client_secret': github_secret,
-        }
+    r = requests.get(
+        'https://api.github.com/rate_limit',
+        auth=(github_id, github_secret)
     )
     r.raise_for_status()
     resp = r.json()
