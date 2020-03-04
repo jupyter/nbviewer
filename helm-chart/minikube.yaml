@@ -1,0 +1,16 @@
+service:
+  type: NodePort
+  ports:
+    nodePort: 32567
+
+resources:
+  requests:
+    memory: null
+    cpu: null
+
+nbviewer:
+  extraArgs:
+  - "--logging=debug"
+
+memcached:
+  replicas: 1

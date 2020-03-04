@@ -1,0 +1,53 @@
+image: "jupyter/nbviewer"
+imagePullPolicy: null
+
+service: {}
+nodeSelector: null
+
+replicas: 2
+
+pdb:
+  minAvailable: 1
+
+resources:
+  requests:
+    memory: 256M
+    cpu: "1"
+
+annotations: {}
+
+extraContainers: null
+extraVolumes: null
+
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+service:
+  type: LoadBalancer
+  ports:
+    nodePort: null
+
+github:
+  accessToken: ""
+  clientId: ""
+  clientSecret: ""
+
+nbviewer:
+  baseUrl: "/"
+  extraArgs: []
+
+memcached:
+  AntiAffinity: soft
+  replicas: 2
+
+updateStrategy:
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 1
