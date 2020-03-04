@@ -29,9 +29,6 @@ spec:
         - name: secret
           secret:
             secretName: {{ template "nbviewer.fullname" . }}-secret
-        # - name: files
-        #   secret:
-        #     secretName: {{ template "nbviewer.fullname" . }}-secret
         {{- if .Values.extraVolumes }}
         {{- .Values.extraVolumes | toYaml | trimSuffix "\n" | nindent 8 }}
         {{- end }}
@@ -83,21 +80,21 @@ spec:
             - name: GITHUB_OAUTH_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ template "nbviewer.fullname" }}
+                  name: {{ template "nbviewer.fullname" . }}
                   key: github.clientId
             {{- end }}
             {{- if .Values.github.clientSecret }}
             - name: GITHUB_OAUTH_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{ template "nbviewer.fullname" }}
+                  name: {{ template "nbviewer.fullname" . }}
                   key: github.client-secret
             {{- end }}
             {{- if .Values.github.accessToken }}
             - name: GITHUB_API_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: {{ template "nbviewer.fullname" }}
+                  name: {{ template "nbviewer.fullname" . }}
                   key: github.accessToken
             {{- end }}
             - name: MEMCACHIER_SERVERS
