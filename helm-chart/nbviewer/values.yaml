@@ -4,7 +4,7 @@ imagePullPolicy: null
 service: {}
 nodeSelector: null
 
-replicas: 2
+pdbMinAvailable: 2
 
 pdb:
   minAvailable: 1
@@ -45,9 +45,18 @@ nbviewer:
 
 memcached:
   AntiAffinity: soft
-  replicas: 2
+  replicaCount: 2
+  pdbMinAvailable: 1
 
 updateStrategy:
   rollingUpdate:
     maxSurge: 1
     maxUnavailable: 1
+
+statuspage:
+  enabled: false
+  image: jupyter/statuspage
+  resources: null
+  apiKey: ""
+  pageId: ""
+  metricId: ""

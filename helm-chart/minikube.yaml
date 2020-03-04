@@ -13,4 +13,5 @@ nbviewer:
   - "--logging=debug"
 
 memcached:
-  replicas: 1
+  replicaCount: 1
+  pdbMinAvailable: 0

@@ -3,11 +3,13 @@ kind: Deployment
 metadata:
   name: {{ template "nbviewer.fullname" . }}
   labels:
+    component: nbviewer
     {{- include "nbviewer.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicas }}
   selector:
     matchLabels:
+      component: nbviewer
       {{- include "nbviewer.matchLabels" . | nindent 6 }}
   {{- if .Values.deploymentStrategy }}
   strategy:
@@ -16,6 +18,7 @@ spec:
   template:
     metadata:
       labels:
+        component: nbviewer
         {{- include "nbviewer.matchLabels" . | nindent 8 }}
       annotations:
         # This lets us autorestart when the secret changes!
@@ -28,7 +31,7 @@ spec:
       volumes:
         - name: secret
           secret:
-            secretName: {{ template "nbviewer.fullname" . }}-secret
+            secretName: {{ template "nbviewer.fullname" . }}
         {{- if .Values.extraVolumes }}
         {{- .Values.extraVolumes | toYaml | trimSuffix "\n" | nindent 8 }}
         {{- end }}
@@ -81,21 +84,21 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: {{ template "nbviewer.fullname" . }}
-                  key: github.clientId
+                  key: github-clientId
             {{- end }}
             {{- if .Values.github.clientSecret }}
             - name: GITHUB_OAUTH_SECRET
               valueFrom:
                 secretKeyRef:
                   name: {{ template "nbviewer.fullname" . }}
-                  key: github.client-secret
+                  key: github-clientSecret
             {{- end }}
             {{- if .Values.github.accessToken }}
             - name: GITHUB_API_TOKEN
               valueFrom:
                 secretKeyRef:
                   name: {{ template "nbviewer.fullname" . }}
-                  key: github.accessToken
+                  key: github-accessToken
             {{- end }}
             - name: MEMCACHIER_SERVERS
               value: {{ .Release.Name }}-memcached:11211
