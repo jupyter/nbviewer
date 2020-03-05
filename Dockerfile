@@ -19,7 +19,8 @@ WORKDIR /srv/nbviewer
 
 # Copy source tree in
 COPY . /srv/nbviewer
-RUN python3 -mpip wheel -vv . -w /wheels
+RUN python3 setup.py build && \
+    python3 -mpip wheel -vv . -w /wheels
 
 # Now define the runtime image
 FROM python:3.7-slim-buster
@@ -43,7 +44,6 @@ COPY .git /srv/nbviewer/.git
 # To change the number of threads use
 # docker run -d -e NBVIEWER_THREADS=4 -p 80:8080 nbviewer
 ENV NBVIEWER_THREADS 2
-RUN mkdir /srv/nbviewer
 WORKDIR /srv/nbviewer
 EXPOSE 8080
 USER nobody
