@@ -159,8 +159,8 @@ the [nbconvert documentation](https://nbconvert.readthedocs.io/) for details.
 
 ## Where is nbviewer.jupyter.org hosted?
 
-[OVH](https://www.ovh.com) graciously hosts nbviewer.jupyter.org.
-Thanks to OVH, we are able to provider a public nbviewer instance as a free service.
+[OVHCloud](https://ovhcloud.com) graciously hosts nbviewer.jupyter.org.
+Thanks to OVHCloud, we are able to provider a public nbviewer instance as a free service.
 
 nbviewer was generously hosted by Rackspace until March, 2020.
 

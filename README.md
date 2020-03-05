@@ -2,7 +2,7 @@
 
 Jupyter nbviewer is the web application behind
 [The Jupyter Notebook Viewer](http://nbviewer.jupyter.org),
-which is graciously hosted by [OVH](https://www.ovh.com).
+which is graciously hosted by [OVHCloud](https://ovhcloud.com).
 
 Run this locally to get most of the features of nbviewer on your own network.
 
