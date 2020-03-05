@@ -155,8 +155,8 @@ def sdist(ctx):
 @invoke.task
 def git_info(ctx):
     sys.path.insert(0, os.path.join(APP_ROOT, "nbviewer"))
-    from utils import git_info, GIT_INFO_JSON
     try:
+        from utils import git_info, GIT_INFO_JSON
         info = git_info(APP_ROOT, force_git=True)
     except Exception as e:
         print("Failed to get git info", e)
