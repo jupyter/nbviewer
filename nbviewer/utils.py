@@ -201,9 +201,9 @@ def parse_header_links(value):
     return links
 
 
-def git_info(path):
+def git_info(path, force_git=False):
     """Return some git info"""
-    if os.path.exists(GIT_INFO_JSON):
+    if os.path.exists(GIT_INFO_JSON) and not force_git:
         with open(GIT_INFO_JSON, 'r') as f:
             return json.load(f)
     command = ['git', 'log', '-1', '--format=%H\n%s\n%cD']
