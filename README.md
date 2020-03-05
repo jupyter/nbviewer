@@ -1,6 +1,8 @@
 # Jupyter Notebook Viewer
 
-Jupyter nbviewer is the web application behind [The Jupyter Notebook Viewer](http://nbviewer.ipython.org), which is graciously hosted by [Rackspace](https://developer.rackspace.com/?nbviewer=awesome).
+Jupyter nbviewer is the web application behind
+[The Jupyter Notebook Viewer](http://nbviewer.jupyter.org),
+which is graciously hosted by [OVH](https://www.ovh.com).
 
 Run this locally to get most of the features of nbviewer on your own network.
 
