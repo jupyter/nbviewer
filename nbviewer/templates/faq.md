@@ -159,9 +159,10 @@ the [nbconvert documentation](https://nbconvert.readthedocs.io/) for details.
 
 ## Where is nbviewer.jupyter.org hosted?
 
-[Rackspace](https://developer.rackspace.com/?nbviewer=awesome) graciously hosts
-nbviewer.jupyter.org. Thanks to Rackspace, we are able to provider a public
-nbviewer instance as a free service.
+[OVH](https://www.ovh.com) graciously hosts nbviewer.jupyter.org.
+Thanks to OVH, we are able to provider a public nbviewer instance as a free service.
+
+nbviewer was generously hosted by Rackspace until March, 2020.
 
 ## Can I access nbviewer.jupyter.org over https?
 
