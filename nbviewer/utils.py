@@ -12,6 +12,8 @@ from functools import lru_cache
 
 import cgi
 from contextlib import contextmanager
+import json
+import os
 import re
 from subprocess import check_output
 import time
@@ -29,6 +31,9 @@ STRIP_PARAMS = [
     'client_secret',
     'access_token',
 ]
+
+HERE = os.path.dirname(__file__)
+GIT_INFO_JSON = os.path.join(HERE, 'git_info.json')
 
 
 class EmptyClass(object):
@@ -193,8 +198,11 @@ def parse_header_links(value):
     return links
 
 
-def git_info(path):
+def git_info(path, force_git=False):
     """Return some git info"""
+    if os.path.exists(GIT_INFO_JSON) and not force_git:
+        with open(GIT_INFO_JSON, 'r') as f:
+            return json.load(f)
     command = ['git', 'log', '-1', '--format=%H\n%s\n%cD']
     sha, msg, date = check_output(command, cwd=path).decode('utf8').splitlines()
     return dict(

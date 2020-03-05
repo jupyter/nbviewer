@@ -25,6 +25,7 @@ def sh(cmd):
 
 def preflight():
     log.info("Building LESS")
+    sh(['invoke', 'git-info'])
     sh(['npm', 'install'])
     sh(['invoke', 'bower'])
     sh(['invoke', 'less'])
@@ -50,7 +51,7 @@ def walk_subpkg(name):
 
 pkg_data = {
     "nbviewer": (
-        ['frontpage.json'] +
+        ['frontpage.json', 'git_info.json'] +
         walk_subpkg('static') +
         walk_subpkg('templates') +
         walk_subpkg('providers')
