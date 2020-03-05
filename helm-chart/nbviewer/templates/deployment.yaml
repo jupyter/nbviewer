@@ -32,6 +32,9 @@ spec:
         - name: secret
           secret:
             secretName: {{ template "nbviewer.fullname" . }}
+            items:
+              - key: newrelic-ini
+                path: newrelic.ini
         {{- if .Values.extraVolumes }}
         {{- .Values.extraVolumes | toYaml | trimSuffix "\n" | nindent 8 }}
         {{- end }}
@@ -46,7 +49,12 @@ spec:
         - name: nbviewer
           image: {{ .Values.image }}
           command:
+            {{- if .Values.nbviewer.newrelicIni }}
+            - newrelic-admin
+            - run-python
+            {{- else }}
             - python3
+            {{- end }}
             - "-m"
             - nbviewer
             - --port=5000
@@ -55,8 +63,11 @@ spec:
             {{- end }}
 
           volumeMounts:
-            # - mountPath: /srv/nbviewer
-            #   name: files
+            {{- if .Values.nbviewer.newrelicIni }}
+            - mountPath: /etc/nbviewer/newrelic.ini
+              name: secret
+              subPath: newrelic.ini
+            {{- end }}
 
             # - mountPath: /etc/nbviewer/values.json
             #   subPath: values.json
@@ -102,6 +113,8 @@ spec:
             {{- end }}
             - name: MEMCACHIER_SERVERS
               value: {{ .Release.Name }}-memcached:11211
+            - name: NEW_RELIC_CONFIG_FILE
+              value: /etc/nbviewer/newrelic.ini
             {{- if .Values.extraEnv }}
             {{- range $key, $value := .Values.extraEnv }}
             - name: {{ $key | quote }}

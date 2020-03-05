@@ -42,6 +42,7 @@ github:
 nbviewer:
   baseUrl: "/"
   extraArgs: []
+  newrelicIni: ""
 
 memcached:
   AntiAffinity: soft
