@@ -13,7 +13,8 @@ RUN apt-get update \
 
 # Python requirements
 COPY ./requirements-dev.txt /srv/nbviewer/
-RUN python3 -mpip install --no-cache -r /srv/nbviewer/requirements-dev.txt
+COPY ./requirements.txt /srv/nbviewer/
+RUN python3 -mpip install -r /srv/nbviewer/requirements-dev.txt -r /srv/nbviewer/requirements.txt
 
 WORKDIR /srv/nbviewer
 
