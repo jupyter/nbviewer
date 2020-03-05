@@ -1,0 +1,149 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "nbviewer.fullname" . }}
+  labels:
+    component: nbviewer
+    {{- include "nbviewer.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      component: nbviewer
+      {{- include "nbviewer.matchLabels" . | nindent 6 }}
+  {{- if .Values.deploymentStrategy }}
+  strategy:
+    {{- .Values.deploymentStrategy | toYaml | trimSuffix "\n" | nindent 4 }}
+  {{- end }}
+  template:
+    metadata:
+      labels:
+        component: nbviewer
+        {{- include "nbviewer.matchLabels" . | nindent 8 }}
+      annotations:
+        # This lets us autorestart when the secret changes!
+        checksum/secret: {{ include (print .Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- if .Values.annotations }}
+        {{- .Values.annotations | toYaml | trimSuffix "\n" | nindent 8 }}
+        {{- end }}
+    spec:
+      nodeSelector: {{ toJson .Values.nodeSelector }}
+      volumes:
+        - name: secret
+          secret:
+            secretName: {{ template "nbviewer.fullname" . }}
+            items:
+              - key: newrelic-ini
+                path: newrelic.ini
+        {{- if .Values.extraVolumes }}
+        {{- .Values.extraVolumes | toYaml | trimSuffix "\n" | nindent 8 }}
+        {{- end }}
+      {{- if .Values.initContainers }}
+      initContainers:
+        {{- .Values.initContainers | toYaml | trimSuffix "\n" | nindent 8 }}
+      {{- end }}
+      containers:
+        {{- if .Values.extraContainers }}
+        {{- .Values.extraContainers | toYaml | trimSuffix "\n" | nindent 8 }}
+        {{- end }}
+        - name: nbviewer
+          image: {{ .Values.image }}
+          command:
+            {{- if .Values.nbviewer.newrelicIni }}
+            - newrelic-admin
+            - run-python
+            {{- else }}
+            - python3
+            {{- end }}
+            - "-m"
+            - nbviewer
+            - --port=5000
+            {{- if .Values.nbviewer.extraArgs }}
+            {{- .Values.nbviewer.extraArgs  | toYaml | trimSuffix "\n" | nindent 12 }}
+            {{- end }}
+
+          volumeMounts:
+            {{- if .Values.nbviewer.newrelicIni }}
+            - mountPath: /etc/nbviewer/newrelic.ini
+              name: secret
+              subPath: newrelic.ini
+            {{- end }}
+
+            # - mountPath: /etc/nbviewer/values.json
+            #   subPath: values.json
+            #   name: values
+
+            {{- if .Values.extraVolumeMounts }}
+            {{- .Values.extraVolumeMounts | toYaml | trimSuffix "\n" | nindent 12 }}
+            {{- end }}
+          resources:
+            {{- .Values.resources | toYaml | trimSuffix "\n" | nindent 12 }}
+          {{- with .Values.imagePullPolicy }}
+          imagePullPolicy: {{ . }}
+          {{- end }}
+          env:
+            - name: PYTHONUNBUFFERED
+              value: "1"
+            - name: HELM_RELEASE_NAME
+              value: {{ .Release.Name | quote }}
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            {{- if .Values.github.clientId }}
+            - name: GITHUB_OAUTH_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "nbviewer.fullname" . }}
+                  key: github-clientId
+            {{- end }}
+            {{- if .Values.github.clientSecret }}
+            - name: GITHUB_OAUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "nbviewer.fullname" . }}
+                  key: github-clientSecret
+            {{- end }}
+            {{- if .Values.github.accessToken }}
+            - name: GITHUB_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "nbviewer.fullname" . }}
+                  key: github-accessToken
+            {{- end }}
+            - name: MEMCACHIER_SERVERS
+              value: {{ .Release.Name }}-memcached:11211
+            - name: NEW_RELIC_CONFIG_FILE
+              value: /etc/nbviewer/newrelic.ini
+            {{- if .Values.extraEnv }}
+            {{- range $key, $value := .Values.extraEnv }}
+            - name: {{ $key | quote }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- end }}
+          ports:
+            - containerPort: 5000
+              name: nbviewer
+          {{- if .Values.livenessProbe.enabled }}
+          # livenessProbe notes:
+          # We don't know how long hub database upgrades could take
+          # so having a liveness probe could be a bit risky unless we put
+          # a initialDelaySeconds value with long enough margin for that
+          # to not be an issue. If it is too short, we could end up aborting
+          # database upgrades midway or ending up in an infinite restart
+          # loop.
+          livenessProbe:
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+            httpGet:
+              path: {{ .Values.nbviewer.baseUrl | trimSuffix "/" | quote }}
+              port: nbviewer
+          {{- end }}
+          {{- if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            httpGet:
+              path: {{ .Values.nbviewer.baseUrl | trimSuffix "/" | quote }}
+              port: nbviewer
+          {{- end }}

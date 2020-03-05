@@ -20,3 +20,4 @@ notebook-*
 MANIFEST
 package-lock.json
 .vscode/
+*.tgz

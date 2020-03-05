@@ -1,0 +1,4 @@
+dependencies:
+ - name: memcached
+   version: 3.2.2
+   repository: https://kubernetes-charts.storage.googleapis.com
