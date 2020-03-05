@@ -3,6 +3,7 @@
 
 from __future__ import print_function
 
+import json
 import os
 import hashlib
 import pipes
@@ -149,6 +150,21 @@ def sdist(ctx):
     bower(ctx)
     less(ctx)
     ctx.run('python setup.py sdist')
+
+
+@invoke.task
+def git_info(ctx):
+    sys.path.insert(0, os.path.join(APP_ROOT, "nbviewer"))
+    from utils import git_info, GIT_INFO_JSON
+    try:
+        info = git_info(APP_ROOT)
+    except Exception as e:
+        print("Failed to get git info", e)
+        return
+    print("Writing git info to %s" % GIT_INFO_JSON)
+    with open(GIT_INFO_JSON, "w") as f:
+        json.dump(info, f)
+    sys.path.pop(0)
 
 
 @invoke.task

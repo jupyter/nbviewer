@@ -40,7 +40,6 @@ RUN apt-get update \
 COPY --from=builder /wheels /wheels
 RUN python3 -mpip install --no-cache /wheels/*
 
-COPY .git /srv/nbviewer/.git
 # To change the number of threads use
 # docker run -d -e NBVIEWER_THREADS=4 -p 80:8080 nbviewer
 ENV NBVIEWER_THREADS 2
