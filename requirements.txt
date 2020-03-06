@@ -1,7 +1,7 @@
 elasticsearch
 jupyter_client
 jupyter_server>=0.2.0
-markdown>=3.0
+markdown>=3.0,==3.1.1 # pin until we workaround #909, which is a regression in 3.2
 newrelic!=2.80.0.60
 nbformat>=4.2
 nbconvert>=5.4
