@@ -6,17 +6,13 @@
 #-----------------------------------------------------------------------------
 
 import requests
-import sys
-from nbviewer.utils import url_path_join
 
 from ....tests.base import NBViewerTestCase, FormatHTMLMixin
 
 class LocalFileDefaultTestCase(NBViewerTestCase):
     @classmethod
-    def get_server_args(cls):
-        return [
-            '--localfiles=.',
-            ]
+    def get_server_cmd(cls):
+        return super().get_server_cmd() + [ '--localfiles=.' ]
 
     def test_url(self):
         ## assumes being run from base of this repo
@@ -32,10 +28,8 @@ class FormatHTMLLocalFileDefaultTestCase(LocalFileDefaultTestCase,
 
 class LocalFileRelativePathTestCase(NBViewerTestCase):
     @classmethod
-    def get_server_args(cls):
-        return [
-            '--localfiles=nbviewer',
-            ]
+    def get_server_cmd(cls):
+        return super().get_server_cmd() + [ '--localfiles=nbviewer' ]
 
     def test_url(self):
         ## assumes being run from base of this repo
