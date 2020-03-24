@@ -61,22 +61,11 @@ class JupyterHubServiceTestCase(NBViewerTestCase):
         'JUPYTERHUB_SERVICE_PREFIX': '/services/nbviewer-test'
     }
 
+    environment_variables = HUB_SETTINGS
+    
     @classmethod
-    def get_server_args(cls):
-        return [
-            '--localfiles=.'
-        ]
-
-    @classmethod
-    def setup_class(cls):
-        os.environ.update(cls.HUB_SETTINGS)
-        super().setup_class()
-
-    @classmethod
-    def teardown_class(cls):
-        for key in cls.HUB_SETTINGS.keys():
-            del os.environ[key]
-        super().teardown_class()
+    def get_server_cmd(cls):
+        return super().get_server_cmd() + [ '--localfiles=.' ]
 
     def test_login_redirect(self):
         url = self.url('/services/nbviewer-test/github/jupyter')

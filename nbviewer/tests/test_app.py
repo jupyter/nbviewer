@@ -80,9 +80,8 @@ def test_generate_config():
     assert 'NBViewer.statsd_port' in cfg_text
     assert 'NBViewer.statsd_prefix' in cfg_text
     assert 'NBViewer.template_path' in cfg_text
-    assert 'NBViewer.cache' not in cfg_text # Shouldn't be configurable, is a property
     assert 'NBViewer.default_endpoint' not in cfg_text # Shouldn't be configurable, is a property
-    assert 'NBViewer.env' not in cfg_text # Ditto the above
+    assert 'NBViewer.env' not in cfg_text # Shouldn't be configurable, is a property
     assert 'NBViewer.fetch_kwargs' not in cfg_text
     assert 'NBViewer.formats' not in cfg_text
     assert 'NBViewer.frontpage_setup' not in cfg_text
