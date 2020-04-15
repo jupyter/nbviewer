@@ -1,6 +1,21 @@
+**[Quick Run](#quick-run)** |
+**[GitHub Enterprise](#github-enterprise)** |
+**[Base URL](#base-url)** |
+**[Local Development](#local-development)** |
+**[Contributing](#contributing)** |
+**[Extensions](#extending-the-notebook-viewer)** |
+**[Configuration](#config-file-and-command-line-configuration)** |
+**[Security](#securing-the-notebook-viewer)**
+
+
 # Jupyter Notebook Viewer
 
-Jupyter nbviewer is the web application behind
+[![Latest PyPI version](https://img.shields.io/pypi/v/nbviewer?logo=pypi)](https://pypi.python.org/pypi/nbviewer)
+[![TravisCI build status](https://img.shields.io/travis/jupyter/nbviewer/master?logo=travis)](https://travis-ci.org/jupyter/nbviewer)
+[![GitHub](https://img.shields.io/badge/issue_tracking-github-blue?logo=github)](https://github.com/jupyter/nbviewer/issues)
+[![Gitter](https://img.shields.io/badge/social_chat-gitter-blue?logo=gitter)](https://gitter.im/jupyter/nbviewer)
+
+Jupyter NBViewer is the web application behind
 [The Jupyter Notebook Viewer](http://nbviewer.jupyter.org),
 which is graciously hosted by [OVHcloud](https://ovhcloud.com).
 
@@ -129,17 +144,10 @@ $ python -m nbviewer --debug --no-cache
 This will automatically relaunch the server if a change is detected on a python file, and not cache any results. You can then just do the modifications you like to the source code and/or the templates then refresh the pages.
 
 
-#### Running the Tests
+## Contributing
 
-`nose` is used to run the test suite. The tests currently make calls to
-external APIs such as GitHub, so it is best to use your Github API Token when
-running:
-
-```shell
-$ cd <path to repo>
-$ pip install -r requirements-dev.txt
-$ GITHUB_API_TOKEN=<your token> python setup.py test
-```
+If you would like to contribute to the project, please read the [`CONTRIBUTING.md`](CONTRIBUTING.md). The `CONTRIBUTING.md` file
+explains how to set up a development installation and how to run the test suite.
 
 
 ## Extending the Notebook Viewer
