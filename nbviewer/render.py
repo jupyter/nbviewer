@@ -1,21 +1,23 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #  Copyright (C) Jupyter Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-from tornado.log import app_log
+# -----------------------------------------------------------------------------
 from nbconvert.exporters import Exporter
+from tornado.log import app_log
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
 
 class NbFormatError(Exception):
     pass
 
+
 exporters = {}
+
 
 def render_notebook(format, nb, url=None, forced_theme=None, config=None):
     exporter = format["exporter"]
@@ -30,7 +32,7 @@ def render_notebook(format, nb, url=None, forced_theme=None, config=None):
             exporters[exporter_cls] = exporter_cls(config=config, log=app_log)
         exporter = exporters[exporter_cls]
 
-    css_theme = nb.get('metadata', {}).get('_nbviewer', {}).get('css', None)
+    css_theme = nb.get("metadata", {}).get("_nbviewer", {}).get("css", None)
 
     if not css_theme or not css_theme.strip():
         # whitespace
@@ -43,22 +45,19 @@ def render_notebook(format, nb, url=None, forced_theme=None, config=None):
     try:
         name = nb.metadata.name
     except AttributeError:
-        name = ''
+        name = ""
 
     if not name and url is not None:
-        name = url.rsplit('/')[-1]
+        name = url.rsplit("/")[-1]
 
     if not name.endswith(".ipynb"):
         name = name + ".ipynb"
 
     html, resources = exporter.from_notebook_node(nb)
 
-    if 'postprocess' in format:
-        html, resources = format['postprocess'](html, resources)
+    if "postprocess" in format:
+        html, resources = format["postprocess"](html, resources)
 
-    config = {
-        'download_name': name,
-        'css_theme': css_theme,
-    }
+    config = {"download_name": name, "css_theme": css_theme}
 
     return html, config

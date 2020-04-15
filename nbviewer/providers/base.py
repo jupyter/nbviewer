@@ -1,53 +1,50 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #  Copyright (C) Jupyter Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
+# -----------------------------------------------------------------------------
+import asyncio
 import hashlib
 import pickle
 import socket
 import time
-import statsd
-import asyncio
-
-from html import escape
 from contextlib import contextmanager
 from datetime import datetime
-
+from html import escape
 from http.client import responses
-from urllib.parse import urlparse, urlunparse, quote, urlencode
+from urllib.parse import quote
+from urllib.parse import urlencode
+from urllib.parse import urlparse
+from urllib.parse import urlunparse
 
-from tornado import (
-    httpclient,
-    web,
-)
+import statsd
+from nbformat import current_nbformat
+from nbformat import reads
+from tornado import httpclient
+from tornado import web
 from tornado.concurrent import Future
-from tornado.escape import (
-    url_escape,
-    url_unescape,
-    utf8,
-)
+from tornado.escape import url_escape
+from tornado.escape import url_unescape
+from tornado.escape import utf8
 from tornado.ioloop import IOLoop
 
-from nbformat import (
-    current_nbformat,
-    reads,
-)
-
-from ..render import (
-    NbFormatError,
-    render_notebook,
-)
-from ..utils import parse_header_links, time_block, EmptyClass, url_path_join
+from ..render import NbFormatError
+from ..render import render_notebook
+from ..utils import EmptyClass
+from ..utils import parse_header_links
+from ..utils import time_block
+from ..utils import url_path_join
 
 try:
     import pycurl
     from tornado.curl_httpclient import CurlError
 except ImportError:
     pycurl = None
-    class CurlError(Exception): pass
+
+    class CurlError(Exception):
+        pass
+
 
 format_prefix = "/format/"
 
@@ -70,26 +67,26 @@ class BaseHandler(web.RequestHandler):
     def redirect(self, url, *args, **kwargs):
         purl = urlparse(url)
 
-        eurl = urlunparse((
-            purl.scheme,
-            purl.netloc,
-            "/".join([
-                url_escape(url_unescape(p), plus=False)
-                for p in purl.path.split("/")
-            ]),
-            purl.params,
-            purl.query,
-            purl.fragment
-        ))
-
-        return super().redirect(
-            eurl,
-            *args,
-            **kwargs
+        eurl = urlunparse(
+            (
+                purl.scheme,
+                purl.netloc,
+                "/".join(
+                    [
+                        url_escape(url_unescape(p), plus=False)
+                        for p in purl.path.split("/")
+                    ]
+                ),
+                purl.params,
+                purl.query,
+                purl.fragment,
+            )
         )
 
+        return super().redirect(eurl, *args, **kwargs)
+
     def set_default_headers(self):
-        self.add_header('Content-Security-Policy', self.content_security_policy)
+        self.add_header("Content-Security-Policy", self.content_security_policy)
 
     async def prepare(self):
         """Check if the user is authenticated with JupyterHub if the hub
@@ -101,9 +98,13 @@ class BaseHandler(web.RequestHandler):
         # if any of these are set, assume we want to do auth, even if
         # we're misconfigured (better safe than sorry!)
         if self.hub_api_url or self.hub_api_token or self.hub_base_url:
+
             def redirect_to_login():
-                self.redirect(url_path_join(self.hub_base_url, '/hub/login') +
-                              '?' + urlencode({'next': self.request.path}))
+                self.redirect(
+                    url_path_join(self.hub_base_url, "/hub/login")
+                    + "?"
+                    + urlencode({"next": self.request.path})
+                )
 
             encrypted_cookie = self.get_cookie(self.hub_cookie_name)
             if not encrypted_cookie:
@@ -113,13 +114,13 @@ class BaseHandler(web.RequestHandler):
             try:
                 # if the hub returns a success code, the user is known
                 await self.http_client.fetch(
-                    url_path_join(self.hub_api_url,
-                                    'authorizations/cookie',
-                                    self.hub_cookie_name,
-                                    quote(encrypted_cookie, safe='')),
-                    headers={
-                        'Authorization': 'token ' + self.hub_api_token
-                    }
+                    url_path_join(
+                        self.hub_api_url,
+                        "authorizations/cookie",
+                        self.hub_cookie_name,
+                        quote(encrypted_cookie, safe=""),
+                    ),
+                    headers={"Authorization": "token " + self.hub_api_token},
                 )
             except httpclient.HTTPError as ex:
                 if ex.response.code == 404:
@@ -132,121 +133,121 @@ class BaseHandler(web.RequestHandler):
 
     @property
     def base_url(self):
-        return self.settings['base_url']
+        return self.settings["base_url"]
 
     @property
     def binder_base_url(self):
-        return self.settings['binder_base_url']
+        return self.settings["binder_base_url"]
 
     @property
     def cache(self):
-        return self.settings['cache']
+        return self.settings["cache"]
 
     @property
     def cache_expiry_max(self):
-        return self.settings.setdefault('cache_expiry_max', 120)
+        return self.settings.setdefault("cache_expiry_max", 120)
 
     @property
     def cache_expiry_min(self):
-        return self.settings.setdefault('cache_expiry_min', 60)
+        return self.settings.setdefault("cache_expiry_min", 60)
 
     @property
     def client(self):
-        return self.settings['client']
+        return self.settings["client"]
 
     @property
     def config(self):
-        return self.settings['config']
+        return self.settings["config"]
 
     @property
     def content_security_policy(self):
-        return self.settings['content_security_policy']
+        return self.settings["content_security_policy"]
 
     @property
     def default_format(self):
-        return self.settings['default_format']
+        return self.settings["default_format"]
 
     @property
     def formats(self):
-        return self.settings['formats']
+        return self.settings["formats"]
 
     @property
     def frontpage_setup(self):
-        return self.settings['frontpage_setup']
+        return self.settings["frontpage_setup"]
 
     @property
     def hub_api_token(self):
-        return self.settings.get('hub_api_token')
+        return self.settings.get("hub_api_token")
 
     @property
     def hub_api_url(self):
-        return self.settings.get('hub_api_url')
+        return self.settings.get("hub_api_url")
 
     @property
     def hub_base_url(self):
-        return self.settings['hub_base_url']
+        return self.settings["hub_base_url"]
 
     @property
     def hub_cookie_name(self):
-        return 'jupyterhub-services'
+        return "jupyterhub-services"
 
     @property
     def index(self):
-        return self.settings['index']
+        return self.settings["index"]
 
     @property
     def ipywidgets_base_url(self):
-        return self.settings['ipywidgets_base_url']
+        return self.settings["ipywidgets_base_url"]
 
     @property
     def jupyter_js_widgets_version(self):
-        return self.settings['jupyter_js_widgets_version']
+        return self.settings["jupyter_js_widgets_version"]
 
     @property
     def jupyter_widgets_html_manager_version(self):
-        return self.settings['jupyter_widgets_html_manager_version']
+        return self.settings["jupyter_widgets_html_manager_version"]
 
     @property
     def mathjax_url(self):
-        return self.settings['mathjax_url']
+        return self.settings["mathjax_url"]
 
     @property
     def log(self):
-        return self.settings['log']
+        return self.settings["log"]
 
     @property
     def max_cache_uris(self):
-        return self.settings.setdefault('max_cache_uris', set())
+        return self.settings.setdefault("max_cache_uris", set())
 
     @property
     def pending(self):
-        return self.settings.setdefault('pending', {})
+        return self.settings.setdefault("pending", {})
 
     @property
     def pool(self):
-        return self.settings['pool']
+        return self.settings["pool"]
 
     @property
     def providers(self):
-        return self.settings['providers']
+        return self.settings["providers"]
 
     @property
     def rate_limiter(self):
-        return self.settings['rate_limiter']
+        return self.settings["rate_limiter"]
 
     @property
     def static_url_prefix(self):
-        return self.settings['static_url_prefix']
+        return self.settings["static_url_prefix"]
 
     @property
     def statsd(self):
-        if hasattr(self, '_statsd'):
+        if hasattr(self, "_statsd"):
             return self._statsd
-        if self.settings['statsd_host']:
+        if self.settings["statsd_host"]:
             self._statsd = statsd.StatsClient(
-                self.settings['statsd_host'],
-                self.settings['statsd_port'],
-                self.settings['statsd_prefix'] + '.' + type(self).__name__
+                self.settings["statsd_host"],
+                self.settings["statsd_port"],
+                self.settings["statsd_prefix"] + "." + type(self).__name__,
             )
             return self._statsd
         else:
@@ -254,18 +255,18 @@ class BaseHandler(web.RequestHandler):
             self._statsd = EmptyClass()
             return self._statsd
 
-    #---------------------------------------------------------------
+    # ---------------------------------------------------------------
     # template rendering
-    #---------------------------------------------------------------
+    # ---------------------------------------------------------------
 
     def from_base(self, url, *args):
-        if not url.startswith('/') or url.startswith(self.base_url):
+        if not url.startswith("/") or url.startswith(self.base_url):
             return url_path_join(url, *args)
         return url_path_join(self.base_url, url, *args)
 
     def get_template(self, name):
         """Return the jinja template object for a given name"""
-        return self.settings['jinja2_env'].get_template(name)
+        return self.settings["jinja2_env"].get_template(name)
 
     def render_template(self, name, **namespace):
         namespace.update(self.template_namespace)
@@ -276,10 +277,10 @@ class BaseHandler(web.RequestHandler):
     # This would seem to mostly involve creating different template namespaces to enable custom logic in
     # extended templates, but there might be other possibilities
     def render_status_code_template(self, status_code, **namespace):
-        return self.render_template('%d.html' % status_code, **namespace)
+        return self.render_template("%d.html" % status_code, **namespace)
 
     def render_error_template(self, **namespace):
-        return self.render_template('error.html', **namespace)
+        return self.render_template("error.html", **namespace)
 
     @property
     def template_namespace(self):
@@ -287,7 +288,7 @@ class BaseHandler(web.RequestHandler):
             "mathjax_url": self.mathjax_url,
             "static_url": self.static_url,
             "from_base": self.from_base,
-            "google_analytics_id": self.settings.get('google_analytics_id'),
+            "google_analytics_id": self.settings.get("google_analytics_id"),
             "ipywidgets_base_url": self.ipywidgets_base_url,
             "jupyter_js_widgets_version": self.jupyter_js_widgets_version,
             "jupyter_widgets_html_manager_version": self.jupyter_widgets_html_manager_version,
@@ -303,12 +304,9 @@ class BaseHandler(web.RequestHandler):
         if not path:
             return breadcrumbs
 
-        for name in path.split('/'):
+        for name in path.split("/"):
             base_url = url_path_join(base_url, name)
-            breadcrumbs.append({
-                'url': base_url,
-                'name': name,
-            })
+            breadcrumbs.append({"url": base_url, "name": name})
         return breadcrumbs
 
     def get_page_links(self, response):
@@ -318,17 +316,17 @@ class BaseHandler(web.RequestHandler):
 
         Each will be None if there no such link.
         """
-        links = parse_header_links(response.headers.get('Link', ''))
+        links = parse_header_links(response.headers.get("Link", ""))
         next_url = prev_url = None
-        if 'next' in links:
-            next_url = '?' + urlparse(links['next']['url']).query
-        if 'prev' in links:
-            prev_url = '?' + urlparse(links['prev']['url']).query
+        if "next" in links:
+            next_url = "?" + urlparse(links["next"]["url"]).query
+        if "prev" in links:
+            prev_url = "?" + urlparse(links["prev"]["url"]).query
         return prev_url, next_url
 
-    #---------------------------------------------------------------
+    # ---------------------------------------------------------------
     # error handling
-    #---------------------------------------------------------------
+    # ---------------------------------------------------------------
 
     def client_error_message(self, exc, url, body, msg=None):
         """Turn the tornado HTTP error into something useful
@@ -338,20 +336,20 @@ class BaseHandler(web.RequestHandler):
         str_exc = str(exc)
 
         # strip the unhelpful 599 prefix
-        if str_exc.startswith('HTTP 599: '):
+        if str_exc.startswith("HTTP 599: "):
             str_exc = str_exc[10:]
 
         if (msg is None) and body and len(body) < 100:
             # if it's a short plain-text error message, include it
             msg = "%s (%s)" % (str_exc, escape(body))
-        
+
         if not msg:
             msg = str_exc
-        
+
         # Now get the error code
         if exc.code == 599:
             if isinstance(exc, CurlError):
-                en = getattr(exc, 'errno', -1)
+                en = getattr(exc, "errno", -1)
                 # can't connect to server should be 404
                 # possibly more here
                 if en in (pycurl.E_COULDNT_CONNECT, pycurl.E_COULDNT_RESOLVE_HOST):
@@ -368,17 +366,17 @@ class BaseHandler(web.RequestHandler):
                 msg = "Remote %s" % msg
             else:
                 code = 400
-        
+
         return code, msg
 
     def reraise_client_error(self, exc):
         """Remote fetch raised an error"""
         try:
-            url = exc.response.request.url.split('?')[0]
-            body = exc.response.body.decode('utf8', 'replace').strip()
+            url = exc.response.request.url.split("?")[0]
+            body = exc.response.body.decode("utf8", "replace").strip()
         except AttributeError:
-            url = 'url'
-            body = ''
+            url = "url"
+            body = ""
 
         code, msg = self.client_error_message(exc, url, body)
 
@@ -402,7 +400,7 @@ class BaseHandler(web.RequestHandler):
 
     @property
     def fetch_kwargs(self):
-        return self.settings.setdefault('fetch_kwargs', {})
+        return self.settings.setdefault("fetch_kwargs", {})
 
     async def fetch(self, url, **overrides):
         """fetch a url with our async client
@@ -418,9 +416,9 @@ class BaseHandler(web.RequestHandler):
 
     def write_error(self, status_code, **kwargs):
         """render custom error pages"""
-        exc_info = kwargs.get('exc_info')
-        message = ''
-        status_message = responses.get(status_code, 'Unknown')
+        exc_info = kwargs.get("exc_info")
+        message = ""
+        status_message = responses.get(status_code, "Unknown")
         if exc_info:
             # get the custom message, if defined
             exception = exc_info[1]
@@ -430,7 +428,7 @@ class BaseHandler(web.RequestHandler):
                 pass
 
             # construct the custom reason, if defined
-            reason = getattr(exception, 'reason', '')
+            reason = getattr(exception, "reason", "")
             if reason:
                 status_message = reason
 
@@ -447,24 +445,25 @@ class BaseHandler(web.RequestHandler):
             html = self.render_status_code_template(status_code, **namespace)
         except Exception as e:
             html = self.render_error_template(**namespace)
-        self.set_header('Content-Type', 'text/html')
+        self.set_header("Content-Type", "text/html")
         self.write(html)
 
-    #---------------------------------------------------------------
+    # ---------------------------------------------------------------
     # response caching
-    #---------------------------------------------------------------
+    # ---------------------------------------------------------------
 
     @property
     def cache_headers(self):
         # are there other headers to cache?
         h = {}
-        for key in ('Content-Type',):
+        for key in ("Content-Type",):
             if key in self._headers:
                 h[key] = self._headers[key]
         return h
 
     _cache_key = None
-    _cache_key_attr = 'uri'
+    _cache_key_attr = "uri"
+
     @property
     def cache_key(self):
         """Use checksum for cache key because cache has size limit on keys
@@ -478,10 +477,10 @@ class BaseHandler(web.RequestHandler):
     def truncate(self, s, limit=256):
         """Truncate long strings"""
         if len(s) > limit:
-            s = "%s...%s" % (s[:limit//2], s[limit//2:])
+            s = "%s...%s" % (s[: limit // 2], s[limit // 2 :])
         return s
 
-    async def cache_and_finish(self, content=''):
+    async def cache_and_finish(self, content=""):
         """finish a request and cache the result
 
         currently only works if:
@@ -494,8 +493,7 @@ class BaseHandler(web.RequestHandler):
         # bounded by cache_expiry_min,max
         # a 30 second render will be cached for an hour
         expiry = max(
-            min(120 * request_time, self.cache_expiry_max),
-            self.cache_expiry_min,
+            min(120 * request_time, self.cache_expiry_max), self.cache_expiry_min
         )
 
         if self.request.uri in self.max_cache_uris:
@@ -509,16 +507,15 @@ class BaseHandler(web.RequestHandler):
         self.finish()
 
         short_url = self.truncate(self.request.path)
-        cache_data = pickle.dumps({
-            'headers' : self.cache_headers,
-            'body' : content,
-        }, pickle.HIGHEST_PROTOCOL)
+        cache_data = pickle.dumps(
+            {"headers": self.cache_headers, "body": content}, pickle.HIGHEST_PROTOCOL
+        )
         log = self.log.info if expiry > self.cache_expiry_min else self.log.debug
         log("Caching (expiry=%is) %s", expiry, short_url)
         try:
             with time_block("Cache set %s" % short_url, logger=self.log):
                 await self.cache.set(
-                    self.cache_key, cache_data, int(time.time() + expiry),
+                    self.cache_key, cache_data, int(time.time() + expiry)
                 )
         except Exception:
             self.log.error("Cache set for %s failed", short_url, exc_info=True)
@@ -532,6 +529,7 @@ def cached(method):
     This only handles getting from the cache, not writing to it.
     Writing to the cache must be handled in the decorated method.
     """
+
     async def cached_method(self, *args, **kwargs):
         uri = self.request.path
         short_url = self.truncate(uri)
@@ -542,7 +540,7 @@ def cached(method):
             # call the wrapped method
             await method(self, *args, **kwargs)
             return
-        
+
         pending_future = self.pending.get(uri, None)
         loop = IOLoop.current()
         if pending_future:
@@ -550,8 +548,8 @@ def cached(method):
             tic = loop.time()
             await pending_future
             toc = loop.time()
-            self.log.info("Waited %.3fs for concurrent request at %s",
-                 toc-tic, short_url
+            self.log.info(
+                "Waited %.3fs for concurrent request at %s", toc - tic, short_url
             )
 
         try:
@@ -567,9 +565,9 @@ def cached(method):
 
         if cached is not None:
             self.log.info("Cache hit %s", short_url)
-            for key, value in cached['headers'].items():
+            for key, value in cached["headers"].items():
                 self.set_header(key, value)
-            self.write(cached['body'])
+            self.write(cached["body"])
         else:
             self.log.debug("Cache miss %s", short_url)
             await self.rate_limiter.check(self)
@@ -589,20 +587,19 @@ class RenderingHandler(BaseHandler):
     """Base for handlers that render notebooks"""
 
     # notebook caches based on path (no url params)
-    _cache_key_attr = 'path'
+    _cache_key_attr = "path"
 
     @property
     def render_timeout(self):
         """0 render_timeout means never finish early"""
-        return self.settings.setdefault('render_timeout', 0)
+        return self.settings.setdefault("render_timeout", 0)
 
     def initialize(self, **kwargs):
         super().initialize(**kwargs)
         loop = IOLoop.current()
         if self.render_timeout:
             self.slow_timeout = loop.add_timeout(
-                loop.time() + self.render_timeout,
-                self.finish_early
+                loop.time() + self.render_timeout, self.finish_early
             )
 
     def finish_early(self):
@@ -613,13 +610,13 @@ class RenderingHandler(BaseHandler):
         if self._finished:
             return
         self.log.info("Finishing early %s", self.request.uri)
-        html = self.render_template('slow_notebook.html')
-        self.set_status(202) # Accepted
+        html = self.render_template("slow_notebook.html")
+        self.set_status(202)  # Accepted
         self.finish(html)
 
         # short circuit some methods because the rest of the rendering will still happen
         self.write = self.finish = self.redirect = lambda chunk=None: None
-        self.statsd.incr('rendering.waiting', 1)
+        self.statsd.incr("rendering.waiting", 1)
 
     def filter_formats(self, nb, raw):
         """Generate a list of formats that can render the given nb json
@@ -658,12 +655,14 @@ class RenderingHandler(BaseHandler):
 
         Last part of any provider's GET method.
         """
-        pass 
+        pass
 
     # Wrappers to facilitate custom rendering in subclasses without having to rewrite entire GET methods
     # This would seem to mostly involve creating different template namespaces to enable custom logic in
     # extended templates, but there might be other possibilities
-    def render_notebook_template(self, body, nb, download_url, json_notebook, **namespace):
+    def render_notebook_template(
+        self, body, nb, download_url, json_notebook, **namespace
+    ):
         return self.render_template(
             "formats/%s.html" % self.format,
             body=body,
@@ -673,12 +672,16 @@ class RenderingHandler(BaseHandler):
             default_format=self.default_format,
             format_prefix=self.format_prefix,
             formats=dict(self.filter_formats(nb, json_notebook)),
-            format_base=self.request.uri.replace(self.format_prefix, "").replace(self.base_url, '/'),
+            format_base=self.request.uri.replace(self.format_prefix, "").replace(
+                self.base_url, "/"
+            ),
             date=datetime.utcnow().strftime(self.date_fmt),
-            **namespace)
-                
-    async def finish_notebook(self, json_notebook, download_url, msg=None,
-                        public=False, **namespace):
+            **namespace
+        )
+
+    async def finish_notebook(
+        self, json_notebook, download_url, msg=None, public=False, **namespace
+    ):
         """Renders a notebook from its JSON body.
 
         Parameters
@@ -697,47 +700,57 @@ class RenderingHandler(BaseHandler):
             msg = download_url
 
         try:
-            parse_time = self.statsd.timer('rendering.parsing.time').start()
+            parse_time = self.statsd.timer("rendering.parsing.time").start()
             nb = reads(json_notebook, current_nbformat)
             parse_time.stop()
         except ValueError:
             self.log.error("Failed to render %s", msg, exc_info=True)
-            self.statsd.incr('rendering.parsing.fail')
+            self.statsd.incr("rendering.parsing.fail")
             raise web.HTTPError(400, "Error reading JSON notebook")
 
         try:
             self.log.debug("Requesting render of %s", download_url)
-            with time_block("Rendered %s" % download_url, logger=self.log, debug_limit=0):
-                self.log.info("Rendering %d B notebook from %s", len(json_notebook), download_url)
-                render_time = self.statsd.timer('rendering.nbrender.time').start()
+            with time_block(
+                "Rendered %s" % download_url, logger=self.log, debug_limit=0
+            ):
+                self.log.info(
+                    "Rendering %d B notebook from %s", len(json_notebook), download_url
+                )
+                render_time = self.statsd.timer("rendering.nbrender.time").start()
                 loop = asyncio.get_event_loop()
-                nbhtml, config = await loop.run_in_executor(self.pool, render_notebook,
-                    self.formats[self.format], nb, download_url, self.config,
+                nbhtml, config = await loop.run_in_executor(
+                    self.pool,
+                    render_notebook,
+                    self.formats[self.format],
+                    nb,
+                    download_url,
+                    self.config,
                 )
                 render_time.stop()
         except NbFormatError as e:
-            self.statsd.incr('rendering.nbrender.fail', 1)
+            self.statsd.incr("rendering.nbrender.fail", 1)
             self.log.error("Invalid notebook %s: %s", msg, e)
             raise web.HTTPError(400, str(e))
         except Exception as e:
-            self.statsd.incr('rendering.nbrender.fail', 1)
+            self.statsd.incr("rendering.nbrender.fail", 1)
             self.log.error("Failed to render %s", msg, exc_info=True)
             raise web.HTTPError(400, str(e))
         else:
-            self.statsd.incr('rendering.nbrender.success', 1)
+            self.statsd.incr("rendering.nbrender.success", 1)
             self.log.debug("Finished render of %s", download_url)
 
-        html_time = self.statsd.timer('rendering.html.time').start()
+        html_time = self.statsd.timer("rendering.html.time").start()
         html = self.render_notebook_template(
             body=nbhtml,
             nb=nb,
             download_url=download_url,
             json_notebook=json_notebook,
-            **namespace)
+            **namespace
+        )
         html_time.stop()
 
-        if 'content_type' in self.formats[self.format]:
-            self.set_header('Content-Type', self.formats[self.format]['content_type'])
+        if "content_type" in self.formats[self.format]:
+            self.set_header("Content-Type", self.formats[self.format]["content_type"])
         await self.cache_and_finish(html)
 
         # Index notebook
@@ -749,6 +762,7 @@ class FilesRedirectHandler(BaseHandler):
 
     matches behavior of old app, currently unused.
     """
+
     def get(self, before_files, after_files):
         self.log.info("Redirecting %s to %s", before_files, after_files)
         self.redirect("%s/%s" % (before_files, after_files))
@@ -756,17 +770,19 @@ class FilesRedirectHandler(BaseHandler):
 
 class AddSlashHandler(BaseHandler):
     """redirector for URLs that should always have trailing slash"""
+
     def get(self, *args, **kwargs):
-        uri = self.request.path + '/'
+        uri = self.request.path + "/"
         if self.request.query:
-            uri = '%s?%s' % (uri, self.request.query)
+            uri = "%s?%s" % (uri, self.request.query)
         self.redirect(uri)
 
 
 class RemoveSlashHandler(BaseHandler):
     """redirector for URLs that should never have trailing slash"""
+
     def get(self, *args, **kwargs):
-        uri = self.request.path.rstrip('/')
+        uri = self.request.path.rstrip("/")
         if self.request.query:
-            uri = '%s?%s' % (uri, self.request.query)
+            uri = "%s?%s" % (uri, self.request.query)
         self.redirect(uri)

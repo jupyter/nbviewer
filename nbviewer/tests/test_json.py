@@ -1,5 +1,5 @@
-import os
 import json
+import os
 from unittest import TestCase
 
 from jsonschema import validate
@@ -30,11 +30,9 @@ class JSONTestCase(TestCase):
             schema = json.load(open(os.path.join(ROOT, self.schema), "r"))
             validate(data, schema)
         except Exception as err:
-            self.fail("%s failed to validate against %s:  %s" % (
-                self.json,
-                self.schema,
-                err
-            ))
+            self.fail(
+                "%s failed to validate against %s:  %s" % (self.json, self.schema, err)
+            )
 
 
 class FrontpageJSONTestCase(JSONTestCase):

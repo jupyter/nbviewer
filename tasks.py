@@ -1,25 +1,28 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 from __future__ import print_function
 
+import hashlib
 import json
 import os
-import hashlib
 import pipes
 import shutil
-import tempfile
 import sys
+import tempfile
 from tarfile import TarFile
 
 import invoke
 
-NOTEBOOK_VERSION = '5.7.8' # the notebook version whose LESS we will use
-NOTEBOOK_CHECKSUM = '573e0ae650c5d76b18b6e564ba6d21bf321d00847de1d215b418acb64f056eb8' # sha256 checksum of notebook tarball
+NOTEBOOK_VERSION = "5.7.8"  # the notebook version whose LESS we will use
+NOTEBOOK_CHECKSUM = (
+    "573e0ae650c5d76b18b6e564ba6d21bf321d00847de1d215b418acb64f056eb8"
+)  # sha256 checksum of notebook tarball
 
 APP_ROOT = os.path.dirname(__file__)
 NPM_BIN = os.path.join(APP_ROOT, "node_modules", ".bin")
-NOTEBOOK_STATIC_PATH = os.path.join(APP_ROOT, 'notebook-%s' % NOTEBOOK_VERSION, 'notebook', 'static')
+NOTEBOOK_STATIC_PATH = os.path.join(
+    APP_ROOT, "notebook-%s" % NOTEBOOK_VERSION, "notebook", "static"
+)
 
 
 @invoke.task
@@ -30,9 +33,9 @@ def test(ctx):
 @invoke.task
 def bower(ctx):
     ctx.run(
-        "cd {}/nbviewer/static &&".format(APP_ROOT) +
-        " {}/bower install".format(NPM_BIN) +
-        " --config.interactive=false --allow-root"
+        "cd {}/nbviewer/static &&".format(APP_ROOT)
+        + " {}/bower install".format(NPM_BIN)
+        + " --config.interactive=false --allow-root"
     )
 
 
@@ -71,7 +74,7 @@ def notebook_static(ctx):
         print("Expected: %s" % NOTEBOOK_CHECKSUM, file=sys.stderr)
         print("Got: %s" % checksum, file=sys.stderr)
         sys.exit(1)
-    with TarFile.open(nb_archive, 'r:gz') as nb_archive_file:
+    with TarFile.open(nb_archive, "r:gz") as nb_archive_file:
         print("Extract {0} in {1}".format(nb_archive, nb_archive_file.extractall()))
 
 
@@ -84,12 +87,12 @@ def less(ctx, debug=False):
         extra = " --clean-css='--s1 --advanced --compatibility=ie8'"
 
     tmpl = (
-    "cd {}/nbviewer/static/less ".format(APP_ROOT) +
-    " && {}/lessc".format(NPM_BIN) +
-    " {1} "
-    " --include-path={2}"
-    " --autoprefix='> 1%'"
-    " {0}.less ../build/{0}.css"
+        "cd {}/nbviewer/static/less ".format(APP_ROOT)
+        + " && {}/lessc".format(NPM_BIN)
+        + " {1} "
+        " --include-path={2}"
+        " --autoprefix='> 1%'"
+        " {0}.less ../build/{0}.css"
     )
 
     args = (extra, NOTEBOOK_STATIC_PATH)
@@ -134,7 +137,9 @@ def screenshots(ctx, root="http://localhost:5000/", dest="./screenshots"):
                     @capture "{dest}/#{{page.name}}-#{{screen.name}}.png"
 
         casper.run()
-    """.format(root=root, dest=dest)
+    """.format(
+        root=root, dest=dest
+    )
 
     tmpdir = tempfile.mkdtemp()
     tmpfile = os.path.join(tmpdir, "screenshots.coffee")
@@ -149,7 +154,7 @@ def screenshots(ctx, root="http://localhost:5000/", dest="./screenshots"):
 def sdist(ctx):
     bower(ctx)
     less(ctx)
-    ctx.run('python setup.py sdist')
+    ctx.run("python setup.py sdist")
 
 
 @invoke.task
@@ -157,6 +162,7 @@ def git_info(ctx):
     sys.path.insert(0, os.path.join(APP_ROOT, "nbviewer"))
     try:
         from utils import git_info, GIT_INFO_JSON
+
         info = git_info(APP_ROOT, force_git=True)
     except Exception as e:
         print("Failed to get git info", e)
@@ -171,4 +177,4 @@ def git_info(ctx):
 def release(ctx):
     bower(ctx)
     less(ctx)
-    ctx.run('python setup.py sdist bdist_wheel upload')
+    ctx.run("python setup.py sdist bdist_wheel upload")
