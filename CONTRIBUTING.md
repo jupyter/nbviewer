@@ -9,7 +9,12 @@ for a friendly and welcoming collaborative environment.
 
 ## Setting up a development environment
 
-See the instructions for local development or local installation first. Next, set up pre-commit hooks for automatic code formatting, etc.
+See the instructions for local development or local installation first.
+
+NBViewer has adopted automatic code formatting so you shouldn't
+need to worry too much about your code style.
+As long as your code is valid,
+the pre-commit hook should take care of how it should look. Here is how to set up pre-commit hooks for automatic code formatting, etc.
 
     ```bash
     pre-commit install
@@ -20,21 +25,16 @@ See the instructions for local development or local installation first. Next, se
     ```bash
     pre-commit run
     ```
-
-NBViewer has adopted automatic code formatting so you shouldn't
-need to worry too much about your code style.
-As long as your code is valid,
-the pre-commit hook should take care of how it should look.
-You can invoke the pre-commit hook by hand at any time with:
-
-```bash
-pre-commit run
-```
-
+	
 which should run any autoformatting on your code
 and tell you about any errors it couldn't fix automatically.
 You may also install [black integration](https://github.com/ambv/black#editor-integration)
 into your text editor to format code automatically.
+
+If you have already committed files before setting up the pre-commit
+hook with `pre-commit install`, you can fix everything up using
+`pre-commit run --all-files`.  You need to make the fixing commit
+yourself after that.
 
 #### Running the Tests
 

@@ -1,39 +1,29 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #  Copyright (C) Jupyter Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-from base64 import encodebytes
-from base64 import decodebytes
-
-from functools import lru_cache
-
+# -----------------------------------------------------------------------------
 import cgi
-from contextlib import contextmanager
 import json
 import os
 import re
-from subprocess import check_output
 import time
+from base64 import decodebytes
+from base64 import encodebytes
+from contextlib import contextmanager
+from functools import lru_cache
+from subprocess import check_output
+from urllib.parse import parse_qs
+from urllib.parse import quote as stdlib_quote
+from urllib.parse import urlencode
+from urllib.parse import urlparse
+from urllib.parse import urlunparse
 
-from urllib.parse import (
-    parse_qs,
-    quote as stdlib_quote,
-    urlencode,
-    urlparse,
-    urlunparse,
-)
-
-STRIP_PARAMS = [
-    'client_id',
-    'client_secret',
-    'access_token',
-]
+STRIP_PARAMS = ["client_id", "client_secret", "access_token"]
 
 HERE = os.path.dirname(__file__)
-GIT_INFO_JSON = os.path.join(HERE, 'git_info.json')
+GIT_INFO_JSON = os.path.join(HERE, "git_info.json")
 
 
 class EmptyClass(object):
@@ -44,6 +34,7 @@ class EmptyClass(object):
 
     Primarily used to mock out the statsd client when statsd is not being used
     """
+
     def empty_function(self, *args, **kwargs):
         return self
 
@@ -59,17 +50,17 @@ def quote(s):
     - always return unicode
     """
     if not isinstance(s, str):
-        s = s.encode('utf8')
+        s = s.encode("utf8")
     quoted = stdlib_quote(s)
     if isinstance(quoted, bytes):
-        quoted = quoted.decode('utf8')
+        quoted = quoted.decode("utf8")
     return quoted
 
 
 def clean_filename(fn):
     """ Github url sanitizes gist filenames to produce their permalink. This is
     not provided over API, so we recreate it here. """
-    return re.sub('[^0-9a-zA-Z]+', '-', fn)
+    return re.sub("[^0-9a-zA-Z]+", "-", fn)
 
 
 def url_path_join(*pieces):
@@ -78,16 +69,16 @@ def url_path_join(*pieces):
     Use to prevent double slash when joining subpath. This will leave the
     initial and final / in place
     """
-    initial = pieces[0].startswith('/')
-    final = pieces[-1].endswith('/')
-    stripped = [s.strip('/') for s in pieces]
-    result = '/'.join(s for s in stripped if s)
+    initial = pieces[0].startswith("/")
+    final = pieces[-1].endswith("/")
+    stripped = [s.strip("/") for s in pieces]
+    result = "/".join(s for s in stripped if s)
     if initial:
-        result = '/' + result
+        result = "/" + result
     if final:
-        result += '/'
-    if result == '//':
-        result = '/'
+        result += "/"
+    if result == "//":
+        result = "/"
     return result
 
 
@@ -106,9 +97,9 @@ def transform_ipynb_uri(uri, uri_rewrite_list):
             break
 
     # encode query parameters as last url part
-    if '?' in uri:
-        uri, query = uri.split('?', 1)
-        uri = '%s/%s' % (uri, quote('?' + query))
+    if "?" in uri:
+        uri, query = uri.split("?", 1)
+        uri = "%s/%s" % (uri, quote("?" + query))
 
     return uri
 
@@ -117,37 +108,35 @@ def transform_ipynb_uri(uri, uri_rewrite_list):
 # (c) 2013 Kenneth Reitz
 # used under Apache 2.0
 
+
 def get_encoding_from_headers(headers):
     """Returns encodings from given HTTP Header Dict.
 
     :param headers: dictionary to extract encoding from.
     """
 
-    content_type = headers.get('content-type')
+    content_type = headers.get("content-type")
 
     if not content_type:
         return None
 
     content_type, params = cgi.parse_header(content_type)
 
-    if 'charset' in params:
-        return params['charset'].strip("'\"")
-
+    if "charset" in params:
+        return params["charset"].strip("'\"")
 
     # per #507, at least some hosts are providing UTF-8 without declaring it
     # while the former choice of ISO-8859-1 wasn't known to be causing problems
     # in the wild
-    if 'text' in content_type:
-        return 'utf-8'
+    if "text" in content_type:
+        return "utf-8"
+
 
 def response_text(response, encoding=None):
     """mimic requests.text property, but for plain HTTPResponse"""
-    encoding = (
-        encoding or
-        get_encoding_from_headers(response.headers) or
-        'utf-8'
-    )
-    return response.body.decode(encoding, 'replace')
+    encoding = encoding or get_encoding_from_headers(response.headers) or "utf-8"
+    return response.body.decode(encoding, "replace")
+
 
 # parse_header_links from requests.util
 # modified to actually return a dict, like the docstring says.
@@ -167,7 +156,7 @@ def parse_header_links(value):
         try:
             url, params = val.split(";", 1)
         except ValueError:
-            url, params = val, ''
+            url, params = val, ""
 
         link = {}
 
@@ -192,8 +181,8 @@ def parse_header_links(value):
 
             link[key.strip(replace_chars)] = value.strip(replace_chars)
 
-        if 'rel' in link:
-            links[link['rel']] = link
+        if "rel" in link:
+            links[link["rel"]] = link
 
     return links
 
@@ -201,22 +190,19 @@ def parse_header_links(value):
 def git_info(path, force_git=False):
     """Return some git info"""
     if os.path.exists(GIT_INFO_JSON) and not force_git:
-        with open(GIT_INFO_JSON, 'r') as f:
+        with open(GIT_INFO_JSON, "r") as f:
             return json.load(f)
-    command = ['git', 'log', '-1', '--format=%H\n%s\n%cD']
-    sha, msg, date = check_output(command, cwd=path).decode('utf8').splitlines()
-    return dict(
-        sha=sha,
-        date=date,
-        msg=msg,
-    )
+    command = ["git", "log", "-1", "--format=%H\n%s\n%cD"]
+    sha, msg, date = check_output(command, cwd=path).decode("utf8").splitlines()
+    return dict(sha=sha, date=date, msg=msg)
+
 
 def jupyter_info():
     """Get Jupyter info dict"""
     import nbconvert
-    return dict(
-        nbconvert_version=nbconvert.__version__
-    )
+
+    return dict(nbconvert_version=nbconvert.__version__)
+
 
 def base64_decode(s):
     """unicode-safe base64
@@ -224,9 +210,10 @@ def base64_decode(s):
     base64 API only talks bytes
     """
     if not isinstance(s, bytes):
-        s = s.encode('ascii', 'replace')
+        s = s.encode("ascii", "replace")
     decoded = decodebytes(s)
     return decoded
+
 
 def base64_encode(s):
     """unicode-safe base64
@@ -234,9 +221,9 @@ def base64_encode(s):
     base64 API only talks bytes
     """
     if not isinstance(s, bytes):
-        s = s.encode('ascii', 'replace')
+        s = s.encode("ascii", "replace")
     encoded = encodebytes(s)
-    return encoded.decode('ascii')
+    return encoded.decode("ascii")
 
 
 @contextmanager
@@ -254,6 +241,7 @@ def time_block(message, logger, debug_limit=1):
     dt = time.time() - tic
     log = logger.info if dt > debug_limit else logger.debug
     log("%s in %.2f ms", message, 1e3 * dt)
+
 
 def cached_property(method):
     return property(lru_cache(1)(method))

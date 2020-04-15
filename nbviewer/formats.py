@@ -1,9 +1,10 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #  Copyright (C) Jupyter Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
 
 def default_formats():
     """
@@ -46,28 +47,24 @@ def default_formats():
         """
         for cell in nb.cells:
             if (
-                'metadata' in cell and
-                'slideshow' in cell.metadata and
-                cell.metadata.slideshow.get('slide_type', '-') != '-'
+                "metadata" in cell
+                and "slideshow" in cell.metadata
+                and cell.metadata.slideshow.get("slide_type", "-") != "-"
             ):
                 return True
         return False
 
     return {
-        'html': {
-            'nbconvert_template': 'basic',
-            'label': 'Notebook',
-            'icon': 'book'
+        "html": {"nbconvert_template": "basic", "label": "Notebook", "icon": "book"},
+        "slides": {
+            "nbconvert_template": "slides_reveal",
+            "label": "Slides",
+            "icon": "gift",
+            "test": test_slides,
         },
-        'slides': {
-            'nbconvert_template': 'slides_reveal',
-            'label': 'Slides',
-            'icon': 'gift',
-            'test': test_slides,
+        "script": {
+            "label": "Code",
+            "icon": "code",
+            "content_type": "text/plain; charset=UTF-8",
         },
-        'script': {
-            'label': 'Code',
-            'icon': 'code',
-            'content_type': 'text/plain; charset=UTF-8'
-        }
     }

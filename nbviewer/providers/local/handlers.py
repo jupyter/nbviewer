@@ -1,45 +1,41 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #  Copyright (C) Jupyter Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-from datetime import datetime
+# -----------------------------------------------------------------------------
 import errno
 import io
 import os
 import stat
+from datetime import datetime
 
-from tornado import (
-    web,
-    iostream,
-)
-
-from ...utils import url_path_join
-from ..base import (
-    cached,
-    RenderingHandler,
-)
+from tornado import iostream
+from tornado import web
 
 from .. import _load_handler_from_location
+from ...utils import url_path_join
+from ..base import cached
+from ..base import RenderingHandler
+
 
 class LocalFileHandler(RenderingHandler):
     """Renderer for /localfile
 
     Serving notebooks from the local filesystem
     """
+
     # cache key is full uri to avoid mixing download vs view paths
-    _cache_key_attr = 'uri'
+    _cache_key_attr = "uri"
     # provider root path
-    _localfile_path = '/localfile'
+    _localfile_path = "/localfile"
 
     @property
     def localfile_path(self):
-        if self.settings.get('localfile_follow_symlinks'):
-            return os.path.realpath(self.settings.get('localfile_path', ''))
+        if self.settings.get("localfile_follow_symlinks"):
+            return os.path.realpath(self.settings.get("localfile_path", ""))
         else:
-            return os.path.abspath(self.settings.get('localfile_path', ''))
+            return os.path.abspath(self.settings.get("localfile_path", ""))
 
     def breadcrumbs(self, path):
         """Build a list of breadcrumbs leading up to and including the
@@ -56,10 +52,9 @@ class LocalFileHandler(RenderingHandler):
         list
             Breadcrumbs suitable for the link_breadcrumbs() jinja macro
         """
-        breadcrumbs = [{
-            'url': url_path_join(self.base_url, self._localfile_path),
-            'name': 'home'
-        }]
+        breadcrumbs = [
+            {"url": url_path_join(self.base_url, self._localfile_path), "name": "home"}
+        ]
         breadcrumbs.extend(super().breadcrumbs(path, self._localfile_path))
         return breadcrumbs
 
@@ -74,10 +69,12 @@ class LocalFileHandler(RenderingHandler):
         filename = os.path.basename(fullpath)
         st = os.stat(fullpath)
 
-        self.set_header('Content-Length', st.st_size)
+        self.set_header("Content-Length", st.st_size)
         # Escape commas to workaround Chrome issue with commas in download filenames
-        self.set_header('Content-Disposition',
-                        'attachment; filename={};'.format(filename.replace(',', '_')))
+        self.set_header(
+            "Content-Disposition",
+            "attachment; filename={};".format(filename.replace(",", "_")),
+        )
 
         content = web.StaticFileHandler.get_content(fullpath)
         if isinstance(content, bytes):
@@ -96,31 +93,28 @@ class LocalFileHandler(RenderingHandler):
         be applied at notebook render to confirm a file may be shown.
 
         """
-        if self.settings.get('localfile_follow_symlinks'):
-            fullpath = os.path.realpath(os.path.join(
-                self.localfile_path,
-                path
-            ))
+        if self.settings.get("localfile_follow_symlinks"):
+            fullpath = os.path.realpath(os.path.join(self.localfile_path, path))
         else:
-            fullpath = os.path.abspath(os.path.normpath(os.path.join(
-                self.localfile_path,
-                path
-            )))
+            fullpath = os.path.abspath(
+                os.path.normpath(os.path.join(self.localfile_path, path))
+            )
 
         if not fullpath.startswith(self.localfile_path):
-            self.log.warn("Directory traversal attempt: '%s'" %
-                         fullpath)
+            self.log.warn("Directory traversal attempt: '%s'" % fullpath)
             return False
 
         if not os.path.exists(fullpath):
             self.log.warn("Path: '%s' does not exist", fullpath)
             return False
 
-        if any(part.startswith('.') or part.startswith('_')
-               for part in fullpath.split(os.sep)):
+        if any(
+            part.startswith(".") or part.startswith("_")
+            for part in fullpath.split(os.sep)
+        ):
             return False
 
-        if not self.settings.get('localfile_any_user'):
+        if not self.settings.get("localfile_any_user"):
             fstat = os.stat(fullpath)
 
             # Ensure the file/directory has other read access for all.
@@ -145,9 +139,9 @@ class LocalFileHandler(RenderingHandler):
         if os.path.isdir(fullpath):
             html = self.show_dir(fullpath, path)
             await self.cache_and_finish(html)
-            return 
+            return
 
-        is_download = self.get_query_arguments('download')
+        is_download = self.get_query_arguments("download")
         if is_download:
             await self.download(fullpath)
             return
@@ -156,12 +150,14 @@ class LocalFileHandler(RenderingHandler):
 
     async def deliver_notebook(self, fullpath, path):
         try:
-            with io.open(fullpath, encoding='utf-8') as f:
+            with io.open(fullpath, encoding="utf-8") as f:
                 nbdata = f.read()
         except IOError as ex:
             if ex.errno == errno.EACCES:
                 # py3: can't read the file, so don't give away it exists
-                self.log.info("Path : '%s' is not readable from within nbviewer", fullpath)
+                self.log.info(
+                    "Path : '%s' is not readable from within nbviewer", fullpath
+                )
                 raise web.HTTPError(404)
             raise ex
 
@@ -170,12 +166,14 @@ class LocalFileHandler(RenderingHandler):
         #     Breadcrumb 'name' and 'url' to render as links at the top of the notebook page
         # title: str
         #     Title to use as the HTML page title (i.e., text on the browser tab)
-        await self.finish_notebook(nbdata,
-                                   download_url='?download',
-                                   msg="file from localfile: %s" % path,
-                                   public=False,
-                                   breadcrumbs=self.breadcrumbs(path),
-                                   title=os.path.basename(path))
+        await self.finish_notebook(
+            nbdata,
+            download_url="?download",
+            msg="file from localfile: %s" % path,
+            public=False,
+            breadcrumbs=self.breadcrumbs(path),
+            title=os.path.basename(path),
+        )
 
     @cached
     async def get(self, path):
@@ -209,9 +207,13 @@ class LocalFileHandler(RenderingHandler):
         title: str
             Title to use as the HTML page title (i.e., text on the browser tab)
         """
-        return self.render_template('dirview.html',
-                                    entries=entries, breadcrumbs=breadcrumbs,
-                                    title=title, **namespace)
+        return self.render_template(
+            "dirview.html",
+            entries=entries,
+            breadcrumbs=breadcrumbs,
+            title=title,
+            **namespace
+        )
 
     def show_dir(self, fullpath, path, **namespace):
         """Render the directory view template for a given filesystem path.
@@ -237,7 +239,10 @@ class LocalFileHandler(RenderingHandler):
         except IOError as ex:
             if ex.errno == errno.EACCES:
                 # can't access the dir, so don't give away its presence
-                self.log.info("Contents of path: '%s' cannot be listed from within nbviewer", fullpath)
+                self.log.info(
+                    "Contents of path: '%s' cannot be listed from within nbviewer",
+                    fullpath,
+                )
                 raise web.HTTPError(404)
 
         for f in contents:
@@ -247,7 +252,7 @@ class LocalFileHandler(RenderingHandler):
                 continue
 
             entry = {}
-            entry['name'] = f
+            entry["name"] = f
 
             # We need to make UTC timestamps conform to true ISO-8601 by
             # appending Z(ulu). Without a timezone, the spec says it should be
@@ -258,37 +263,36 @@ class LocalFileHandler(RenderingHandler):
             if os.path.isdir(absf):
                 st = os.stat(absf)
                 dt = datetime.utcfromtimestamp(st.st_mtime)
-                entry['modtime'] = dt.isoformat() + 'Z'
-                entry['url'] = url_path_join(self._localfile_path, path, f)
-                entry['class'] = 'fa fa-folder-open'
+                entry["modtime"] = dt.isoformat() + "Z"
+                entry["url"] = url_path_join(self._localfile_path, path, f)
+                entry["class"] = "fa fa-folder-open"
                 dirs.append(entry)
-            elif f.endswith('.ipynb'):
+            elif f.endswith(".ipynb"):
                 st = os.stat(absf)
                 dt = datetime.utcfromtimestamp(st.st_mtime)
-                entry['modtime'] = dt.isoformat() + 'Z'
-                entry['url'] = url_path_join(self._localfile_path, path, f)
-                entry['class'] = 'fa fa-book'
+                entry["modtime"] = dt.isoformat() + "Z"
+                entry["url"] = url_path_join(self._localfile_path, path, f)
+                entry["class"] = "fa fa-book"
                 ipynbs.append(entry)
 
-        dirs.sort(key=lambda e: e['name'])
-        ipynbs.sort(key=lambda e: e['name'])
+        dirs.sort(key=lambda e: e["name"])
+        ipynbs.sort(key=lambda e: e["name"])
 
         entries.extend(dirs)
         entries.extend(ipynbs)
 
-        html = self.render_dirview_template(entries=entries,
-                                            breadcrumbs=self.breadcrumbs(path),
-                                            title=url_path_join(path, '/'),
-                                            **namespace)
+        html = self.render_dirview_template(
+            entries=entries,
+            breadcrumbs=self.breadcrumbs(path),
+            title=url_path_join(path, "/"),
+            **namespace
+        )
         return html
 
 
 def default_handlers(handlers=[], **handler_names):
     """Tornado handlers"""
 
-    local_handler = _load_handler_from_location(handler_names['local_handler'])
+    local_handler = _load_handler_from_location(handler_names["local_handler"])
 
-    return handlers + [
-        (r'/localfile/?(.*)', local_handler, {}),
-    ]
-
+    return handlers + [(r"/localfile/?(.*)", local_handler, {})]
