@@ -8,5 +8,3 @@ resolution.  Resizing will be handled by browser, so to avoid artifact images
 shoudl be of size multiple of maximum size ie (720 width) by (450 height),
 preferentially in png, and passed to png crusher as the number of request for
 thoses images will be heigh.
-
-

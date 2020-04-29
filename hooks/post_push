@@ -1,0 +1,4 @@
+#!/bin/bash
+SHA=${SOURCE_COMMIT::8}
+docker tag $DOCKER_REPO:$DOCKER_TAG $DOCKER_REPO:$SHA
+docker push $DOCKER_REPO:$SHA

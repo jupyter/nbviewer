@@ -13,9 +13,11 @@ build
 dist
 node_modules
 screenshots
+nbviewer/git_info.json
 # ignore downloaded notebook sources
 notebook-*
 .eggs/
 MANIFEST
 package-lock.json
 .vscode/
+*.tgz

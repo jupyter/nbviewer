@@ -18,8 +18,31 @@ install:
 - pip install -r requirements.txt
 - pip install -e .
 
+# run tests
 script:
 - invoke test
+
+# list the jobs
+jobs:
+  include:
+    - name: autoformatting check
+      python: 3.6
+      # NOTE: It does not suffice to override to: null, [], or [""]. Travis will
+      #       fall back to the default if we do.
+      before_install: echo "Do nothing before install."
+      install: pip install pre-commit
+      script:
+        - pre-commit run --all-files
+      after_success: echo "Do nothing after success."
+      after_failure:
+        - |
+          echo "You can install pre-commit hooks to automatically run formatting"
+          echo "on each commit with:"
+          echo "    pre-commit install"
+          echo "or you can run by hand on staged files with"
+          echo "    pre-commit run"
+          echo "or after-the-fact on already committed files with"
+          echo "    pre-commit run --all-files"
 
 env:
   global:

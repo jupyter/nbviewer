@@ -1,0 +1,14 @@
+[flake8]
+# Ignore style and complexity
+# E: style errors
+# W: style warnings
+# F401: module imported but unused
+# F811: redefinition of unused `name` from line `N`
+# F841: local variable assigned but never used
+ignore = E, C, W, F401, F403, F811, F841, E402, I100, I101, D400
+exclude =
+    helm-chart,
+    hooks,
+    setup.py,
+    statuspage,
+    versioneer.py

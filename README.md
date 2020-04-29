@@ -1,6 +1,23 @@
+**[Quick Run](#quick-run)** |
+**[GitHub Enterprise](#github-enterprise)** |
+**[Base URL](#base-url)** |
+**[Local Development](#local-development)** |
+**[Contributing](#contributing)** |
+**[Extensions](#extending-the-notebook-viewer)** |
+**[Configuration](#config-file-and-command-line-configuration)** |
+**[Security](#securing-the-notebook-viewer)**
+
+
 # Jupyter Notebook Viewer
 
-Jupyter nbviewer is the web application behind [The Jupyter Notebook Viewer](http://nbviewer.ipython.org), which is graciously hosted by [Rackspace](https://developer.rackspace.com/?nbviewer=awesome).
+[![Latest PyPI version](https://img.shields.io/pypi/v/nbviewer?logo=pypi)](https://pypi.python.org/pypi/nbviewer)
+[![TravisCI build status](https://img.shields.io/travis/jupyter/nbviewer/master?logo=travis)](https://travis-ci.org/jupyter/nbviewer)
+[![GitHub](https://img.shields.io/badge/issue_tracking-github-blue?logo=github)](https://github.com/jupyter/nbviewer/issues)
+[![Gitter](https://img.shields.io/badge/social_chat-gitter-blue?logo=gitter)](https://gitter.im/jupyter/nbviewer)
+
+Jupyter NBViewer is the web application behind
+[The Jupyter Notebook Viewer](http://nbviewer.jupyter.org),
+which is graciously hosted by [OVHcloud](https://ovhcloud.com).
 
 Run this locally to get most of the features of nbviewer on your own network.
 
@@ -42,6 +59,12 @@ $ docker run -p 8080:8080 -e 'GITHUB_OAUTH_KEY=YOURKEY' \
 ```
 
 With this configured all GitHub API requests will go to your Enterprise instance so you can view all of your internal notebooks.
+
+## Base URL
+
+If the environment variable `JUPYTERHUB_SERVICE_PREFIX` is specified, then NBViewer _always_ uses the value of this environment variable as the base URL.
+
+In the case that there is no value for `JUPYTERHUB_SERVICE_PREFIX`, then as a backup the value of the `--base-url` flag passed to the `python -m nbviewer` command on the command line will be used as the base URL.
 
 ## Local Development
 
@@ -121,17 +144,10 @@ $ python -m nbviewer --debug --no-cache
 This will automatically relaunch the server if a change is detected on a python file, and not cache any results. You can then just do the modifications you like to the source code and/or the templates then refresh the pages.
 
 
-#### Running the Tests
+## Contributing
 
-`nose` is used to run the test suite. The tests currently make calls to
-external APIs such as GitHub, so it is best to use your Github API Token when
-running:
-
-```shell
-$ cd <path to repo>
-$ pip install -r requirements-dev.txt
-$ GITHUB_API_TOKEN=<your token> python setup.py test
-```
+If you would like to contribute to the project, please read the [`CONTRIBUTING.md`](CONTRIBUTING.md). The `CONTRIBUTING.md` file
+explains how to set up a development installation and how to run the test suite.
 
 
 ## Extending the Notebook Viewer
@@ -181,15 +197,21 @@ Formats are ways to present notebooks to the user.
 - `script`
 
 #### Writing a new Format
-If you'd like to write a new format, open a ticket, or speak up on [gitter][]!
+If you'd like to write a new format, open a ticket, or speak up on [gitter](https://gitter.im/jupyter/nbviewer)!
 We have some work yet to do to support your next big thing in notebook
 publishing, and we'd love to hear from you.
 
-#### Config file
+## Config File and Command Line Configuration
 
-Newer versions of NBViewer will be configurable using a config file, `nbviewer_config.py`. In the directory where you run the command `python -m nbviewer` to start NBViewer, also add a file `nbviewer_config.py` which uses [the standard configuration syntax for Jupyter projects](https://traitlets.readthedocs.io/en/stable/config.html). 
+NBViewer is configurable using a config file, by default called `nbviewer_config.py`. You can modify the name and location of the config file that NBViewer looks for using the `--config-file` command line flag. (The location is always a relative path, i.e. relative to where the command `python -m nbviewer` is run, and never an absolute path.) 
 
-For example, to configure the value of a configurable `foo`, add the line `c.NBViewer.foo = 'bar'` to the `nbviewer_config.py` file located where you run `python -m nbviewer`. Again, currently very few features of NBViewer are configurable this way, but we hope to steadily increase the number of configurable characteristics of NBViewer in future releases.
+If you don't know which attributes of NBViewer you can configure using the config file, run `python -m nbviewer --generate-config` (or `python -m nbviewer --generate-config --config-file="my_custom_name.py"`) to write a default config file which has all of the configurable options commented out and set to their default values. To change a configurable option to a new value, uncomment the corresponding line and change the default value to the new value.
+
+You can also run `python -m nbviewer --help-all` to see all of the configurable options. This is a more comprehensive version of `python -m nbviewer --help`, which gives a list of the most common ones along with flags and aliases you can use to set their values temporarily via the command line.
+
+The config file uses [the standard configuration syntax for Jupyter projects](https://traitlets.readthedocs.io/en/stable/config.html). For example, to configure the default port used to be 9000, add the line `c.NBViewer.port = 9000` to the config file. If you want to do this just once, you can also run `python -m nbviewer --NBViewer.port=9000` at the command line. (`NBViewer.port` also has the alias `port`, making it also possible to do, in this specific case, `python -m nbviewer --port=9000`. However not all configurable options have shorthand aliases like this; you can check using the outputs of `python -m nbviewer --help` and `python -m nbviewer --help-all` to see which ones do and which ones don't.)
+
+One thing this allows you to do, for example, is to write your custom implementations of any of the standard page rendering [handlers](https://www.tornadoweb.org/en/stable/guide/structure.html#subclassing-requesthandler) included in NBViewer, e.g. by subclassing the original handlers to include custom logic along with custom output possibilities, and then have these custom handlers always loaded by default, by modifying the corresponding lines in the config file. This is effectively another way to extend NBViewer.
 
 ## Securing the Notebook Viewer
 

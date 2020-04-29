@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "nbviewer.fullname" . }}
+  labels:
+    {{- include "nbviewer.labels" . | nindent 4 }}
+  annotations:
+    {{- if .Values.service.annotations }}
+    {{- .Values.service.annotations | toYaml | nindent 4 }}
+    {{- end }}
+spec:
+  type: {{ .Values.service.type }}
+  {{- if .Values.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.service.loadBalancerIP }}
+  {{- end }}
+  selector:
+    {{- include "nbviewer.matchLabels" . | nindent 4 }}
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 5000
+      {{- if .Values.service.ports.nodePort }}
+      nodePort: {{ .Values.service.ports.nodePort }}
+      {{- end }}
