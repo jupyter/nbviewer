@@ -56,7 +56,7 @@ updateStrategy:
 
 statuspage:
   enabled: false
-  image: jupyter/statuspage
+  image: jupyter/nbviewer-statuspage
   resources: null
   apiKey: ""
   pageId: ""
