@@ -51,7 +51,7 @@ nbviewer does not execute notebooks. It only renders the inputs and outputs
 saved in a notebook document as a web page.
 
 [mybinder.org](https://mybinder.org/) is a separate web service that lets you
-open notebooks notebooks in an executable environment, making your code
+open notebooks in an executable environment, making your code
 immediately reproducible by anyone, anywhere. nbviewer shows an *Execute on
 Binder* icon in its navbar which
 
@@ -103,7 +103,7 @@ instructions and options.
 
 The URL you are visiting most likely points to a notebook that was moved or
 deleted. If you clicked a link on a site that lead to the 404 error page, we
-suggest you contact the site auownerthor to report the broken link. If a
+suggest you contact the site owner to report the broken link. If a
 notebook author gave you the URL, we recommend asking them for an updated link.
 
 If you notice one of the links on the nbviewer.jupyter.org, please report it as
