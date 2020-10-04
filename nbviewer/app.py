@@ -16,7 +16,7 @@ from urllib.parse import urlparse
 import markdown
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
-from nbconvert.exporters.export import exporter_map
+from nbconvert import get_exporter
 from tornado import httpserver
 from tornado import ioloop
 from tornado import web
@@ -594,15 +594,15 @@ class NBViewer(Application):
             formats = default_formats()
 
         # This would be better defined in a class
-        self.config.HTMLExporter.template_file = "basic"
+        self.config.HTMLExporter.template_name = "basic"
         self.config.SlidesExporter.template_file = "slides_reveal"
 
-        self.config.TemplateExporter.template_path = [
+        self.config.TemplateExporter.extra_template_basedirs = [
             os.path.join(os.path.dirname(__file__), "templates", "nbconvert")
         ]
 
         for key, format in formats.items():
-            exporter_cls = format.get("exporter", exporter_map[key])
+            exporter_cls = format.get("exporter", get_exporter(key))
             if self.processes:
                 # can't pickle exporter instances,
                 formats[key]["exporter"] = exporter_cls
