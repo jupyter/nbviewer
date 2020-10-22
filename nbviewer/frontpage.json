@@ -52,11 +52,6 @@
          "img": "/img/example-nb/lightning.png"
        },
        {
-         "text": "Interactive data visualization with Bokeh",
-         "target": "/github/bokeh/bokeh-notebooks/blob/master/index.ipynb",
-         "img": "/img/example-nb/bokeh.png"
-       },
-       {
          "text": "Interactive plots with Plotly",
          "target": "/github/plotly/python-user-guide/blob/master/Index.ipynb",
          "img": "/img/example-nb/plotly.png"
