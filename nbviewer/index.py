@@ -50,5 +50,5 @@ class ElasticSearch(Indexer):
             )
         else:
             app_log.info(
-                "Indexing old notebook={}, public={}".format(notebook_url, public, resp)
+                "Indexing old notebook={}, public={}".format(notebook_url, public)
             )
