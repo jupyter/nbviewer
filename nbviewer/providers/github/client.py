@@ -135,6 +135,11 @@ class AsyncGitHubClient(object):
         path = u"users/{user}/gists".format(user=user)
         return self.github_api_request(path, **kwargs)
 
+    def get_repo(self, user, repo, **kwargs):
+        """List a repo's branches"""
+        path = u"repos/{user}/{repo}".format(user=user, repo=repo)
+        return self.github_api_request(path, **kwargs)
+
     def get_tree(self, user, repo, path, ref="master", recursive=False, **kwargs):
         """Get a git tree"""
         # only need a recursive fetch if it's not in the top-level dir

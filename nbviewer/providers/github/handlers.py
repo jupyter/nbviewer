@@ -141,12 +141,15 @@ class GitHubUserHandler(GithubClientMixin, BaseHandler):
         await self.cache_and_finish(html)
 
 
-class GitHubRepoHandler(BaseHandler):
+class GitHubRepoHandler(GithubClientMixin, BaseHandler):
     """redirect /github/user/repo to .../tree/master"""
 
-    def get(self, user, repo):
+    async def get(self, user, repo):
+        response = await self.github_client.get_repo(user, repo)
+        default_branch = json.loads(response_text(response))["default_branch"]
+
         new_url = self.from_base(
-            "/", self.format_prefix, "github", user, repo, "tree", "master"
+            "/", self.format_prefix, "github", user, repo, "tree", default_branch
         )
         self.log.info("Redirecting %s to %s", self.request.uri, new_url)
         self.redirect(new_url)
