@@ -29,7 +29,7 @@ Notebook](https://github.com/jupyter/notebook),
 
 Project Jupyter runs a free, public instance of nbviewer at
 https://nbviewer.jupyter.org. You can use it to render Jupyter
-Notebooks or browse notebook collection on GitHub. In either case, the notebooks
+Notebooks or browse notebook collections on GitHub. In either case, the notebooks
 must have **public** web URLs.
 
 The homepage of nbviewer.jupyter.org includes some examples for you to try.
@@ -103,7 +103,7 @@ instructions and options.
 
 The URL you are visiting most likely points to a notebook that was moved or
 deleted. If you clicked a link on a site that lead to the 404 error page, we
-suggest you contact the site auownerthor to report the broken link. If a
+suggest you contact the site owner to report the broken link. If a
 notebook author gave you the URL, we recommend asking them for an updated link.
 
 If you notice one of the links on the nbviewer.jupyter.org, please report it as
@@ -113,7 +113,7 @@ tracker](https://github.com/jupyter/nbviewer/issues).
 ## Why do I get a 4xx error when I try to view a notebook?
 
 nbviewer fetches notebooks from upstream providers (e.g., GitHub, GitHub gists,
-a public webserver) which host the the notebook files. You will see 4xx errors
+a public web server) which host the notebook files. You will see 4xx errors
 if the provider doesn't respond, the file nbviewer receives is invalid, the file
 is not publicly accessible, and so on.
 
@@ -154,13 +154,13 @@ on GitHub) in order to update or remove it
 
 No. However, you can [install
 nbconvert](https://nbconvert.readthedocs.io/en/stable/install.html) locally and
-run `jupyter nbconvert` to convert notebook files to a variety of format. See
+run `jupyter nbconvert` to convert notebook files to a variety of formats. See
 the [nbconvert documentation](https://nbconvert.readthedocs.io/) for details.
 
 ## Where is nbviewer.jupyter.org hosted?
 
 [OVHcloud](https://ovhcloud.com) graciously hosts nbviewer.jupyter.org.
-Thanks to OVHcloud, we are able to provider a public nbviewer instance as a free service.
+Thanks to OVHcloud, we are able to provide a public nbviewer instance as a free service.
 
 nbviewer was generously hosted by Rackspace until March, 2020.
 
