@@ -51,7 +51,7 @@ nbviewer does not execute notebooks. It only renders the inputs and outputs
 saved in a notebook document as a web page.
 
 [mybinder.org](https://mybinder.org/) is a separate web service that lets you
-open notebooks notebooks in an executable environment, making your code
+open notebooks in an executable environment, making your code
 immediately reproducible by anyone, anywhere. nbviewer shows an *Execute on
 Binder* icon in its navbar which
 
