@@ -28,8 +28,8 @@ If you need help using or installing Jupyter Notebook Viewer, please use the [ju
 If you have `docker` installed, you can pull and run the currently built version of the Docker container by
 
 ```shell
-$ docker pull jupyter/nbviewer
-$ docker run -p 8080:8080 jupyter/nbviewer
+docker pull jupyter/nbviewer
+docker run -p 8080:8080 jupyter/nbviewer
 ```
 
 It automatically gets built with each push to `master`, so you'll always be able to get the freshest copy.
@@ -37,7 +37,7 @@ It automatically gets built with each push to `master`, so you'll always be able
 For speed and friendliness to GitHub, be sure to set `GITHUB_OAUTH_KEY` and `GITHUB_OAUTH_SECRET`:
 
 ```shell
-$ docker run -p 8080:8080 -e 'GITHUB_OAUTH_KEY=YOURKEY' \
+docker run -p 8080:8080 -e 'GITHUB_OAUTH_KEY=YOURKEY' \
                           -e 'GITHUB_OAUTH_SECRET=YOURSECRET' \
                           jupyter/nbviewer
 ```
@@ -52,7 +52,7 @@ The relevant [API endpoints for GitHub Enterprise](https://developer.github.com/
 You must also specify your `OAUTH` or `API_TOKEN` as explained above.  For example:
 
 ```shell
-$ docker run -p 8080:8080 -e 'GITHUB_OAUTH_KEY=YOURKEY' \
+docker run -p 8080:8080 -e 'GITHUB_OAUTH_KEY=YOURKEY' \
                           -e 'GITHUB_OAUTH_SECRET=YOURSECRET' \
                           -e 'GITHUB_API_URL=https://ghe.example.com/api/v3/' \
                           jupyter/nbviewer
@@ -76,16 +76,16 @@ You can build a docker image that uses your local branch.
 #### Build
 
 ```shell
-$ cd <path to repo>
-$ docker build -t nbviewer .
+cd <path to repo>
+docker build -t nbviewer .
 ```
 
 
 #### Run
 
 ```shell
-$ cd <path to repo>
-$ docker run -p 8080:8080 nbviewer
+cd <path to repo>
+docker run -p 8080:8080 nbviewer
 ```
 
 ### With Docker Compose
@@ -99,9 +99,9 @@ to this.
 #### Run
 
 ```shell
-$ cd <path to repo>
-$ pip install docker-compose
-$ docker-compose up
+cd <path to repo>
+pip install docker-compose
+docker-compose up
 ```
 
 
