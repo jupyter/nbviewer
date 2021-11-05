@@ -670,7 +670,7 @@ class RenderingHandler(BaseHandler):
             download_url=download_url,
             format=self.format,
             default_format=self.default_format,
-            format_prefix=self.format_prefix,
+            format_prefix=format_prefix,
             formats=dict(self.filter_formats(nb, json_notebook)),
             format_base=self.request.uri.replace(self.format_prefix, "").replace(
                 self.base_url, "/"
