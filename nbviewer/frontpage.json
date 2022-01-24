@@ -47,16 +47,6 @@
      "header":"Misc",
      "links":[
        {
-         "text": "Data Visualization with Lightning",
-         "target": "/github/lightning-viz/lightning-example-notebooks/blob/master/index.ipynb",
-         "img": "/img/example-nb/lightning.png"
-       },
-       {
-         "text": "Interactive plots with Plotly",
-         "target": "/github/plotly/python-user-guide/blob/master/Index.ipynb",
-         "img": "/img/example-nb/plotly.png"
-       },
-       {
          "text": "XKCD Plot With Matplotlib",
          "target": "/url/jakevdp.github.io/downloads/notebooks/XKCD_plots.ipynb",
          "img": "/img/example-nb/XKCD-Matplotlib.png"
