@@ -88,7 +88,7 @@ setup_args = dict(
 )
 
 install_requires = setup_args["install_requires"] = []
-with open("requirements.txt") as f:
+with open("requirements.in") as f:
     for line in f:
         req = line.strip()
         if not req.startswith("#"):
