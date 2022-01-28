@@ -330,7 +330,7 @@ class BaseHandler(web.RequestHandler):
 
     def client_error_message(self, exc, url, body, msg=None):
         """Turn the tornado HTTP error into something useful
-        
+
         Returns error code
         """
         str_exc = str(exc)
@@ -466,8 +466,7 @@ class BaseHandler(web.RequestHandler):
 
     @property
     def cache_key(self):
-        """Use checksum for cache key because cache has size limit on keys
-        """
+        """Use checksum for cache key because cache has size limit on keys"""
 
         if self._cache_key is None:
             to_hash = utf8(getattr(self.request, self._cache_key_attr))
@@ -635,12 +634,12 @@ class RenderingHandler(BaseHandler):
     # empty methods to be implemented by subclasses to make GET requests more modular
     def get_notebook_data(self, **kwargs):
         """
-        Pass as kwargs variables needed to define those variables which will be necessary for 
-        the provider to find the notebook. (E.g. path for LocalHandler, user and repo for GitHub.) 
+        Pass as kwargs variables needed to define those variables which will be necessary for
+        the provider to find the notebook. (E.g. path for LocalHandler, user and repo for GitHub.)
         Return variables the provider needs to find and load the notebook. Then run custom logic
         in GET or pass the output of get_notebook_data immediately to deliver_notebook.
 
-        First part of any provider's GET method. 
+        First part of any provider's GET method.
 
         Custom logic, if applicable, is middle part of any provider's GET method, and usually
         is implemented or overwritten in subclasses, while get_notebook_data and deliver_notebook

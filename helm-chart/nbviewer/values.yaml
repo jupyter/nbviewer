@@ -1,7 +1,6 @@
 image: "jupyter/nbviewer"
 imagePullPolicy: null
 
-service: {}
 nodeSelector: null
 
 pdbMinAvailable: 2

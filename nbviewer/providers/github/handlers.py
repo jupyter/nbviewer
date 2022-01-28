@@ -334,8 +334,10 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
 
     async def get_notebook_data(self, user, repo, ref, path):
         if os.environ.get("GITHUB_API_URL", "") == "":
-            raw_url = u"https://raw.githubusercontent.com/{user}/{repo}/{ref}/{path}".format(
-                user=user, repo=repo, ref=ref, path=quote(path)
+            raw_url = (
+                u"https://raw.githubusercontent.com/{user}/{repo}/{ref}/{path}".format(
+                    user=user, repo=repo, ref=ref, path=quote(path)
+                )
             )
         else:  # Github Enterprise has a different URL pattern for accessing raw files
             raw_url = url_path_join(

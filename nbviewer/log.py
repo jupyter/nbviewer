@@ -12,7 +12,7 @@ from tornado.web import StaticFileHandler
 
 def log_request(handler):
     """log a bit more information about each request than tornado's default
-    
+
     - move static file get success to debug-level (reduces noise)
     - get proxied IP instead of proxy IP
     - log referer for redirect and failed requests

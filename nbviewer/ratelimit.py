@@ -17,7 +17,7 @@ class RateLimiter(object):
 
     def key_for_handler(self, handler):
         """Identify a visitor.
-        
+
         Currently combine ip + user-agent.
         We don't need to be perfect.
         """
@@ -29,9 +29,9 @@ class RateLimiter(object):
 
     async def check(self, handler):
         """Check the rate limit for a handler.
-        
+
         Identifies the source by ip and user-agent.
-        
+
         If the rate limit is exceeded, raise HTTPError(429)
         """
         if not self.limit:

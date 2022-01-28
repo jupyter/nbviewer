@@ -255,8 +255,8 @@ class GistHandler(GistClientMixin, RenderingHandler):
     # Only called by file_get
     async def deliver_notebook(self, user, gist_id, filename, gist, file, content):
         """
-        user, gist_id, filename, gist, file, are the same values as those 
-        passed into file_get, whereas content is returned from 
+        user, gist_id, filename, gist, file, are the same values as those
+        passed into file_get, whereas content is returned from
         get_notebook_data using user, gist_id, filename, gist, and file.
         """
         # Enable a binder navbar icon if a binder base URL is configured

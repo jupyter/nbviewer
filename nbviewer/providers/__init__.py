@@ -17,16 +17,16 @@ default_rewrites = [
 
 def provider_handlers(providers, **handler_kwargs):
     """Load tornado URL handlers from an ordered list of dotted-notation modules
-       which contain a `default_handlers` function
+     which contain a `default_handlers` function
 
-       `default_handlers` should accept a list of handlers and returns an
-       augmented list of handlers: this allows the addition of, for
-       example, custom URLs which should be intercepted before being
-       handed to the basic `url` handler
+     `default_handlers` should accept a list of handlers and returns an
+     augmented list of handlers: this allows the addition of, for
+     example, custom URLs which should be intercepted before being
+     handed to the basic `url` handler
 
-      `handler_kwargs` is a dict of dicts: first dict is `handler_names`, which
-      specifies the handler_classes to load for the providers, the second
-      is `handler_settings` (see comments in `format_handlers` in nbviewer/handlers.py)
+    `handler_kwargs` is a dict of dicts: first dict is `handler_names`, which
+    specifies the handler_classes to load for the providers, the second
+    is `handler_settings` (see comments in `format_handlers` in nbviewer/handlers.py)
     """
     handler_names = handler_kwargs["handler_names"]
     handler_settings = handler_kwargs["handler_settings"]
@@ -45,23 +45,23 @@ def provider_handlers(providers, **handler_kwargs):
 
 def provider_uri_rewrites(providers):
     """Load (regex, template) tuples from an ordered list of dotted-notation
-       modules which contain a `uri_rewrites` function
+    modules which contain a `uri_rewrites` function
 
-       `uri_rewrites` should accept a list of rewrites and returns an
-       augmented list of rewrites: this allows the addition of, for
-       example, the greedy behavior of the `gist` and `github` providers
+    `uri_rewrites` should accept a list of rewrites and returns an
+    augmented list of rewrites: this allows the addition of, for
+    example, the greedy behavior of the `gist` and `github` providers
     """
     return _load_provider_feature("uri_rewrites", providers)
 
 
 def _load_provider_feature(feature, providers, **handler_names):
     """Load the named feature from an ordered list of dotted-notation modules
-       which each implements the feature.
+     which each implements the feature.
 
-       The feature will be passed a list of feature implementations and must
-       return that list, suitably modified.
+     The feature will be passed a list of feature implementations and must
+     return that list, suitably modified.
 
-      `handler_names` is the same as the `handler_names` attribute of the NBViewer class
+    `handler_names` is the same as the `handler_names` attribute of the NBViewer class
     """
 
     # Ex: provider = 'nbviewer.providers.url'

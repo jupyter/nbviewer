@@ -58,8 +58,8 @@ def quote(s):
 
 
 def clean_filename(fn):
-    """ Github url sanitizes gist filenames to produce their permalink. This is
-    not provided over API, so we recreate it here. """
+    """Github url sanitizes gist filenames to produce their permalink. This is
+    not provided over API, so we recreate it here."""
     return re.sub("[^0-9a-zA-Z]+", "-", fn)
 
 
@@ -231,7 +231,7 @@ def time_block(message, logger, debug_limit=1):
     """context manager for timing a block
 
     logs millisecond timings of the block
-    
+
     If the time is longer than debug_limit,
     then log level will be INFO,
     otherwise it will be DEBUG.
