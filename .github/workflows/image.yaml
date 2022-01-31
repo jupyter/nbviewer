@@ -1,0 +1,58 @@
+name: docker
+
+on:
+  push:
+    branches:
+  pull_request:
+
+jobs:
+  docker:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set some variables
+        id: vars
+        run: |
+          short_sha=$(git rev-parse --short HEAD)
+          image="jupyter/nbviewer:$short_sha"
+          echo "::set-output name=image::$image"
+          tags="$image"
+          if "${{ github.ref_name }}" == "master" ]]; then
+            tags="jupyter/nbviewer:latest $tags"
+          fi
+          echo "::set-output name=tags::$tags"
+
+      - name: Check outputs
+        run: echo ${{ steps.vars.outputs.sha_short }}
+
+      - name: Login to docker hub
+        if: github.ref_name == 'master'
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: Build
+        uses: docker/build-push-action@v2
+        with:
+          push: false
+          load: true
+          context: .
+          platforms: linux/amd64
+          tags: ${{ steps.vars.outputs.tags }}
+
+      - name: Test
+        run: |
+          docker run --rm -i ${{ steps.vars.outputs.image }} python3 -c "import nbviewer, pycurl, pylibmc"
+          docker run --rm -i ${{ steps.vars.outputs.image }} python3 -m nbviewer --help-all
+
+      - name: Push
+        if: github.ref_name == 'master'
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          platforms: linux/amd64
+          push: ${{ github.ref_name == 'master' }}
+          tags: ${{ steps.vars.outputs.tags }}
