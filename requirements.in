@@ -1,0 +1,12 @@
+elasticsearch
+ipython
+jupyter_client
+jupyter_server>=0.2.0
+markdown>=3.0,==3.1.1 # pin until we workaround #909, which is a regression in 3.2
+nbconvert>=5.4,<6.0.0 # pin to fix #958
+nbformat>=4.2
+newrelic!=2.80.0.60
+pycurl
+pylibmc
+statsd
+tornado>=6.0

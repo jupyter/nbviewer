@@ -28,18 +28,18 @@ cache_headers = {"ETag": "If-None-Match", "Last-Modified": "If-Modified-Since"}
 
 class NBViewerAsyncHTTPClient(object):
     """Subclass of AsyncHTTPClient with bonus logging and caching!
-    
+
     If upstream servers support 304 cache replies with the following headers:
-    
+
     - ETag : If-None-Match
     - Last-Modified : If-Modified-Since
-    
+
     Upstream requests are still made every time,
     but resources and rate limits may be saved by 304 responses.
-    
+
     If upstream responds with 304 or an error and a cached response is available,
     use the cached response.
-    
+
     Responses are cached as long as possible.
     """
 

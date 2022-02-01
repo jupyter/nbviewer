@@ -114,7 +114,7 @@ class DummyAsyncCache(object):
 
 class AsyncMemcache(object):
     """Wrap pylibmc.Client to run in a background thread
-    
+
     via concurrent.futures.ThreadPoolExecutor
     """
 
@@ -157,7 +157,7 @@ class AsyncMemcache(object):
 
 class AsyncMultipartMemcache(AsyncMemcache):
     """subclass of AsyncMemcache that splits large files into multiple chunks
-    
+
     because memcached limits record size to 1MB
     """
 

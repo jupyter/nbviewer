@@ -105,7 +105,7 @@ class AsyncGitHubClient(object):
 
     def github_api_request(self, path, **kwargs):
         """Make a GitHub API request to URL
-        
+
         URL is constructed from url and params, if specified.
         **kwargs are passed to client.fetch unmodified.
         """
@@ -165,7 +165,7 @@ class AsyncGitHubClient(object):
     def extract_tree_entry(self, path, tree_response):
         """extract a single tree entry from
         a tree response using for a path
-        
+
         raises 404 if not found
 
         Useful for finding the blob url for a given path.

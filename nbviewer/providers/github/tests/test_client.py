@@ -28,7 +28,7 @@ class GithubClientTest(AsyncTestCase):
 
     def assertStartsWith(self, string, beginning):
         """Assert that a url has the correct beginning.
-        
+
         Github API requests involve non-trivial query strings.  This is useful
         when you want to compare URLs, but don't care about the querystring.
         """
