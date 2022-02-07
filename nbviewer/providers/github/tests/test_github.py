@@ -29,7 +29,7 @@ class GitHubTestCase(NBViewerTestCase):
         url = self.url(
             "github/tlapicka/IPythonNotebooks/blob",
             "ee6d2d13b96023e5f5e38e4516803eb22ede977e",
-            u"Matplotlib -- osy a mřížka.ipynb",
+            "Matplotlib -- osy a mřížka.ipynb",
         )
         r = requests.get(url)
         self.assertEqual(r.status_code, 200)
@@ -39,7 +39,7 @@ class GitHubTestCase(NBViewerTestCase):
         url = self.url(
             "/urls/github.com/tlapicka/IPythonNotebooks/blob",
             "ee6d2d13b96023e5f5e38e4516803eb22ede977e",
-            u"Matplotlib -- osy a mřížka.ipynb",
+            "Matplotlib -- osy a mřížka.ipynb",
         )
         r = requests.get(url)
         self.assertEqual(r.status_code, 200)
@@ -51,7 +51,7 @@ class GitHubTestCase(NBViewerTestCase):
         url = self.url(
             "/url/raw.github.com/tlapicka/IPythonNotebooks",
             "ee6d2d13b96023e5f5e38e4516803eb22ede977e",
-            u"Matplotlib -- osy a mřížka.ipynb",
+            "Matplotlib -- osy a mřížka.ipynb",
         )
         r = requests.get(url)
         self.assertEqual(r.status_code, 200)

@@ -10,6 +10,6 @@ def uri_rewrites(rewrites=[]):
     return rewrites + [
         (
             r"^http(s?)://www.dropbox.com/(sh?)/(.+?)(\?dl=.)*$",
-            u"/url{0}/dl.dropbox.com/{1}/{2}",
+            "/url{0}/dl.dropbox.com/{1}/{2}",
         )
     ]

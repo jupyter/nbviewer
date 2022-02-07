@@ -21,51 +21,51 @@ class TestRewrite(TestCase):
         self.assertEqual(new, rewrite)
 
     def test_githubusercontent(self):
-        uri = u"https://raw.githubusercontent.com/user/reopname/deadbeef/a mřížka.ipynb"
-        rewrite = u"/github/user/reopname/blob/deadbeef/a mřížka.ipynb"
+        uri = "https://raw.githubusercontent.com/user/reopname/deadbeef/a mřížka.ipynb"
+        rewrite = "/github/user/reopname/blob/deadbeef/a mřížka.ipynb"
         self.assert_rewrite(uri, rewrite)
 
     def test_blob(self):
-        uri = u"https://github.com/user/reopname/blob/deadbeef/a mřížka.ipynb"
-        rewrite = u"/github/user/reopname/blob/deadbeef/a mřížka.ipynb"
+        uri = "https://github.com/user/reopname/blob/deadbeef/a mřížka.ipynb"
+        rewrite = "/github/user/reopname/blob/deadbeef/a mřížka.ipynb"
         self.assert_rewrite(uri, rewrite)
 
     def test_raw_uri(self):
-        uri = u"https://github.com/user/reopname/raw/deadbeef/a mřížka.ipynb"
-        rewrite = u"/github/user/reopname/blob/deadbeef/a mřížka.ipynb"
+        uri = "https://github.com/user/reopname/raw/deadbeef/a mřížka.ipynb"
+        rewrite = "/github/user/reopname/blob/deadbeef/a mřížka.ipynb"
         self.assert_rewrite(uri, rewrite)
 
     def test_raw_subdomain(self):
-        uri = u"https://raw.github.com/user/reopname/deadbeef/a mřížka.ipynb"
-        rewrite = u"/github/user/reopname/blob/deadbeef/a mřížka.ipynb"
+        uri = "https://raw.github.com/user/reopname/deadbeef/a mřížka.ipynb"
+        rewrite = "/github/user/reopname/blob/deadbeef/a mřížka.ipynb"
         self.assert_rewrite(uri, rewrite)
 
     def test_tree(self):
-        uri = u"https://github.com/user/reopname/tree/deadbeef/a mřížka.ipynb"
-        rewrite = u"/github/user/reopname/tree/deadbeef/a mřížka.ipynb"
+        uri = "https://github.com/user/reopname/tree/deadbeef/a mřížka.ipynb"
+        rewrite = "/github/user/reopname/tree/deadbeef/a mřížka.ipynb"
         self.assert_rewrite(uri, rewrite)
 
     def test_userrepo(self):
-        uri = u"username/reponame"
-        rewrite = u"/github/username/reponame/tree/master/"
+        uri = "username/reponame"
+        rewrite = "/github/username/reponame/tree/master/"
         self.assert_rewrite(uri, rewrite)
 
     def test_user(self):
-        uri = u"username"
-        rewrite = u"/github/username/"
+        uri = "username"
+        rewrite = "/github/username/"
         self.assert_rewrite(uri, rewrite)
 
     def test_ghe_blob(self):
-        uri = u"https://example.com/user/reopname/blob/deadbeef/a mřížka.ipynb"
-        rewrite = u"/github/user/reopname/blob/deadbeef/a mřížka.ipynb"
+        uri = "https://example.com/user/reopname/blob/deadbeef/a mřížka.ipynb"
+        rewrite = "/github/user/reopname/blob/deadbeef/a mřížka.ipynb"
         self.assert_rewrite_ghe(uri, rewrite)
 
     def test_ghe_raw_uri(self):
-        uri = u"https://example.com/user/reopname/raw/deadbeef/a mřížka.ipynb"
-        rewrite = u"/github/user/reopname/blob/deadbeef/a mřížka.ipynb"
+        uri = "https://example.com/user/reopname/raw/deadbeef/a mřížka.ipynb"
+        rewrite = "/github/user/reopname/blob/deadbeef/a mřížka.ipynb"
         self.assert_rewrite_ghe(uri, rewrite)
 
     def test_ghe_tree(self):
-        uri = u"https://example.com/user/reopname/tree/deadbeef/a mřížka.ipynb"
-        rewrite = u"/github/user/reopname/tree/deadbeef/a mřížka.ipynb"
+        uri = "https://example.com/user/reopname/tree/deadbeef/a mřížka.ipynb"
+        rewrite = "/github/user/reopname/tree/deadbeef/a mřížka.ipynb"
         self.assert_rewrite_ghe(uri, rewrite)

@@ -30,7 +30,7 @@ class URLHandler(RenderingHandler):
         else:
             query = None
 
-        remote_url = u"{}://{}/{}".format(proto, netloc, quote(url))
+        remote_url = "{}://{}/{}".format(proto, netloc, quote(url))
 
         if query:
             remote_url = remote_url + "?" + query
@@ -101,4 +101,4 @@ def default_handlers(handlers=[], **handler_names):
 
 
 def uri_rewrites(rewrites=[]):
-    return rewrites + [("^http(s?)://(.*)$", u"/url{0}/{1}"), ("^(.*)$", u"/url/{0}")]
+    return rewrites + [("^http(s?)://(.*)$", "/url{0}/{1}"), ("^(.*)$", "/url/{0}")]
