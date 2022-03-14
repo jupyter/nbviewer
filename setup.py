@@ -6,9 +6,9 @@
 # -----------------------------------------------------------------------------
 import os
 import pipes
-from distutils import log
 from subprocess import check_call
 
+from distutils import log
 from setuptools import setup
 from setuptools.command.develop import develop
 
