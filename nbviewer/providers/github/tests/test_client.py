@@ -62,11 +62,11 @@ class GithubClientTest(AsyncTestCase):
     def test_get_contents(self):
         user = "username"
         repo = "my_awesome_repo"
-        path = u"möre-path"
+        path = "möre-path"
         self.gh_client.get_contents(user, repo, path)
         url = self._get_url()
-        correct_url = u"https://api.github.com" + quote(
-            u"/repos/username/my_awesome_repo/contents/möre-path"
+        correct_url = "https://api.github.com" + quote(
+            "/repos/username/my_awesome_repo/contents/möre-path"
         )
         self.assertStartsWith(url, correct_url)
 

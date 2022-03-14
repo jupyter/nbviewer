@@ -100,7 +100,7 @@ class UserGistsHandler(GistClientMixin, BaseHandler):
             gist_base_url = "https://gist.github.com/"
         else:
             gist_base_url = url_path_join(self.github_url, "gist/")
-        provider_url = url_path_join(gist_base_url, u"{user}".format(user=user))
+        provider_url = url_path_join(gist_base_url, "{user}".format(user=user))
         html = self.render_usergists_template(
             entries=entries,
             user=user,
@@ -131,7 +131,7 @@ class GistHandler(GistClientMixin, RenderingHandler):
                 user = owner_dict["login"]
             else:
                 user = "anonymous"
-            new_url = u"{format}/gist/{user}/{gist_id}".format(
+            new_url = "{format}/gist/{user}/{gist_id}".format(
                 format=self.format_prefix, user=user, gist_id=gist_id
             )
             if filename:
@@ -169,7 +169,7 @@ class GistHandler(GistClientMixin, RenderingHandler):
                     gist_base_url = url_path_join(self.github_url, "gist/")
                 provider_url = url_path_join(
                     gist_base_url,
-                    u"{user}/{gist_id}#file-{clean_name}".format(
+                    "{user}/{gist_id}#file-{clean_name}".format(
                         user=user,
                         gist_id=gist_id,
                         clean_name=clean_filename(file["filename"]),
@@ -345,8 +345,8 @@ def default_handlers(handlers=[], **handler_names):
 
 def uri_rewrites(rewrites=[]):
     gist_rewrites = [
-        (r"^([a-f0-9]+)/?$", u"/{0}"),
-        (r"^https?://gist.github.com/([^\/]+/)?([a-f0-9]+)/?$", u"/{1}"),
+        (r"^([a-f0-9]+)/?$", "/{0}"),
+        (r"^https?://gist.github.com/([^\/]+/)?([a-f0-9]+)/?$", "/{1}"),
     ]
     # github enterprise
     if os.environ.get("GITHUB_API_URL", "") != "":
@@ -356,7 +356,7 @@ def uri_rewrites(rewrites=[]):
         gist_rewrites.extend(
             [
                 # Fetching the Gist ID which is embedded in the URL, but with a different base URL
-                (r"^" + gist_base_url + r"([^\/]+/)?([a-f0-9]+)/?$", u"/{1}")
+                (r"^" + gist_base_url + r"([^\/]+/)?([a-f0-9]+)/?$", "/{1}")
             ]
         )
 

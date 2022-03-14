@@ -114,12 +114,12 @@ class AsyncGitHubClient(object):
 
     def get_gist(self, gist_id, **kwargs):
         """Get a gist"""
-        path = u"gists/{}".format(gist_id)
+        path = "gists/{}".format(gist_id)
         return self.github_api_request(path, **kwargs)
 
     def get_contents(self, user, repo, path, ref=None, **kwargs):
         """Make contents API request - either file contents or directory listing"""
-        path = u"repos/{user}/{repo}/contents/{path}".format(**locals())
+        path = "repos/{user}/{repo}/contents/{path}".format(**locals())
         if ref is not None:
             params = kwargs.setdefault("params", {})
             params["ref"] = ref
@@ -127,17 +127,17 @@ class AsyncGitHubClient(object):
 
     def get_repos(self, user, **kwargs):
         """List a user's repos"""
-        path = u"users/{user}/repos".format(user=user)
+        path = "users/{user}/repos".format(user=user)
         return self.github_api_request(path, **kwargs)
 
     def get_gists(self, user, **kwargs):
         """List a user's gists"""
-        path = u"users/{user}/gists".format(user=user)
+        path = "users/{user}/gists".format(user=user)
         return self.github_api_request(path, **kwargs)
 
     def get_repo(self, user, repo, **kwargs):
         """List a repo's branches"""
-        path = u"repos/{user}/{repo}".format(user=user, repo=repo)
+        path = "repos/{user}/{repo}".format(user=user, repo=repo)
         return self.github_api_request(path, **kwargs)
 
     def get_tree(self, user, repo, path, ref="master", recursive=False, **kwargs):
@@ -145,7 +145,7 @@ class AsyncGitHubClient(object):
         # only need a recursive fetch if it's not in the top-level dir
         if "/" in path:
             recursive = True
-        path = u"repos/{user}/{repo}/git/trees/{ref}".format(**locals())
+        path = "repos/{user}/{repo}/git/trees/{ref}".format(**locals())
         if recursive:
             params = kwargs.setdefault("params", {})
             params["recursive"] = True
@@ -154,12 +154,12 @@ class AsyncGitHubClient(object):
 
     def get_branches(self, user, repo, **kwargs):
         """List a repo's branches"""
-        path = u"repos/{user}/{repo}/branches".format(user=user, repo=repo)
+        path = "repos/{user}/{repo}/branches".format(user=user, repo=repo)
         return self.github_api_request(path, **kwargs)
 
     def get_tags(self, user, repo, **kwargs):
         """List a repo's branches"""
-        path = u"repos/{user}/{repo}/tags".format(user=user, repo=repo)
+        path = "repos/{user}/{repo}/tags".format(user=user, repo=repo)
         return self.github_api_request(path, **kwargs)
 
     def extract_tree_entry(self, path, tree_response):

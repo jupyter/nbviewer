@@ -81,7 +81,7 @@ class RawGitHubURLHandler(BaseHandler):
     """redirect old /urls/raw.github urls to /github/ API urls"""
 
     def get(self, user, repo, path):
-        new_url = u"{format}/github/{user}/{repo}/blob/{path}".format(
+        new_url = "{format}/github/{user}/{repo}/blob/{path}".format(
             format=self.format_prefix, user=user, repo=repo, path=path
         )
         self.log.info("Redirecting %s to %s", self.request.uri, new_url)
@@ -92,7 +92,7 @@ class GitHubRedirectHandler(GithubClientMixin, BaseHandler):
     """redirect github urls to /github/ API urls"""
 
     def get(self, url):
-        new_url = u"{format}/github/{url}".format(format=self.format_prefix, url=url)
+        new_url = "{format}/github/{url}".format(format=self.format_prefix, url=url)
         self.log.info("Redirecting %s to %s", self.request.uri, new_url)
         self.redirect(self.from_base(new_url))
 
@@ -129,7 +129,7 @@ class GitHubUserHandler(GithubClientMixin, BaseHandler):
         for repo in repos:
             entries.append(dict(url=repo["name"], name=repo["name"]))
 
-        provider_url = u"{github_url}{user}".format(
+        provider_url = "{github_url}{user}".format(
             user=user, github_url=self.github_url
         )
         html = self.render_github_user_template(
@@ -212,7 +212,7 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
         branches, tags = await self.refs(user, repo)
 
         for nav_ref in branches + tags:
-            nav_ref["url"] = u"/github/{user}/{repo}/tree/{ref}/{path}".format(
+            nav_ref["url"] = "/github/{user}/{repo}/tree/{ref}/{path}".format(
                 ref=nav_ref["name"], user=user, repo=repo, path=path
             )
 
@@ -224,7 +224,7 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
                 ),
             )
             self.redirect(
-                u"{format}/github/{user}/{repo}/blob/{ref}/{path}".format(
+                "{format}/github/{user}/{repo}/blob/{ref}/{path}".format(
                     format=self.format_prefix, user=user, repo=repo, ref=ref, path=path
                 )
             )
@@ -238,11 +238,11 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
             example_file_url,
         ).group("user", "repo")
 
-        base_url = u"/github/{user}/{repo}/tree/{ref}".format(
+        base_url = "/github/{user}/{repo}/tree/{ref}".format(
             user=user, repo=repo, ref=ref
         )
 
-        provider_url = u"{github_url}{user}/{repo}/tree/{ref}/{path}".format(
+        provider_url = "{github_url}{user}/{repo}/tree/{ref}/{path}".format(
             user=user, repo=repo, ref=ref, path=path, github_url=self.github_url
         )
 
@@ -257,14 +257,14 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
             e = {}
             e["name"] = file["name"]
             if file["type"] == "dir":
-                e["url"] = u"/github/{user}/{repo}/tree/{ref}/{path}".format(
+                e["url"] = "/github/{user}/{repo}/tree/{ref}/{path}".format(
                     user=user, repo=repo, ref=ref, path=file["path"]
                 )
                 e["url"] = quote(e["url"])
                 e["class"] = "fa-folder-open"
                 dirs.append(e)
             elif file["name"].endswith(".ipynb"):
-                e["url"] = u"/github/{user}/{repo}/blob/{ref}/{path}".format(
+                e["url"] = "/github/{user}/{repo}/blob/{ref}/{path}".format(
                     user=user, repo=repo, ref=ref, path=file["path"]
                 )
                 e["url"] = quote(e["url"])
@@ -335,7 +335,7 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
     async def get_notebook_data(self, user, repo, ref, path):
         if os.environ.get("GITHUB_API_URL", "") == "":
             raw_url = (
-                u"https://raw.githubusercontent.com/{user}/{repo}/{ref}/{path}".format(
+                "https://raw.githubusercontent.com/{user}/{repo}/{ref}/{path}".format(
                     user=user, repo=repo, ref=ref, path=quote(path)
                 )
             )
@@ -343,7 +343,7 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
             raw_url = url_path_join(
                 self.github_url, user, repo, "raw", ref, quote(path)
             )
-        blob_url = u"{github_url}{user}/{repo}/blob/{ref}/{path}".format(
+        blob_url = "{github_url}{user}/{repo}/blob/{ref}/{path}".format(
             user=user, repo=repo, ref=ref, path=quote(path), github_url=self.github_url
         )
         with self.catch_client_error():
@@ -508,25 +508,25 @@ def uri_rewrites(rewrites=[]):
         # three different uris for a raw view
         (
             r"^https?://github\.com/([^\/]+)/([^\/]+)/raw/([^\/]+)/(.*)",
-            u"/github/{0}/{1}/blob/{2}/{3}",
+            "/github/{0}/{1}/blob/{2}/{3}",
         ),
         (
             r"^https?://raw\.github\.com/([^\/]+)/([^\/]+)/(.*)",
-            u"/github/{0}/{1}/blob/{2}",
+            "/github/{0}/{1}/blob/{2}",
         ),
         (
             r"^https?://raw\.githubusercontent\.com/([^\/]+)/([^\/]+)/(.*)",
-            u"/github/{0}/{1}/blob/{2}",
+            "/github/{0}/{1}/blob/{2}",
         ),
         # trees & blobs
         (
             r"^https?://github.com/([\w\-]+)/([^\/]+)/(blob|tree)/(.*)$",
-            u"/github/{0}/{1}/{2}/{3}",
+            "/github/{0}/{1}/{2}/{3}",
         ),
         # user/repo
-        (r"^([\w\-]+)/([^\/]+)$", u"/github/{0}/{1}/tree/master/"),
+        (r"^([\w\-]+)/([^\/]+)$", "/github/{0}/{1}/tree/master/"),
         # user
-        (r"^([\w\-]+)$", u"/github/{0}/"),
+        (r"^([\w\-]+)$", "/github/{0}/"),
     ]
     # github enterprise
     if os.environ.get("GITHUB_API_URL", "") != "":
@@ -537,20 +537,20 @@ def uri_rewrites(rewrites=[]):
                 # raw view
                 (
                     r"^" + github_base_url + r"([^\/]+)/([^\/]+)/raw/([^\/]+)/(.*)",
-                    u"/github/{0}/{1}/blob/{2}/{3}",
+                    "/github/{0}/{1}/blob/{2}/{3}",
                 ),
                 # trees & blobs
                 (
                     r"^" + github_base_url + r"([\w\-]+)/([^\/]+)/(blob|tree)/(.*)$",
-                    u"/github/{0}/{1}/{2}/{3}",
+                    "/github/{0}/{1}/{2}/{3}",
                 ),
                 # user/repo
                 (
                     r"^" + github_base_url + r"([\w\-]+)/([^\/]+)/?$",
-                    u"/github/{0}/{1}/tree/master",
+                    "/github/{0}/{1}/tree/master",
                 ),
                 # user
-                (r"^" + github_base_url + r"([\w\-]+)/?$", u"/github/{0}/"),
+                (r"^" + github_base_url + r"([\w\-]+)/?$", "/github/{0}/"),
             ]
         )
     return rewrites + github_rewrites
