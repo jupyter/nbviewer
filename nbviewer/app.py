@@ -16,8 +16,8 @@ from urllib.parse import urlparse
 import markdown
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
-from nbconvert.exporters.templateexporter import ExtensionTolerantLoader
 from nbconvert import get_exporter
+from nbconvert.exporters.templateexporter import ExtensionTolerantLoader
 from tornado import httpserver
 from tornado import ioloop
 from tornado import web
