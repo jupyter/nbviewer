@@ -16,6 +16,7 @@ from urllib.parse import urlparse
 import markdown
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
+from nbconvert.exporters.templateexporter import ExtensionTolerantLoader
 from nbconvert import get_exporter
 from tornado import httpserver
 from tornado import ioloop
@@ -468,7 +469,11 @@ class NBViewer(Application):
 
     @cached_property
     def env(self):
-        env = Environment(loader=FileSystemLoader(self.template_paths), autoescape=True)
+        loader = ExtensionTolerantLoader(FileSystemLoader(self.template_paths), ".j2")
+        env = Environment(
+            loader=loader,
+            autoescape=True,
+        )
         env.filters["markdown"] = markdown.markdown
         try:
             git_data = git_info(here)
@@ -594,7 +599,7 @@ class NBViewer(Application):
             formats = default_formats()
 
         # This would be better defined in a class
-        self.config.HTMLExporter.template_name = "basic"
+        # self.config.HTMLExporter.template_file = "base"
         self.config.SlidesExporter.template_file = "slides_reveal"
 
         self.config.TemplateExporter.extra_template_basedirs = [

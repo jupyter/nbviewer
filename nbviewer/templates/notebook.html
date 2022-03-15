@@ -114,12 +114,9 @@
 
 
 {% block body %}
+    BREAKCRUMB
   {{ link_breadcrumbs(breadcrumbs) }}
-  <div id="notebook">
-    <div id="notebook-container">
-      {{ body | safe}}
-    </div>
-  </div>
+    {{ body | safe}}
 {% endblock %}
 
 

@@ -725,6 +725,7 @@ class RenderingHandler(BaseHandler):
                     download_url,
                     self.config,
                 )
+                assert "<meta" not in nbhtml
                 render_time.stop()
         except NbFormatError as e:
             self.statsd.incr("rendering.nbrender.fail", 1)
