@@ -76,7 +76,7 @@ mistune==0.8.4
     # via nbconvert
 mypy-extensions==0.4.3
     # via black
-nbconvert==5.6.1
+nbconvert==6.4.4
     # via
     #   -r requirements.in
     #   jupyter-server
