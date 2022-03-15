@@ -25,14 +25,14 @@ Notebook](https://github.com/jupyter/notebook),
 [JupyterLab](https://github.com/jupyterlab/jupyterlab), and
 [JupyterHub](https://github.com/jupyterhub/jupyterhub).
 
-## What is nbviewer.jupyter.org?
+## What is nbviewer.org?
 
 Project Jupyter runs a free, public instance of nbviewer at
-https://nbviewer.jupyter.org. You can use it to render Jupyter
+https://nbviewer.org. You can use it to render Jupyter
 Notebooks or browse notebook collections on GitHub. In either case, the notebooks
 must have **public** web URLs.
 
-The homepage of nbviewer.jupyter.org includes some examples for you to try.
+The homepage of nbviewer.org includes some examples for you to try.
 
 ## How does nbviewer render notebooks?
 
@@ -87,11 +87,11 @@ you visit the page, as it would on any page you visit on the Internet.
 
 ## Can I load a private notebook on nbviewer?
 
-nbviewer.jupyter.org can only render notebooks that it can access on the public
+nbviewer.org can only render notebooks that it can access on the public
 Internet. If you are working on a notebook on your local machine, you need to
 publish that notebook somewhere with a public URL (e.g., in a [GitHub
 repository](https://github.com), as a [gist](https://gist.github.com)) in order
-for nbviewer.jupyter.org to render it.
+for nbviewer.org to render it.
 
 Hosting your own nbviewer server opens additional avenues for rendering private
 notebooks. For example, an nbviewer server on your university network can render
@@ -106,7 +106,7 @@ deleted. If you clicked a link on a site that lead to the 404 error page, we
 suggest you contact the site owner to report the broken link. If a
 notebook author gave you the URL, we recommend asking them for an updated link.
 
-If you notice one of the links on the nbviewer.jupyter.org, please report it as
+If you notice one of the links on the nbviewer.org, please report it as
 a bug in the [nbviewer issue
 tracker](https://github.com/jupyter/nbviewer/issues).
 
@@ -124,7 +124,7 @@ tracker](https://github.com/jupyter/nbviewer/issues).
 ## Why do I get a 5xx or fastly error when I try to view a notebook?
 
 A 5xx error or an error page from fastly may indicate that the public
-nbviewer.jupyter.org site is being redeployed or is down. If the problem
+nbviewer.org site is being redeployed or is down. If the problem
 persists for more than a few minutes, please open a bug in the
 [nbviewer issue tracker on GitHub](https://github.com/jupyter/nbviewer)
 including the URL you are visiting and the error you receive.
@@ -132,11 +132,11 @@ including the URL you are visiting and the error you receive.
 ## Why is nbviewer showing an outdated version of my notebook?
 
 nbviewer caches rendered notebooks to cut down on rendering time for popular
-notebooks. The cache duration on nbviewer.jupyter.org is approximately 10
+notebooks. The cache duration on nbviewer.org is approximately 10
 minutes. To invalidate the cache and force nbviewer to re-render a notebook
 page, append `?flush_cache=true` to your URL.
 
-## How do you choose the notebooks featured on the nbviewer.jupyter.org homepage?
+## How do you choose the notebooks featured on the nbviewer.org homepage?
 
 We originally selected notebooks that we found and liked. We are currently
 soliciting links to refresh the home page using [a Google
@@ -157,14 +157,14 @@ nbconvert](https://nbconvert.readthedocs.io/en/stable/install.html) locally and
 run `jupyter nbconvert` to convert notebook files to a variety of formats. See
 the [nbconvert documentation](https://nbconvert.readthedocs.io/) for details.
 
-## Where is nbviewer.jupyter.org hosted?
+## Where is nbviewer.org hosted?
 
-[OVHcloud](https://ovhcloud.com) graciously hosts nbviewer.jupyter.org.
+[OVHcloud](https://ovhcloud.com) graciously hosts nbviewer.org.
 Thanks to OVHcloud, we are able to provide a public nbviewer instance as a free service.
 
 nbviewer was generously hosted by Rackspace until March, 2020.
 
-## Can I access nbviewer.jupyter.org over https?
+## Can I access nbviewer.org over https?
 
 Yes. Please do.
 
