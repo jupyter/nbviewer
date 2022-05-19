@@ -6,12 +6,12 @@
 # -----------------------------------------------------------------------------
 
 default_providers = [
-    "nbviewer.providers.{}".format(prov) for prov in ["url", "github", "gist"]
+    "nbviewer.providers.{}".format(prov) for prov in ["url", "github", "gist", "s3"]
 ]
 
 default_rewrites = [
     "nbviewer.providers.{}".format(prov)
-    for prov in ["gist", "github", "dropbox", "huggingface", "url"]
+    for prov in ["gist", "github", "dropbox", "huggingface", "s3", "url"]
 ]
 
 
