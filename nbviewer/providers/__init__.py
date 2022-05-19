@@ -83,7 +83,7 @@ def _load_provider_feature(feature, providers, **handler_names):
         try:
             # Ex: handler_names['url_handler']
             handler_names[provider_handler_key]
-        except KeyError:
+        except KeyError as e:
             continue
         else:
             # Ex: provider_handlers['url_handler'] = handler_names['url_handler']

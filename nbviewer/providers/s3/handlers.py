@@ -9,8 +9,10 @@ import io
 import os
 from datetime import datetime
 from urllib.parse import urlparse
+
 import boto3
 import botocore
+from tornado import iostream
 from tornado import web
 
 from .. import _load_handler_from_location
@@ -24,17 +26,17 @@ class S3Handler(RenderingHandler):
 
     Serving notebooks from S3 buckets
     """
+
     def initialize(self, **kwargs):
         self.s3_client = boto3.client("s3")
         self._downloadable_data = None
         self._downloaded_path = None
         super().initialize(**kwargs)
 
-
     async def download(self, path):
         """Download the notebook"""
         headers = await self.get_notebook_headers(path)
-        filename=os.path.basename(path)
+        filename = os.path.basename(path)
         self.set_header("Content-Length", headers["ContentLength"])
         # Escape commas to workaround Chrome issue with commas in download filenames
         self.set_header(
@@ -55,7 +57,6 @@ class S3Handler(RenderingHandler):
             except iostream.StreamClosedError:
                 return
 
-
     async def get_notebook_data(self, path):
         """Get additional notebook data"""
         is_download = self.get_query_arguments("download")
@@ -64,7 +65,6 @@ class S3Handler(RenderingHandler):
             return
 
         return path
-
 
     async def get_notebook_headers(self, path):
         """Get the size of a notebook file."""
@@ -80,7 +80,6 @@ class S3Handler(RenderingHandler):
                 raise web.HTTPError(404)
             raise ex
         return head
-
 
     async def read_s3_file(self, path):
         """Download the notebook file from s3."""
@@ -98,10 +97,9 @@ class S3Handler(RenderingHandler):
             raise ex
         s3_file.seek(0)
         self.log.debug("Done downloading.")
-        self._downloadable_data = s3_file.read().decode('utf-8')
+        self._downloadable_data = s3_file.read().decode("utf-8")
         self._downloaded_path = path
         return self._downloadable_data
-
 
     async def deliver_notebook(self, path):
         nbdata = await self.read_s3_file(path)
@@ -137,7 +135,6 @@ class S3Handler(RenderingHandler):
             await self.deliver_notebook(fullpath)
 
 
-
 def default_handlers(handlers=[], **handler_names):
     """Tornado handlers"""
 
@@ -145,8 +142,8 @@ def default_handlers(handlers=[], **handler_names):
 
     return handlers + [(r"/(s3%3A//.*)", s3_handler, {})]
 
+
 def uri_rewrites(rewrites=[]):
     return [
         (r"^(s3://.*)$", "{0}"),
     ]
-
