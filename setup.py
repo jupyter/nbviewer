@@ -74,9 +74,8 @@ setup_args = dict(
     setup_requires=["invoke"],
     author="The Jupyter Development Team",
     author_email="jupyter@googlegroups.com",
-    url="https://nbviewer.jupyter.org",
+    url="https://nbviewer.org",
     project_urls={
-        "Documentation": "https://nbviewer.org/",
         "Source": "https://github.com/jupyter/nbviewer",
         "Tracker": "https://github.com/jupyter/nbviewer/issues",
     },
