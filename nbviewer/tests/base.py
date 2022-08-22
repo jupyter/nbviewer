@@ -12,7 +12,6 @@ import os
 import sys
 import time
 from contextlib import contextmanager
-from subprocess import DEVNULL as devnull
 from subprocess import Popen
 from unittest import skipIf
 from unittest import TestCase
@@ -73,8 +72,6 @@ class NBViewerTestCase(TestCase):
         server_cmd = cls.get_server_cmd()
         cls.server = Popen(
             server_cmd,
-            stdout=devnull,
-            stderr=devnull,
             # Set environment variables if any
             env=dict(os.environ, **cls.environment_variables),
         )

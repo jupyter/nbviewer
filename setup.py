@@ -81,9 +81,9 @@ setup_args = dict(
     classifiers=[
         "License :: OSI Approved :: BSD License",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.3",
+        "Programming Language :: Python :: 3.7",
     ],
-    test_suite="nose.collector",
+    python_requires=">=3.7",
     cmdclass=cmdclass,
 )
 

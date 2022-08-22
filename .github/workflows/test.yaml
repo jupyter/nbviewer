@@ -1,0 +1,36 @@
+name: test
+
+on:
+  push:
+    branches:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        python:
+          - "3.7"
+          - "3.8"
+          - "3.9"
+          - "3.10"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: install
+        run:
+          python3 -m pip install -r requirements-dev.txt
+
+      - name: pip freeze
+        run:
+          python3 -m pip freeze
+
+      - name: run tests
+        run:
+          pytest -v nbviewer/tests
