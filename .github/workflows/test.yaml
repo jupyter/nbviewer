@@ -23,10 +23,16 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
 
+      - name: install apt packages
+        # pycurl build requirements
+        run: |
+          sudo apt-get update && sudo apt-get -y install \
+              libcurl4-gnutls-dev \
+              libgnutls28-dev
+
       - name: install
         run: |
-          sudo apt-get -y install libcurl4-gnutls-dev
-          python3 -m pip install -r requirements-dev.txt
+          python3 -m pip install -r requirements.in -r requirements-dev.txt
 
       - name: pip freeze
         run: |
