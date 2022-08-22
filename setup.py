@@ -76,7 +76,7 @@ setup_args = dict(
     author_email="jupyter@googlegroups.com",
     url="https://nbviewer.jupyter.org",
     project_urls={
-        "Documentation": "https://nbviewer.jupyter.org/",
+        "Documentation": "https://nbviewer.org/",
         "Source": "https://github.com/jupyter/nbviewer",
         "Tracker": "https://github.com/jupyter/nbviewer/issues",
     },
