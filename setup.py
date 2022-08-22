@@ -75,6 +75,10 @@ setup_args = dict(
     author="The Jupyter Development Team",
     author_email="jupyter@googlegroups.com",
     url="https://nbviewer.org",
+    project_urls={
+        "Source": "https://github.com/jupyter/nbviewer",
+        "Tracker": "https://github.com/jupyter/nbviewer/issues",
+    },
     description="Jupyter Notebook Viewer",
     long_description="Jupyter nbconvert as a web service",
     license="BSD",
