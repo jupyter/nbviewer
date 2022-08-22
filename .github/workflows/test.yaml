@@ -24,13 +24,14 @@ jobs:
           python-version: ${{ matrix.python }}
 
       - name: install
-        run:
+        run: |
+          sudo apt-get -y install libcurl4-gnutls-dev
           python3 -m pip install -r requirements-dev.txt
 
       - name: pip freeze
-        run:
+        run: |
           python3 -m pip freeze
 
       - name: run tests
-        run:
+        run: |
           pytest -v nbviewer/tests
