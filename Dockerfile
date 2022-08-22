@@ -14,6 +14,7 @@ RUN apt-get update \
     npm
 
 # Build requirements
+COPY ./requirements.txt  /srv/nbviewer/
 COPY ./requirements-dev.txt  /srv/nbviewer/
 RUN python3 -mpip install -r /srv/nbviewer/requirements-dev.txt
 
