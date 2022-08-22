@@ -600,7 +600,7 @@ class NBViewer(Application):
 
         # This would be better defined in a class
         # self.config.HTMLExporter.template_file = "base"
-        self.config.SlidesExporter.template_file = "slides_reveal"
+        # self.config.SlidesExporter.template_file = "slides_reveal"
 
         self.config.TemplateExporter.extra_template_basedirs = [
             os.path.join(os.path.dirname(__file__), "templates", "nbconvert")

@@ -57,7 +57,7 @@ def default_formats():
     return {
         "html": {"nbconvert_template": "lab", "label": "Notebook", "icon": "book"},
         "slides": {
-            "nbconvert_template": "slides_reveal",
+            # "nbconvert_template": "slides_reveal",
             "label": "Slides",
             "icon": "gift",
             "test": test_slides,
