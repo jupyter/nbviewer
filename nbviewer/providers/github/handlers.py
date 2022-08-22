@@ -234,7 +234,7 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
         # See: https://github.com/jupyter/nbviewer/issues/324
         example_file_url = contents[0]["html_url"]
         user, repo = re.match(
-            r"^" + self.github_url + "(?P<user>[^\/]+)/(?P<repo>[^\/]+)/.*",
+            r"^" + self.github_url + r"(?P<user>[^\/]+)/(?P<repo>[^\/]+)/.*",
             example_file_url,
         ).group("user", "repo")
 
