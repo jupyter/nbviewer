@@ -6,6 +6,7 @@
 #  the file COPYING, distributed as part of this software.
 # -----------------------------------------------------------------------------
 import os
+from unittest.mock import patch
 
 import requests
 
@@ -14,8 +15,6 @@ from ..providers.local.tests.test_localfile import (
 )
 from .base import NBViewerTestCase
 from .base import skip_unless_github_auth
-
-from unittest.mock import patch
 
 
 class XSSTestCase(NBViewerTestCase):
