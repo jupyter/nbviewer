@@ -155,6 +155,9 @@ class GitHubRepoHandler(GithubClientMixin, BaseHandler):
         self.redirect(new_url)
 
 
+TEST_KEYS = {(1, 2, 3): ""}
+
+
 class GitHubTreeHandler(GithubClientMixin, BaseHandler):
     """list files in a github repo (like github tree)"""
 
@@ -198,16 +201,28 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
             **namespace,
         )
 
-    @cached
-    async def get(self, user, repo, ref, path):
+    async def _internal_get(self, user: str, repo: str, path: str, ref: str) -> str:
+        key = (user, repo, path, ref)
+        with self.catch_client_error():
+            response = await self.github_client.get_contents(user, repo, path, ref=ref)
+            rt = response_text(response)
+        self.log.info("For key: {key!r} for response: {tr!r}")
+        return rt
+
+    # @cached
+    async def get(self, user: str, repo: str, ref, path):
+        assert isinstance(user, str)
+        assert isinstance(repo, str)
+        assert isinstance(ref, str)
+        assert isinstance(path, str)
         if not self.request.uri.endswith("/"):
             self.redirect(self.request.uri + "/")
             return
         path = path.rstrip("/")
-        with self.catch_client_error():
-            response = await self.github_client.get_contents(user, repo, path, ref=ref)
 
-        contents = json.loads(response_text(response))
+        r_text = await self._internal_get(user, repo, ref, path)
+
+        contents = json.loads(r_text)
 
         branches, tags = await self.refs(user, repo)
 

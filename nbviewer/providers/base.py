@@ -383,7 +383,7 @@ class BaseHandler(web.RequestHandler):
 
         slim_body = escape(body[:300])
 
-        self.log.warn("Fetching %s failed with %s. Body=%s", url, msg, slim_body)
+        self.log.error("Fetching %s failed with %s. Body=%s", url, msg, slim_body)
         raise web.HTTPError(code, msg)
 
     @contextmanager
