@@ -16,6 +16,7 @@ from ...utils import quote
 from ...utils import response_text
 from ...utils import url_path_join
 
+
 # -----------------------------------------------------------------------------
 # Async GitHub Client
 # -----------------------------------------------------------------------------
@@ -43,6 +44,7 @@ class AsyncGitHubClient(object):
 
     def fetch(self, url, params=None, **kwargs):
         """Add GitHub auth to self.client.fetch"""
+        assert False
         if not url.startswith(self.github_api_url):
             raise ValueError("Only fetch GitHub urls with GitHub auth (%s)" % url)
         params = {} if params is None else params

@@ -236,7 +236,7 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
 
         if not example_file_url.startswith(self.github_url):
             raise ValueError(
-                "Url will never match it does not start with same domain {self.github_url}, {example_file_url}."
+                f"Url will never match it does not start with same domain {self.github_url}, {example_file_url}."
             )
         ghu = (
             self.github_url if self.github_url.endswith("/") else self.github_url + "/"
