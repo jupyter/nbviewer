@@ -132,7 +132,7 @@ pure-eval==0.2.2
     # via stack-data
 pycparser==2.21
     # via cffi
-pycurl==7.45.1
+pycurl==7.44.1
     # via -r requirements.in
 pygments==2.11.2
     # via
