@@ -42,4 +42,4 @@ jobs:
 
       - name: run tests
         run: |
-          pytest -v nbviewer/tests
+          pytest -v nbviewer/tests -s
