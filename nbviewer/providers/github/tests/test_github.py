@@ -140,7 +140,7 @@ class GitHubTestCase(NBViewerTestCase):
         self.assertIn("global-exclude", r.text)
 
     @skip_unless_github_auth
-    def test_github_blob_redirect(self):
+    def test_github_blob_redirect_II(self):
         url = self.url("github/ipython/ipython/blob/rel-2.0.0/IPython")
         r = requests.get(url)
         self.assertEqual(r.status_code, 200)

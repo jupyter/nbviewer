@@ -3,14 +3,15 @@ import os
 from unittest import TestCase
 
 from jsonschema import validate
+from typing import Optional
 
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 
 class JSONTestCase(TestCase):
-    json: str
-    schema: str
+    json: Optional[str] = None
+    schema: Optional[str] = None
 
     def test_json(self):
         if not self.json:
