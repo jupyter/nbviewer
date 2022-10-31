@@ -414,11 +414,12 @@ class BaseHandler(web.RequestHandler):
             response = await self.client.fetch(url, **kw)
         return response
 
-    def write_error(self, status_code, **kwargs):
+    def write_error(self, status_code: int, exc_info, **kwargs):
         """render custom error pages"""
-        exc_info = kwargs.get("exc_info")
         message = ""
         status_message = responses.get(status_code, "Unknown")
+        exception = None
+        message = None
         if exc_info:
             # get the custom message, if defined
             exception = exc_info[1]
