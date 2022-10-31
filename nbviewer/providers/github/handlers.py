@@ -233,10 +233,16 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
         # Account for possibility that GitHub API redirects us to get more accurate breadcrumbs
         # See: https://github.com/jupyter/nbviewer/issues/324
         example_file_url = contents[0]["html_url"]
-        user, repo = re.match(
+        match_group = re.match(
             r"^" + self.github_url + r"(?P<user>[^\/]+)/(?P<repo>[^\/]+)/.*",
             example_file_url,
-        ).group("user", "repo")
+        )
+
+        if match_group is None:
+            raise ValueError(
+                f"Could not extract user/repo fromexample_file_url={example_file_url}"
+            )
+        user, repo = match_group.group("user", "repo")
 
         base_url = "/github/{user}/{repo}/tree/{ref}".format(
             user=user, repo=repo, ref=ref

@@ -5,7 +5,7 @@ from nbviewer import index
 
 
 class ElasticSearchTestCase(NBViewerTestCase):
-    @skip
+    @skip("unconditionally skip")
     @classmethod
     def test_finish_notebook(self):
         pass

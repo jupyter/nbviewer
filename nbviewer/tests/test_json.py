@@ -9,8 +9,8 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 
 class JSONTestCase(TestCase):
-    json = None
-    schema = None
+    json: str
+    schema: str
 
     def test_json(self):
         if not self.json:

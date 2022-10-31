@@ -23,13 +23,15 @@ from tornado.log import app_log
 from nbviewer.providers.github.client import AsyncGitHubClient
 from nbviewer.utils import url_path_join
 
+from typing import Dict
+
 
 class NBViewerTestCase(TestCase):
     """A base class for tests that need a running nbviewer server."""
 
     port = 12341
 
-    environment_variables = {}
+    environment_variables:Dict[str, str] = {}
 
     def assertIn(self, observed, expected, *args, **kwargs):
         return super().assertIn(
