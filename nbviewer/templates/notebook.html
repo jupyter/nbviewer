@@ -86,6 +86,7 @@
   {% endblock mathjax %}
 
   {% block ipywidgets %}
+    <!-- block ipywidgets notebook.html -->
     <script>
       (function() {
         function addWidgetsRenderer() {
@@ -103,20 +104,23 @@
           } catch(e) {}
 
           scriptElement.src = widgetRendererSrc;
+
           document.body.appendChild(scriptElement);
         }
 
         document.addEventListener('DOMContentLoaded', addWidgetsRenderer);
       }());
     </script>
+    <!-- end block ipywidgets notebook.html -->
   {% endblock ipywidgets %}
 {% endblock extra_head %}
 
 
 {% block body %}
-    BREAKCRUMB
+    <!-- block body safe notebook.html -->
   {{ link_breadcrumbs(breadcrumbs) }}
     {{ body | safe}}
+  <!-- end block body safe notebook.html -->
 {% endblock %}
 
 
