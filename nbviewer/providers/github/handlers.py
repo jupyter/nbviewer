@@ -215,7 +215,7 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
         assert isinstance(repo, str)
         assert isinstance(ref, str)
         assert isinstance(path, str)
-        if not self.request.uri.endswith("/"):
+        if isinstance(self.request.uri, str) and not self.request.uri.endswith("/"):
             self.redirect(self.request.uri + "/")
             return
         path = path.rstrip("/")

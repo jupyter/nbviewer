@@ -19,8 +19,8 @@ from urllib.parse import urlencode
 from urllib.parse import urlparse
 from urllib.parse import urlunparse
 
-import statsd
-from nbformat import current_nbformat
+import statsd #type: ignore
+from nbformat import current_nbformat #type:ignore
 from nbformat import reads
 from tornado import httpclient
 from tornado import web
@@ -40,10 +40,10 @@ from ..utils import url_path_join
 try:
     import pycurl
     from tornado.curl_httpclient import CurlError
-except ImportError:
-    pycurl = None
+except ModuleNotFoundError:
+    pycurl = None #type: ignore
 
-    class CurlError(Exception):
+    class CurlError(Exception): #type: ignore
         pass
 
 
@@ -415,12 +415,12 @@ class BaseHandler(web.RequestHandler):
             response = await self.client.fetch(url, **kw)
         return response
 
-    def write_error(self, status_code: int, exc_info, **kwargs):
+    def write_error(self, status_code: int, **kwargs):
         """render custom error pages"""
-        message = ""
+        exc_info = kwargs.get('exc_info', None)
+        message:str = ""
         status_message = responses.get(status_code, "Unknown")
         exception = None
-        message = None
         if exc_info:
             # get the custom message, if defined
             exception = exc_info[1]

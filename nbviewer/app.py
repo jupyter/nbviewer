@@ -16,8 +16,8 @@ from urllib.parse import urlparse
 import markdown
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
-from nbconvert import get_exporter
-from nbconvert.exporters.templateexporter import ExtensionTolerantLoader
+from nbconvert import get_exporter #type: ignore
+from nbconvert.exporters.templateexporter import ExtensionTolerantLoader #type: ignore
 from tornado import httpserver
 from tornado import ioloop
 from tornado import web
@@ -51,12 +51,9 @@ from .utils import git_info
 from .utils import jupyter_info
 from .utils import url_path_join
 
-try:  # Python 3.8
-    from functools import cached_property
-except ImportError:
-    from .utils import cached_property
+from functools import cached_property
 
-from jupyter_server.base.handlers import FileFindHandler as StaticFileHandler
+from jupyter_server.base.handlers import FileFindHandler as StaticFileHandler #type: ignore
 
 # -----------------------------------------------------------------------------
 # Code
@@ -68,8 +65,8 @@ pjoin = os.path.join
 
 def nrhead():
     try:
-        import newrelic.agent
-    except ImportError:
+        import newrelic.agent #type: ignore
+    except ModuleNotFoundError:
         return ""
     return newrelic.agent.get_browser_timing_header()
 
@@ -77,7 +74,7 @@ def nrhead():
 def nrfoot():
     try:
         import newrelic.agent
-    except ImportError:
+    except ModuleNotFoundError:
         return ""
     return newrelic.agent.get_browser_timing_footer()
 
@@ -90,7 +87,7 @@ class NBViewer(Application):
 
     name = Unicode("NBViewer")
 
-    aliases = Dict(
+    aliases = Dict( #type: ignore
         {
             "base-url": "NBViewer.base_url",
             "binder-base-url": "NBViewer.binder_base_url",
@@ -129,7 +126,7 @@ class NBViewer(Application):
         }
     )
 
-    flags = Dict(
+    flags = Dict( #type: ignore
         {
             "debug": (
                 {"Application": {"log_level": logging.DEBUG}},
@@ -533,7 +530,7 @@ class NBViewer(Application):
 
     # Attribute inherited from traitlets.config.Application, automatically used to style logs
     # https://github.com/ipython/traitlets/blob/master/traitlets/config/application.py#L191
-    _log_formatter_cls = LogFormatter
+    _log_formatter_cls = LogFormatter #type: ignore
     # Need Tornado LogFormatter for color logs, keys 'color' and 'end_color' in log_format
 
     # Observed traitlet inherited again from traitlets.config.Application

@@ -35,6 +35,9 @@ jobs:
       - name: install mypy
         run: |
           python3 -m pip install mypy types-pycurl types-requests types-Markdown
+      - name: run mypy
+        run: |
+          mypy nbviewer
 
       - name: pip freeze
         run: |
