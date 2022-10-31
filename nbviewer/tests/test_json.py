@@ -1,9 +1,9 @@
 import json
 import os
+from typing import Optional
 from unittest import TestCase
 
 from jsonschema import validate
-from typing import Optional
 
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
