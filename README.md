@@ -138,7 +138,7 @@ Pass `-d` or `--debug` to `invoke less` to create a CSS sourcemap, useful for de
 
 ```shell
 $ cd <path to repo>
-$ python -m nbviewer --debug --no-cache
+$ python -m nbviewer --debug --no-cache --host=127.0.0.1
 ```
 
 This will automatically relaunch the server if a change is detected on a python file, and not cache any results. You can then just do the modifications you like to the source code and/or the templates then refresh the pages.

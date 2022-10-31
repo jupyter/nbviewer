@@ -138,7 +138,7 @@ pygments==2.11.2
     # via
     #   ipython
     #   nbconvert
-pylibmc==1.6.1
+pylibmc==1.6.3
     # via -r requirements.in
 pyparsing==3.0.7
     # via packaging

@@ -798,7 +798,7 @@ def main(argv=None):
 
     http_server = httpserver.HTTPServer(app, xheaders=True, ssl_options=ssl_options)
     nbviewer.log.info(
-        "Listening on %s:%i, path %s",
+        "Listening on http://%s:%i, path %s",
         nbviewer.host,
         nbviewer.port,
         app.settings["base_url"],
