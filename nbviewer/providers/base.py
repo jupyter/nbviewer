@@ -11,13 +11,13 @@ import socket
 import time
 from contextlib import contextmanager
 from datetime import datetime
+from functools import wraps
 from html import escape
 from http.client import responses
 from urllib.parse import quote
 from urllib.parse import urlencode
 from urllib.parse import urlparse
 from urllib.parse import urlunparse
-from functools import wraps
 
 import statsd
 from nbformat import current_nbformat
@@ -530,6 +530,7 @@ def cached(method):
     This only handles getting from the cache, not writing to it.
     Writing to the cache must be handled in the decorated method.
     """
+
     @wraps(method)
     async def cached_method(self, *args, **kwargs):
         uri = self.request.path

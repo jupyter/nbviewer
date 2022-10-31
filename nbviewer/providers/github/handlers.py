@@ -110,7 +110,7 @@ class GitHubUserHandler(GithubClientMixin, BaseHandler):
             next_url=next_url,
             prev_url=prev_url,
             **self.PROVIDER_CTX,
-            **namespace
+            **namespace,
         )
 
     @cached
@@ -170,7 +170,7 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
         branches,
         tags,
         executor_url,
-        **namespace
+        **namespace,
     ):
         """
         breadcrumbs: list of dict
@@ -195,7 +195,7 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
             tree_label="repositories",
             executor_url=executor_url,
             **self.PROVIDER_CTX,
-            **namespace
+            **namespace,
         )
 
     @cached
@@ -433,7 +433,7 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
                 breadcrumbs=breadcrumbs,
                 msg="file from GitHub: %s" % raw_url,
                 public=True,
-                **self.PROVIDER_CTX
+                **self.PROVIDER_CTX,
             )
         else:
             mime, enc = mimetypes.guess_type(path)
