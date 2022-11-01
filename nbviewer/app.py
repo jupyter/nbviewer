@@ -10,12 +10,14 @@ import logging
 import os
 from concurrent.futures import ProcessPoolExecutor
 from concurrent.futures import ThreadPoolExecutor
+from functools import cached_property
 from html import escape
 from urllib.parse import urlparse
 
 import markdown
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
+from jupyter_server.base.handlers import FileFindHandler as StaticFileHandler  # type: ignore
 from nbconvert import get_exporter  # type: ignore
 from nbconvert.exporters.templateexporter import ExtensionTolerantLoader  # type: ignore
 from tornado import httpserver
@@ -50,10 +52,6 @@ from .ratelimit import RateLimiter
 from .utils import git_info
 from .utils import jupyter_info
 from .utils import url_path_join
-
-from functools import cached_property
-
-from jupyter_server.base.handlers import FileFindHandler as StaticFileHandler  # type: ignore
 
 # -----------------------------------------------------------------------------
 # Code
