@@ -33,3 +33,8 @@
 {% block menu_extra %}
   <div class="container">{{ link_breadcrumbs(breadcrumbs) }}</div>
 {% endblock %}
+
+
+{% block container %}
+  {{ body|safe }}
+{% endblock container %}

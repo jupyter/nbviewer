@@ -117,9 +117,11 @@
     </div>
   </nav>
 
-  {% block container %}<div class="container container-main">
+  {% block container -%}
+  <div class="container container-main">
     {% block body %}{% endblock %}
-  </div>{% endblock container %}
+  </div>
+  {%- endblock container %}
 
 
   {% block footer %}

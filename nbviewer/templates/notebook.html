@@ -117,9 +117,9 @@
 
 
 {% block body %}
-    <!-- block body safe notebook.html -->
+  <!-- block body safe notebook.html -->
   {{ link_breadcrumbs(breadcrumbs) }}
-    {{ body | safe}}
+  {{ body | safe}}
   <!-- end block body safe notebook.html -->
 {% endblock %}
 
@@ -161,10 +161,7 @@
   </p>
 <style>
  /* I did not found other ways to override CSS for now */
-div.reveal {
-    font-size: 10px;
-
-}
+div.reveal { font-size: 12px; } 
 </style>
   {% endif %}
 {% endblock extra_footer %}
