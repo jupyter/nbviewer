@@ -199,7 +199,7 @@ def git_info(path, force_git=False):
 
 def jupyter_info():
     """Get Jupyter info dict"""
-    import nbconvert #type: ignore
+    import nbconvert  # type: ignore
 
     return dict(nbconvert_version=nbconvert.__version__)
 

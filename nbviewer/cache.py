@@ -13,9 +13,9 @@ from time import monotonic
 from tornado.log import app_log
 
 try:
-    import pylibmc #type: ignore
+    import pylibmc  # type: ignore
 except ModuleNotFoundError:
-    pylibmc = None #type: ignore
+    pylibmc = None  # type: ignore
 
 # -----------------------------------------------------------------------------
 # Code

@@ -4,7 +4,7 @@
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 # -----------------------------------------------------------------------------
-from nbconvert.exporters import Exporter #type: ignore
+from nbconvert.exporters import Exporter  # type: ignore
 from tornado.log import app_log
 
 # -----------------------------------------------------------------------------
