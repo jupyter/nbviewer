@@ -20,8 +20,8 @@ from .base import skip_unless_github_auth
 class XSSTestCase(NBViewerTestCase):
     def _xss(self, path, pattern="<script>alert"):
         r = requests.get(self.url() + path)
-        # self.assertEqual(r.status_code, 200)
-        # self.assertNotIn(pattern, r.content)
+        self.assertEqual(r.status_code, 200)
+        self.assertNotIn(pattern, r.content)
 
     @skip_unless_github_auth
     def test_github_dirnames(self):
@@ -29,7 +29,6 @@ class XSSTestCase(NBViewerTestCase):
 
     @skip_unless_github_auth
     def test_gist_filenames(self):
-
         self._xss("/gist/bburky/c020825874798a6544a7")
 
 

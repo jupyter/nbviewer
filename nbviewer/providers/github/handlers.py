@@ -202,15 +202,19 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
         )
 
     async def _internal_get(self, user: str, repo: str, path: str, ref: str) -> str:
-        key = (user, repo, path, ref)
+        """
+        Hook into here later during testing – probably via a CLI.
+        Do avoid doing actual github requests.
+
+        We can't use typical mock/patch, as we are in two different processes.
+        """
         with self.catch_client_error():
             response = await self.github_client.get_contents(user, repo, path, ref=ref)
             rt = response_text(response)
-        self.log.info("For key: {key!r} for response: {tr!r}")
         return rt
 
-    # @cached
-    async def get(self, user: str, repo: str, ref, path):
+    @cached
+    async def get(self, user: str, repo: str, ref: str, path: str):
         assert isinstance(user, str)
         assert isinstance(repo, str)
         assert isinstance(ref, str)
@@ -220,9 +224,9 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
             return
         path = path.rstrip("/")
 
-        r_text = await self._internal_get(user, repo, ref, path)
-
-        contents = json.loads(r_text)
+        # TODO: check that we can't just use '.json()', it seem to me that recent
+        # requests and similar expose a .json().
+        contents = json.loads(await self._internal_get(user, repo, ref, path))
 
         branches, tags = await self.refs(user, repo)
 
