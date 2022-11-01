@@ -155,9 +155,6 @@ class GitHubRepoHandler(GithubClientMixin, BaseHandler):
         self.redirect(new_url)
 
 
-TEST_KEYS = {(1, 2, 3): ""}
-
-
 class GitHubTreeHandler(GithubClientMixin, BaseHandler):
     """list files in a github repo (like github tree)"""
 
