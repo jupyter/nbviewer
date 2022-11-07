@@ -577,7 +577,9 @@ class NBViewer(Application):
     def template_paths(self):
         default_template_path = pjoin(here, "templates")
         if self.template_path:
-            self.log.info("Using custom template path %()s", self.template_path)
+            self.log.info(
+                "Using custom template path %(path)s", {"path": self.template_path}
+            )
             template_paths = [self.template_path, default_template_path]
         else:
             template_paths = [default_template_path]
