@@ -56,7 +56,7 @@ class URLHandler(RenderingHandler):
             rfp.set_url(robots_url)
             rfp.parse(robotstxt.splitlines())
             public = rfp.can_fetch("*", remote_url)
-        except httpclient.HTTPError as e:
+        except httpclient.HTTPError:
             self.log.debug(
                 "Robots.txt not available for {}".format(remote_url), exc_info=True
             )

@@ -1,7 +1,6 @@
 from unittest import skip
 
 from .base import NBViewerTestCase
-from nbviewer import index
 
 
 class ElasticSearchTestCase(NBViewerTestCase):
