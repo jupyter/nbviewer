@@ -40,14 +40,12 @@ entrypoints==0.3
     #   nbconvert
 executing==0.8.2
     # via stack-data
+fastjsonschema==2.16.2
+    # via nbformat
 idna==3.3
     # via anyio
 ipython==8.0.1
     # via -r requirements.in
-ipython-genutils==0.2.0
-    # via
-    #   jupyter-server
-    #   nbformat
 jedi==0.18.1
     # via ipython
 jinja2==3.0.3
@@ -67,7 +65,7 @@ jupyter-core==4.9.1
     #   jupyter-server
     #   nbconvert
     #   nbformat
-jupyter-server==1.13.4
+jupyter-server==1.17.0
     # via -r requirements.in
 jupyterlab-pygments==0.2.2
     # via nbconvert
@@ -91,7 +89,7 @@ nbconvert==6.5.4
     # via
     #   -r requirements.in
     #   jupyter-server
-nbformat==5.1.3
+nbformat==5.7.0
     # via
     #   -r requirements.in
     #   jupyter-server
