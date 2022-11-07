@@ -34,10 +34,13 @@ jobs:
           python3 -m pip install -r requirements.in -r requirements-dev.txt
       - name: install mypy
         run: |
-          python3 -m pip install mypy types-pycurl types-requests types-Markdown
+          python3 -m pip install mypy types-pycurl types-requests types-Markdown pyflakes
       - name: run mypy
         run: |
           mypy nbviewer
+      - name: run pyflakes
+        run: |
+          pyflakes nbviewer
 
       - name: pip freeze
         run: |
