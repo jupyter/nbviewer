@@ -445,7 +445,7 @@ class BaseHandler(web.RequestHandler):
         # render the template
         try:
             html = self.render_status_code_template(status_code, **namespace)
-        except Exception as e:
+        except Exception:
             html = self.render_error_template(**namespace)
         self.set_header("Content-Type", "text/html")
         self.write(html)
@@ -561,7 +561,7 @@ def cached(method):
                 cached = pickle.loads(cached_pickle)
             else:
                 cached = None
-        except Exception as e:
+        except Exception:
             self.log.error("Exception getting %s from cache", short_url, exc_info=True)
             cached = None
 
@@ -631,7 +631,7 @@ class RenderingHandler(BaseHandler):
             try:
                 if test is None or test(nb, raw):
                     yield (name, format)
-            except Exception as err:
+            except Exception:
                 self.log.info("Failed to test %s: %s", self.request.uri, name)
 
     # empty methods to be implemented by subclasses to make GET requests more modular

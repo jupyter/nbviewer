@@ -12,7 +12,6 @@ import time
 from base64 import decodebytes
 from base64 import encodebytes
 from contextlib import contextmanager
-from functools import lru_cache
 from subprocess import check_output
 from urllib.parse import parse_qs
 from urllib.parse import quote as stdlib_quote

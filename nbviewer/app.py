@@ -496,9 +496,7 @@ class NBViewer(Application):
         fetch_kwargs = dict(connect_timeout=10)
         if self.proxy_host:
             fetch_kwargs.update(proxy_host=self.proxy_host, proxy_port=self.proxy_port)
-            self.log.info(
-                "Using web proxy {proxy_host}:{proxy_port}." "".format(**fetch_kwargs)
-            )
+            self.log.info("Using web proxy %(proxy_host)s:%(proxy_port).", fetch_kwargs)
 
         if self.no_check_certificate:
             fetch_kwargs.update(validate_cert=False)
@@ -579,7 +577,7 @@ class NBViewer(Application):
     def template_paths(self):
         default_template_path = pjoin(here, "templates")
         if self.template_path:
-            self.log.info("Using custom template path {}".format(self.template_path))
+            self.log.info("Using custom template path %()s", self.template_path)
             template_paths = [self.template_path, default_template_path]
         else:
             template_paths = [default_template_path]

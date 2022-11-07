@@ -432,7 +432,7 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
                     nbjson = filedata.decode("utf-8")
                 else:
                     nbjson = filedata
-            except Exception as e:
+            except Exception:
                 self.log.error("Failed to decode notebook: %s", raw_url, exc_info=True)
                 raise web.HTTPError(400)
 

@@ -1,6 +1,3 @@
-import os
-from subprocess import Popen
-
 import requests
 
 from .base import NBViewerTestCase

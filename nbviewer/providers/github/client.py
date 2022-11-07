@@ -6,7 +6,6 @@
 # -----------------------------------------------------------------------------
 import json
 import os
-from urllib.parse import urlparse
 
 from tornado.httpclient import AsyncHTTPClient
 from tornado.httpclient import HTTPError

@@ -42,8 +42,8 @@ class RateLimiter(object):
             # it's been seen before, use incr
             try:
                 count = await self.cache.incr(key)
-            except Exception as e:
-                app_log.warning("Failed to increment rate limit for %s", key)
+            except Exception:
+                app_log.warning("Failed to increment rate limit for %()s", key)
                 return
 
             app_log.debug(
