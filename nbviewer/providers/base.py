@@ -11,6 +11,7 @@ import socket
 import time
 from contextlib import contextmanager
 from datetime import datetime
+from functools import wraps
 from html import escape
 from http.client import responses
 from urllib.parse import quote
@@ -18,8 +19,8 @@ from urllib.parse import urlencode
 from urllib.parse import urlparse
 from urllib.parse import urlunparse
 
-import statsd
-from nbformat import current_nbformat
+import statsd  # type: ignore
+from nbformat import current_nbformat  # type:ignore
 from nbformat import reads
 from tornado import httpclient
 from tornado import web
@@ -39,10 +40,10 @@ from ..utils import url_path_join
 try:
     import pycurl
     from tornado.curl_httpclient import CurlError
-except ImportError:
-    pycurl = None
+except ModuleNotFoundError:
+    pycurl = None  # type: ignore
 
-    class CurlError(Exception):
+    class CurlError(Exception):  # type: ignore
         pass
 
 
@@ -382,7 +383,7 @@ class BaseHandler(web.RequestHandler):
 
         slim_body = escape(body[:300])
 
-        self.log.warn("Fetching %s failed with %s. Body=%s", url, msg, slim_body)
+        self.log.error("Fetching %s failed with %s. Body=%s", url, msg, slim_body)
         raise web.HTTPError(code, msg)
 
     @contextmanager
@@ -414,11 +415,12 @@ class BaseHandler(web.RequestHandler):
             response = await self.client.fetch(url, **kw)
         return response
 
-    def write_error(self, status_code, **kwargs):
+    def write_error(self, status_code: int, **kwargs):
         """render custom error pages"""
         exc_info = kwargs.get("exc_info")
-        message = ""
+        message: str = ""
         status_message = responses.get(status_code, "Unknown")
+        exception = None
         if exc_info:
             # get the custom message, if defined
             exception = exc_info[1]
@@ -529,6 +531,7 @@ def cached(method):
     Writing to the cache must be handled in the decorated method.
     """
 
+    @wraps(method)
     async def cached_method(self, *args, **kwargs):
         uri = self.request.path
         short_url = self.truncate(uri)

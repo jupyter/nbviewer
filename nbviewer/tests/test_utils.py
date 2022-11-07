@@ -5,8 +5,6 @@
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 # -----------------------------------------------------------------------------
-import nose.tools as nt
-
 from nbviewer import utils
 from nbviewer.providers import default_rewrites
 from nbviewer.providers import provider_uri_rewrites
@@ -64,10 +62,10 @@ def test_transform_ipynb_uri():
     uri_rewrite_list = provider_uri_rewrites(default_rewrites)
     for ipynb_uri, expected_output in test_data:
         output = utils.transform_ipynb_uri(ipynb_uri, uri_rewrite_list)
-        nt.assert_equal(
+        assert output == expected_output, "%s => %s != %s" % (
+            ipynb_uri,
             output,
             expected_output,
-            "%s => %s != %s" % (ipynb_uri, output, expected_output),
         )
 
 

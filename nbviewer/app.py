@@ -10,13 +10,16 @@ import logging
 import os
 from concurrent.futures import ProcessPoolExecutor
 from concurrent.futures import ThreadPoolExecutor
+from functools import cached_property
 from html import escape
 from urllib.parse import urlparse
 
 import markdown
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
-from nbconvert.exporters.export import exporter_map
+from jupyter_server.base.handlers import FileFindHandler as StaticFileHandler  # type: ignore
+from nbconvert import get_exporter  # type: ignore
+from nbconvert.exporters.templateexporter import ExtensionTolerantLoader  # type: ignore
 from tornado import httpserver
 from tornado import ioloop
 from tornado import web
@@ -50,13 +53,6 @@ from .utils import git_info
 from .utils import jupyter_info
 from .utils import url_path_join
 
-try:  # Python 3.8
-    from functools import cached_property
-except ImportError:
-    from .utils import cached_property
-
-from jupyter_server.base.handlers import FileFindHandler as StaticFileHandler
-
 # -----------------------------------------------------------------------------
 # Code
 # -----------------------------------------------------------------------------
@@ -67,8 +63,8 @@ pjoin = os.path.join
 
 def nrhead():
     try:
-        import newrelic.agent
-    except ImportError:
+        import newrelic.agent  # type: ignore
+    except ModuleNotFoundError:
         return ""
     return newrelic.agent.get_browser_timing_header()
 
@@ -76,7 +72,7 @@ def nrhead():
 def nrfoot():
     try:
         import newrelic.agent
-    except ImportError:
+    except ModuleNotFoundError:
         return ""
     return newrelic.agent.get_browser_timing_footer()
 
@@ -89,7 +85,7 @@ class NBViewer(Application):
 
     name = Unicode("NBViewer")
 
-    aliases = Dict(
+    aliases = Dict(  # type: ignore
         {
             "base-url": "NBViewer.base_url",
             "binder-base-url": "NBViewer.binder_base_url",
@@ -128,7 +124,7 @@ class NBViewer(Application):
         }
     )
 
-    flags = Dict(
+    flags = Dict(  # type: ignore
         {
             "debug": (
                 {"Application": {"log_level": logging.DEBUG}},
@@ -468,7 +464,11 @@ class NBViewer(Application):
 
     @cached_property
     def env(self):
-        env = Environment(loader=FileSystemLoader(self.template_paths), autoescape=True)
+        loader = ExtensionTolerantLoader(FileSystemLoader(self.template_paths), ".j2")
+        env = Environment(
+            loader=loader,
+            autoescape=True,
+        )
         env.filters["markdown"] = markdown.markdown
         try:
             git_data = git_info(here)
@@ -528,7 +528,7 @@ class NBViewer(Application):
 
     # Attribute inherited from traitlets.config.Application, automatically used to style logs
     # https://github.com/ipython/traitlets/blob/master/traitlets/config/application.py#L191
-    _log_formatter_cls = LogFormatter
+    _log_formatter_cls = LogFormatter  # type: ignore
     # Need Tornado LogFormatter for color logs, keys 'color' and 'end_color' in log_format
 
     # Observed traitlet inherited again from traitlets.config.Application
@@ -594,15 +594,15 @@ class NBViewer(Application):
             formats = default_formats()
 
         # This would be better defined in a class
-        self.config.HTMLExporter.template_file = "basic"
-        self.config.SlidesExporter.template_file = "slides_reveal"
+        # self.config.HTMLExporter.template_file = "base"
+        # self.config.SlidesExporter.template_file = "slides_reveal"
 
-        self.config.TemplateExporter.template_path = [
+        self.config.TemplateExporter.extra_template_basedirs = [
             os.path.join(os.path.dirname(__file__), "templates", "nbconvert")
         ]
 
         for key, format in formats.items():
-            exporter_cls = format.get("exporter", exporter_map[key])
+            exporter_cls = format.get("exporter", get_exporter(key))
             if self.processes:
                 # can't pickle exporter instances,
                 formats[key]["exporter"] = exporter_cls
@@ -793,7 +793,7 @@ def main(argv=None):
 
     http_server = httpserver.HTTPServer(app, xheaders=True, ssl_options=ssl_options)
     nbviewer.log.info(
-        "Listening on %s:%i, path %s",
+        "Listening on http://%s:%i, path %s",
         nbviewer.host,
         nbviewer.port,
         app.settings["base_url"],

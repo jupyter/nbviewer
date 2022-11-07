@@ -110,7 +110,7 @@ class GitHubUserHandler(GithubClientMixin, BaseHandler):
             next_url=next_url,
             prev_url=prev_url,
             **self.PROVIDER_CTX,
-            **namespace
+            **namespace,
         )
 
     @cached
@@ -170,7 +170,7 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
         branches,
         tags,
         executor_url,
-        **namespace
+        **namespace,
     ):
         """
         breadcrumbs: list of dict
@@ -195,19 +195,35 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
             tree_label="repositories",
             executor_url=executor_url,
             **self.PROVIDER_CTX,
-            **namespace
+            **namespace,
         )
 
+    async def _internal_get(self, user: str, repo: str, path: str, ref: str) -> str:
+        """
+        Hook into here later during testing – probably via a CLI.
+        Do avoid doing actual github requests.
+
+        We can't use typical mock/patch, as we are in two different processes.
+        """
+        with self.catch_client_error():
+            response = await self.github_client.get_contents(user, repo, path, ref=ref)
+            rt = response_text(response)
+        return rt
+
     @cached
-    async def get(self, user, repo, ref, path):
-        if not self.request.uri.endswith("/"):
+    async def get(self, user: str, repo: str, ref: str, path: str):
+        assert isinstance(user, str)
+        assert isinstance(repo, str)
+        assert isinstance(ref, str)
+        assert isinstance(path, str)
+        if isinstance(self.request.uri, str) and not self.request.uri.endswith("/"):
             self.redirect(self.request.uri + "/")
             return
         path = path.rstrip("/")
-        with self.catch_client_error():
-            response = await self.github_client.get_contents(user, repo, path, ref=ref)
 
-        contents = json.loads(response_text(response))
+        # TODO: check that we can't just use '.json()', it seem to me that recent
+        # requests and similar expose a .json().
+        contents = json.loads(await self._internal_get(user, repo, ref, path))
 
         branches, tags = await self.refs(user, repo)
 
@@ -233,10 +249,17 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
         # Account for possibility that GitHub API redirects us to get more accurate breadcrumbs
         # See: https://github.com/jupyter/nbviewer/issues/324
         example_file_url = contents[0]["html_url"]
-        user, repo = re.match(
-            r"^" + self.github_url + "(?P<user>[^\/]+)/(?P<repo>[^\/]+)/.*",
-            example_file_url,
-        ).group("user", "repo")
+
+        if not example_file_url.startswith(self.github_url):
+            raise ValueError(
+                f"Url will never match it does not start with same domain {self.github_url}, {example_file_url}."
+            )
+        ghu = (
+            self.github_url if self.github_url.endswith("/") else self.github_url + "/"
+        )
+
+        example_file_path = example_file_url[len(ghu) :]
+        user, repo, *_more = example_file_path.split("/")
 
         base_url = "/github/{user}/{repo}/tree/{ref}".format(
             user=user, repo=repo, ref=ref
@@ -428,7 +451,7 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
                 breadcrumbs=breadcrumbs,
                 msg="file from GitHub: %s" % raw_url,
                 public=True,
-                **self.PROVIDER_CTX
+                **self.PROVIDER_CTX,
             )
         else:
             mime, enc = mimetypes.guess_type(path)

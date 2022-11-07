@@ -20,3 +20,5 @@ repos:
     exclude: ^helm-chart/nbviewer/templates/
   - id: check-case-conflict
   - id: check-executables-have-shebangs
+ci:
+  autofix_prs: false

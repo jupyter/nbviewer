@@ -86,6 +86,7 @@
   {% endblock mathjax %}
 
   {% block ipywidgets %}
+    <!-- block ipywidgets notebook.html -->
     <script>
       (function() {
         function addWidgetsRenderer() {
@@ -103,23 +104,23 @@
           } catch(e) {}
 
           scriptElement.src = widgetRendererSrc;
+
           document.body.appendChild(scriptElement);
         }
 
         document.addEventListener('DOMContentLoaded', addWidgetsRenderer);
       }());
     </script>
+    <!-- end block ipywidgets notebook.html -->
   {% endblock ipywidgets %}
 {% endblock extra_head %}
 
 
 {% block body %}
+  <!-- block body safe notebook.html -->
   {{ link_breadcrumbs(breadcrumbs) }}
-  <div id="notebook">
-    <div id="notebook-container">
-      {{ body | safe}}
-    </div>
-  </div>
+  {{ body | safe}}
+  <!-- end block body safe notebook.html -->
 {% endblock %}
 
 
@@ -158,5 +159,9 @@
     Rendered
     <span class='date' data-date='{{date}}' title='{{date}}'>({{date}})</span>
   </p>
+<style>
+ /* I did not found other ways to override CSS for now */
+div.reveal { font-size: 12px; } 
+</style>
   {% endif %}
 {% endblock extra_footer %}

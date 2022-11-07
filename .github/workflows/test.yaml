@@ -1,0 +1,48 @@
+name: test
+
+on:
+  push:
+    branches:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        python:
+          - "3.8"
+          - "3.9"
+          - "3.10"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: install apt packages
+        # pycurl build requirements
+        run: |
+          sudo apt-get update && sudo apt-get -y install \
+              libcurl4-gnutls-dev \
+              libgnutls28-dev
+
+      - name: install
+        run: |
+          python3 -m pip install -r requirements.in -r requirements-dev.txt
+      - name: install mypy
+        run: |
+          python3 -m pip install mypy types-pycurl types-requests types-Markdown
+      - name: run mypy
+        run: |
+          mypy nbviewer
+
+      - name: pip freeze
+        run: |
+          python3 -m pip freeze
+
+      - name: run tests
+        run: |
+          pytest -v nbviewer/tests -s

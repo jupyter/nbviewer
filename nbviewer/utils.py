@@ -199,7 +199,7 @@ def git_info(path, force_git=False):
 
 def jupyter_info():
     """Get Jupyter info dict"""
-    import nbconvert
+    import nbconvert  # type: ignore
 
     return dict(nbconvert_version=nbconvert.__version__)
 
@@ -241,7 +241,3 @@ def time_block(message, logger, debug_limit=1):
     dt = time.time() - tic
     log = logger.info if dt > debug_limit else logger.debug
     log("%s in %.2f ms", message, 1e3 * dt)
-
-
-def cached_property(method):
-    return property(lru_cache(1)(method))

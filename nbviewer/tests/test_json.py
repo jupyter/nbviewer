@@ -1,16 +1,17 @@
 import json
 import os
+from typing import Optional
 from unittest import TestCase
 
-from jsonschema import validate
+from jsonschema import validate  # type: ignore
 
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 
 class JSONTestCase(TestCase):
-    json = None
-    schema = None
+    json: Optional[str] = None
+    schema: Optional[str] = None
 
     def test_json(self):
         if not self.json:

@@ -11,6 +11,7 @@ import os
 import re
 import subprocess
 import sys
+from typing import Dict
 
 
 def get_keywords():
@@ -48,7 +49,7 @@ class NotThisMethod(Exception):
     """Exception raised if a method is not valid for the current scenario."""
 
 
-LONG_VERSION_PY = {}
+LONG_VERSION_PY: Dict[str, str] = {}
 HANDLERS = {}
 
 
@@ -93,9 +94,7 @@ def run_command(commands, args, cwd=None, verbose=False, hide_stderr=False, env=
         if verbose:
             print("unable to find command, tried %s" % (commands,))
         return None, None
-    stdout = p.communicate()[0].strip()
-    if sys.version_info[0] >= 3:
-        stdout = stdout.decode()
+    stdout = p.communicate()[0].strip().decode()
     if p.returncode != 0:
         if verbose:
             print("unable to run %s (error)" % dispcmd)
