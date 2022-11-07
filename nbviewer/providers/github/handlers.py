@@ -25,7 +25,7 @@ from ..base import RenderingHandler
 from .client import AsyncGitHubClient
 
 
-class GithubClientMixin(object):
+class GithubClientMixin:
 
     # PROVIDER_CTX is a dictionary whose entries are passed as keyword arguments
     # to the render_template method of the GistHandler. The following describe

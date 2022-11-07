@@ -5,7 +5,6 @@
 #  the file COPYING, distributed as part of this software.
 # -----------------------------------------------------------------------------
 import errno
-import io
 import os
 import stat
 from datetime import datetime
@@ -150,9 +149,9 @@ class LocalFileHandler(RenderingHandler):
 
     async def deliver_notebook(self, fullpath, path):
         try:
-            with io.open(fullpath, encoding="utf-8") as f:
+            with open(fullpath, encoding="utf-8") as f:
                 nbdata = f.read()
-        except IOError as ex:
+        except OSError as ex:
             if ex.errno == errno.EACCES:
                 # py3: can't read the file, so don't give away it exists
                 self.log.info(
@@ -236,7 +235,7 @@ class LocalFileHandler(RenderingHandler):
 
         try:
             contents = os.listdir(fullpath)
-        except IOError as ex:
+        except OSError as ex:
             if ex.errno == errno.EACCES:
                 # can't access the dir, so don't give away its presence
                 self.log.info(
