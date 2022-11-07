@@ -496,9 +496,7 @@ class NBViewer(Application):
         fetch_kwargs = dict(connect_timeout=10)
         if self.proxy_host:
             fetch_kwargs.update(proxy_host=self.proxy_host, proxy_port=self.proxy_port)
-            self.log.info(
-                "Using web proxy %(proxy_host)s:%(proxy_port).", fetch_kwargs
-            )
+            self.log.info("Using web proxy %(proxy_host)s:%(proxy_port).", fetch_kwargs)
 
         if self.no_check_certificate:
             fetch_kwargs.update(validate_cert=False)
