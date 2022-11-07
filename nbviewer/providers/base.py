@@ -7,7 +7,6 @@
 import asyncio
 import hashlib
 import pickle
-import socket
 import time
 from contextlib import contextmanager
 from datetime import datetime
@@ -342,7 +341,7 @@ class BaseHandler(web.RequestHandler):
 
         if (msg is None) and body and len(body) < 100:
             # if it's a short plain-text error message, include it
-            msg = "%s (%s)" % (str_exc, escape(body))
+            msg = "{} ({})".format(str_exc, escape(body))
 
         if not msg:
             msg = str_exc
@@ -396,7 +395,7 @@ class BaseHandler(web.RequestHandler):
             yield
         except httpclient.HTTPError as e:
             self.reraise_client_error(e)
-        except socket.error as e:
+        except OSError as e:
             raise web.HTTPError(404, str(e))
 
     @property
@@ -478,7 +477,7 @@ class BaseHandler(web.RequestHandler):
     def truncate(self, s, limit=256):
         """Truncate long strings"""
         if len(s) > limit:
-            s = "%s...%s" % (s[: limit // 2], s[limit // 2 :])
+            s = "{}...{}".format(s[: limit // 2], s[limit // 2 :])
         return s
 
     async def cache_and_finish(self, content=""):
@@ -767,7 +766,7 @@ class FilesRedirectHandler(BaseHandler):
 
     def get(self, before_files, after_files):
         self.log.info("Redirecting %s to %s", before_files, after_files)
-        self.redirect("%s/%s" % (before_files, after_files))
+        self.redirect("{}/{}".format(before_files, after_files))
 
 
 class AddSlashHandler(BaseHandler):
@@ -776,7 +775,7 @@ class AddSlashHandler(BaseHandler):
     def get(self, *args, **kwargs):
         uri = self.request.path + "/"
         if self.request.query:
-            uri = "%s?%s" % (uri, self.request.query)
+            uri = "{}?{}".format(uri, self.request.query)
         self.redirect(uri)
 
 
@@ -786,5 +785,5 @@ class RemoveSlashHandler(BaseHandler):
     def get(self, *args, **kwargs):
         uri = self.request.path.rstrip("/")
         if self.request.query:
-            uri = "%s?%s" % (uri, self.request.query)
+            uri = "{}?{}".format(uri, self.request.query)
         self.redirect(uri)

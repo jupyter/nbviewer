@@ -159,7 +159,7 @@ class GistHandler(GistClientMixin, RenderingHandler):
             e = {}
             e["name"] = file["filename"]
             if file["filename"].endswith(".ipynb"):
-                e["url"] = quote("/%s/%s" % (gist_id, file["filename"]))
+                e["url"] = quote("/{}/{}".format(gist_id, file["filename"]))
                 e["class"] = "fa-book"
                 ipynbs.append(e)
             else:
@@ -318,9 +318,9 @@ class GistRedirectHandler(BaseHandler):
     """redirect old /<gist-id> to new /gist/<gist-id>"""
 
     def get(self, gist_id, file=""):
-        new_url = "%s/gist/%s" % (self.format_prefix, gist_id)
+        new_url = "{}/gist/{}".format(self.format_prefix, gist_id)
         if file:
-            new_url = "%s/%s" % (new_url, file)
+            new_url = "{}/{}".format(new_url, file)
 
         self.log.info("Redirecting %s to %s", self.request.uri, new_url)
         self.redirect(self.from_base(new_url))

@@ -21,7 +21,7 @@ from ...utils import url_path_join
 # -----------------------------------------------------------------------------
 
 
-class AsyncGitHubClient(object):
+class AsyncGitHubClient:
     """AsyncHTTPClient wrapper with methods for common requests"""
 
     auth = None
