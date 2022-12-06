@@ -5,15 +5,15 @@
 #  the file COPYING, distributed as part of this software.
 # -----------------------------------------------------------------------------
 
+
 default_providers = [
-    "nbviewer.providers.{}".format(prov) for prov in ["url", "github", "gist"]
+    "nbviewer.providers.{}".format(prov) for prov in ["url", "github", "gist", "gitlab"]
 ]
 
 default_rewrites = [
     "nbviewer.providers.{}".format(prov)
-    for prov in ["gist", "github", "dropbox", "url"]
+    for prov in ["gitlab", "gist", "github", "dropbox", "url"]
 ]
-
 
 def provider_handlers(providers, **handler_kwargs):
     """Load tornado URL handlers from an ordered list of dotted-notation modules
