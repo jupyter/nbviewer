@@ -159,6 +159,7 @@ Providers are sources of notebooks and directories of notebooks and directories.
 - `url`
 - `gist`
 - `github`
+- `huggingface`
 - `local`
 
 #### Writing a new Provider

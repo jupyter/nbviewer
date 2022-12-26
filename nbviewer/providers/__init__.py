@@ -11,7 +11,7 @@ default_providers = [
 
 default_rewrites = [
     "nbviewer.providers.{}".format(prov)
-    for prov in ["gist", "github", "dropbox", "url"]
+    for prov in ["gist", "github", "dropbox", "huggingface", "url"]
 ]
 
 
