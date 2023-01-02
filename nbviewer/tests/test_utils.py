@@ -45,6 +45,21 @@ def test_transform_ipynb_uri():
             "https://www.dropbox.com/sh/mhviow274da2wly/CZKwRRcA0k/nested/furthernested/User%2520Interface.ipynb?dl=1",
             "/urls/dl.dropbox.com/sh/mhviow274da2wly/CZKwRRcA0k/nested/furthernested/User%2520Interface.ipynb",
         ),
+        # HuggingFace urls
+        (
+            "https://huggingface.co/pceiyos/fake_news_detection_nlp/blob/main/Fake_News_Classificaton.ipynb",
+            "/urls/huggingface.co/pceiyos/fake_news_detection_nlp/resolve/main/Fake_News_Classificaton.ipynb",
+        ),
+        (
+            "https://huggingface.co/spaces/NimaBoscarino/climategan/blob/main/notebooks/plot_metrics.ipynb",
+            "/urls/huggingface.co/spaces/NimaBoscarino/climategan/resolve/main/notebooks/plot_metrics.ipynb",
+            # This ClimateGAN notebook is served over LFS (as the file is 17.1 MB)
+        ),
+        (
+            "https://huggingface.co/spaces/dalle-mini/dalle-mini/blob/63679e968109278c5f0169100b1755bbda9f4bc6/tools/inference/inference_pipeline.ipynb",
+            "/urls/huggingface.co/spaces/dalle-mini/dalle-mini/resolve/63679e968109278c5f0169100b1755bbda9f4bc6/tools/inference/inference_pipeline.ipynb",
+            # This Dall-e mini notebook is hosted from a specific revision (= git commit)
+        ),
         # URL
         ("https://example.org/ipynb", "/urls/example.org/ipynb"),
         ("http://example.org/ipynb", "/url/example.org/ipynb"),
