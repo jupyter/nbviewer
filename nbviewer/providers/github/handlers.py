@@ -198,7 +198,7 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
             **namespace,
         )
 
-    async def _internal_get(self, user: str, repo: str, path: str, ref: str) -> str:
+    async def _internal_get(self, user: str, repo: str, ref: str, path: str) -> str:
         """
         Hook into here later during testing – probably via a CLI.
         Do avoid doing actual github requests.
