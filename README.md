@@ -46,6 +46,11 @@ docker run -p 8080:8080 -e 'GITHUB_OAUTH_KEY=YOURKEY' \
 Or to use your GitHub personal access token, you can just set `GITHUB_API_TOKEN`.
 
 
+## S3 buckets
+Files in S3 buckets can be access by their s3 uri like `s3://bucket/path/to/key`. This works directly for public buckets. If you want to access private buckets, you need to provide the s3 authentication credentials to the docker container or in your environment. 
+For the docker container this can be done by setting the [environment variables](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html#environment-variables) with `-e AWS_ACCESS_KEY_ID=my_secret_id -e AWS_SECRET_ACCESS_KEY=my_secret_key`.
+Or you can provide the [shared credentials file](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html#shared-credentials-file) to the user running the nbviewer (in docker with a volume).
+
 ## GitHub Enterprise
 
 To use nbviewer on your own GitHub Enterprise instance you need to set `GITHUB_API_URL`.
