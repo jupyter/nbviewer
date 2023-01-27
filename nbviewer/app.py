@@ -458,6 +458,13 @@ class NBViewer(Application):
         if "JUPYTERHUB_SERVICE_URL" in os.environ:
             url = urlparse(os.environ["JUPYTERHUB_SERVICE_URL"])
             default_host, default_port = url.hostname, url.port
+
+            if default_port < 1 or default_port > 65535:
+                self.log.error(
+                    "Received invalid port number %d through JUPYTERHUB_SERVICE_URL. "
+                    "Defaulting to 5000 instead."
+                )
+                default_port = 5000
         else:
             default_host, default_port = "0.0.0.0", 5000
         return {"host": default_host, "port": default_port}
