@@ -154,7 +154,7 @@ terminado==0.17.0
     # via jupyter-server
 tinycss2==1.2.1
     # via nbconvert
-tornado==6.2
+tornado==6.3.3
     # via
     #   -r requirements.in
     #   jupyter-client
