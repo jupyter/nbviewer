@@ -41,12 +41,17 @@ class GithubClientMixin:
     PROVIDER_CTX = {
         "provider_label": "GitHub",
         "provider_icon": "github",
-        "executor_label": "Binder",
-        "executor_icon": "icon-binder",
+        "executor_label_binder": "Binder",
+        "executor_icon_binder": "icon-binder",
+        "executor_label_colab": "Colab",
+        "executor_icon_colab": "icon-colab",
     }
 
     BINDER_TMPL = "{binder_base_url}/gh/{org}/{repo}/{ref}"
     BINDER_PATH_TMPL = BINDER_TMPL + "?filepath={path}"
+
+    COLAB_TMPL = "{colab_base_url}/github/{org}/{repo}/blob/{ref}"
+    COLAB_PATH_TMPL = COLAB_TMPL + "/{path}"
 
     @property
     def github_url(self):
@@ -169,7 +174,8 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
         path,
         branches,
         tags,
-        executor_url,
+        executor_url_binder,
+        executor_url_colab,
         **namespace,
     ):
         """
@@ -177,8 +183,10 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
             Breadcrumb 'name' and 'url' to render as links at the top of the notebook page
         provider_url: str
             URL to the notebook document upstream at the provider (e.g., GitHub)
-        executor_url: str, optional
-            URL to execute the notebook document (e.g., Binder)
+        executor_url_binder: str, optional
+            URL to execute the notebook document with Binder
+        executor_url_colab: str, optional
+            URL to execute the notebook document withe Colab
         """
         return self.render_template(
             "treelist.html",
@@ -193,7 +201,8 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
             tags=tags,
             tree_type="github",
             tree_label="repositories",
-            executor_url=executor_url,
+            executor_url_binder=executor_url_binder,
+            executor_url_colab=executor_url_colab,
             **self.PROVIDER_CTX,
             **namespace,
         )
@@ -308,11 +317,18 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
         entries.extend(others)
 
         # Enable a binder navbar icon if a binder base URL is configured
-        executor_url = (
+        executor_url_binder = (
             self.BINDER_TMPL.format(
                 binder_base_url=self.binder_base_url, org=user, repo=repo, ref=ref
             )
             if self.binder_base_url
+            else None
+        )
+        executor_url_colab = (
+            self.COLAB_PATH_TMPL.format(
+                colab_base_url=self.colab_base_url, org=user, repo=repo, ref=ref
+            )
+            if self.colab_base_url
             else None
         )
 
@@ -326,7 +342,8 @@ class GitHubTreeHandler(GithubClientMixin, BaseHandler):
             path=path,
             branches=branches,
             tags=tags,
-            executor_url=executor_url,
+            executor_url_binder=executor_url_binder,
+            executor_url_colab=executor_url_colab,
         )
         await self.cache_and_finish(html)
 
@@ -414,9 +431,20 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
             breadcrumbs.extend(self.breadcrumbs(dir_path, base_url))
 
             # Enable a binder navbar icon if a binder base URL is configured
-            executor_url = (
+            executor_url_binder = (
                 self.BINDER_PATH_TMPL.format(
                     binder_base_url=self.binder_base_url,
+                    org=user,
+                    repo=repo,
+                    ref=ref,
+                    path=quote(path),
+                )
+                if self.binder_base_url
+                else None
+            )
+            executor_url_colab = (
+                self.COLAB_PATH_TMPL.format(
+                    colab_base_url=self.colab_base_url,
                     org=user,
                     repo=repo,
                     ref=ref,
@@ -447,7 +475,8 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
                 nbjson,
                 raw_url,
                 provider_url=blob_url,
-                executor_url=executor_url,
+                executor_url_binder=executor_url_binder,
+                executor_url_colab=executor_url_colab,
                 breadcrumbs=breadcrumbs,
                 msg="file from GitHub: %s" % raw_url,
                 public=True,
