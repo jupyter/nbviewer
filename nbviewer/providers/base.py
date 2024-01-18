@@ -673,9 +673,8 @@ class RenderingHandler(BaseHandler):
         self, body, nb, download_url, json_notebook, **namespace
     ):
         executor_mineo_url = (
-                "{mineo_base_url}/import/{notebook_url}".format(
-                mineo_base_url=self.mineo_base_url,
-                notebook_url=download_url
+            "{mineo_base_url}/import/{notebook_url}".format(
+                mineo_base_url=self.mineo_base_url, notebook_url=download_url
             )
             if self.mineo_base_url
             else None
