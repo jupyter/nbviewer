@@ -53,7 +53,16 @@ saved in a notebook document as a web page.
 [mybinder.org](https://mybinder.org/) is a separate web service that lets you
 open notebooks in an executable environment, making your code
 immediately reproducible by anyone, anywhere. nbviewer shows an *Execute on
-Binder* icon in its navbar which
+Binder* icon in its navbar
+
+[Google Colab](https://colab.research.google.com/) offers a cloud environment
+for editing, running, and sharing notebooks. nbviewer includes an
+*Execute on Colab* icon in its navbar.
+
+[mneo.app](https://mineo.app/) is another cloud platform for running and sharing
+notebooks with Code, No-code & AI capabilities.
+nbviewer features an *Execute on Mineo* icon in its navbar.
+
 
 ## Why does the Execute on Binder button not appear for a notebook?
 

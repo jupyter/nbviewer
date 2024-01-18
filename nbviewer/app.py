@@ -89,6 +89,8 @@ class NBViewer(Application):
         {
             "base-url": "NBViewer.base_url",
             "binder-base-url": "NBViewer.binder_base_url",
+            "colab-base-url": "NBViewer.colab_base_url",
+            "mineo-base-url": "NBViewer.mineo_base_url",
             "cache-expiry-max": "NBViewer.cache_expiry_max",
             "cache-expiry-min": "NBViewer.cache_expiry_min",
             "config-file": "NBViewer.config_file",
@@ -219,6 +221,16 @@ class NBViewer(Application):
     binder_base_url = Unicode(
         default_value="https://mybinder.org/v2",
         help="URL base for binder notebook execution service.",
+    ).tag(config=True)
+
+    colab_base_url = Unicode(
+        default_value="https://colab.research.google.com",
+        help="URL base for colab notebook execution service.",
+    ).tag(config=True)
+
+    mineo_base_url = Unicode(
+        default_value="https://b.mineo.app",
+        help="URL base for mineo notebook execution service.",
     ).tag(config=True)
 
     cache_expiry_max = Int(
@@ -662,6 +674,8 @@ class NBViewer(Application):
             allow_remote_access=True,
             base_url=self._base_url,
             binder_base_url=self.binder_base_url,
+            colab_base_url=self.colab_base_url,
+            mineo_base_url=self.mineo_base_url,
             cache=self.cache,
             cache_expiry_max=self.cache_expiry_max,
             cache_expiry_min=self.cache_expiry_min,
