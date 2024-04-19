@@ -197,6 +197,10 @@ class NBViewer(Application):
         default_value="nbviewer.providers.local.handlers.LocalFileHandler",
         help="The Tornado handler to use for viewing notebooks found on a local filesystem",
     ).tag(config=True)
+    fsspec_handler = Unicode(
+        default_value="nbviewer.providers.fsspec.handlers.FsspecHandler",
+        help="The Tornado handler to use for viewing notebooks found on a fsspec filesystem",
+    ).tag(config=True)
     url_handler = Unicode(
         default_value="nbviewer.providers.url.handlers.URLHandler",
         help="The Tornado handler to use for viewing notebooks accessed via URL",
@@ -632,6 +636,7 @@ class NBViewer(Application):
             github_user_handler=self.github_user_handler,
             index_handler=self.index_handler,
             local_handler=self.local_handler,
+            fsspec_handler=self.fsspec_handler,
             url_handler=self.url_handler,
             user_gists_handler=self.user_gists_handler,
         )
