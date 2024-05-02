@@ -139,7 +139,8 @@ class FsspecHandler(RenderingHandler):
             self.log.info("Path: '%s' is not visible from within nbviewer", url)
             raise web.HTTPError(404)
 
-        fs = fsspec.get_filesystem_class(protocol)()
+        fs = fsspec.filesystem(protocol, use_listings_cache=False)
+        fs.invalidate_cache(url)
 
         fullpath = await self.get_notebook_data(fs, protocol, url)
 
