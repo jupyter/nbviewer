@@ -10,3 +10,5 @@ pycurl
 pylibmc
 statsd
 tornado>=6.0
+s3fs
+fsspec

@@ -26,7 +26,9 @@
           {% endif %}
         </td>
         <td>
-          <span class="time-col text-muted">{{ entry.modtime }}</span>
+          {% if entry.modtime %}
+            <span class="time-col text-muted">{{ entry.modtime }}</span>
+          {% endif %}        
         </td>
       </tr>
     {% endfor %}
