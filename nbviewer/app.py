@@ -205,6 +205,10 @@ class NBViewer(Application):
         default_value="nbviewer.providers.gist.handlers.UserGistsHandler",
         help="The Tornado handler to use for viewing directory containing all of a user's Gists",
     ).tag(config=True)
+    jupyterhub_login_handler = Unicode(
+        default_value="nbviewer.handlers.JupyterHubLoginHandler",
+        help="The Tornado handler to use for OAuth login with JupyterHub.",
+    ).tag(config=True)
 
     answer_yes = Bool(
         default_value=False,
@@ -634,6 +638,7 @@ class NBViewer(Application):
             local_handler=self.local_handler,
             url_handler=self.url_handler,
             user_gists_handler=self.user_gists_handler,
+            jupyterhub_login_handler=self.jupyterhub_login_handler,
         )
         handler_kwargs = {
             "handler_names": handler_names,
@@ -656,6 +661,16 @@ class NBViewer(Application):
         if os.environ.get("DEBUG"):
             self.log.setLevel(logging.DEBUG)
 
+        hub_api = os.getenv("JUPYTERHUB_URL").rstrip("/") + "/hub/api"
+        if os.getenv("JUPYTERHUB_URL"):
+            redirect_url = (
+                os.environ["JUPYTERHUB_URL"].rstrip("/")
+                + os.getenv("JUPYTERHUB_SERVICE_PREFIX", "/").rstrip("/")
+                + "/oauth_callback"
+            )
+        else:
+            redirect_url = None
+
         # input traitlets to settings
         settings = dict(
             # Allow FileFindHandler to load static directories from e.g. a Docker container
@@ -676,7 +691,8 @@ class NBViewer(Application):
             gzip=True,
             hub_api_token=os.getenv("JUPYTERHUB_API_TOKEN"),
             hub_api_url=os.getenv("JUPYTERHUB_API_URL"),
-            hub_base_url=os.getenv("JUPYTERHUB_BASE_URL"),
+            hub_base_url=os.getenv("JUPYTERHUB_BASE_URL", "/"),
+            hub_cookie_name="jupyterhub-services",
             index=self.index,
             ipywidgets_base_url=self.ipywidgets_base_url,
             jinja2_env=self.env,
@@ -701,6 +717,13 @@ class NBViewer(Application):
             statsd_host=self.statsd_host,
             statsd_port=self.statsd_port,
             statsd_prefix=self.statsd_prefix,
+            login_url="/oauth_callback",
+            cookie_secret=os.urandom(32),  # generate a random cookie secret
+            client_id=os.getenv("JUPYTERHUB_CLIENT_ID"),
+            redirect_uri=redirect_url,
+            authorize_url=hub_api + "/oauth2/authorize",
+            token_url=hub_api + "/oauth2/token",
+            user_url=hub_api + "/user",
         )
 
         if self.localfiles:

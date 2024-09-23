@@ -97,6 +97,7 @@ class BaseHandler(web.RequestHandler):
         """
         # if any of these are set, assume we want to do auth, even if
         # we're misconfigured (better safe than sorry!)
+
         if self.hub_api_url or self.hub_api_token or self.hub_base_url:
 
             def redirect_to_login():
@@ -106,28 +107,44 @@ class BaseHandler(web.RequestHandler):
                     + urlencode({"next": self.request.path})
                 )
 
-            encrypted_cookie = self.get_cookie(self.hub_cookie_name)
-            if not encrypted_cookie:
-                # no cookie == not authenticated
-                return redirect_to_login()
+            def redirect_to_authorize():
 
-            try:
-                # if the hub returns a success code, the user is known
-                await self.http_client.fetch(
-                    url_path_join(
-                        self.hub_api_url,
-                        "authorizations/cookie",
-                        self.hub_cookie_name,
-                        quote(encrypted_cookie, safe=""),
-                    ),
-                    headers={"Authorization": "token " + self.hub_api_token},
+                self.redirect(
+                    url_path_join(self.hub_base_url, "/hub/api/oauth2/authorize")
+                    + "?"
+                    + urlencode({"client_id": self.client_id, "response_type": "code"})
                 )
-            except httpclient.HTTPError as ex:
-                if ex.response.code == 404:
-                    # hub does not recognize the cookie == not authenticated
+
+            # if we have a redirect URL, we're running OAuth2 authentication
+            if self.redirect_url:
+                # token = self.get_current_user()
+                token = self.get_secure_cookie(self.hub_cookie_name)
+                if not token:
+                    redirect_to_authorize()
+            else:
+                # support old authentication method via authorizations/cookie
+                encrypted_cookie = self.get_cookie(self.hub_cookie_name)
+                if not encrypted_cookie:
+                    # no cookie == not authenticated
                     return redirect_to_login()
-                # let all other errors surface: they're unexpected
-                raise ex
+
+                try:
+                    # if the hub returns a success code, the user is known
+                    await self.http_client.fetch(
+                        url_path_join(
+                            self.hub_api_url,
+                            "authorizations/cookie",
+                            self.hub_cookie_name,
+                            quote(encrypted_cookie, safe=""),
+                        ),
+                        headers={"Authorization": "token " + self.hub_api_token},
+                    )
+                except httpclient.HTTPError as ex:
+                    if ex.response.code == 404:
+                        # hub does not recognize the cookie == not authenticated
+                        return redirect_to_login()
+                    # let all other errors surface: they're unexpected
+                    raise ex
 
     # Properties
 
@@ -138,6 +155,10 @@ class BaseHandler(web.RequestHandler):
     @property
     def binder_base_url(self):
         return self.settings["binder_base_url"]
+
+    @property
+    def redirect_url(self):
+        return self.settings["redirect_uri"]
 
     @property
     def cache(self):
@@ -189,7 +210,7 @@ class BaseHandler(web.RequestHandler):
 
     @property
     def hub_cookie_name(self):
-        return "jupyterhub-services"
+        return self.settings["hub_cookie_name"]
 
     @property
     def index(self):
@@ -254,6 +275,14 @@ class BaseHandler(web.RequestHandler):
             # return an empty mock object!
             self._statsd = EmptyClass()
             return self._statsd
+
+    @property
+    def authorize_url(self):
+        return self.settings["authorize_url"]
+
+    @property
+    def client_id(self):
+        return self.settings["client_id"]
 
     # ---------------------------------------------------------------
     # template rendering
@@ -677,7 +706,7 @@ class RenderingHandler(BaseHandler):
                 self.base_url, "/"
             ),
             date=datetime.utcnow().strftime(self.date_fmt),
-            **namespace
+            **namespace,
         )
 
     async def finish_notebook(
@@ -746,7 +775,7 @@ class RenderingHandler(BaseHandler):
             nb=nb,
             download_url=download_url,
             json_notebook=json_notebook,
-            **namespace
+            **namespace,
         )
         html_time.stop()
 

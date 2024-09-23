@@ -4,7 +4,13 @@
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 # -----------------------------------------------------------------------------
+import json
+from urllib.parse import urlencode
+
 from tornado import web
+from tornado.httpclient import AsyncHTTPClient
+from tornado.httpclient import HTTPRequest
+from tornado.httputil import url_concat
 
 from .providers import _load_handler_from_location
 from .providers import provider_handlers
@@ -38,11 +44,86 @@ class IndexHandler(BaseHandler):
             text=self.frontpage_setup.get("text", None),
             show_input=self.frontpage_setup.get("show_input", True),
             sections=self.frontpage_setup.get("sections", []),
-            **namespace
+            **namespace,
         )
 
-    def get(self):
-        self.finish(self.render_index_template())
+    def get_current_user(self):
+        """The login handler stored a JupyterHub API token in a cookie
+
+        @web.authenticated calls this method.
+        If a Falsy value is returned, the request is redirected to `login_url`.
+        If a Truthy value is returned, the request is allowed to proceed.
+        """
+        token = self.get_secure_cookie(self.settings["hub_cookie_name"])
+        if token:
+            # secure cookies are bytes, decode to str
+            return token.decode("ascii", "replace")
+
+    async def user_for_token(self, token):
+        """Retrieve the user for a given token, via /hub/api/user"""
+        req = HTTPRequest(
+            self.settings["user_url"], headers={"Authorization": f"token {token}"}
+        )
+        response = await AsyncHTTPClient().fetch(req)
+        return json.loads(response.body.decode("utf8", "replace"))
+
+    @web.authenticated
+    async def get(self):
+        user_token = self.get_current_user()
+        await self.user_for_token(user_token)
+        await self.finish(self.render_index_template())
+
+
+class JupyterHubLoginHandler(web.RequestHandler):
+    """Login Handler
+
+    this handler both begins and ends the OAuth process
+    """
+
+    async def token_for_code(self, code):
+        """Complete OAuth by requesting an access token for an oauth code"""
+        params = dict(
+            client_id=self.settings["client_id"],
+            client_secret=self.settings["hub_api_token"],
+            grant_type="authorization_code",
+            code=code,
+            redirect_uri=self.settings["redirect_uri"],
+        )
+
+        req = HTTPRequest(
+            self.settings["token_url"],
+            method="POST",
+            body=urlencode(params).encode("utf8"),
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        )
+        response = await AsyncHTTPClient().fetch(req)
+        data = json.loads(response.body.decode("utf8", "replace"))
+        return data["access_token"]
+
+    async def get(self):
+        code = self.get_argument("code", None)
+
+        if code:
+            # code is set, we are the oauth callback
+            # complete oauth
+            token = await self.token_for_code(code)
+            # login successful, set cookie and redirect back to home
+            self.set_secure_cookie(self.settings["hub_cookie_name"], token)
+            self.redirect("/")
+        else:
+            # we are the login handler,
+            # begin oauth process which will come back later with an
+            # authorization_code
+            self.redirect(
+                url_concat(
+                    self.settings["authorize_url"],
+                    dict(
+                        redirect_uri=self.settings["redirect_uri"],
+                        client_id=self.settings["client_id"],
+                        response_type="code",
+                    ),
+                )
+            )
 
 
 class FAQHandler(BaseHandler):
@@ -120,11 +201,15 @@ def init_handlers(formats, providers, base_url, localfiles, **handler_kwargs):
     custom404_handler = _load_handler_from_location(handler_names["custom404_handler"])
     faq_handler = _load_handler_from_location(handler_names["faq_handler"])
     index_handler = _load_handler_from_location(handler_names["index_handler"])
+    jupyterhub_login_handler = _load_handler_from_location(
+        handler_names["jupyterhub_login_handler"]
+    )
 
     # If requested endpoint matches multiple routes, it only gets handled by handler
     # corresponding to the first matching route. So order of URLSpecs in this list matters.
     pre_providers = [
         ("/?", index_handler, {}),
+        ("/oauth_callback/?", jupyterhub_login_handler, {}),
         ("/index.html", index_handler, {}),
         (r"/faq/?", faq_handler, {}),
         (r"/create/?", create_handler, {}),
