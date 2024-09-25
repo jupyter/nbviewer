@@ -9,6 +9,7 @@ from urllib.parse import urlencode
 
 from tornado import web
 from tornado.httpclient import AsyncHTTPClient
+from tornado.httpclient import HTTPClientError
 from tornado.httpclient import HTTPRequest
 from tornado.httputil import url_concat
 
@@ -69,8 +70,18 @@ class IndexHandler(BaseHandler):
 
     @web.authenticated
     async def get(self):
-        user_token = self.get_current_user()
-        await self.user_for_token(user_token)
+        try:
+            user_token = self.get_current_user()
+            await self.user_for_token(user_token)
+        except HTTPClientError as e:
+            # If the token is invalid, clear the cookie and redirect to the login page.
+            # This occurs when we log out from JupyterHub and then log back in.
+            if e.code == 403:
+                self.log.info("clearing the cookie and redirecting to the login page")
+                self.clear_cookie(self.settings["hub_cookie_name"])
+                self.redirect_to_login()
+                return
+
         await self.finish(self.render_index_template())
 
 

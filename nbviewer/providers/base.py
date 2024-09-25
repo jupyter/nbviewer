@@ -85,6 +85,27 @@ class BaseHandler(web.RequestHandler):
 
         return super().redirect(eurl, *args, **kwargs)
 
+    def redirect_to_login(self):
+        self.redirect(
+            url_path_join(self.hub_base_url, "/hub/login")
+            + "?"
+            + urlencode({"next": self.request.path})
+        )
+
+    def redirect_to_authorize(self):
+
+        self.redirect(
+            url_path_join(self.hub_base_url, "/hub/api/oauth2/authorize")
+            + "?"
+            + urlencode(
+                {
+                    "client_id": self.client_id,
+                    "response_type": "code",
+                    "next": self.request.path,
+                }
+            )
+        )
+
     def set_default_headers(self):
         self.add_header("Content-Security-Policy", self.content_security_policy)
 
@@ -100,33 +121,18 @@ class BaseHandler(web.RequestHandler):
 
         if self.hub_api_url or self.hub_api_token or self.hub_base_url:
 
-            def redirect_to_login():
-                self.redirect(
-                    url_path_join(self.hub_base_url, "/hub/login")
-                    + "?"
-                    + urlencode({"next": self.request.path})
-                )
-
-            def redirect_to_authorize():
-
-                self.redirect(
-                    url_path_join(self.hub_base_url, "/hub/api/oauth2/authorize")
-                    + "?"
-                    + urlencode({"client_id": self.client_id, "response_type": "code"})
-                )
-
             # if we have a redirect URL, we're running OAuth2 authentication
             if self.redirect_url:
                 # token = self.get_current_user()
                 token = self.get_secure_cookie(self.hub_cookie_name)
                 if not token:
-                    redirect_to_authorize()
+                    self.redirect_to_authorize()
             else:
                 # support old authentication method via authorizations/cookie
                 encrypted_cookie = self.get_cookie(self.hub_cookie_name)
                 if not encrypted_cookie:
                     # no cookie == not authenticated
-                    return redirect_to_login()
+                    return self.redirect_to_login()
 
                 try:
                     # if the hub returns a success code, the user is known
@@ -142,7 +148,7 @@ class BaseHandler(web.RequestHandler):
                 except httpclient.HTTPError as ex:
                     if ex.response.code == 404:
                         # hub does not recognize the cookie == not authenticated
-                        return redirect_to_login()
+                        return self.redirect_to_login()
                     # let all other errors surface: they're unexpected
                     raise ex
 
