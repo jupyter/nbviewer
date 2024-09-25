@@ -661,8 +661,9 @@ class NBViewer(Application):
         if os.environ.get("DEBUG"):
             self.log.setLevel(logging.DEBUG)
 
-        hub_api = os.getenv("JUPYTERHUB_URL").rstrip("/") + "/hub/api"
+        hub_api = "/hub/api"
         if os.getenv("JUPYTERHUB_URL"):
+            hub_api = os.getenv("JUPYTERHUB_URL").rstrip("/") + hub_api
             redirect_url = (
                 os.environ["JUPYTERHUB_URL"].rstrip("/")
                 + os.getenv("JUPYTERHUB_SERVICE_PREFIX", "/").rstrip("/")
