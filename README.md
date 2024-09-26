@@ -277,6 +277,10 @@ c.JupyterHub.load_roles = [
             "servers", # For starting and stopping servers
             'admin:users' # Needed if idle users are culled
         ]
+    },
+    {
+        "name": "user",
+        "scopes": ["self", "access:services"],
     }
 ]
 
