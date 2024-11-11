@@ -17,12 +17,12 @@ jobs:
         run: |
           short_sha=$(git rev-parse --short HEAD)
           image="jupyter/nbviewer:$short_sha"
-          echo "::set-output name=image::$image"
+          echo "image=$image" >> $GITHUB_OUTPUT
           tags="$image"
           if "${{ github.ref_name }}" == "main" ]]; then
             tags="jupyter/nbviewer:latest $tags"
           fi
-          echo "::set-output name=tags::$tags"
+          echo "tags=$tags" >> $GITHUB_OUTPUT
 
       - name: Check outputs
         run: echo ${{ steps.vars.outputs.sha_short }}
