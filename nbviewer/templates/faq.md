@@ -166,7 +166,7 @@ nbviewer was generously hosted by Rackspace until March, 2020.
 
 ## Can I access nbviewer.org over https?
 
-Yes. Please do.
+Yes. Please do. Use the URL prefix `https://nbviewer.org/urls/` to access nbviewer.org over https. Note that the URL prefix uses `urls/` instead of `url/`.
 
 ## Can I run my own nbviewer server?
 
