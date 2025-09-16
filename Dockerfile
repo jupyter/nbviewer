@@ -15,7 +15,7 @@ RUN apt-get update \
 
 # Build requirements
 COPY ./requirements-dev.txt  /srv/nbviewer/
-RUN python3 -mpip install -r /srv/nbviewer/requirements-dev.txt
+RUN python3 -mpip install -r /srv/nbviewer/requirements-dev.txt setuptools
 
 WORKDIR /srv/nbviewer
 
@@ -45,7 +45,7 @@ RUN --mount=type=cache,from=builder,source=/wheels,target=/wheels \
 
 # To change the number of threads use
 # docker run -d -e NBVIEWER_THREADS=4 -p 80:8080 nbviewer
-ENV NBVIEWER_THREADS 2
+ENV NBVIEWER_THREADS=2
 WORKDIR /srv/nbviewer
 EXPOSE 8080
 USER nobody
