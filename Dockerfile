@@ -1,5 +1,5 @@
 # Define a builder image
-FROM python:3.10-bullseye as builder
+FROM python:3.13-bullseye as builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG=C.UTF-8
@@ -25,7 +25,7 @@ RUN python3 setup.py build && \
     python3 -mpip wheel -vv -r requirements.txt . -w /wheels
 
 # Now define the runtime image
-FROM python:3.10-slim-bullseye
+FROM python:3.13-slim-bullseye
 LABEL maintainer="Jupyter Project <jupyter@googlegroups.com>"
 
 ENV DEBIAN_FRONTEND=noninteractive
