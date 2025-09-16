@@ -3,6 +3,7 @@ repos:
   rev: "25.1.0"
   hooks:
   - id: black
+    exclude: versioneer.py|nbviewer/_version.py
 - repo: https://github.com/PyCQA/flake8
   rev: "7.3.0"
   hooks:
