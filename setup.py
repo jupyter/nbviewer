@@ -5,7 +5,7 @@
 #  the file COPYING, distributed as part of this software.
 # -----------------------------------------------------------------------------
 import os
-import pipes
+import shlex
 from subprocess import check_call
 
 from distutils import log
@@ -17,7 +17,7 @@ import versioneer
 
 def sh(cmd):
     """Run a command, echoing what command is to be run"""
-    log.info("Running command %s" % " ".join(map(pipes.quote, cmd)))
+    log.info("Running command %s" % " ".join(map(shlex.quote, cmd)))
     check_call(cmd)
 
 
