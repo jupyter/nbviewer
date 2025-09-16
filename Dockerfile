@@ -1,5 +1,5 @@
 # Define a builder image
-FROM python:3.13-bookworm AS builder
+FROM python:3.12-bookworm AS builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG=C.UTF-8
@@ -25,7 +25,7 @@ RUN python3 setup.py build && \
     python3 -mpip wheel -vv -r requirements.txt . -w /wheels
 
 # Now define the runtime image
-FROM python:3.13-slim-bookworm
+FROM python:3.12-slim-bookworm
 LABEL maintainer="Jupyter Project <jupyter@googlegroups.com>"
 
 ENV DEBIAN_FRONTEND=noninteractive
