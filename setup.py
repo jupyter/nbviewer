@@ -8,7 +8,7 @@ import os
 import shlex
 from subprocess import check_call
 
-from distutils import log
+from setuptools import log
 from setuptools import setup
 from setuptools.command.develop import develop
 
