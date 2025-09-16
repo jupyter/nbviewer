@@ -2,6 +2,7 @@
 
 Derived from IPython.html notebook test case in 2.0
 """
+
 # -----------------------------------------------------------------------------
 #  Copyright (C) Jupyter Development Team
 #
