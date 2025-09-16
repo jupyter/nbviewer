@@ -20,6 +20,12 @@ beautifulsoup4==4.11.1
     # via nbconvert
 bleach==5.0.1
     # via nbconvert
+boto3==1.23.3
+    # via -r requirements.in
+botocore==1.26.3
+    # via
+    #   boto3
+    #   s3transfer
 certifi==2022.12.7
     # via elastic-transport
 cffi==1.15.1
@@ -48,6 +54,10 @@ jinja2==3.1.2
     # via
     #   jupyter-server
     #   nbconvert
+jmespath==1.0.0
+    # via
+    #   boto3
+    #   botocore
 jsonschema==4.17.0
     # via nbformat
 jupyter-client==7.4.4
@@ -130,11 +140,15 @@ pyparsing==3.0.9
 pyrsistent==0.19.2
     # via jsonschema
 python-dateutil==2.8.2
-    # via jupyter-client
+    # via
+    #   botocore
+    #   jupyter-client
 pyzmq==24.0.1
     # via
     #   jupyter-client
     #   jupyter-server
+s3transfer==0.5.2
+    # via boto3
 send2trash==1.8.0
     # via jupyter-server
 six==1.16.0
@@ -171,7 +185,9 @@ traitlets==5.5.0
     #   nbconvert
     #   nbformat
 urllib3==1.26.12
-    # via elastic-transport
+    # via
+    #   botocore
+    #   elastic-transport
 wcwidth==0.2.5
     # via prompt-toolkit
 webencodings==0.5.1

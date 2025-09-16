@@ -197,6 +197,10 @@ class NBViewer(Application):
         default_value="nbviewer.providers.local.handlers.LocalFileHandler",
         help="The Tornado handler to use for viewing notebooks found on a local filesystem",
     ).tag(config=True)
+    s3_handler = Unicode(
+        default_value="nbviewer.providers.s3.handlers.S3Handler",
+        help="The Tornado handler to use for viewing notebooks from amazon S3",
+    ).tag(config=True)
     url_handler = Unicode(
         default_value="nbviewer.providers.url.handlers.URLHandler",
         help="The Tornado handler to use for viewing notebooks accessed via URL",
@@ -632,6 +636,7 @@ class NBViewer(Application):
             github_user_handler=self.github_user_handler,
             index_handler=self.index_handler,
             local_handler=self.local_handler,
+            s3_handler=self.s3_handler,
             url_handler=self.url_handler,
             user_gists_handler=self.user_gists_handler,
         )
