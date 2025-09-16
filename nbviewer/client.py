@@ -3,6 +3,7 @@
 - Support caching via upstream 304 with ETag, Last-Modified
 - Log request timings for profiling
 """
+
 # Copyright (c) Jupyter Development Team.
 # Distributed under the terms of the Modified BSD License.
 import asyncio
