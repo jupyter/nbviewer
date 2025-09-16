@@ -1,5 +1,5 @@
 # Define a builder image
-FROM python:3.13-bullseye as builder
+FROM python:3.13-bookworm as builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG=C.UTF-8
@@ -21,11 +21,11 @@ WORKDIR /srv/nbviewer
 
 # Copy source tree in
 COPY . /srv/nbviewer
-RUN python3 setup.py build && \
+RUN python3 -m pip setup.py build && \
     python3 -mpip wheel -vv -r requirements.txt . -w /wheels
 
 # Now define the runtime image
-FROM python:3.13-slim-bullseye
+FROM python:3.13-slim-bookworm
 LABEL maintainer="Jupyter Project <jupyter@googlegroups.com>"
 
 ENV DEBIAN_FRONTEND=noninteractive
