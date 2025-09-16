@@ -1,5 +1,5 @@
 # Define a builder image
-FROM python:3.13-bookworm as builder
+FROM python:3.13-bookworm AS builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG=C.UTF-8
@@ -21,7 +21,7 @@ WORKDIR /srv/nbviewer
 
 # Copy source tree in
 COPY . /srv/nbviewer
-RUN python3 -m pip setup.py build && \
+RUN python3 setup.py build && \
     python3 -mpip wheel -vv -r requirements.txt . -w /wheels
 
 # Now define the runtime image
@@ -40,8 +40,8 @@ RUN apt-get update \
  && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 
-COPY --from=builder /wheels /wheels
-RUN python3 -mpip install --no-cache /wheels/*
+RUN --mount=type=cache,from=builder,source=/wheels,target=/wheels \
+    python3 -mpip install --no-cache /wheels/*
 
 # To change the number of threads use
 # docker run -d -e NBVIEWER_THREADS=4 -p 80:8080 nbviewer
