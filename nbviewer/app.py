@@ -344,13 +344,13 @@ class NBViewer(Application):
     ).tag(config=True)
 
     provider_rewrites = List(
-        trait=Unicode,
+        trait=Unicode(),
         default_value=default_rewrites,
         help="Full dotted package(s) that provide `uri_rewrites`.",
     ).tag(config=True)
 
     providers = List(
-        trait=Unicode,
+        trait=Unicode(),
         default_value=default_providers,
         help="Full dotted package(s) that provide `default_handlers`.",
     ).tag(config=True)

@@ -5,10 +5,10 @@
 #  the file COPYING, distributed as part of this software.
 # -----------------------------------------------------------------------------
 import os
-import pipes
+import shlex
+import sys
 from subprocess import check_call
 
-from distutils import log
 from setuptools import setup
 from setuptools.command.develop import develop
 
@@ -17,12 +17,12 @@ import versioneer
 
 def sh(cmd):
     """Run a command, echoing what command is to be run"""
-    log.info("Running command %s" % " ".join(map(pipes.quote, cmd)))
+    print("Running command %s" % " ".join(map(shlex.quote, cmd)), file=sys.stderr)
     check_call(cmd)
 
 
 def preflight():
-    log.info("Building LESS")
+    print("Building LESS", file=sys.stderr)
     sh(["invoke", "git-info"])
     sh(["npm", "install"])
     sh(["invoke", "bower"])
@@ -86,7 +86,7 @@ setup_args = dict(
         "License :: OSI Approved :: BSD License",
         "Programming Language :: Python :: 3",
     ],
-    python_requires=">=3.9",
+    python_requires=">=3.10",
     cmdclass=cmdclass,
 )
 

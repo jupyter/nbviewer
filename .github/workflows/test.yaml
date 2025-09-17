@@ -7,17 +7,17 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         python:
-          - "3.9"
           - "3.10"
+          - "3.13"
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
 
@@ -26,7 +26,8 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get -y install \
               libcurl4-gnutls-dev \
-              libgnutls28-dev
+              libgnutls28-dev \
+              libmemcached-dev
 
       - name: install
         run: |
