@@ -40,7 +40,7 @@ jobs:
           push: false
           load: true
           context: .
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           tags: ${{ steps.vars.outputs.tags }}
 
       - name: Test
@@ -53,6 +53,6 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: .
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           push: ${{ github.ref_name == 'main' }}
           tags: ${{ steps.vars.outputs.tags }}
