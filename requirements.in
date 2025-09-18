@@ -1,7 +1,7 @@
 elasticsearch
 ipython>=8
 jupyter_client
-jupyter_server>=0.2.0
+jupyter_server>=2
 markdown>=3.3
 nbconvert>=6.5.4
 nbformat>=5.0
