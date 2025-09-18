@@ -32,6 +32,7 @@ jobs:
       - name: install
         run: |
           python3 -m pip install -r requirements.in -r requirements-dev.txt
+          python3 -m pip install -v -e .
       - name: install mypy
         run: |
           python3 -m pip install mypy types-pycurl types-requests types-Markdown pyflakes
