@@ -140,6 +140,14 @@ class BaseHandler(web.RequestHandler):
         return self.settings["binder_base_url"]
 
     @property
+    def colab_base_url(self):
+        return self.settings["colab_base_url"]
+
+    @property
+    def mineo_base_url(self):
+        return self.settings["mineo_base_url"]
+
+    @property
     def cache(self):
         return self.settings["cache"]
 
@@ -665,11 +673,20 @@ class RenderingHandler(BaseHandler):
     def render_notebook_template(
         self, body, nb, download_url, json_notebook, **namespace
     ):
+        executor_mineo_url = (
+            "{mineo_base_url}/import/{notebook_url}".format(
+                mineo_base_url=self.mineo_base_url, notebook_url=download_url
+            )
+            if self.mineo_base_url
+            else None
+        )
+
         return self.render_template(
             "formats/%s.html" % self.format,
             body=body,
             nb=nb,
             download_url=download_url,
+            executor_mineo_url=executor_mineo_url,
             format=self.format,
             default_format=self.default_format,
             format_prefix=format_prefix,

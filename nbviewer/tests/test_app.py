@@ -52,6 +52,8 @@ def test_generate_config():
     assert "NBViewer.base_url" in cfg_text
     assert "NBViewer._base_url" not in cfg_text  # This shouldn't be configurable
     assert "NBViewer.binder_base_url" in cfg_text
+    assert "NBViewer.colab_base_url" in cfg_text
+    assert "NBViewer.mineo_base_url" in cfg_text
     assert "NBViewer.cache_expiry_max" in cfg_text
     assert "NBViewer.cache_expiry_min" in cfg_text
     assert "NBViewer.client" in cfg_text
