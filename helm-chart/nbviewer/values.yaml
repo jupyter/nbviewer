@@ -44,9 +44,10 @@ nbviewer:
   newrelicIni: ""
 
 memcached:
-  AntiAffinity: soft
+  architecture: high-availability
   replicaCount: 2
-  pdbMinAvailable: 1
+  pdb:
+    minAvailable: 1
 
 updateStrategy:
   rollingUpdate:

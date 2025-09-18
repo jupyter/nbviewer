@@ -1,4 +1,4 @@
-apiVersion: v1
+apiVersion: v2
 name: nbviewer
 version: 0.0.1
 appVersion: 1.0.1
@@ -6,5 +6,8 @@ description: Jupyter Notebook Viewer
 home: https://nbviewer.jupyter.org
 sources:
   - https://github.com/jupyter/nbviewer
-kubeVersion: '>=1.11.0-0'
-tillerVersion: '>=2.11.0-0'
+kubeVersion: ">=1.28.0-0"
+dependencies:
+  - name: memcached
+    version: "7.9.7"
+    repository: https://charts.bitnami.com/bitnami
