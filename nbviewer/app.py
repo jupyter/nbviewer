@@ -659,7 +659,7 @@ class NBViewer(Application):
             self.providers,
             self._base_url,
             self.localfiles,
-            **handler_kwargs
+            **handler_kwargs,
         )
 
         # NBConvert config

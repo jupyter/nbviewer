@@ -677,7 +677,7 @@ class RenderingHandler(BaseHandler):
                 self.base_url, "/"
             ),
             date=datetime.utcnow().strftime(self.date_fmt),
-            **namespace
+            **namespace,
         )
 
     async def finish_notebook(
@@ -746,7 +746,7 @@ class RenderingHandler(BaseHandler):
             nb=nb,
             download_url=download_url,
             json_notebook=json_notebook,
-            **namespace
+            **namespace,
         )
         html_time.stop()
 

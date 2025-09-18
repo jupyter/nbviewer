@@ -211,7 +211,7 @@ class LocalFileHandler(RenderingHandler):
             entries=entries,
             breadcrumbs=breadcrumbs,
             title=title,
-            **namespace
+            **namespace,
         )
 
     def show_dir(self, fullpath, path, **namespace):
@@ -284,7 +284,7 @@ class LocalFileHandler(RenderingHandler):
             entries=entries,
             breadcrumbs=self.breadcrumbs(path),
             title=url_path_join(path, "/"),
-            **namespace
+            **namespace,
         )
         return html
 
