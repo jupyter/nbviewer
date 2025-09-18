@@ -4,3 +4,4 @@ mock>=1.3.0  # python34 and older versions of mock do not play well together.
 pre-commit
 pytest
 requests
+jupyterhub

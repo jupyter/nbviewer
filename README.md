@@ -237,3 +237,88 @@ c.JupyterHub.services = [
 ```
 
 The nbviewer instance will automatically read the [various `JUPYTERHUB_*` environment variables](http://jupyterhub.readthedocs.io/en/latest/reference/services.html#launching-a-hub-managed-service) and configure itself accordingly. You can also run the nbviewer instance as an [externally managed JupyterHub service](http://jupyterhub.readthedocs.io/en/latest/reference/services.html#externally-managed-services), but must set the requisite environment variables yourself.
+
+---
+
+# nbviewer Integration with JupyterHub via OAuth2
+
+This guide explains how to configure **nbviewer** as a JupyterHub service using OAuth2 token-based authentication.
+
+## Requirements
+- **JupyterHub** (version 2.x or higher)
+- **nbviewer** service
+- Access to the environment variables for both **JupyterHub** and **nbviewer**.
+
+
+## JupyterHub Configuration
+
+In JupyterHub’s `jupyterhub_config.py`, add the following configuration to integrate nbviewer as a service:
+
+```python
+c.JupyterHub.services.append(
+    {
+        'name': 'nbviewer',
+        'url': 'http://nbviewer:8080',
+        'api_token': os.environ['JUPYTERHUB_API_TOKEN'],
+        'oauth_no_confirm': True,
+        'oauth_client_id': 'service-nbviewer',
+        'oauth_redirect_uri': 'https://jupyterhub.yourcompany.com/services/nbviewer/oauth_callback',
+    }
+)
+
+c.JupyterHub.load_roles = [
+    {
+        'name': 'nbviewer',
+        'services': ['nbviewer', 'jupyterhub-idle-culler'],
+        'scopes': [
+            "read:users:activity",
+            "list:users",
+            "users:activity",
+            "servers", # For starting and stopping servers
+            'admin:users' # Needed if idle users are culled
+        ]
+    },
+    {
+        "name": "user",
+        "scopes": ["self", "access:services"],
+    }
+]
+
+c.JupyterHub.service_tokens = {
+    os.environ['JUPYTERHUB_API_TOKEN'] : 'nbviewer' 
+}
+```
+
+### Explanation of Key Settings:
+- oauth_client_id: The unique ID for the nbviewer service.
+- oauth_redirect_uri: The URL that nbviewer uses to handle OAuth2 callbacks from JupyterHub.
+- service_tokens: Set the service token used by nbviewer to authenticate with JupyterHub.
+
+## nbviewer Configuration
+In the deployment of nbviewer, configure the following environment variables:
+```yaml
+extraEnv:
+  JUPYTERHUB_SERVICE_NAME: 'nbviewer'
+  JUPYTERHUB_API_URL: 'http://hub:8081/hub/api'
+  JUPYTERHUB_BASE_URL: '/'
+  JUPYTERHUB_SERVICE_PREFIX: '/services/nbviewer/'
+  JUPYTERHUB_URL: 'https://jupyterhub.yourcompany.com'
+  JUPYTERHUB_CLIENT_ID: 'service-nbviewer'
+```
+### Explanation of Environment Variables:
+- JUPYTERHUB_API_URL: The internal URL where nbviewer can access JupyterHub’s API.
+- JUPYTERHUB_URL: The base URL of your JupyterHub installation (public-facing).
+- JUPYTERHUB_CLIENT_ID: Should match the oauth_client_id in the JupyterHub configuration.
+- JUPYTERHUB_SERVICE_PREFIX: Specifies the service's routing prefix.
+
+### OAuth2 Flow
+When a user accesses nbviewer, they will be authenticated via the OAuth2 token from JupyterHub. The oauth_callback URL specified in the configuration will be used to handle the token exchange.
+
+Ensure nbviewer correctly handles OAuth2 requests by ensuring the callback URL is properly set and that nbviewer is able to request the necessary scopes from JupyterHub.
+
+### Troubleshooting
+If you encounter issues with token authentication or authorization, ensure that:
+The correct API token is set both in JupyterHub and nbviewer.
+The service roles and scopes are correctly configured to allow nbviewer access to JupyterHub's user data.
+
+---
