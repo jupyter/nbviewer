@@ -68,7 +68,11 @@
   <link rel="apple-touch-icon-precomposed"
         href="{{ static_url("ico/apple-touch-icon-57-precomposed.png") }}">
   <!--block extra head layout.html-->
-  {% block extra_head %}{% endblock %}
+  {%- block extra_head %}
+  {%- if extra_head_html %}
+  {{ extra_head_html | safe }}
+  {%- endif %}
+  {%- endblock %}
   <!--end block extra head layout.html-->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@^5/css/all.min.css" type="text/css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@^5/css/v4-shims.min.css" type="text/css" />
