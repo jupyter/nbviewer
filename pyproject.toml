@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=61", "setuptools-scm", "invoke"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nbviewer"
+dynamic = ["version", "dependencies", "readme"]
+license = "BSD-3-Clause"
+license-files = ["LICENSE.txt"]
+description=  "Jupyter Notebook Viewer"
+authors = [{name = "Jupyter Development Team", email = "jupyter@googlegroups.com"}]
+requires-python = ">=3.10"
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Framework :: Jupyter",
+]
+
+[project.urls]
+Homepage = "https://nbviewer.org"
+Funding = "https://jupyter.org/about"
+Source = "https://github.com/jupyter/nbviewer"
+Tracker = "https://github.com/jupyter/nbviewer/issues"
+
+[tool.setuptools]
+zip-safe = false
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = [""]
+include = ["nbviewer"]
+
+[tool.setuptools.dynamic]
+readme = { file = "README.md", content-type = "text/markdown" }
+dependencies = { file = "requirements.in" }
+
+# setuptools_scm needs a section to be present
+[tool.setuptools_scm]
+# we don't actually use setuptools_scm for versions,
+# only the file-finder
+fallback_version = "0.0.0"

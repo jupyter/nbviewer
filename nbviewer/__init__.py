@@ -1,3 +1,6 @@
-from . import _version
+import importlib.metadata
 
-__version__ = _version.get_versions()["version"]
+try:
+    __version__ = importlib.metadata.version(__name__)
+except importlib.metadata.PackageNotFound:
+    __version__ = "0.0.0.dev-unknown"
