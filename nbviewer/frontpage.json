@@ -57,11 +57,6 @@
          "img": "/img/example-nb/python_for_visres.png"
        },
        {
-         "text": "Non Parametric Regression",
-         "target": "/gist/fonnesbeck/2352771",
-         "img": "/img/example-nb/covariance.png"
-       },
-       {
          "text": "Partial Differential Equations Solver",
          "target": "/github/waltherg/notebooks/blob/master/2013-12-03-Crank_Nicolson.ipynb",
          "img": "/img/example-nb/pde_solver_with_numpy.png"
