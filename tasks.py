@@ -5,11 +5,11 @@ from __future__ import print_function
 import hashlib
 import json
 import os
-import pipes
 import shutil
 import sys
 import tempfile
 from tarfile import TarFile
+from urllib.request import urlretrieve
 
 import invoke
 
@@ -21,6 +21,7 @@ NPM_BIN = os.path.join(APP_ROOT, "node_modules", ".bin")
 NOTEBOOK_STATIC_PATH = os.path.join(
     APP_ROOT, "notebook-%s" % NOTEBOOK_VERSION, "notebook", "static"
 )
+NOTEBOOK_URL = f"https://files.pythonhosted.org/packages/source/n/notebook/notebook-{NOTEBOOK_VERSION}.tar.gz"
 
 
 @invoke.task
@@ -46,25 +47,7 @@ def notebook_static(ctx):
     nb_archive = os.path.join(APP_ROOT, fname)
     if not os.path.exists(nb_archive):
         print("Downloading from pypi -> %s" % nb_archive)
-        ctx.run(
-            " ".join(
-                map(
-                    pipes.quote,
-                    [
-                        sys.executable,
-                        "-m",
-                        "pip",
-                        "download",
-                        "notebook=={}".format(NOTEBOOK_VERSION),
-                        "--no-deps",
-                        "-d",
-                        APP_ROOT,
-                        "--no-binary",
-                        ":all:",
-                    ],
-                )
-            )
-        )
+        urlretrieve(NOTEBOOK_URL, nb_archive)
     with open(nb_archive, "rb") as f:
         checksum = hashlib.sha256(f.read()).hexdigest()
     if checksum != NOTEBOOK_CHECKSUM:
