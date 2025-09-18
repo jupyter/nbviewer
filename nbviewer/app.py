@@ -17,7 +17,7 @@ from urllib.parse import urlparse
 import markdown
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
-from jupyter_server.base.handlers import FileFindHandler as StaticFileHandler  # type: ignore
+from jupyter_server.base.handlers import FileFindHandler  # type: ignore
 from nbconvert import get_exporter  # type: ignore
 from nbconvert.exporters.templateexporter import ExtensionTolerantLoader  # type: ignore
 from tornado import httpserver
@@ -79,6 +79,20 @@ def nrfoot():
 
 this_dir, this_filename = os.path.split(__file__)
 FRONTPAGE_JSON = os.path.join(this_dir, "frontpage.json")
+
+
+class StaticFileHandler(FileFindHandler):
+    """Static file handler
+
+    Subclass FileFindHandler, but ensure it works without auth.
+    """
+
+    # remove auth handling inherited from FileFindHandler for static files
+    def prepare(self):
+        return
+
+    def get_current_user(self):
+        return "anonymous"
 
 
 class NBViewer(Application):
@@ -807,7 +821,10 @@ def main(argv=None):
     )
 
     http_server.listen(nbviewer.port, nbviewer.host)
-    ioloop.IOLoop.current().start()
+    try:
+        ioloop.IOLoop.current().start()
+    except KeyboardInterrupt:
+        pass
 
 
 if __name__ == "__main__":
