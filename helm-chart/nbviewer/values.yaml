@@ -44,9 +44,29 @@ nbviewer:
   newrelicIni: ""
 
 memcached:
-  AntiAffinity: soft
+  config:
+    memoryLimit: 250
   replicaCount: 2
-  pdbMinAvailable: 1
+  # memory limits should be a bit bigger than config.memoryLimit
+  resources:
+    limits:
+      cpu: 1
+      memory: 300MB
+    requests:
+      cpu: 100m
+      memory: 300MB
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+                - key: app.kubernetes.io/name
+                  operator: In
+                  values:
+                    - memcached
+            topologyKey: kubernetes.io/hostname
 
 updateStrategy:
   rollingUpdate:
