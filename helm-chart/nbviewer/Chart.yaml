@@ -9,5 +9,5 @@ sources:
 kubeVersion: ">=1.28.0-0"
 dependencies:
   - name: memcached
-    version: "7.9.7"
-    repository: https://charts.bitnami.com/bitnami
+    version: "0.1.2"
+    repository: oci://registry-1.docker.io/cloudpirates
