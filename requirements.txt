@@ -123,7 +123,7 @@ parso==0.8.5
     # via jedi
 pexpect==4.9.0
     # via ipython
-platformdirs==4.4.0
+platformdirs==4.5.0
     # via jupyter-core
 prometheus-client==0.22.1
     # via jupyter-server
