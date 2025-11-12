@@ -229,7 +229,7 @@ uri-template==1.3.0
     # via jsonschema
 urllib3==2.5.0
     # via elastic-transport
-wcwidth==0.2.13
+wcwidth==0.2.14
     # via prompt-toolkit
 webcolors==24.11.1
     # via jsonschema
