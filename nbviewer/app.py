@@ -61,22 +61,6 @@ here = os.path.dirname(__file__)
 pjoin = os.path.join
 
 
-def nrhead():
-    try:
-        import newrelic.agent  # type: ignore
-    except ModuleNotFoundError:
-        return ""
-    return newrelic.agent.get_browser_timing_header()
-
-
-def nrfoot():
-    try:
-        import newrelic.agent
-    except ModuleNotFoundError:
-        return ""
-    return newrelic.agent.get_browser_timing_footer()
-
-
 this_dir, this_filename = os.path.split(__file__)
 FRONTPAGE_JSON = os.path.join(this_dir, "frontpage.json")
 
@@ -511,8 +495,6 @@ class NBViewer(Application):
             # force Jinja2 to recompile template every time
             env.globals.update(cache_size=0)
         env.globals.update(
-            nrhead=nrhead,
-            nrfoot=nrfoot,
             git_data=git_data,
             jupyter_info=jupyter_info(),
             len=len,
