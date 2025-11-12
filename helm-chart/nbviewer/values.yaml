@@ -41,7 +41,6 @@ github:
 nbviewer:
   baseUrl: "/"
   extraArgs: []
-  newrelicIni: ""
 
 memcached:
   config:

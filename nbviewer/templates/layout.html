@@ -45,10 +45,6 @@
   <meta name="robots" content="noindex,nofollow">
   {% endif %}
 
-  <!--NEW RELIC Start Perf Measurement-->
-  {{ nrhead() | safe }}
-  <!--NREND-->
-
   <!-- Le styles -->
   <link href="{{static_url("build/styles.css")}}" rel="stylesheet">
 
@@ -200,8 +196,5 @@
     });
   </script>
 
-  <!--NEW RELIC Stop Perf Measurement-->
-  {{ nrfoot()| safe }}
-  <!--NEW RELIC End-->
 </body>
 </html>

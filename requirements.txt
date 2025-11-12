@@ -108,8 +108,6 @@ nbformat==5.10.4
     #   jupyter-server
     #   nbclient
     #   nbconvert
-newrelic==10.17.0
-    # via -r requirements.in
 packaging==25.0
     # via
     #   jupyter-events
