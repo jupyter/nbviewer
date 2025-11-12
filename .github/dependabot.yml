@@ -5,7 +5,7 @@
 
 version: 2
 updates:
-  - package-ecosystem: "pypi"
+  - package-ecosystem: "pip"
     directory: "/"
     # needed to update requirements.txt
     allow:
