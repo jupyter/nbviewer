@@ -34,6 +34,10 @@ elastic-transport==9.1.0
     # via elasticsearch
 elasticsearch==9.1.1
     # via -r requirements.in
+exceptiongroup==1.3.0
+    # via
+    #   anyio
+    #   ipython
 executing==2.2.1
     # via stack-data
 fastjsonschema==2.21.2
@@ -44,10 +48,8 @@ idna==3.10
     # via
     #   anyio
     #   jsonschema
-ipython==9.5.0
+ipython==8.37.0
     # via -r requirements.in
-ipython-pygments-lexers==1.1.1
-    # via ipython
 isoduration==20.11.0
     # via jsonschema
 jedi==0.19.2
@@ -108,6 +110,8 @@ nbformat==5.10.4
     #   jupyter-server
     #   nbclient
     #   nbconvert
+overrides==7.7.0
+    # via jupyter-server
 packaging==25.0
     # via
     #   jupyter-events
@@ -138,7 +142,6 @@ pycurl==7.45.6
 pygments==2.19.2
     # via
     #   ipython
-    #   ipython-pygments-lexers
     #   nbconvert
 pylibmc==1.6.3
     # via -r requirements.in
@@ -218,12 +221,15 @@ typing-extensions==4.15.0
     #   anyio
     #   beautifulsoup4
     #   elasticsearch
+    #   exceptiongroup
+    #   ipython
+    #   mistune
     #   referencing
 uri-template==1.3.0
     # via jsonschema
 urllib3==2.5.0
     # via elastic-transport
-wcwidth==0.2.13
+wcwidth==0.2.14
     # via prompt-toolkit
 webcolors==24.11.1
     # via jsonschema
