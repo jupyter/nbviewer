@@ -152,7 +152,7 @@ python-dateutil==2.9.0.post0
     #   jupyter-client
 python-json-logger==4.0.0
     # via jupyter-events
-pyyaml==6.0.2
+pyyaml==6.0.3
     # via jupyter-events
 pyzmq==27.1.0
     # via
