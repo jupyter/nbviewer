@@ -100,7 +100,7 @@ mistune==3.1.4
     # via nbconvert
 nbclient==0.10.2
     # via nbconvert
-nbconvert==7.16.6
+nbconvert==7.17.0
     # via
     #   -r requirements.in
     #   jupyter-server
