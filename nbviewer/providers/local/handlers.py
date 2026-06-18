@@ -99,7 +99,16 @@ class LocalFileHandler(RenderingHandler):
                 os.path.normpath(os.path.join(self.localfile_path, path))
             )
 
-        if not fullpath.startswith(self.localfile_path):
+        # Enforce directory containment, not mere string-prefix containment.
+        # A bare startswith() check lets a sibling directory whose absolute
+        # path shares the configured root as a string prefix slip through,
+        # e.g. localfile_path "/data/notebooks" would wrongly accept
+        # "/data/notebooks_backup/secret.ipynb". Comparing against the root
+        # with a trailing separator (plus the root itself) closes that gap.
+        base = self.localfile_path
+        if not base.endswith(os.sep):
+            base += os.sep
+        if not (fullpath == self.localfile_path or fullpath.startswith(base)):
             self.log.warn("Directory traversal attempt: '%s'" % fullpath)
             return False
 
