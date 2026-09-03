@@ -139,7 +139,7 @@ pycparser==2.23
     # via cffi
 pycurl==7.45.6
     # via -r requirements.in
-pygments==2.19.2
+pygments==2.20.0
     # via
     #   ipython
     #   nbconvert
