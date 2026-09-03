@@ -5,7 +5,6 @@ from unittest import TestCase
 
 from jsonschema import validate  # type: ignore
 
-
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 

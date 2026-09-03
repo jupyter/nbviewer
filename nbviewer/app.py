@@ -248,13 +248,11 @@ class NBViewer(Application):
         default_value="html", help="Format to use for legacy / URLs."
     ).tag(config=True)
 
-    extra_head_html = Unicode(
-        help="""
+    extra_head_html = Unicode(help="""
         Extra HTML to go in the <head> tag
 
         e.g. for analytics codes
-        """
-    ).tag(config=True)
+        """).tag(config=True)
 
     frontpage = Unicode(
         default_value=FRONTPAGE_JSON,

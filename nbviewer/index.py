@@ -7,6 +7,7 @@
 """
 Classes for Indexing Notebooks
 """
+
 import uuid
 
 from tornado.log import app_log
