@@ -197,7 +197,7 @@ terminado==0.18.1
     #   jupyter-server-terminals
 tinycss2==1.4.0
     # via bleach
-tornado==6.5.2
+tornado==6.5.8
     # via
     #   -r requirements.in
     #   jupyter-client

@@ -8,4 +8,4 @@ nbformat>=5.0
 pycurl
 pylibmc
 statsd
-tornado>=6.0
+tornado>=6.5.8
