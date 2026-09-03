@@ -4,7 +4,6 @@
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 # -----------------------------------------------------------------------------
-import cgi
 import json
 import os
 import re
@@ -103,15 +102,41 @@ def transform_ipynb_uri(uri, uri_rewrite_list):
     return uri
 
 
-# get_encoding_from_headers from requests.utils (1.2.3)
-# (c) 2013 Kenneth Reitz
+# get_encoding_from_headers from requests.utils (2.32.5)
+# (c) 2025 Kenneth Reitz
 # used under Apache 2.0
+
+
+def _parse_content_type_header(header):
+    """Returns content type and parameters from given header
+
+    :param header: string
+    :return: tuple containing content type and dictionary of
+         parameters
+    """
+
+    tokens = header.split(";")
+    content_type, params = tokens[0].strip(), tokens[1:]
+    params_dict = {}
+    items_to_strip = "\"' "
+
+    for param in params:
+        param = param.strip()
+        if param:
+            key, value = param, True
+            index_of_equals = param.find("=")
+            if index_of_equals != -1:
+                key = param[:index_of_equals].strip(items_to_strip)
+                value = param[index_of_equals + 1 :].strip(items_to_strip)
+            params_dict[key.lower()] = value
+    return content_type, params_dict
 
 
 def get_encoding_from_headers(headers):
     """Returns encodings from given HTTP Header Dict.
 
     :param headers: dictionary to extract encoding from.
+    :rtype: str
     """
 
     content_type = headers.get("content-type")
@@ -119,7 +144,7 @@ def get_encoding_from_headers(headers):
     if not content_type:
         return None
 
-    content_type, params = cgi.parse_header(content_type)
+    content_type, params = _parse_content_type_header(content_type)
 
     if "charset" in params:
         return params["charset"].strip("'\"")
@@ -128,6 +153,10 @@ def get_encoding_from_headers(headers):
     # while the former choice of ISO-8859-1 wasn't known to be causing problems
     # in the wild
     if "text" in content_type:
+        return "utf-8"
+
+    if "application/json" in content_type:
+        # Assume UTF-8 based on RFC 4627: https://www.ietf.org/rfc/rfc4627.txt since the charset was unset
         return "utf-8"
 
 

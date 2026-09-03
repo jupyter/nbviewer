@@ -1,18 +1,15 @@
 repos:
-- repo: https://github.com/asottile/reorder_python_imports
-  rev: v3.9.0
-  hooks:
-  - id: reorder-python-imports
-- repo: https://github.com/psf/black
-  rev: "22.12.0"
+- repo: https://github.com/psf/black-pre-commit-mirror
+  rev: "26.5.1"
   hooks:
   - id: black
+    exclude: versioneer.py|nbviewer/_version.py
 - repo: https://github.com/PyCQA/flake8
-  rev: "6.0.0"
+  rev: "7.3.0"
   hooks:
   - id: flake8
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v4.4.0
+  rev: v6.0.0
   hooks:
   - id: end-of-file-fixer
   - id: check-json
@@ -21,5 +18,4 @@ repos:
   - id: check-case-conflict
   - id: check-executables-have-shebangs
 ci:
-  autofix_prs: false
   autoupdate_schedule: quarterly

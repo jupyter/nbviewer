@@ -16,7 +16,7 @@ class NbFormatError(Exception):
     pass
 
 
-exporters = {}
+exporters: dict[str, Exporter] = {}
 
 
 def render_notebook(format, nb, url=None, forced_theme=None, config=None):

@@ -17,7 +17,7 @@ from urllib.parse import urlparse
 import markdown
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
-from jupyter_server.base.handlers import FileFindHandler as StaticFileHandler  # type: ignore
+from jupyter_server.base.handlers import FileFindHandler  # type: ignore
 from nbconvert import get_exporter  # type: ignore
 from nbconvert.exporters.templateexporter import ExtensionTolerantLoader  # type: ignore
 from tornado import httpserver
@@ -61,24 +61,22 @@ here = os.path.dirname(__file__)
 pjoin = os.path.join
 
 
-def nrhead():
-    try:
-        import newrelic.agent  # type: ignore
-    except ModuleNotFoundError:
-        return ""
-    return newrelic.agent.get_browser_timing_header()
-
-
-def nrfoot():
-    try:
-        import newrelic.agent
-    except ModuleNotFoundError:
-        return ""
-    return newrelic.agent.get_browser_timing_footer()
-
-
 this_dir, this_filename = os.path.split(__file__)
 FRONTPAGE_JSON = os.path.join(this_dir, "frontpage.json")
+
+
+class StaticFileHandler(FileFindHandler):
+    """Static file handler
+
+    Subclass FileFindHandler, but ensure it works without auth.
+    """
+
+    # remove auth handling inherited from FileFindHandler for static files
+    def prepare(self):
+        return
+
+    def get_current_user(self):
+        return "anonymous"
 
 
 class NBViewer(Application):
@@ -254,6 +252,12 @@ class NBViewer(Application):
         default_value="html", help="Format to use for legacy / URLs."
     ).tag(config=True)
 
+    extra_head_html = Unicode(help="""
+        Extra HTML to go in the <head> tag
+
+        e.g. for analytics codes
+        """).tag(config=True)
+
     frontpage = Unicode(
         default_value=FRONTPAGE_JSON,
         help="Path to json file containing frontpage content.",
@@ -348,13 +352,13 @@ class NBViewer(Application):
     ).tag(config=True)
 
     provider_rewrites = List(
-        trait=Unicode,
+        trait=Unicode(),
         default_value=default_rewrites,
         help="Full dotted package(s) that provide `uri_rewrites`.",
     ).tag(config=True)
 
     providers = List(
-        trait=Unicode,
+        trait=Unicode(),
         default_value=default_providers,
         help="Full dotted package(s) that provide `default_handlers`.",
     ).tag(config=True)
@@ -493,8 +497,6 @@ class NBViewer(Application):
             # force Jinja2 to recompile template every time
             env.globals.update(cache_size=0)
         env.globals.update(
-            nrhead=nrhead,
-            nrfoot=nrfoot,
             git_data=git_data,
             jupyter_info=jupyter_info(),
             len=len,
@@ -650,7 +652,7 @@ class NBViewer(Application):
             self.providers,
             self._base_url,
             self.localfiles,
-            **handler_kwargs
+            **handler_kwargs,
         )
 
         # NBConvert config
@@ -685,6 +687,7 @@ class NBViewer(Application):
             config=self.config,
             content_security_policy=self.content_security_policy,
             default_format=self.default_format,
+            extra_head_html=self.extra_head_html,
             fetch_kwargs=self.fetch_kwargs,
             formats=self.formats,
             frontpage_setup=self.frontpage_setup,
@@ -831,7 +834,10 @@ def main(argv=None):
     )
 
     http_server.listen(nbviewer.port, nbviewer.host)
-    ioloop.IOLoop.current().start()
+    try:
+        ioloop.IOLoop.current().start()
+    except KeyboardInterrupt:
+        pass
 
 
 if __name__ == "__main__":

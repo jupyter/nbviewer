@@ -19,7 +19,7 @@ from urllib.parse import urlparse
 from urllib.parse import urlunparse
 
 import statsd  # type: ignore
-from nbformat import current_nbformat  # type:ignore
+from nbformat import current_nbformat  # type: ignore
 from nbformat import reads
 from tornado import httpclient
 from tornado import web
@@ -322,6 +322,7 @@ class BaseHandler(web.RequestHandler):
         return {
             "mathjax_url": self.mathjax_url,
             "static_url": self.static_url,
+            "extra_head_html": self.settings["extra_head_html"],
             "from_base": self.from_base,
             "google_analytics_id": self.settings.get("google_analytics_id"),
             "ipywidgets_base_url": self.ipywidgets_base_url,

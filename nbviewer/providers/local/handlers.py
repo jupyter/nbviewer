@@ -99,7 +99,8 @@ class LocalFileHandler(RenderingHandler):
                 os.path.normpath(os.path.join(self.localfile_path, path))
             )
 
-        if not fullpath.startswith(self.localfile_path):
+        prefix = self.localfile_path.rstrip(os.sep) + os.sep
+        if not (fullpath + os.sep).startswith(prefix):
             self.log.warn("Directory traversal attempt: '%s'" % fullpath)
             return False
 
@@ -211,7 +212,7 @@ class LocalFileHandler(RenderingHandler):
             entries=entries,
             breadcrumbs=breadcrumbs,
             title=title,
-            **namespace
+            **namespace,
         )
 
     def show_dir(self, fullpath, path, **namespace):
@@ -284,7 +285,7 @@ class LocalFileHandler(RenderingHandler):
             entries=entries,
             breadcrumbs=self.breadcrumbs(path),
             title=url_path_join(path, "/"),
-            **namespace
+            **namespace,
         )
         return html
 

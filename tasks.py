@@ -5,11 +5,11 @@ from __future__ import print_function
 import hashlib
 import json
 import os
-import pipes
 import shutil
 import sys
 import tempfile
 from tarfile import TarFile
+from urllib.request import urlretrieve
 
 import invoke
 
@@ -21,6 +21,7 @@ NPM_BIN = os.path.join(APP_ROOT, "node_modules", ".bin")
 NOTEBOOK_STATIC_PATH = os.path.join(
     APP_ROOT, "notebook-%s" % NOTEBOOK_VERSION, "notebook", "static"
 )
+NOTEBOOK_URL = f"https://files.pythonhosted.org/packages/source/n/notebook/notebook-{NOTEBOOK_VERSION}.tar.gz"
 
 
 @invoke.task
@@ -46,25 +47,7 @@ def notebook_static(ctx):
     nb_archive = os.path.join(APP_ROOT, fname)
     if not os.path.exists(nb_archive):
         print("Downloading from pypi -> %s" % nb_archive)
-        ctx.run(
-            " ".join(
-                map(
-                    pipes.quote,
-                    [
-                        sys.executable,
-                        "-m",
-                        "pip",
-                        "download",
-                        "notebook=={}".format(NOTEBOOK_VERSION),
-                        "--no-deps",
-                        "-d",
-                        APP_ROOT,
-                        "--no-binary",
-                        ":all:",
-                    ],
-                )
-            )
-        )
+        urlretrieve(NOTEBOOK_URL, nb_archive)
     with open(nb_archive, "rb") as f:
         checksum = hashlib.sha256(f.read()).hexdigest()
     if checksum != NOTEBOOK_CHECKSUM:
@@ -85,18 +68,24 @@ def less(ctx, debug=False):
         extra = " --clean-css='--s1 --advanced --compatibility=ie8'"
 
     tmpl = (
-        "cd {}/nbviewer/static/less ".format(APP_ROOT)
-        + " && {}/lessc".format(NPM_BIN)
-        + " {1} "
-        " --include-path={2}"
-        " --autoprefix='> 1%'"
-        " {0}.less ../build/{0}.css"
+        "cd {app_root}/nbviewer/static/less "
+        " && {npm_bin}/lessc"
+        " {extra} "
+        " --include-path={include_path}"
+        " {name}.less ../build/{name}.css"
+        " && {npm_bin}/postcss ../build/{name}.css --use autoprefixer -d ../build/"
     )
 
-    args = (extra, NOTEBOOK_STATIC_PATH)
-
-    for less_file in ["styles", "notebook", "slides", "custom"]:
-        ctx.run(tmpl.format(less_file, *args))
+    for name in ["styles", "notebook", "slides", "custom"]:
+        ctx.run(
+            tmpl.format(
+                app_root=APP_ROOT,
+                name=name,
+                extra=extra,
+                include_path=NOTEBOOK_STATIC_PATH,
+                npm_bin=NPM_BIN,
+            )
+        )
 
 
 @invoke.task
@@ -135,9 +124,7 @@ def screenshots(ctx, root="http://localhost:5000/", dest="./screenshots"):
                     @capture "{dest}/#{{page.name}}-#{{screen.name}}.png"
 
         casper.run()
-    """.format(
-        root=root, dest=dest
-    )
+    """.format(root=root, dest=dest)
 
     tmpdir = tempfile.mkdtemp()
     tmpfile = os.path.join(tmpdir, "screenshots.coffee")

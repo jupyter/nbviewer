@@ -1,4 +1,5 @@
 """Object for tracking rate-limited requests"""
+
 # Copyright (c) Jupyter Development Team.
 # Distributed under the terms of the Modified BSD License.
 import hashlib

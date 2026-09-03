@@ -5,24 +5,24 @@
 #  the file COPYING, distributed as part of this software.
 # -----------------------------------------------------------------------------
 import os
-import pipes
+import shlex
+import sys
 from subprocess import check_call
 
-from distutils import log
 from setuptools import setup
 from setuptools.command.develop import develop
-
-import versioneer
+from setuptools.command.build_py import build_py
+from setuptools.command.sdist import sdist
 
 
 def sh(cmd):
     """Run a command, echoing what command is to be run"""
-    log.info("Running command %s" % " ".join(map(pipes.quote, cmd)))
+    print("Running command %s" % " ".join(map(shlex.quote, cmd)), file=sys.stderr)
     check_call(cmd)
 
 
 def preflight():
-    log.info("Building LESS")
+    print("Building LESS", file=sys.stderr)
     sh(["invoke", "git-info"])
     sh(["npm", "install"])
     sh(["invoke", "bower"])
@@ -52,49 +52,21 @@ def walk_subpkg(name):
 
 pkg_data = {
     "nbviewer": (
-        ["frontpage.json", "git_info.json"]
+        ["frontpage.json"]
         + walk_subpkg("static")
         + walk_subpkg("templates")
         + walk_subpkg("providers")
     )
 }
 
-cmdclass = versioneer.get_cmdclass()
+cmdclass = {}
 # run invoke prior to develop/sdist
 cmdclass["develop"] = invoke_first(develop)
-cmdclass["build_py"] = invoke_first(cmdclass["build_py"])
-cmdclass["sdist"] = invoke_first(cmdclass["sdist"])
+cmdclass["build_py"] = invoke_first(build_py)
+cmdclass["sdist"] = invoke_first(sdist)
 
 
-setup_args = dict(
-    name="nbviewer",
-    version=versioneer.get_version(),
-    packages=["nbviewer"],
+setup(
     package_data=pkg_data,
-    setup_requires=["invoke"],
-    author="The Jupyter Development Team",
-    author_email="jupyter@googlegroups.com",
-    url="https://nbviewer.org",
-    project_urls={
-        "Source": "https://github.com/jupyter/nbviewer",
-        "Tracker": "https://github.com/jupyter/nbviewer/issues",
-    },
-    description="Jupyter Notebook Viewer",
-    long_description="Jupyter nbconvert as a web service",
-    license="BSD",
-    classifiers=[
-        "License :: OSI Approved :: BSD License",
-        "Programming Language :: Python :: 3",
-    ],
-    python_requires=">=3.8",
     cmdclass=cmdclass,
 )
-
-install_requires = setup_args["install_requires"] = []
-with open("requirements.in") as f:
-    for line in f:
-        req = line.strip()
-        if not req.startswith("#"):
-            install_requires.append(req)
-
-setup(**setup_args)

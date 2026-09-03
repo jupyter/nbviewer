@@ -18,7 +18,7 @@
        },
        {
          "text": "IJulia",
-         "target": "/url/jdj.mit.edu/~stevenj/IJulia%20Preview.ipynb",
+         "target": "/github/binder-examples/demo-julia/blob/main/demo.ipynb",
          "img": "/img/example-nb/ijulia-preview.png"
        }
      ]
@@ -55,11 +55,6 @@
          "text": "Python for Vision Research",
          "target": "/github/gestaltrevision/python_for_visres/blob/master/index.ipynb",
          "img": "/img/example-nb/python_for_visres.png"
-       },
-       {
-         "text": "Non Parametric Regression",
-         "target": "/gist/fonnesbeck/2352771",
-         "img": "/img/example-nb/covariance.png"
        },
        {
          "text": "Partial Differential Equations Solver",

@@ -4,6 +4,7 @@ from subprocess import PIPE
 from subprocess import Popen
 from tempfile import NamedTemporaryFile
 
+
 # Also copied mostly from JupyterHub since again -- if not broken, don't fix.
 def test_generate_config():
     with NamedTemporaryFile(prefix="nbviewer_config", suffix=".py") as tf:

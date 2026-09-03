@@ -69,7 +69,7 @@ class UserGistsHandler(GistClientMixin, BaseHandler):
             prev_url=prev_url,
             next_url=next_url,
             **self.PROVIDER_CTX,
-            **namespace
+            **namespace,
         )
 
     @cached
@@ -107,7 +107,7 @@ class UserGistsHandler(GistClientMixin, BaseHandler):
             provider_url=provider_url,
             prev_url=prev_url,
             next_url=next_url,
-            **namespace
+            **namespace,
         )
         await self.cache_and_finish(html)
 
@@ -205,7 +205,7 @@ class GistHandler(GistClientMixin, RenderingHandler):
             user=user.rstrip("/"),
             provider_url=gist["html_url"],
             executor_url=executor_url,
-            **self.PROVIDER_CTX
+            **self.PROVIDER_CTX,
         )
         await self.cache_and_finish(html)
 
@@ -280,7 +280,7 @@ class GistHandler(GistClientMixin, RenderingHandler):
             public=gist["public"],
             provider_url=gist["html_url"],
             executor_url=executor_url,
-            **self.PROVIDER_CTX
+            **self.PROVIDER_CTX,
         )
 
     @cached
