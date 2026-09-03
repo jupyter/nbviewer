@@ -124,9 +124,7 @@ def screenshots(ctx, root="http://localhost:5000/", dest="./screenshots"):
                     @capture "{dest}/#{{page.name}}-#{{screen.name}}.png"
 
         casper.run()
-    """.format(
-        root=root, dest=dest
-    )
+    """.format(root=root, dest=dest)
 
     tmpdir = tempfile.mkdtemp()
     tmpfile = os.path.join(tmpdir, "screenshots.coffee")

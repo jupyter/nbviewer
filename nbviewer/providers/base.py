@@ -19,7 +19,7 @@ from urllib.parse import urlparse
 from urllib.parse import urlunparse
 
 import statsd  # type: ignore
-from nbformat import current_nbformat  # type:ignore
+from nbformat import current_nbformat  # type: ignore
 from nbformat import reads
 from tornado import httpclient
 from tornado import web
