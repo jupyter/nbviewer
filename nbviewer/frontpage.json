@@ -18,7 +18,7 @@
        },
        {
          "text": "IJulia",
-         "target": "/url/github/binder-examples/demo-julia/blob/main/demo.ipynb",
+         "target": "/github/binder-examples/demo-julia/blob/main/demo.ipynb",
          "img": "/img/example-nb/ijulia-preview.png"
        }
      ]
