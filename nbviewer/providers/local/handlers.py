@@ -99,7 +99,8 @@ class LocalFileHandler(RenderingHandler):
                 os.path.normpath(os.path.join(self.localfile_path, path))
             )
 
-        if not fullpath.startswith(self.localfile_path):
+        prefix = self.localfile_path.rstrip(os.sep) + os.sep
+        if not (fullpath + os.sep).startswith(prefix):
             self.log.warn("Directory traversal attempt: '%s'" % fullpath)
             return False
 
