@@ -31,7 +31,7 @@ include = ["nbviewer"]
 
 [tool.setuptools.dynamic]
 readme = { file = "README.md", content-type = "text/markdown" }
-dependencies = { file = "requirements.in" }
+dependencies = { file = "requirements-base.txt" }
 
 # setuptools_scm needs a section to be present
 [tool.setuptools_scm]
