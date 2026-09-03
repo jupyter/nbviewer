@@ -18,5 +18,4 @@ repos:
   - id: check-case-conflict
   - id: check-executables-have-shebangs
 ci:
-  autofix_prs: false
   autoupdate_schedule: quarterly
