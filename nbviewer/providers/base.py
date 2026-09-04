@@ -675,7 +675,7 @@ class RenderingHandler(BaseHandler):
                     "Rendering %d B notebook from %s", len(json_notebook), download_url
                 )
                 render_time = self.statsd.timer("rendering.nbrender.time").start()
-                loop = asyncio.get_event_loop()
+                loop = asyncio.get_running_loop()
                 nbhtml, config = await loop.run_in_executor(
                     self.pool,
                     render_notebook,
