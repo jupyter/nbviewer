@@ -246,6 +246,9 @@ c.JupyterHub.load_roles = [
 
 The nbviewer instance will automatically read the [various `JUPYTERHUB_*` environment variables](http://jupyterhub.readthedocs.io/en/latest/reference/services.html#launching-a-hub-managed-service) and configure itself accordingly. You can also run the nbviewer instance as an [externally managed JupyterHub service](http://jupyterhub.readthedocs.io/en/latest/reference/services.html#externally-managed-services), but must set the requisite environment variables yourself.
 
+To use JupyterHub authentication, the `jupyterhub` package (`jupyterhub-base` on conda-forge) must be present.
+It is available in the nbviewer image.
+
 
 ### Troubleshooting
 
