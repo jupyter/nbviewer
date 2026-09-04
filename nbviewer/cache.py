@@ -124,8 +124,6 @@ class AsyncMemcache(object):
         self.mc = pylibmc.Client(*args, **kwargs)
         self.mc_pool = pylibmc.ThreadMappedPool(self.mc)
 
-        self.loop = asyncio.get_event_loop()
-
     async def _call_in_thread(self, method_name, *args, **kwargs):
         # https://stackoverflow.com/questions/34376814/await-future-from-executor-future-cant-be-used-in-await-expression
 
@@ -140,7 +138,8 @@ class AsyncMemcache(object):
                 meth = getattr(mc, method_name)
                 return meth(*args, **kwargs)
 
-        return await self.loop.run_in_executor(self.pool, f)
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(self.pool, f)
 
     async def get(self, *args, **kwargs):
         return await self._call_in_thread("get", *args, **kwargs)
