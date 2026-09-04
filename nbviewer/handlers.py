@@ -4,14 +4,8 @@
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 # -----------------------------------------------------------------------------
-import json
-from urllib.parse import urlencode
 
 from tornado import web
-from tornado.httpclient import AsyncHTTPClient
-from tornado.httpclient import HTTPClientError
-from tornado.httpclient import HTTPRequest
-from tornado.httputil import url_concat
 
 from .auth import _is_jupyterhub
 from .providers import _load_handler_from_location

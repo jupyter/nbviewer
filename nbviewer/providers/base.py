@@ -13,8 +13,6 @@ from datetime import datetime
 from functools import wraps
 from html import escape
 from http.client import responses
-from urllib.parse import quote
-from urllib.parse import urlencode
 from urllib.parse import urlparse
 from urllib.parse import urlunparse
 
@@ -595,7 +593,6 @@ class RenderingHandler(BaseHandler):
         is implemented or overwritten in subclasses, while get_notebook_data and deliver_notebook
         will often remain unchanged from the parent class (e.g. for a custom GitHub provider).
         """
-        pass
 
     def deliver_notebook(self, **kwargs):
         """
@@ -604,7 +601,6 @@ class RenderingHandler(BaseHandler):
 
         Last part of any provider's GET method.
         """
-        pass
 
     # Wrappers to facilitate custom rendering in subclasses without having to rewrite entire GET methods
     # This would seem to mostly involve creating different template namespaces to enable custom logic in
