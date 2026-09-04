@@ -4,6 +4,7 @@
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 # -----------------------------------------------------------------------------
+import asyncio
 import io
 import json
 import logging
@@ -21,7 +22,6 @@ from jupyter_server.base.handlers import FileFindHandler  # type: ignore
 from nbconvert import get_exporter  # type: ignore
 from nbconvert.exporters.templateexporter import ExtensionTolerantLoader  # type: ignore
 from tornado import httpserver
-from tornado import ioloop
 from tornado import web
 from tornado.curl_httpclient import curl_log
 from tornado.log import access_log
@@ -802,6 +802,17 @@ class NBViewer(Application):
 
 def main(argv=None):
     # create and start the app
+    loop = asyncio.new_event_loop()
+    loop.run_until_complete(async_main(argv=argv))
+    try:
+        loop.run_forever()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        loop.close()
+
+
+async def async_main(argv=None):
     nbviewer = NBViewer()
     app = nbviewer.tornado_application
 
@@ -819,10 +830,6 @@ def main(argv=None):
     )
 
     http_server.listen(nbviewer.port, nbviewer.host)
-    try:
-        ioloop.IOLoop.current().start()
-    except KeyboardInterrupt:
-        pass
 
 
 if __name__ == "__main__":
