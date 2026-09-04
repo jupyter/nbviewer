@@ -86,27 +86,6 @@ class BaseHandler(AuthMixin, web.RequestHandler):
 
         return super().redirect(eurl, *args, **kwargs)
 
-    def redirect_to_login(self):
-        self.redirect(
-            url_path_join(self.hub_base_url, "/hub/login")
-            + "?"
-            + urlencode({"next": self.request.path})
-        )
-
-    def redirect_to_authorize(self):
-
-        self.redirect(
-            url_path_join(self.hub_base_url, "/hub/api/oauth2/authorize")
-            + "?"
-            + urlencode(
-                {
-                    "client_id": self.client_id,
-                    "response_type": "code",
-                    "next": self.request.path,
-                }
-            )
-        )
-
     def set_default_headers(self):
         self.add_header("Content-Security-Policy", self.content_security_policy)
 
@@ -222,14 +201,6 @@ class BaseHandler(AuthMixin, web.RequestHandler):
             # return an empty mock object!
             self._statsd = EmptyClass()
             return self._statsd
-
-    @property
-    def authorize_url(self):
-        return self.settings["authorize_url"]
-
-    @property
-    def client_id(self):
-        return self.settings["client_id"]
 
     # ---------------------------------------------------------------
     # template rendering
