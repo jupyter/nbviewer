@@ -37,6 +37,7 @@ from traitlets import Set
 from traitlets import Unicode
 from traitlets.config import Application
 
+from .auth import _is_jupyterhub
 from .cache import AsyncMultipartMemcache
 from .cache import DummyAsyncCache
 from .cache import MockCache
@@ -202,10 +203,6 @@ class NBViewer(Application):
     user_gists_handler = Unicode(
         default_value="nbviewer.providers.gist.handlers.UserGistsHandler",
         help="The Tornado handler to use for viewing directory containing all of a user's Gists",
-    ).tag(config=True)
-    jupyterhub_login_handler = Unicode(
-        default_value="nbviewer.handlers.JupyterHubLoginHandler",
-        help="The Tornado handler to use for OAuth login with JupyterHub.",
     ).tag(config=True)
 
     answer_yes = Bool(
@@ -640,7 +637,6 @@ class NBViewer(Application):
             local_handler=self.local_handler,
             url_handler=self.url_handler,
             user_gists_handler=self.user_gists_handler,
-            jupyterhub_login_handler=self.jupyterhub_login_handler,
         )
         handler_kwargs = {
             "handler_names": handler_names,
@@ -663,16 +659,14 @@ class NBViewer(Application):
         if os.environ.get("DEBUG"):
             self.log.setLevel(logging.DEBUG)
 
-        hub_api = "/hub/api"
-        if os.getenv("JUPYTERHUB_URL"):
-            hub_api = os.getenv("JUPYTERHUB_URL").rstrip("/") + hub_api
-            redirect_url = (
-                os.environ["JUPYTERHUB_URL"].rstrip("/")
-                + os.getenv("JUPYTERHUB_SERVICE_PREFIX", "/").rstrip("/")
-                + "/oauth_callback"
-            )
+        if _is_jupyterhub:
+            self.log.info("Enabling JupyterHub auth")
+            from jupyterhub.services.auth import HubOAuth  # type: ignore
+
+            hub_auth = HubOAuth()
         else:
-            redirect_url = None
+            self.log.info("Running without authentication")
+            hub_auth = None
 
         # input traitlets to settings
         settings = dict(
@@ -693,10 +687,7 @@ class NBViewer(Application):
             frontpage_setup=self.frontpage_setup,
             google_analytics_id=os.getenv("GOOGLE_ANALYTICS_ID"),
             gzip=True,
-            hub_api_token=os.getenv("JUPYTERHUB_API_TOKEN"),
-            hub_api_url=os.getenv("JUPYTERHUB_API_URL"),
-            hub_base_url=os.getenv("JUPYTERHUB_BASE_URL", "/"),
-            hub_cookie_name="jupyterhub-services",
+            hub_auth=hub_auth,
             index=self.index,
             ipywidgets_base_url=self.ipywidgets_base_url,
             jinja2_env=self.env,
@@ -721,13 +712,7 @@ class NBViewer(Application):
             statsd_host=self.statsd_host,
             statsd_port=self.statsd_port,
             statsd_prefix=self.statsd_prefix,
-            login_url="/oauth_callback",
             cookie_secret=os.urandom(32),  # generate a random cookie secret
-            client_id=os.getenv("JUPYTERHUB_CLIENT_ID"),
-            redirect_uri=redirect_url,
-            authorize_url=hub_api + "/oauth2/authorize",
-            token_url=hub_api + "/oauth2/token",
-            user_url=hub_api + "/user",
         )
 
         if self.localfiles:
