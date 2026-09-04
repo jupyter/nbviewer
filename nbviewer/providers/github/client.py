@@ -74,6 +74,9 @@ class AsyncGitHubClient:
             if r is None:
                 # some errors don't have a response (e.g. failure to build request)
                 return
+        if getattr(r, "_from_cache", False):
+            # don't log stale rate limit from cached responses, that's confusing
+            return
         limit_s = r.headers.get("X-RateLimit-Limit", "")
         remaining_s = r.headers.get("X-RateLimit-Remaining", "")
         if not remaining_s or not limit_s:

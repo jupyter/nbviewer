@@ -264,8 +264,8 @@ def time_block(message, logger, debug_limit=1):
     then log level will be INFO,
     otherwise it will be DEBUG.
     """
-    tic = time.time()
+    tic = time.perf_counter()
     yield
-    dt = time.time() - tic
+    dt = time.perf_counter() - tic
     log = logger.info if dt > debug_limit else logger.debug
     log("%s in %.2f ms", message, 1e3 * dt)
