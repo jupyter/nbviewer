@@ -13,6 +13,11 @@ else:
 
 
 class AuthDisabled:
+    """Mixin defining get_current_user
+
+    allows any access
+    """
+
     def get_current_user(self):
         return "anonymous"
 

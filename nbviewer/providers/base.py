@@ -87,12 +87,25 @@ class BaseHandler(AuthMixin, web.RequestHandler):
     def set_default_headers(self):
         self.add_header("Content-Security-Policy", self.content_security_policy)
 
+    def prepare(self):
+        user = self.get_current_user()
+        if user is None:
+            self.redirect(self.get_login_url())
+
+    def get_current_user(self):
+        if self.hub_auth:
+            # call super hub_auth if defined
+            return super().get_current_user()
+        else:
+            return "anonymous"
+
     # Properties
 
     @property
     def base_url(self):
         return self.settings["base_url"]
 
+    @property
     def hub_auth(self):
         return self.settings["hub_auth"]
 
