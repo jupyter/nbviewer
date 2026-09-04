@@ -7,6 +7,7 @@
 # -----------------------------------------------------------------------------
 import pytest
 import requests
+from urllib.parse import parse_qs
 
 from ..providers.local.tests.test_localfile import (
     LocalFileRelativePathTestCase as LFRPTC,
@@ -72,18 +73,16 @@ class JupyterHubServiceTestCase(NBViewerTestCase):
         return super().get_server_cmd() + ["--localfiles=."]
 
     def test_login_redirect(self):
-        url = self.url("/services/nbviewer-test/github/jupyter")
+        url = self.url("/services/nbviewer-test/github/jupyter/")
         r = requests.get(url, allow_redirects=False)
         self.assertEqual(r.status_code, 302)
-        self.assertEqual(
-            r.headers["location"],
-            "/hub/login?next=%2Fservices%2Fnbviewer-test%2Fgithub%2Fjupyter",
-        )
+        location, _, query_s = r.headers["location"].partition("?")
+        assert location == "/hub/api/oauth2/authorize"
+        query = parse_qs(query_s)
+        assert query["redirect_uri"] == ["/services/nbviewer-test/oauth_callback"]
 
         url = self.url("services/nbviewer-test/localfile/nbviewer/tests/notebook.ipynb")
         r = requests.get(url, allow_redirects=False)
         self.assertEqual(r.status_code, 302)
-        self.assertEqual(
-            r.headers["location"],
-            "/hub/login?next=%2Fservices%2Fnbviewer-test%2Flocalfile%2Fnbviewer%2Ftests%2Fnotebook.ipynb",
-        )
+        location, _, query = r.headers["location"].partition("?")
+        assert location == "/hub/api/oauth2/authorize"

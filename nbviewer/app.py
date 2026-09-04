@@ -37,6 +37,7 @@ from traitlets import Set
 from traitlets import Unicode
 from traitlets.config import Application
 
+from .auth import _is_jupyterhub
 from .cache import AsyncMultipartMemcache
 from .cache import DummyAsyncCache
 from .cache import MockCache
@@ -658,6 +659,15 @@ class NBViewer(Application):
         if os.environ.get("DEBUG"):
             self.log.setLevel(logging.DEBUG)
 
+        if _is_jupyterhub:
+            self.log.info("Enabling JupyterHub auth")
+            from jupyterhub.services.auth import HubOAuth  # type: ignore
+
+            hub_auth = HubOAuth()
+        else:
+            self.log.info("Running without authentication")
+            hub_auth = None
+
         # input traitlets to settings
         settings = dict(
             # Allow FileFindHandler to load static directories from e.g. a Docker container
@@ -677,9 +687,7 @@ class NBViewer(Application):
             frontpage_setup=self.frontpage_setup,
             google_analytics_id=os.getenv("GOOGLE_ANALYTICS_ID"),
             gzip=True,
-            hub_api_token=os.getenv("JUPYTERHUB_API_TOKEN"),
-            hub_api_url=os.getenv("JUPYTERHUB_API_URL"),
-            hub_base_url=os.getenv("JUPYTERHUB_BASE_URL"),
+            hub_auth=hub_auth,
             index=self.index,
             ipywidgets_base_url=self.ipywidgets_base_url,
             jinja2_env=self.env,
@@ -704,6 +712,7 @@ class NBViewer(Application):
             statsd_host=self.statsd_host,
             statsd_port=self.statsd_port,
             statsd_prefix=self.statsd_prefix,
+            cookie_secret=os.urandom(32),  # generate a random cookie secret
         )
 
         if self.localfiles:

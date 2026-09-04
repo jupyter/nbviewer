@@ -13,8 +13,6 @@ from datetime import datetime
 from functools import wraps
 from html import escape
 from http.client import responses
-from urllib.parse import quote
-from urllib.parse import urlencode
 from urllib.parse import urlparse
 from urllib.parse import urlunparse
 
@@ -29,6 +27,7 @@ from tornado.escape import url_unescape
 from tornado.escape import utf8
 from tornado.ioloop import IOLoop
 
+from ..auth import AuthMixin
 from ..render import NbFormatError
 from ..render import render_notebook
 from ..utils import EmptyClass
@@ -49,7 +48,7 @@ except ModuleNotFoundError:
 format_prefix = "/format/"
 
 
-class BaseHandler(web.RequestHandler):
+class BaseHandler(AuthMixin, web.RequestHandler):
     """Base Handler class with common utilities"""
 
     def initialize(self, format=None, format_prefix="", **handler_settings):
@@ -88,52 +87,27 @@ class BaseHandler(web.RequestHandler):
     def set_default_headers(self):
         self.add_header("Content-Security-Policy", self.content_security_policy)
 
-    async def prepare(self):
-        """Check if the user is authenticated with JupyterHub if the hub
-        API endpoint and token are configured.
+    def prepare(self):
+        user = self.get_current_user()
+        if user is None:
+            self.redirect(self.get_login_url())
 
-        Redirect unauthenticated requests to the JupyterHub login page.
-        Do nothing if not running as a JupyterHub service.
-        """
-        # if any of these are set, assume we want to do auth, even if
-        # we're misconfigured (better safe than sorry!)
-        if self.hub_api_url or self.hub_api_token or self.hub_base_url:
-
-            def redirect_to_login():
-                self.redirect(
-                    url_path_join(self.hub_base_url, "/hub/login")
-                    + "?"
-                    + urlencode({"next": self.request.path})
-                )
-
-            encrypted_cookie = self.get_cookie(self.hub_cookie_name)
-            if not encrypted_cookie:
-                # no cookie == not authenticated
-                return redirect_to_login()
-
-            try:
-                # if the hub returns a success code, the user is known
-                await self.http_client.fetch(
-                    url_path_join(
-                        self.hub_api_url,
-                        "authorizations/cookie",
-                        self.hub_cookie_name,
-                        quote(encrypted_cookie, safe=""),
-                    ),
-                    headers={"Authorization": "token " + self.hub_api_token},
-                )
-            except httpclient.HTTPError as ex:
-                if ex.response.code == 404:
-                    # hub does not recognize the cookie == not authenticated
-                    return redirect_to_login()
-                # let all other errors surface: they're unexpected
-                raise ex
+    def get_current_user(self):
+        if self.hub_auth:
+            # call super hub_auth if defined
+            return super().get_current_user()
+        else:
+            return "anonymous"
 
     # Properties
 
     @property
     def base_url(self):
         return self.settings["base_url"]
+
+    @property
+    def hub_auth(self):
+        return self.settings["hub_auth"]
 
     @property
     def binder_base_url(self):
@@ -174,22 +148,6 @@ class BaseHandler(web.RequestHandler):
     @property
     def frontpage_setup(self):
         return self.settings["frontpage_setup"]
-
-    @property
-    def hub_api_token(self):
-        return self.settings.get("hub_api_token")
-
-    @property
-    def hub_api_url(self):
-        return self.settings.get("hub_api_url")
-
-    @property
-    def hub_base_url(self):
-        return self.settings["hub_base_url"]
-
-    @property
-    def hub_cookie_name(self):
-        return "jupyterhub-services"
 
     @property
     def index(self):
@@ -648,7 +606,6 @@ class RenderingHandler(BaseHandler):
         is implemented or overwritten in subclasses, while get_notebook_data and deliver_notebook
         will often remain unchanged from the parent class (e.g. for a custom GitHub provider).
         """
-        pass
 
     def deliver_notebook(self, **kwargs):
         """
@@ -657,7 +614,6 @@ class RenderingHandler(BaseHandler):
 
         Last part of any provider's GET method.
         """
-        pass
 
     # Wrappers to facilitate custom rendering in subclasses without having to rewrite entire GET methods
     # This would seem to mostly involve creating different template namespaces to enable custom logic in

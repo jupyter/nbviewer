@@ -1,0 +1,14 @@
+# the actual package requirements
+# requirements.in contains additional dependencies for the container image
+# requirements.txt is the locked versions actually used by the image
+elasticsearch
+ipython>=8
+jupyter_client
+jupyter_server>=2
+markdown>=3.3
+nbconvert>=6.5.4
+nbformat>=5.0
+pycurl
+pylibmc
+statsd
+tornado>=6.0

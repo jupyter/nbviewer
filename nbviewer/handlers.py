@@ -4,8 +4,10 @@
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 # -----------------------------------------------------------------------------
+
 from tornado import web
 
+from .auth import _is_jupyterhub
 from .providers import _load_handler_from_location
 from .providers import provider_handlers
 from .providers import provider_uri_rewrites
@@ -41,6 +43,7 @@ class IndexHandler(BaseHandler):
             **namespace,
         )
 
+    @web.authenticated
     def get(self):
         self.finish(self.render_index_template())
 
@@ -131,6 +134,12 @@ def init_handlers(formats, providers, base_url, localfiles, **handler_kwargs):
         # don't let super old browsers request data-uris
         (r".*/data:.*;base64,.*", custom404_handler, {}),
     ]
+    if _is_jupyterhub:
+        from jupyterhub.services.auth import HubOAuthCallbackHandler  # type: ignore
+
+        pre_providers.append(
+            ("/oauth_callback/?", HubOAuthCallbackHandler, {}),
+        )
 
     post_providers = [(r"/(robots\.txt|favicon\.ico)", web.StaticFileHandler, {})]
 

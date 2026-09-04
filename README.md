@@ -217,7 +217,7 @@ One thing this allows you to do, for example, is to write your custom implementa
 
 ## Securing the Notebook Viewer
 
-You can run the viewer as a [JupyterHub 0.7+ service](https://jupyterhub.readthedocs.io/en/latest/reference/services.html). Running the viewer as a service prevents users who have not authenticated with the Hub from accessing the nbviewer instance. This setup can be useful for protecting access to local notebooks rendered with the `--localfiles` option.
+You can run the viewer as a [JupyterHub service](https://jupyterhub.readthedocs.io/en/latest/reference/services.html). Running the viewer as a service prevents users who have not authenticated with the Hub from accessing the nbviewer instance. This setup can be useful for protecting access to local notebooks rendered with the `--localfiles` option.
 
 Add an entry like the following to your `jupyterhub_config.py` to have it start nbviewer as a managed service:
 
@@ -231,9 +231,28 @@ c.JupyterHub.services = [
         # the path to nbviewer repo
         'cwd': '<path to repo>',
         # command to start the nbviewer
-        'command': ['python', '-m', 'nbviewer']
+        'command': ['python3', '-m', 'nbviewer']
     }
+]
+
+c.JupyterHub.load_roles = [
+    # grant all jupyterhub users access to the nbviewer service
+    {
+        "name": "user",
+        "scopes": ["self", "access:services!nbviewer"],
+    },
 ]
 ```
 
 The nbviewer instance will automatically read the [various `JUPYTERHUB_*` environment variables](http://jupyterhub.readthedocs.io/en/latest/reference/services.html#launching-a-hub-managed-service) and configure itself accordingly. You can also run the nbviewer instance as an [externally managed JupyterHub service](http://jupyterhub.readthedocs.io/en/latest/reference/services.html#externally-managed-services), but must set the requisite environment variables yourself.
+
+To use JupyterHub authentication, the `jupyterhub` package (`jupyterhub-base` on conda-forge) must be present.
+It is available in the nbviewer image.
+
+
+### Troubleshooting
+
+If you encounter issues with token authentication or authorization, ensure that:
+
+- The correct API token is set both in JupyterHub and nbviewer.
+- The service roles and scopes are correctly configured to allow the desired users to access the nbviewer service
