@@ -28,6 +28,8 @@ arrow==1.4.0
     # via isoduration
 asttokens==3.0.2
     # via stack-data
+async-timeout==5.0.1
+    # via aiohttp
 attrs==26.1.0
     # via
     #   aiohttp
@@ -52,12 +54,18 @@ charset-normalizer==3.5.1
     # via requests
 cryptography==50.0.1
     # via certipy
+decorator==5.3.1
+    # via ipython
 defusedxml==0.7.1
     # via nbconvert
 elastic-transport==9.4.2
     # via elasticsearch
 elasticsearch==9.5.0
     # via -r requirements-base.txt
+exceptiongroup==1.3.1
+    # via
+    #   anyio
+    #   ipython
 executing==2.2.1
     # via stack-data
 fastjsonschema==2.22.2
@@ -77,10 +85,8 @@ idna==3.19
     #   jupyterhub
     #   requests
     #   yarl
-ipython==9.17.1
+ipython==8.39.0
     # via -r requirements-base.txt
-ipython-pygments-lexers==1.1.1
-    # via ipython
 isoduration==20.11.0
     # via jsonschema
 jedi==0.20.0
@@ -153,8 +159,10 @@ nbformat==5.11.1
     #   jupyter-server
     #   nbclient
     #   nbconvert
-oauthlib==3.3.1
+oauthlib==4.0.0
     # via jupyterhub
+overrides==7.7.0
+    # via jupyter-server
 packaging==26.3
     # via
     #   jupyter-events
@@ -181,8 +189,6 @@ propcache==0.5.2
     # via
     #   aiohttp
     #   yarl
-psutil==7.2.2
-    # via ipython
 ptyprocess==0.7.0
     # via
     #   pexpect
@@ -202,7 +208,6 @@ pydantic-core==2.46.5
 pygments==2.21.0
     # via
     #   ipython
-    #   ipython-pygments-lexers
     #   nbconvert
 pylibmc==1.6.3
     # via -r requirements-base.txt
@@ -237,7 +242,7 @@ rfc3986-validator==0.1.1
     #   jupyter-events
 rfc3987-syntax==1.1.0
     # via jsonschema
-rpds-py==2026.6.3
+rpds-py==0.30.0
     # via
     #   jsonschema
     #   referencing
@@ -267,6 +272,8 @@ terminado==0.18.1
     #   jupyter-server-terminals
 tinycss2==1.5.1
     # via bleach
+tomli==2.4.1
+    # via alembic
 tornado==6.5.8
     # via
     #   -r requirements-base.txt
@@ -288,13 +295,21 @@ traitlets==5.16.1
     #   nbformat
 typing-extensions==4.16.0
     # via
+    #   aiohttp
+    #   aiosignal
     #   alembic
     #   anyio
     #   beautifulsoup4
+    #   cryptography
     #   elasticsearch
+    #   exceptiongroup
+    #   ipython
     #   jupyter-client
+    #   mistune
+    #   multidict
     #   pydantic
     #   pydantic-core
+    #   referencing
     #   sqlalchemy
     #   typing-inspection
 typing-inspection==0.4.4
