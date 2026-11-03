@@ -142,7 +142,7 @@ class GitHubUserHandler(GithubClientMixin, BaseHandler):
 
 
 class GitHubRepoHandler(GithubClientMixin, BaseHandler):
-    """redirect /github/user/repo to .../tree/master"""
+    """redirect /github/user/repo to .../tree/<default branch>"""
 
     async def get(self, user, repo):
         response = await self.github_client.get_repo(user, repo)
@@ -547,7 +547,7 @@ def uri_rewrites(rewrites=[]):
             "/github/{0}/{1}/{2}/{3}",
         ),
         # user/repo
-        (r"^([\w\-]+)/([^\/]+)$", "/github/{0}/{1}/tree/master/"),
+        (r"^([\w\-]+)/([^\/]+)$", "/github/{0}/{1}/"),
         # user
         (r"^([\w\-]+)$", "/github/{0}/"),
     ]
@@ -570,7 +570,7 @@ def uri_rewrites(rewrites=[]):
                 # user/repo
                 (
                     r"^" + github_base_url + r"([\w\-]+)/([^\/]+)/?$",
-                    "/github/{0}/{1}/tree/master",
+                    "/github/{0}/{1}/",
                 ),
                 # user
                 (r"^" + github_base_url + r"([\w\-]+)/?$", "/github/{0}/"),
