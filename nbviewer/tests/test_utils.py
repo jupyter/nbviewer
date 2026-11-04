@@ -34,7 +34,7 @@ def test_transform_ipynb_uri():
         # GITHUB_USER_RGX
         ("ipy-thon", "/github/ipy-thon/"),
         # GITHUB_USER_REPO_RGX
-        ("ipy-thon/ipy-thon", "/github/ipy-thon/ipy-thon/tree/master/"),
+        ("ipy-thon/ipy-thon", "/github/ipy-thon/ipy-thon/"),
         # DropBox Urls
         ("http://www.dropbox.com/s/bar/baz.qux", "/url/dl.dropbox.com/s/bar/baz.qux"),
         (

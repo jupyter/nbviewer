@@ -47,7 +47,7 @@ class TestRewrite(TestCase):
 
     def test_userrepo(self):
         uri = "username/reponame"
-        rewrite = "/github/username/reponame/tree/master/"
+        rewrite = "/github/username/reponame/"
         self.assert_rewrite(uri, rewrite)
 
     def test_user(self):
@@ -68,4 +68,9 @@ class TestRewrite(TestCase):
     def test_ghe_tree(self):
         uri = "https://example.com/user/reopname/tree/deadbeef/a mřížka.ipynb"
         rewrite = "/github/user/reopname/tree/deadbeef/a mřížka.ipynb"
+        self.assert_rewrite_ghe(uri, rewrite)
+
+    def test_ghe_userrepo(self):
+        uri = "https://example.com/username/reponame"
+        rewrite = "/github/username/reponame/"
         self.assert_rewrite_ghe(uri, rewrite)
